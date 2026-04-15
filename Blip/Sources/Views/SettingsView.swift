@@ -88,7 +88,7 @@ struct SettingsView: View {
 
             Section {
                 LabeledContent("Version") {
-                    Text("1.0.0")
+                    Text(Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "1.0.0")
                         .foregroundStyle(.secondary)
                 }
                 LabeledContent("GitHub") {
