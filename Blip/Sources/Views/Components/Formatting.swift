@@ -58,4 +58,30 @@ enum Fmt {
         if hours > 0 { return "\(hours)h \(mins)m" }
         return "\(mins)m"
     }
+
+    /// Compact chart Y-axis label for byte rates (e.g. "1.2 MB/s")
+    static func chartSpeed(_ bytesPerSec: Double) -> String {
+        if bytesPerSec >= 1_000_000_000 {
+            return String(format: "%.1f GB/s", bytesPerSec / 1_000_000_000)
+        } else if bytesPerSec >= 1_000_000 {
+            return String(format: "%.1f MB/s", bytesPerSec / 1_000_000)
+        } else if bytesPerSec >= 1_000 {
+            return String(format: "%.0f KB/s", bytesPerSec / 1_000)
+        }
+        return String(format: "%.0f B/s", bytesPerSec)
+    }
+
+    /// Format cumulative byte totals (e.g. "12.3 GB")
+    static func totalBytes(_ bytes: UInt64) -> String {
+        if bytes >= 1_000_000_000_000 {
+            return String(format: "%.1f TB", Double(bytes) / 1_000_000_000_000)
+        } else if bytes >= 1_000_000_000 {
+            return String(format: "%.1f GB", Double(bytes) / 1_000_000_000)
+        } else if bytes >= 1_000_000 {
+            return String(format: "%.1f MB", Double(bytes) / 1_000_000)
+        } else if bytes >= 1_000 {
+            return String(format: "%.0f KB", Double(bytes) / 1_000)
+        }
+        return "\(bytes) B"
+    }
 }

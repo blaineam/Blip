@@ -61,18 +61,23 @@ final class BatteryMonitor: Sendable {
             stats.cycleCount = cycleCount
         }
 
-        // On modern macOS, "MaxCapacity" is percentage-based (e.g. 100),
-        // while "DesignCapacity" is in mAh. Use "AppleRawMaxCapacity" (actual mAh)
-        // or fall back to "BatteryHealth" percentage directly.
-        if let rawMax = dict["AppleRawMaxCapacity"] as? Int,
+        // Use NominalChargeCapacity for health — matches macOS Settings app
+        // NominalChargeCapacity accounts for calibration, AppleRawMaxCapacity does not
+        if let nominalCapacity = dict["NominalChargeCapacity"] as? Int,
            let designCapacity = dict["DesignCapacity"] as? Int,
            designCapacity > 0 {
-            stats.health = Double(rawMax) / Double(designCapacity) * 100
-        } else if let maxCapacity = dict["MaxCapacity"] as? Int,
+            stats.health = Double(nominalCapacity) / Double(designCapacity) * 100
+        } else if let rawMax = dict["AppleRawMaxCapacity"] as? Int,
                   let designCapacity = dict["DesignCapacity"] as? Int,
-                  designCapacity > 0, maxCapacity > 100 {
-            // Only use MaxCapacity/DesignCapacity if MaxCapacity looks like mAh (>100)
-            stats.health = Double(maxCapacity) / Double(designCapacity) * 100
+                  designCapacity > 0 {
+            stats.health = Double(rawMax) / Double(designCapacity) * 100
+        }
+
+        // Battery condition (Normal, Service, etc.)
+        if let condition = dict["BatteryHealthCondition"] as? String {
+            stats.condition = condition
+        } else {
+            stats.condition = "Normal"
         }
 
         if let temp = dict["Temperature"] as? Int {

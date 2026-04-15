@@ -9,9 +9,10 @@ struct SettingsView: View {
     @AppStorage("showNetworkDot") private var showNetworkDot = true
     @AppStorage("showMeasurementLabels") private var showMeasurementLabels = true
     @AppStorage("showValueLabels") private var showValueLabels = true
-    @AppStorage("menuBarLayout") private var menuBarLayout: String = "stacked"
+    @AppStorage("menuBarLayout") private var menuBarLayout: String = "horizontal"
     @AppStorage("launchAtLogin") private var launchAtLogin = false
     @AppStorage("pingTarget") private var pingTarget: String = "1.1.1.1"
+    @AppStorage("colorizeUtilization") private var colorizeUtilization = true
 
     @State private var selectedTab: Int = 2
     @State private var selectedMode: ColorMode = .category
@@ -303,6 +304,7 @@ struct SettingsView: View {
             Section("Display") {
                 Toggle("Show Measurement Labels", isOn: $showMeasurementLabels)
                 Toggle("Show Value Labels", isOn: $showValueLabels)
+                Toggle("Colorize bars at high utilization", isOn: $colorizeUtilization)
             }
 
             Section {

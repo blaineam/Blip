@@ -6,6 +6,8 @@ final class DiskMonitor: @unchecked Sendable {
     private var previousWriteBytes: UInt64 = 0
     private var previousTimestamp: Date?
 
+    private var cachedSmartStatus: String?
+
     func read() -> DiskStats {
         var stats = DiskStats()
         let fileManager = FileManager.default
@@ -50,7 +52,40 @@ final class DiskMonitor: @unchecked Sendable {
         // Read disk I/O from IOKit
         readDiskIO(&stats)
 
+        // SMART status (cached, only read once)
+        if let cached = cachedSmartStatus {
+            stats.smartStatus = cached
+        } else {
+            let smart = Self.readSmartStatus()
+            cachedSmartStatus = smart
+            stats.smartStatus = smart
+        }
+
         return stats
+    }
+
+    private static func readSmartStatus() -> String {
+        let task = Foundation.Process()
+        let pipe = Pipe()
+        task.executableURL = URL(fileURLWithPath: "/usr/sbin/diskutil")
+        task.arguments = ["info", "disk0"]
+        task.standardOutput = pipe
+        task.standardError = FileHandle.nullDevice
+        do {
+            try task.run()
+            task.waitUntilExit()
+            let data = pipe.fileHandleForReading.readDataToEndOfFile()
+            let output = String(data: data, encoding: .utf8) ?? ""
+            for line in output.components(separatedBy: "\n") {
+                if line.contains("SMART Status") {
+                    let parts = line.components(separatedBy: ":")
+                    if parts.count >= 2 {
+                        return parts[1].trimmingCharacters(in: .whitespaces)
+                    }
+                }
+            }
+        } catch {}
+        return ""
     }
 
     private func readDiskIO(_ stats: inout DiskStats) {
@@ -85,6 +120,10 @@ final class DiskMonitor: @unchecked Sendable {
                 totalWrite += write
             }
         }
+
+        // Expose cumulative totals since boot
+        stats.totalBytesRead = totalRead
+        stats.totalBytesWritten = totalWrite
 
         let now = Date()
         if let prev = previousTimestamp {

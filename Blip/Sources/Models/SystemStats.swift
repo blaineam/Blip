@@ -21,13 +21,23 @@ struct CPUStats: Sendable {
 
 struct MemoryStats: Sendable {
     var total: UInt64 = 0
-    var used: UInt64 = 0
+    var used: UInt64 = 0       // App Memory + Wired + Compressed (matches Activity Monitor "Memory Used")
     var free: UInt64 = 0
     var wired: UInt64 = 0
     var compressed: UInt64 = 0
-    var appMemory: UInt64 = 0
+    var appMemory: UInt64 = 0  // Active + Inactive - Purgeable (matches Activity Monitor "App Memory")
+    var cachedFiles: UInt64 = 0 // Purgeable + External pages (matches Activity Monitor "Cached Files")
+    var swapUsed: UInt64 = 0
+    var swapTotal: UInt64 = 0
+    var pressureLevel: Int = 0 // 0=nominal, 1=warning, 2=critical, 4=urgent (from kernel)
 
     var usagePercent: Double {
+        guard total > 0 else { return 0 }
+        return Double(used) / Double(total) * 100
+    }
+
+    /// Memory pressure as percentage for the pressure bar
+    var pressurePercent: Double {
         guard total > 0 else { return 0 }
         return Double(used) / Double(total) * 100
     }
@@ -39,6 +49,9 @@ struct DiskStats: Sendable {
     var volumes: [VolumeInfo] = []
     var readBytesPerSec: UInt64 = 0
     var writeBytesPerSec: UInt64 = 0
+    var totalBytesRead: UInt64 = 0
+    var totalBytesWritten: UInt64 = 0
+    var smartStatus: String = ""
 
     var primaryUsagePercent: Double {
         guard let primary = volumes.first else { return 0 }
@@ -71,6 +84,15 @@ struct GPUStats: Sendable {
 
 // MARK: - Network
 
+struct InterfaceInfo: Identifiable, Sendable {
+    let id: String // interface name e.g. "en0"
+    let name: String // display name e.g. "Wi-Fi" or "Ethernet"
+    let ipv4: String
+    let ipv6: String
+    let macAddress: String
+    let isActive: Bool
+}
+
 struct NetworkStats: Sendable {
     var isConnected: Bool = false
     var interfaceName: String = ""
@@ -87,6 +109,9 @@ struct NetworkStats: Sendable {
     var routerPingMs: Double? = nil
     var routerIP: String = "—"
     var macAddress: String = "—"
+    var totalBytesDownloaded: UInt64 = 0
+    var totalBytesUploaded: UInt64 = 0
+    var interfaces: [InterfaceInfo] = []
 }
 
 // MARK: - Battery
@@ -96,6 +121,7 @@ struct BatteryStats: Sendable {
     var isCharging: Bool = false
     var cycleCount: Int = 0
     var health: Double = 100
+    var condition: String = "Normal"
     var temperature: Double = 0
     var timeRemaining: Int = -1
     var powerSource: String = "Battery"

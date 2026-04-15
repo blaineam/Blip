@@ -23,20 +23,20 @@ Existing system monitors are either bloated, expensive, or missing key features.
 
 | Category | Menu Bar | Detail Panel |
 |----------|----------|-------------|
-| **CPU** | Usage bar + percentage | Per-core bars, user/system split, load averages (1m/5m/15m), P-core and E-core counts, top processes with app icons |
-| **Memory** | Usage bar + percentage | Total memory, active/wired/compressed/app breakdown, memory pressure, top processes with app icons |
-| **Disk** | Usage bar + percentage | All mounted volumes with space used/free, real-time read/write speeds, I/O history chart |
-| **Network** | Connectivity dot | Upload/download speeds, WAN and router ping latency (configurable target), bandwidth history chart, IPv4/IPv6, LAN IP, router IP, MAC address, WAN IP reveal, VPN detection (Tailscale, WireGuard), click-to-copy addresses |
+| **CPU** | Usage bar + percentage | Per-core bars, user/system/idle split, load averages (1m/5m/15m), P-core and E-core counts, top processes with accurate delta-based CPU and app icons |
+| **Memory** | Usage bar + percentage | Total memory, active/wired/compressed/app breakdown, swap usage, memory pressure (factors in swap), top processes with accurate `phys_footprint` memory and app icons |
+| **Disk** | Usage bar + percentage | All mounted volumes with space used/free, real-time read/write speeds, total data read/written since boot, I/O history chart with Y-axis labels |
+| **Network** | Connectivity dot | Upload/download speeds, total bytes up/down since boot, WAN and router ping latency (configurable target), bandwidth history chart with Y-axis labels, all active interfaces (Wi-Fi + Ethernet), IPv4/IPv6, LAN IP, router IP, MAC address, WAN IP reveal, VPN detection (Tailscale, WireGuard), click-to-copy addresses |
 | **GPU** | — | Apple Silicon GPU utilization, renderer name, GPU core count, historical usage chart |
 | **Battery** | — | Charge %, health %, cycle count, temperature, time remaining, charging status |
 | **Fans** | — | RPM per fan with min/max range bars, CPU and GPU temperatures |
 | **System** | — | Mac model, macOS version, uptime, thermal state, Blip's own memory usage |
 
 Plus:
-- **Historical charts** — sparklines for CPU, memory, GPU; dual-line charts for disk I/O and network bandwidth
-- **Hover detail panels** — hover any row in the popover to reveal a detailed sub-panel (like iStats Menus)
-- **Two layouts** — stacked (compact vertical bars) or horizontal (wide side-by-side)
-- **Customizable** — category colors, monochrome, or custom color picker; separate measurement and value label toggles
+- **Historical charts** — sparklines for CPU, memory, GPU; dual-line charts for disk I/O and network bandwidth with auto-scaled Y-axis labels
+- **Live detail panels** — hover any row in the popover to reveal a detailed sub-panel that updates in real-time (like iStats Menus)
+- **Two layouts** — horizontal (default, wide side-by-side) or stacked (compact vertical bars)
+- **Customizable** — category colors, monochrome, or custom color picker; separate measurement and value label toggles; optional utilization colorization
 - **Launch at login** — one toggle in settings
 
 ## 📦 Install
@@ -95,7 +95,7 @@ chmod +x Scripts/build-dmg.sh
               │                     │
               │  Mac14,7 · macOS 15 │
               │  ⏱ 3d 2h │ Nominal │
-              │  Blip v1.1.0       │
+              │  Blip v1.2.0       │
               └─────────────────────┘
 ```
 
@@ -118,7 +118,7 @@ Blip/
 │   │   │   ├── NetworkMonitor.swift     # NWPathMonitor + getifaddrs
 │   │   │   ├── BatteryMonitor.swift     # IOPSCopyPowerSourcesInfo
 │   │   │   ├── FanMonitor.swift         # SMC fan keys
-│   │   │   ├── ProcessMonitor.swift     # ps + NSRunningApplication
+│   │   │   ├── ProcessMonitor.swift     # proc_pidinfo + proc_pid_rusage
 │   │   │   └── SMCKit.swift             # IOKit SMC interface
 │   │   └── Views/
 │   │       ├── StatusItemView.swift     # Menu bar layout (stacked/horizontal)

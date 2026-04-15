@@ -15,10 +15,20 @@ struct DiskDetailPanel: View {
                 Text("Disk")
                     .font(.system(size: 13, weight: .semibold))
                 Spacer()
+                if !stats.smartStatus.isEmpty {
+                    HStack(spacing: 3) {
+                        Circle()
+                            .fill(stats.smartStatus == "Verified" ? Color.green : Color.red)
+                            .frame(width: 6, height: 6)
+                        Text(stats.smartStatus)
+                            .font(.system(size: 10))
+                            .foregroundStyle(.secondary)
+                    }
+                }
             }
 
             // I/O Speed
-            HStack(spacing: 16) {
+            HStack(spacing: 0) {
                 VStack(alignment: .leading, spacing: 2) {
                     HStack(spacing: 2) {
                         Image(systemName: "arrow.down.doc")
@@ -31,6 +41,7 @@ struct DiskDetailPanel: View {
                     Text(Fmt.speed(stats.readBytesPerSec))
                         .font(.system(size: 11, design: .monospaced))
                 }
+                .frame(maxWidth: .infinity, alignment: .leading)
                 VStack(alignment: .leading, spacing: 2) {
                     HStack(spacing: 2) {
                         Image(systemName: "arrow.up.doc")
@@ -43,6 +54,27 @@ struct DiskDetailPanel: View {
                     Text(Fmt.speed(stats.writeBytesPerSec))
                         .font(.system(size: 11, design: .monospaced))
                 }
+                .frame(maxWidth: .infinity, alignment: .leading)
+            }
+
+            // Total read/written since boot
+            HStack(spacing: 0) {
+                VStack(alignment: .leading, spacing: 2) {
+                    Text("Total Read")
+                        .font(.system(size: 10))
+                        .foregroundStyle(.secondary)
+                    Text(Fmt.totalBytes(stats.totalBytesRead))
+                        .font(.system(size: 11, design: .monospaced))
+                }
+                .frame(maxWidth: .infinity, alignment: .leading)
+                VStack(alignment: .leading, spacing: 2) {
+                    Text("Total Written")
+                        .font(.system(size: 10))
+                        .foregroundStyle(.secondary)
+                    Text(Fmt.totalBytes(stats.totalBytesWritten))
+                        .font(.system(size: 11, design: .monospaced))
+                }
+                .frame(maxWidth: .infinity, alignment: .leading)
             }
 
             // I/O History Chart
@@ -127,7 +159,18 @@ struct DiskDetailPanel: View {
             }
             .chartLegend(.hidden)
             .chartXAxis(.hidden)
-            .chartYAxis(.hidden)
+            .chartYAxis {
+                AxisMarks(position: .trailing) { value in
+                    AxisValueLabel {
+                        if let v = value.as(Double.self) {
+                            Text(Fmt.chartSpeed(v))
+                                .font(.system(size: 7))
+                        }
+                    }
+                    AxisGridLine(stroke: StrokeStyle(lineWidth: 0.5, dash: [2]))
+                        .foregroundStyle(.quaternary)
+                }
+            }
             .frame(height: 80)
 
             HStack(spacing: 12) {

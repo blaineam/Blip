@@ -1,5 +1,37 @@
 # Changelog
 
+## v1.2.0
+
+### Accuracy Improvements
+- **Process memory** — now uses `phys_footprint` (via `proc_pid_rusage`) matching Activity Monitor exactly, instead of RSS from `ps`
+- **Process CPU** — delta-based CPU calculation using `proc_pidinfo(PROC_PIDTASKINFO)` with proper Mach timebase conversion for accurate instantaneous usage instead of lifetime averages from `ps`
+- **System processes** — system/root-owned processes (WindowServer, etc.) now appear in top process lists via `ps` fallback
+- **Memory pressure** — uses kernel pressure level (`kern.memorystatus_vm_pressure_level`) with Normal/Warning/Critical indicators
+- **Memory breakdown** — matches Activity Monitor exactly: App Memory = internal - purgeable, Used = App + Wired + Compressed
+- **Battery health** — uses `NominalChargeCapacity` matching the Settings app; added battery condition (Normal/Service)
+
+### New Data
+- **Swap usage** — swap used/total shown in memory detail panel with progress bar
+- **CPU idle %** — idle percentage displayed alongside user and system in CPU detail panel
+- **Disk totals** — total data read and written since boot shown in disk detail panel
+- **Network totals** — total bytes downloaded and uploaded since boot shown in network detail panel
+- **Multi-interface** — all active network interfaces (Wi-Fi, Ethernet, etc.) listed with IPs and MACs when multiple are connected
+
+### Charts
+- **Y-axis labels** — bandwidth and disk I/O charts now show auto-scaled speed units (B/s, KB/s, MB/s, GB/s) on the Y-axis
+
+### Settings
+- **Colorize utilization toggle** — option to disable orange/red bar color changes at high CPU/memory/disk utilization
+- **Default layout** — changed default menu bar layout from stacked to horizontal
+
+### Live Refresh
+- **Detail panel updates** — sub panels now live-refresh data as it changes instead of only updating on hover
+
+### Polish
+- **OG poster** — improved background with diagonal gradient and cyan radial glow
+
+---
+
 ## v1.1.0
 
 ### Network Enhancements

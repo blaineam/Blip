@@ -46,7 +46,7 @@
       "license": "https://opensource.org/licenses/MIT",
       "url": "https://blip.wemiller.com/",
       "downloadUrl": "https://github.com/blaineam/blip/releases/latest",
-      "softwareVersion": "1.1.0",
+      "softwareVersion": "1.2.0",
       "processorRequirements": "Apple Silicon (ARM64)"
     }
     </script>
@@ -66,6 +66,8 @@
             --accent-orange: #ff9f0a;
             --accent-cyan: #64d2ff;
             --accent-red: #ff453a;
+            --accent-yellow: #ffd60a;
+            --accent-teal: #6ac4dc;
         }
 
         * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -78,14 +80,11 @@
             overflow-x: hidden;
         }
 
-        /* Ambient glow background */
         body::before {
             content: '';
             position: fixed;
-            top: -50%;
-            left: -50%;
-            width: 200%;
-            height: 200%;
+            top: -50%; left: -50%;
+            width: 200%; height: 200%;
             background: radial-gradient(ellipse at 30% 20%, rgba(48, 209, 88, 0.06) 0%, transparent 50%),
                         radial-gradient(ellipse at 70% 60%, rgba(10, 132, 255, 0.04) 0%, transparent 50%),
                         radial-gradient(ellipse at 50% 80%, rgba(191, 90, 242, 0.03) 0%, transparent 50%);
@@ -98,11 +97,7 @@
             100% { transform: translate(-2%, -1%) rotate(2deg); }
         }
 
-        .container {
-            max-width: 960px;
-            margin: 0 auto;
-            padding: 0 24px;
-        }
+        .container { max-width: 960px; margin: 0 auto; padding: 0 24px; }
 
         /* Nav */
         nav {
@@ -111,384 +106,359 @@
             -webkit-backdrop-filter: blur(20px);
             background: rgba(10, 10, 15, 0.7);
             border-bottom: 1px solid var(--glass-border);
-            position: sticky;
-            top: 0;
-            z-index: 100;
+            position: sticky; top: 0; z-index: 100;
         }
-
-        nav .container {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-        }
-
-        .logo {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            font-size: 18px;
-            font-weight: 700;
-            text-decoration: none;
-            color: var(--text);
-        }
-
+        nav .container { display: flex; align-items: center; justify-content: space-between; }
+        .logo { display: flex; align-items: center; gap: 10px; font-size: 18px; font-weight: 700; text-decoration: none; color: var(--text); }
         .logo-dot {
-            width: 10px;
-            height: 10px;
-            border-radius: 50%;
+            width: 10px; height: 10px; border-radius: 50%;
             background: var(--accent);
             box-shadow: 0 0 12px var(--accent), 0 0 24px rgba(48, 209, 88, 0.3);
             animation: pulse 2s ease-in-out infinite;
         }
-
         @keyframes pulse {
             0%, 100% { opacity: 1; box-shadow: 0 0 12px var(--accent), 0 0 24px rgba(48, 209, 88, 0.3); }
             50% { opacity: 0.7; box-shadow: 0 0 8px var(--accent), 0 0 16px rgba(48, 209, 88, 0.2); }
         }
-
         .nav-links { display: flex; gap: 24px; align-items: center; }
-        .nav-links a {
-            color: var(--text-secondary);
-            text-decoration: none;
-            font-size: 14px;
-            font-weight: 500;
-            transition: color 0.2s;
-        }
+        .nav-links a { color: var(--text-secondary); text-decoration: none; font-size: 14px; font-weight: 500; transition: color 0.2s; }
         .nav-links a:hover { color: var(--text); }
-
-        .btn {
-            display: inline-flex;
-            align-items: center;
-            gap: 8px;
-            padding: 10px 20px;
-            border-radius: 12px;
-            font-size: 14px;
-            font-weight: 600;
-            text-decoration: none;
-            transition: all 0.2s;
-        }
-
-        .btn-primary {
-            background: var(--accent);
-            color: #000;
-        }
-        .btn-primary:hover {
-            background: #3bde63;
-            transform: translateY(-1px);
-            box-shadow: 0 4px 20px rgba(48, 209, 88, 0.3);
-        }
-
-        .btn-secondary {
-            background: var(--surface);
-            color: var(--text);
-            border: 1px solid var(--glass-border);
-        }
-        .btn-secondary:hover {
-            background: var(--surface-hover);
-            transform: translateY(-1px);
-        }
+        .btn { display: inline-flex; align-items: center; gap: 8px; padding: 10px 20px; border-radius: 12px; font-size: 14px; font-weight: 600; text-decoration: none; transition: all 0.2s; }
+        .btn-primary { background: var(--accent); color: #000; }
+        .btn-primary:hover { background: #3bde63; transform: translateY(-1px); box-shadow: 0 4px 20px rgba(48, 209, 88, 0.3); }
+        .btn-secondary { background: var(--surface); color: var(--text); border: 1px solid var(--glass-border); }
+        .btn-secondary:hover { background: var(--surface-hover); transform: translateY(-1px); }
 
         /* Hero */
-        .hero {
-            padding: 100px 0 80px;
-            text-align: center;
-        }
-
+        .hero { padding: 100px 0 80px; text-align: center; }
         .hero-badge {
-            display: inline-block;
-            padding: 6px 14px;
-            border-radius: 20px;
-            background: var(--glass);
-            border: 1px solid var(--glass-border);
-            font-size: 12px;
-            font-weight: 600;
-            color: var(--accent);
-            margin-bottom: 24px;
-            letter-spacing: 0.5px;
+            display: inline-block; padding: 6px 14px; border-radius: 20px;
+            background: var(--glass); border: 1px solid var(--glass-border);
+            font-size: 12px; font-weight: 600; color: var(--accent);
+            margin-bottom: 24px; letter-spacing: 0.5px;
         }
-
         .hero h1 {
-            font-size: 56px;
-            font-weight: 800;
-            letter-spacing: -1.5px;
-            line-height: 1.1;
-            margin-bottom: 20px;
+            font-size: 56px; font-weight: 800; letter-spacing: -1.5px; line-height: 1.1; margin-bottom: 20px;
             background: linear-gradient(135deg, var(--text) 0%, var(--text-secondary) 100%);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
+            -webkit-background-clip: text; -webkit-text-fill-color: transparent;
         }
-
-        .hero p {
-            font-size: 18px;
-            color: var(--text-secondary);
-            max-width: 540px;
-            margin: 0 auto 36px;
-            line-height: 1.7;
-        }
-
+        .hero p { font-size: 18px; color: var(--text-secondary); max-width: 540px; margin: 0 auto 36px; line-height: 1.7; }
         .hero-buttons { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; }
 
-        /* Menu bar demo */
-        .demo-section { padding: 40px 0 80px; }
-
-        .demo-menubar {
-            max-width: 600px;
-            margin: 0 auto;
-            background: rgba(30, 30, 35, 0.8);
-            backdrop-filter: blur(30px);
-            -webkit-backdrop-filter: blur(30px);
-            border: 1px solid var(--glass-border);
-            border-radius: 12px;
-            padding: 12px 20px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 20px;
-            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
-        }
-
-        .demo-stat {
-            display: flex;
-            align-items: center;
-            gap: 6px;
-            font-size: 11px;
-            font-family: 'SF Mono', 'Menlo', monospace;
-        }
-
-        .demo-label {
-            color: var(--text-secondary);
-            font-size: 9px;
-            font-weight: 600;
-            letter-spacing: 0.5px;
-        }
-
-        .demo-bar {
-            width: 28px;
-            height: 3px;
-            background: rgba(255, 255, 255, 0.1);
-            border-radius: 2px;
-            overflow: hidden;
+        /* ═══════════════════════════════════════════
+           Interactive Demo
+           ═══════════════════════════════════════════ */
+        .demo-section { padding: 20px 0 80px; }
+        .demo-wrapper {
             position: relative;
+            max-width: 700px;
+            margin: 0 auto;
+            height: 560px;
         }
 
-        .demo-bar-fill {
-            height: 100%;
-            border-radius: 2px;
-            transition: width 1.5s ease;
+        /* Fake cursor */
+        .fake-cursor {
+            position: absolute;
+            width: 14px; height: 20px;
+            z-index: 50;
+            opacity: 0;
+            transition: left 0.6s cubic-bezier(.4,0,.2,1), top 0.6s cubic-bezier(.4,0,.2,1), opacity 0.3s;
+            pointer-events: none;
+            filter: drop-shadow(0 1px 2px rgba(0,0,0,0.5));
         }
 
-        .demo-value {
+        /* Menu bar strip */
+        .demo-menubar {
+            position: absolute; top: 0; left: 50%; transform: translateX(-50%);
+            background: rgba(30, 30, 35, 0.92);
+            backdrop-filter: blur(30px);
+            border: 1px solid var(--glass-border);
+            border-radius: 8px;
+            padding: 6px 14px;
+            height: 28px;
+            display: flex; align-items: center; gap: 8px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.4);
+            font-family: 'SF Mono', 'Menlo', monospace;
             font-size: 10px;
-            font-weight: 600;
-            min-width: 22px;
-            text-align: right;
+            cursor: default;
+            transition: opacity 0.5s;
         }
+        .mb-items { display: flex; align-items: center; gap: 12px; }
+        .mb-items.stacked { flex-direction: column; gap: 2px; align-items: flex-start; justify-content: center; height: 100%; }
+        .mb-items.stacked .mb-item { gap: 2px; line-height: 1; height: 6px; }
+        .mb-items.stacked .mb-label { font-size: 5px; width: 14px; }
+        .mb-items.stacked .mb-bar { width: 18px; height: 2px; }
+        .mb-items.stacked .mb-val { font-size: 6px; min-width: 12px; }
+        .mb-item { display: flex; align-items: center; gap: 4px; }
+        .mb-label { color: var(--text-secondary); font-size: 8px; font-weight: 600; letter-spacing: 0.5px; }
+        .mb-bar { width: 28px; height: 3px; background: rgba(255,255,255,0.08); border-radius: 2px; overflow: hidden; }
+        .mb-fill { height: 100%; border-radius: 2px; }
+        .mb-val { font-size: 9px; font-weight: 600; min-width: 18px; text-align: right; }
+        .mb-dot { width: 5px; height: 5px; border-radius: 50%; background: var(--accent); box-shadow: 0 0 6px rgba(48,209,88,0.5); }
 
-        .demo-dot {
-            width: 6px;
-            height: 6px;
-            border-radius: 50%;
-            background: var(--accent);
-            box-shadow: 0 0 8px rgba(48, 209, 88, 0.5);
+        /* Popover */
+        .demo-popover {
+            position: absolute; top: 36px; left: 50%; transform: translateX(-50%);
+            width: 280px;
+            background: rgba(40, 40, 44, 0.96);
+            backdrop-filter: blur(40px);
+            border: 1px solid rgba(255,255,255,0.12);
+            border-radius: 12px;
+            padding: 6px 0;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.6);
+            opacity: 0; transform-origin: top center;
+            transition: opacity 0.3s, transform 0.3s;
         }
+        .demo-popover.visible { opacity: 1; transform: translateX(-50%) translateY(0); }
+        .demo-popover.hidden { opacity: 0; transform: translateX(-50%) translateY(-8px); }
+
+        .pop-row {
+            display: flex; align-items: center; padding: 5px 12px; gap: 8px;
+            transition: background 0.15s;
+            cursor: default;
+            border-radius: 4px;
+            margin: 0 4px;
+        }
+        .pop-row.hovered { background: rgba(255,255,255,0.06); }
+        .pop-row-icon { width: 18px; height: 18px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+        .pop-row-icon svg { width: 15px; height: 15px; }
+        .pop-row-label { font-size: 12px; font-weight: 500; width: 64px; flex-shrink: 0; }
+        .pop-row-bar-wrap { flex: 1; display: flex; align-items: center; }
+        .pop-row-bar { width: 100%; height: 5px; background: rgba(255,255,255,0.08); border-radius: 3px; overflow: hidden; }
+        .pop-row-fill { height: 100%; border-radius: 3px; transition: width 0.5s; }
+        .pop-row-value { font-size: 11px; font-family: 'SF Mono','Menlo',monospace; color: var(--text-secondary); min-width: 36px; text-align: right; flex-shrink: 0; }
+        .pop-row-net-value { font-size: 10px; font-family: 'SF Mono','Menlo',monospace; color: var(--text-secondary); flex: 1; text-align: right; }
+        .pop-row-thermal-value { font-size: 11px; font-weight: 600; flex: 1; text-align: right; }
+        .pop-row-chevron { font-size: 10px; color: rgba(255,255,255,0.15); margin-left: 2px; flex-shrink: 0; }
+
+        .pop-divider { height: 1px; background: rgba(255,255,255,0.08); margin: 4px 12px; }
+
+        .pop-footer {
+            padding: 4px 12px 2px;
+        }
+        .pop-footer-row {
+            display: flex; align-items: center; gap: 5px;
+            font-size: 9px; color: rgba(255,255,255,0.35);
+            padding: 1px 0;
+        }
+        .pop-footer-row svg { width: 8px; height: 8px; opacity: 0.4; }
+        .pop-footer-info {
+            display: flex; align-items: center; justify-content: space-between;
+            padding: 2px 0 0;
+        }
+        .pop-footer-version {
+            font-size: 8px; color: rgba(255,255,255,0.2);
+            font-family: 'SF Mono','Menlo',monospace;
+        }
+        .pop-footer-btns { display: flex; gap: 8px; }
+        .pop-footer-btns svg { width: 11px; height: 11px; color: rgba(255,255,255,0.3); cursor: pointer; }
+
+        /* Detail panel */
+        .demo-detail {
+            position: absolute; top: 36px;
+            width: 280px;
+            background: rgba(40, 40, 44, 0.96);
+            backdrop-filter: blur(40px);
+            border: 1px solid rgba(255,255,255,0.12);
+            border-radius: 12px;
+            padding: 12px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.5);
+            opacity: 0;
+            transition: opacity 0.25s, transform 0.25s;
+            transform: translateX(10px);
+            pointer-events: none;
+            font-size: 11px;
+        }
+        .demo-detail.visible { opacity: 1; transform: translateX(0); pointer-events: auto; }
+        .demo-detail.left-side { right: calc(50% + 148px); transform: translateX(-10px); }
+        .demo-detail.left-side.visible { transform: translateX(0); }
+        .demo-detail.right-side { left: calc(50% + 148px); }
+
+        .dp-header { display: flex; align-items: center; gap: 6px; margin-bottom: 10px; }
+        .dp-header svg { width: 14px; height: 14px; flex-shrink: 0; }
+        .dp-header-title { font-size: 13px; font-weight: 600; }
+        .dp-header-right { margin-left: auto; display: flex; align-items: center; gap: 4px; }
+        .dp-header-value { font-size: 13px; font-weight: 700; font-family: 'SF Mono','Menlo',monospace; }
+
+        .dp-row { display: flex; align-items: center; padding: 2px 0; }
+        .dp-row-label { color: var(--text-secondary); font-size: 11px; }
+        .dp-row-value { margin-left: auto; font-family: 'SF Mono','Menlo',monospace; font-size: 11px; }
+
+        .dp-cols { display: flex; gap: 0; margin: 4px 0; }
+        .dp-col { flex: 1; }
+        .dp-col-label { font-size: 10px; color: var(--text-secondary); margin-bottom: 1px; }
+        .dp-col-value { font-size: 11px; font-family: 'SF Mono','Menlo',monospace; font-weight: 500; }
+
+        .dp-divider { height: 1px; background: rgba(255,255,255,0.08); margin: 8px 0; }
+
+        /* Per-core grid (2-column) */
+        .dp-core-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 2px 8px; margin: 6px 0; }
+        .dp-core-row { display: flex; align-items: center; gap: 3px; }
+        .dp-core-label { font-size: 7px; color: var(--text-secondary); width: 14px; text-align: right; font-family: 'SF Mono','Menlo',monospace; flex-shrink: 0; }
+        .dp-core-track { flex: 1; height: 4px; background: rgba(10,132,255,0.1); border-radius: 2px; overflow: hidden; }
+        .dp-core-fill { height: 100%; border-radius: 2px; }
+
+        /* Memory colored dot rows */
+        .dp-dot-row { display: flex; align-items: center; padding: 2px 0; gap: 6px; }
+        .dp-dot { width: 6px; height: 6px; border-radius: 50%; flex-shrink: 0; }
+        .dp-dot-label { font-size: 11px; flex: 1; }
+        .dp-dot-value { font-family: 'SF Mono','Menlo',monospace; font-size: 11px; color: var(--text-secondary); }
+
+        /* Chart with Y-axis */
+        .dp-chart-wrap { margin: 6px 0 4px; }
+        .dp-chart-label { font-size: 10px; color: var(--text-secondary); margin-bottom: 2px; }
+        .dp-chart-container { display: flex; gap: 0; }
+        .dp-chart-yaxis { display: flex; flex-direction: column; justify-content: space-between; align-items: flex-start; padding: 0 0 0 4px; width: 42px; flex-shrink: 0; order: 1; }
+        .dp-chart-yaxis span { font-size: 7px; color: rgba(255,255,255,0.25); font-family: 'SF Mono','Menlo',monospace; line-height: 1; }
+        .dp-chart { flex: 1; height: 50px; background: rgba(255,255,255,0.02); border-radius: 4px; overflow: hidden; position: relative; }
+        .dp-chart svg { width: 100%; height: 100%; }
+
+        /* Disk chart legend */
+        .dp-chart-legend { display: flex; gap: 12px; margin-bottom: 2px; }
+        .dp-chart-legend-item { display: flex; align-items: center; gap: 4px; font-size: 9px; color: var(--text-secondary); }
+        .dp-chart-legend-dot { width: 5px; height: 5px; border-radius: 50%; }
+
+        /* Pressure/usage bars */
+        .dp-bar-track { width: 100%; height: 6px; background: rgba(255,255,255,0.06); border-radius: 3px; overflow: hidden; }
+        .dp-bar-fill { height: 100%; border-radius: 3px; }
+
+        /* Volume bars */
+        .dp-vol-header { display: flex; align-items: center; gap: 5px; margin-top: 4px; }
+        .dp-vol-header svg { width: 12px; height: 12px; color: var(--text-secondary); }
+        .dp-vol-name { font-size: 11px; font-weight: 500; }
+        .dp-vol-pct { margin-left: auto; font-size: 11px; font-family: 'SF Mono','Menlo',monospace; }
+        .dp-vol-bar { width: 100%; height: 6px; background: rgba(255,159,10,0.1); border-radius: 3px; overflow: hidden; margin: 4px 0; }
+        .dp-vol-fill { height: 100%; border-radius: 3px; background: var(--accent-orange); }
+        .dp-vol-info { display: flex; justify-content: space-between; font-size: 9px; color: var(--text-secondary); }
+
+        /* Process rows */
+        .dp-proc { display: flex; align-items: center; gap: 6px; padding: 2px 0; }
+        .dp-proc-icon { width: 16px; height: 16px; border-radius: 4px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; overflow: hidden; }
+        .dp-proc-icon img { width: 16px; height: 16px; }
+        .dp-proc-icon svg { width: 16px; height: 16px; }
+        .dp-proc-name { font-size: 10px; flex: 1; }
+        .dp-proc-val { font-size: 10px; font-family: 'SF Mono','Menlo',monospace; color: var(--text-secondary); }
+
+        .dp-section-title { font-size: 10px; color: var(--text-secondary); margin: 6px 0 4px; }
+
+        /* Pressure row */
+        .dp-pressure-row { display: flex; align-items: center; gap: 6px; margin: 4px 0; }
+        .dp-pressure-label { font-size: 10px; color: var(--text-secondary); flex-shrink: 0; }
+        .dp-pressure-track { flex: 1; height: 6px; background: rgba(255,255,255,0.06); border-radius: 3px; overflow: hidden; }
+        .dp-pressure-fill { height: 100%; border-radius: 3px; }
+        .dp-pressure-text { font-size: 10px; font-weight: 600; flex-shrink: 0; }
+
+        /* Fan bars */
+        .dp-fan-bar { margin: 4px 0; }
+        .dp-fan-header { display: flex; justify-content: space-between; align-items: center; }
+        .dp-fan-name { font-size: 11px; }
+        .dp-fan-rpm { font-size: 11px; font-family: 'SF Mono','Menlo',monospace; color: var(--text-secondary); }
+        .dp-fan-track { width: 100%; height: 6px; background: rgba(106,196,220,0.1); border-radius: 3px; overflow: hidden; margin: 3px 0; }
+        .dp-fan-fill { height: 100%; border-radius: 3px; background: var(--accent-teal); }
+        .dp-fan-range { display: flex; justify-content: space-between; font-size: 8px; color: rgba(255,255,255,0.25); }
+
+        /* Style showcase */
+        .style-showcase {
+            position: absolute; top: 0; left: 0; right: 0; bottom: 0;
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+            gap: 18px; opacity: 0; transition: opacity 0.5s; pointer-events: none;
+        }
+        .style-showcase.visible { opacity: 1; }
+        .style-showcase-title {
+            font-size: 13px; font-weight: 600; color: var(--text-secondary);
+            letter-spacing: 0.5px; margin-bottom: 4px;
+        }
+        .style-variant {
+            display: flex; align-items: center; gap: 14px;
+            opacity: 0; transform: translateY(8px);
+            transition: opacity 0.4s, transform 0.4s;
+        }
+        .style-variant.show { opacity: 1; transform: translateY(0); }
+        .style-variant-label {
+            font-size: 11px; color: var(--text-secondary); width: 90px; text-align: right;
+        }
+        .style-variant-bar {
+            background: rgba(30, 30, 35, 0.9); border: 1px solid var(--glass-border);
+            border-radius: 8px; padding: 6px 12px;
+            display: flex; align-items: center; gap: 10px;
+            font-family: 'SF Mono','Menlo',monospace; font-size: 10px;
+            box-shadow: 0 4px 16px rgba(0,0,0,0.3);
+        }
+        .sv-item { display: flex; align-items: center; gap: 3px; }
+        .sv-label { font-size: 7px; font-weight: 600; letter-spacing: 0.4px; color: var(--text-secondary); }
+        .sv-bar { width: 20px; height: 3px; background: rgba(255,255,255,0.08); border-radius: 2px; overflow: hidden; }
+        .sv-fill { height: 100%; border-radius: 2px; }
+        .sv-val { font-size: 8px; font-weight: 600; min-width: 14px; }
+        .sv-dot { width: 4px; height: 4px; border-radius: 50%; }
+        .sv-stacked { flex-direction: column; gap: 0; align-items: flex-start; }
+        .sv-stacked-row { display: flex; align-items: center; gap: 3px; height: 8px; }
+        .sv-stacked .sv-bar { width: 20px; height: 2px; }
+        .sv-stacked .sv-val { font-size: 7px; }
+        .sv-stacked .sv-label { font-size: 6px; width: 16px; }
 
         /* Features */
         .features { padding: 80px 0; }
-        .features h2 {
-            font-size: 36px;
-            font-weight: 700;
-            text-align: center;
-            margin-bottom: 12px;
-            letter-spacing: -0.5px;
-        }
-        .features .subtitle {
-            text-align: center;
-            color: var(--text-secondary);
-            margin-bottom: 48px;
-            font-size: 16px;
-        }
-
-        .feature-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-            gap: 16px;
-        }
-
+        .features h2 { font-size: 36px; font-weight: 700; text-align: center; margin-bottom: 12px; letter-spacing: -0.5px; }
+        .features .subtitle { text-align: center; color: var(--text-secondary); margin-bottom: 48px; font-size: 16px; }
+        .feature-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 16px; }
         .feature-card {
-            background: var(--glass);
-            border: 1px solid var(--glass-border);
-            border-radius: 16px;
-            padding: 24px;
-            backdrop-filter: blur(10px);
-            -webkit-backdrop-filter: blur(10px);
-            transition: all 0.3s;
+            background: var(--glass); border: 1px solid var(--glass-border); border-radius: 16px; padding: 24px;
+            backdrop-filter: blur(10px); transition: all 0.3s;
         }
-        .feature-card:hover {
-            background: var(--surface-hover);
-            transform: translateY(-2px);
-            box-shadow: 0 8px 30px rgba(0, 0, 0, 0.3);
-        }
-
-        .feature-icon {
-            width: 36px;
-            height: 36px;
-            border-radius: 10px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 18px;
-            margin-bottom: 14px;
-        }
-
-        .feature-card h3 {
-            font-size: 15px;
-            font-weight: 600;
-            margin-bottom: 6px;
-        }
-
-        .feature-card p {
-            font-size: 13px;
-            color: var(--text-secondary);
-            line-height: 1.5;
-        }
+        .feature-card:hover { background: var(--surface-hover); transform: translateY(-2px); box-shadow: 0 8px 30px rgba(0,0,0,0.3); }
+        .feature-icon { width: 36px; height: 36px; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 18px; margin-bottom: 14px; }
+        .feature-card h3 { font-size: 15px; font-weight: 600; margin-bottom: 6px; }
+        .feature-card p { font-size: 13px; color: var(--text-secondary); line-height: 1.5; }
 
         /* Stats bar */
-        .stats-bar {
-            padding: 60px 0;
-            border-top: 1px solid var(--glass-border);
-            border-bottom: 1px solid var(--glass-border);
-        }
-
-        .stats-row {
-            display: flex;
-            justify-content: center;
-            gap: 60px;
-            flex-wrap: wrap;
-        }
-
+        .stats-bar { padding: 60px 0; border-top: 1px solid var(--glass-border); border-bottom: 1px solid var(--glass-border); }
+        .stats-row { display: flex; justify-content: center; gap: 60px; flex-wrap: wrap; }
         .stat-item { text-align: center; }
-        .stat-value {
-            font-size: 36px;
-            font-weight: 800;
-            letter-spacing: -1px;
-        }
-        .stat-label {
-            font-size: 13px;
-            color: var(--text-secondary);
-            margin-top: 4px;
-        }
+        .stat-value { font-size: 36px; font-weight: 800; letter-spacing: -1px; }
+        .stat-label { font-size: 13px; color: var(--text-secondary); margin-top: 4px; }
 
         /* FAQ */
         .faq { padding: 80px 0; }
-        .faq h2 {
-            font-size: 36px;
-            font-weight: 700;
-            text-align: center;
-            margin-bottom: 40px;
-            letter-spacing: -0.5px;
-        }
-
-        .faq-list {
-            max-width: 640px;
-            margin: 0 auto;
-        }
-
-        .faq-item {
-            border-bottom: 1px solid var(--glass-border);
-            padding: 20px 0;
-        }
-
-        .faq-item summary {
-            font-size: 15px;
-            font-weight: 600;
-            cursor: pointer;
-            list-style: none;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-
+        .faq h2 { font-size: 36px; font-weight: 700; text-align: center; margin-bottom: 40px; letter-spacing: -0.5px; }
+        .faq-list { max-width: 640px; margin: 0 auto; }
+        .faq-item { border-bottom: 1px solid var(--glass-border); padding: 20px 0; }
+        .faq-item summary { font-size: 15px; font-weight: 600; cursor: pointer; list-style: none; display: flex; justify-content: space-between; align-items: center; }
         .faq-item summary::-webkit-details-marker { display: none; }
         .faq-item summary::after { content: '+'; font-size: 20px; color: var(--text-secondary); }
-        .faq-item[open] summary::after { content: '−'; }
-
-        .faq-item p {
-            margin-top: 12px;
-            font-size: 14px;
-            color: var(--text-secondary);
-            line-height: 1.7;
-        }
+        .faq-item[open] summary::after { content: '\2212'; }
+        .faq-item p { margin-top: 12px; font-size: 14px; color: var(--text-secondary); line-height: 1.7; }
 
         /* CTA */
-        .cta {
-            padding: 80px 0;
-            text-align: center;
-        }
-
-        .cta-card {
-            background: var(--glass);
-            border: 1px solid var(--glass-border);
-            border-radius: 20px;
-            padding: 60px 40px;
-            backdrop-filter: blur(20px);
-            -webkit-backdrop-filter: blur(20px);
-        }
-
-        .cta h2 {
-            font-size: 32px;
-            font-weight: 700;
-            margin-bottom: 12px;
-        }
-
-        .cta p {
-            color: var(--text-secondary);
-            margin-bottom: 28px;
-            font-size: 16px;
-        }
-
+        .cta { padding: 80px 0; text-align: center; }
+        .cta-card { background: var(--glass); border: 1px solid var(--glass-border); border-radius: 20px; padding: 60px 40px; backdrop-filter: blur(20px); }
+        .cta h2 { font-size: 32px; font-weight: 700; margin-bottom: 12px; }
+        .cta p { color: var(--text-secondary); margin-bottom: 28px; font-size: 16px; }
         .cta-buttons { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; }
 
         /* Footer */
-        footer {
-            padding: 40px 0;
-            text-align: center;
-            border-top: 1px solid var(--glass-border);
-        }
-
-        footer p {
-            font-size: 13px;
-            color: var(--text-secondary);
-        }
-
+        footer { padding: 40px 0; text-align: center; border-top: 1px solid var(--glass-border); }
+        footer p { font-size: 13px; color: var(--text-secondary); }
         footer a { color: var(--accent); text-decoration: none; }
         footer a:hover { text-decoration: underline; }
 
         /* Responsive */
+        @media (max-width: 768px) {
+            .demo-detail { display: none !important; }
+            .demo-wrapper { height: 480px; }
+        }
         @media (max-width: 640px) {
             .hero h1 { font-size: 36px; }
             .hero p { font-size: 16px; }
             .stats-row { gap: 30px; }
             .stat-value { font-size: 28px; }
-            .demo-menubar { flex-wrap: wrap; gap: 12px; padding: 10px 14px; }
         }
-
-        /* Animated values in demo */
-        @keyframes cpuAnim { 0%,100% { width: 55%; } 30% { width: 72%; } 60% { width: 38%; } }
-        @keyframes memAnim { 0%,100% { width: 67%; } 40% { width: 71%; } 70% { width: 64%; } }
-        @keyframes dskAnim { 0%,100% { width: 34%; } 50% { width: 35%; } }
-        .anim-cpu { animation: cpuAnim 8s ease-in-out infinite; }
-        .anim-mem { animation: memAnim 10s ease-in-out infinite; }
-        .anim-dsk { animation: dskAnim 15s ease-in-out infinite; }
     </style>
 </head>
 <body>
 
 <nav>
     <div class="container">
-        <a href="#" class="logo">
-            <span class="logo-dot"></span>
-            Blip
-        </a>
+        <a href="#" class="logo"><span class="logo-dot"></span> Blip</a>
         <div class="nav-links">
             <a href="#features">Features</a>
             <a href="#faq">FAQ</a>
@@ -499,7 +469,7 @@
 
 <section class="hero">
     <div class="container">
-        <span class="hero-badge">v1.1.0 — Open Source &amp; Free</span>
+        <span class="hero-badge">v1.2.0 &mdash; Open Source &amp; Free</span>
         <h1>Your Mac's vitals,<br>at a glance.</h1>
         <p>Blip is a featherlight macOS menu bar app that monitors CPU, memory, disk, GPU, network, and battery. Beautiful charts, tiny footprint, zero dependencies.</p>
         <div class="hero-buttons">
@@ -507,55 +477,462 @@
                 <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor"><path d="M8 12l-4-4h2.5V4h3v4H12L8 12z"/><path d="M14 14H2v-2h12v2z"/></svg>
                 Download
             </a>
-            <a href="https://github.com/blaineam/blip" class="btn btn-secondary">
-                View Source
-            </a>
+            <a href="https://github.com/blaineam/blip" class="btn btn-secondary">View Source</a>
         </div>
     </div>
 </section>
 
+<!-- ═══════════════════ Interactive Demo ═══════════════════ -->
 <section class="demo-section">
     <div class="container">
-        <div class="demo-menubar">
-            <div class="demo-stat">
-                <span class="demo-label">CPU</span>
-                <div class="demo-bar"><div class="demo-bar-fill anim-cpu" id="cpu-bar" style="background:var(--accent-blue);width:55%"></div></div>
-                <span class="demo-value" id="cpu-val" style="color:var(--accent-blue)">45</span>
+        <div class="demo-wrapper" id="demoWrapper">
+
+            <!-- Fake macOS cursor -->
+            <svg class="fake-cursor" id="cursor" viewBox="0 0 14 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M1 1l4.5 17L7.5 11l6.5-2L1 1z" fill="#fff" stroke="#000" stroke-width="1"/>
+            </svg>
+
+            <!-- Menu bar -->
+            <div class="demo-menubar" id="menubar">
+                <div class="mb-items" id="mbItems">
+                    <div class="mb-item">
+                        <span class="mb-label">CPU</span>
+                        <div class="mb-bar"><div class="mb-fill" style="width:19%;background:var(--accent-blue)"></div></div>
+                        <span class="mb-val" style="color:var(--accent-blue)">19</span>
+                    </div>
+                    <div class="mb-item">
+                        <span class="mb-label">MEM</span>
+                        <div class="mb-bar"><div class="mb-fill" style="width:42%;background:var(--accent)"></div></div>
+                        <span class="mb-val" style="color:var(--accent)">42</span>
+                    </div>
+                    <div class="mb-item">
+                        <span class="mb-label">HD</span>
+                        <div class="mb-bar"><div class="mb-fill" style="width:65%;background:var(--accent-orange)"></div></div>
+                        <span class="mb-val" style="color:var(--accent-orange)">65</span>
+                    </div>
+                </div>
+                <div class="mb-dot"></div>
             </div>
-            <div class="demo-stat">
-                <span class="demo-label">MEM</span>
-                <div class="demo-bar"><div class="demo-bar-fill anim-mem" id="mem-bar" style="background:var(--accent);width:67%"></div></div>
-                <span class="demo-value" id="mem-val" style="color:var(--accent)">67</span>
+
+            <!-- Popover -->
+            <div class="demo-popover hidden" id="popover">
+                <!-- CPU -->
+                <div class="pop-row" data-panel="cpu">
+                    <span class="pop-row-icon" style="color:var(--accent-blue)"><svg viewBox="0 0 24 24" fill="currentColor"><rect x="7" y="7" width="10" height="10" rx="2"/><rect x="9" y="3" width="2" height="4" rx="0.5"/><rect x="13" y="3" width="2" height="4" rx="0.5"/><rect x="9" y="17" width="2" height="4" rx="0.5"/><rect x="13" y="17" width="2" height="4" rx="0.5"/><rect x="3" y="9" width="4" height="2" rx="0.5"/><rect x="3" y="13" width="4" height="2" rx="0.5"/><rect x="17" y="9" width="4" height="2" rx="0.5"/><rect x="17" y="13" width="4" height="2" rx="0.5"/></svg></span>
+                    <span class="pop-row-label">CPU</span>
+                    <div class="pop-row-bar-wrap"><div class="pop-row-bar"><div class="pop-row-fill" style="width:19%;background:var(--accent-blue)"></div></div></div>
+                    <span class="pop-row-value">19%</span>
+                    <span class="pop-row-chevron">&#8250;</span>
+                </div>
+                <!-- Memory -->
+                <div class="pop-row" data-panel="memory">
+                    <span class="pop-row-icon" style="color:var(--accent)"><svg viewBox="0 0 24 24" fill="currentColor"><rect x="3" y="6" width="18" height="12" rx="2"/><rect x="7" y="3" width="2" height="3" rx="0.5"/><rect x="11" y="3" width="2" height="3" rx="0.5"/><rect x="15" y="3" width="2" height="3" rx="0.5"/><rect x="6" y="9" width="5" height="4" rx="1" fill-opacity="0.4"/><rect x="13" y="9" width="5" height="4" rx="1" fill-opacity="0.4"/></svg></span>
+                    <span class="pop-row-label">Memory</span>
+                    <div class="pop-row-bar-wrap"><div class="pop-row-bar"><div class="pop-row-fill" style="width:42%;background:var(--accent)"></div></div></div>
+                    <span class="pop-row-value">42%</span>
+                    <span class="pop-row-chevron">&#8250;</span>
+                </div>
+                <!-- Disk -->
+                <div class="pop-row" data-panel="disk">
+                    <span class="pop-row-icon" style="color:var(--accent-orange)"><svg viewBox="0 0 24 24" fill="currentColor"><rect x="4" y="7" width="16" height="10" rx="3"/><circle cx="16" cy="12" r="1.5" fill-opacity="0.4"/><rect x="7" y="11" width="5" height="2" rx="1" fill-opacity="0.4"/></svg></span>
+                    <span class="pop-row-label">Disk</span>
+                    <div class="pop-row-bar-wrap"><div class="pop-row-bar"><div class="pop-row-fill" style="width:65%;background:var(--accent-orange)"></div></div></div>
+                    <span class="pop-row-value">65%</span>
+                    <span class="pop-row-chevron">&#8250;</span>
+                </div>
+                <!-- Network -->
+                <div class="pop-row" data-panel="network">
+                    <span class="pop-row-icon" style="color:var(--accent-cyan)"><svg viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="19" r="1.5"/><path d="M8.5 15.5a5 5 0 0 1 7 0" stroke="currentColor" stroke-width="2" stroke-linecap="round" fill="none"/><path d="M5 12a10 10 0 0 1 14 0" stroke="currentColor" stroke-width="2" stroke-linecap="round" fill="none"/><path d="M1.5 8.5a15 15 0 0 1 21 0" stroke="currentColor" stroke-width="2" stroke-linecap="round" fill="none"/></svg></span>
+                    <span class="pop-row-label">Network</span>
+                    <span class="pop-row-net-value"><span style="color:var(--accent)">&#8595;</span>4K <span style="color:var(--accent-blue)">&#8593;</span>2K</span>
+                    <span class="pop-row-chevron">&#8250;</span>
+                </div>
+                <!-- GPU -->
+                <div class="pop-row" data-panel="gpu">
+                    <span class="pop-row-icon" style="color:var(--accent-purple)"><svg viewBox="0 0 24 24" fill="currentColor"><rect x="2" y="4" width="8" height="6" rx="1.5" fill-opacity="0.9"/><rect x="14" y="4" width="8" height="6" rx="1.5" fill-opacity="0.9"/><rect x="5" y="14" width="14" height="6" rx="1.5" fill-opacity="0.9"/></svg></span>
+                    <span class="pop-row-label">GPU</span>
+                    <div class="pop-row-bar-wrap"><div class="pop-row-bar"><div class="pop-row-fill" style="width:67%;background:var(--accent-purple)"></div></div></div>
+                    <span class="pop-row-value">67%</span>
+                    <span class="pop-row-chevron">&#8250;</span>
+                </div>
+                <!-- Thermal -->
+                <div class="pop-row" data-panel="thermal">
+                    <span class="pop-row-icon" style="color:var(--accent)"><svg viewBox="0 0 24 24" fill="currentColor"><rect x="10" y="2" width="4" height="14" rx="2"/><circle cx="12" cy="18" r="4"/><circle cx="12" cy="18" r="2" fill-opacity="0.4"/><rect x="11" y="5" width="2" height="8" rx="0.5" fill-opacity="0.4"/></svg></span>
+                    <span class="pop-row-label">Thermal</span>
+                    <span class="pop-row-thermal-value" style="color:var(--accent)">Nominal</span>
+                    <span class="pop-row-chevron">&#8250;</span>
+                </div>
+                <!-- Battery -->
+                <div class="pop-row" data-panel="battery">
+                    <span class="pop-row-icon" style="color:var(--accent-red)"><svg viewBox="0 0 28 24" fill="currentColor"><rect x="2" y="7" width="20" height="10" rx="2.5"/><rect x="4" y="9" width="16" height="6" rx="1" fill-opacity="0.5"/><path d="M22 10v4a2 2 0 0 0 0-4z"/></svg></span>
+                    <span class="pop-row-label">Battery</span>
+                    <div class="pop-row-bar-wrap"><div class="pop-row-bar"><div class="pop-row-fill" style="width:100%;background:var(--accent-red)"></div></div></div>
+                    <span class="pop-row-value">100%</span>
+                    <span class="pop-row-chevron">&#8250;</span>
+                </div>
+
+                <div class="pop-divider"></div>
+
+                <!-- Footer matching real app -->
+                <div class="pop-footer">
+                    <div class="pop-footer-row">
+                        <svg viewBox="0 0 16 16" fill="currentColor"><rect x="1" y="4" width="14" height="9" rx="1.5"/><rect x="5" y="13" width="6" height="1" rx="0.5"/></svg>
+                        <span>MacBook Pro (Apple M4 Pro)</span>
+                    </div>
+                    <div class="pop-footer-row">
+                        <svg viewBox="0 0 16 16" fill="currentColor"><path d="M8 1.5c1.5 0 2.8.8 3.4 2 .4-.1.7-.2 1.1-.2C14.4 3.3 16 4.9 16 6.8c0 1.4-.8 2.5-2 3-.1 1.7-1.5 3-3.2 3H5.2C3.5 12.8 2.1 11.5 2 9.8 .8 9.3 0 8.2 0 6.8 0 4.9 1.6 3.3 3.5 3.3c.4 0 .7.1 1.1.2C5.2 2.3 6.5 1.5 8 1.5z" transform="scale(0.7) translate(3,3)"/></svg>
+                        <span>macOS 15.3.1</span>
+                    </div>
+                    <div class="pop-footer-row">
+                        <svg viewBox="0 0 16 16" fill="currentColor"><circle cx="8" cy="8" r="6.5" fill="none" stroke="currentColor" stroke-width="1.5"/><path d="M8 4v4.5l3 1.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" fill="none"/></svg>
+                        <span>2d 14h</span>
+                    </div>
+                    <div class="pop-footer-info">
+                        <span class="pop-footer-version">Blip v1.2.0 &middot; 245 MB</span>
+                        <div class="pop-footer-btns">
+                            <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.2"><circle cx="8" cy="8" r="2.5"/><path d="M8 1.5v2M8 12.5v2M1.5 8h2M12.5 8h2M3.4 3.4l1.4 1.4M11.2 11.2l1.4 1.4M3.4 12.6l1.4-1.4M11.2 4.8l1.4-1.4" stroke-linecap="round"/></svg>
+                            <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"><circle cx="8" cy="9" r="5"/><path d="M8 1v4"/></svg>
+                        </div>
+                    </div>
+                </div>
             </div>
-            <div class="demo-stat">
-                <span class="demo-label">HD</span>
-                <div class="demo-bar"><div class="demo-bar-fill anim-dsk" id="dsk-bar" style="background:var(--accent-orange);width:34%"></div></div>
-                <span class="demo-value" id="dsk-val" style="color:var(--accent-orange)">34</span>
+
+            <!-- ── Detail Panels ── -->
+
+            <!-- CPU Detail -->
+            <div class="demo-detail right-side" id="panel-cpu">
+                <div class="dp-header">
+                    <svg viewBox="0 0 24 24" fill="var(--accent-blue)"><rect x="7" y="7" width="10" height="10" rx="2"/><rect x="9" y="3" width="2" height="4" rx="0.5"/><rect x="13" y="3" width="2" height="4" rx="0.5"/><rect x="9" y="17" width="2" height="4" rx="0.5"/><rect x="13" y="17" width="2" height="4" rx="0.5"/><rect x="3" y="9" width="4" height="2" rx="0.5"/><rect x="3" y="13" width="4" height="2" rx="0.5"/><rect x="17" y="9" width="4" height="2" rx="0.5"/><rect x="17" y="13" width="4" height="2" rx="0.5"/></svg>
+                    <span class="dp-header-title">CPU</span>
+                    <span class="dp-header-right"><span class="dp-header-value" style="color:var(--accent-blue)">19%</span></span>
+                </div>
+                <div class="dp-cols">
+                    <div class="dp-col"><div class="dp-col-label">User</div><div class="dp-col-value">12%</div></div>
+                    <div class="dp-col"><div class="dp-col-label">System</div><div class="dp-col-value">7%</div></div>
+                    <div class="dp-col"><div class="dp-col-label">Idle</div><div class="dp-col-value" style="color:var(--text-secondary)">81%</div></div>
+                </div>
+                <div class="dp-cols">
+                    <div class="dp-col"><div class="dp-col-label">P-Cores</div><div class="dp-col-value">10</div></div>
+                    <div class="dp-col"><div class="dp-col-label">E-Cores</div><div class="dp-col-value">4</div></div>
+                    <div class="dp-col"><div class="dp-col-label">Logical</div><div class="dp-col-value">14</div></div>
+                </div>
+                <div class="dp-cols">
+                    <div class="dp-col"><div class="dp-col-label">Load 1m</div><div class="dp-col-value">5.48</div></div>
+                    <div class="dp-col"><div class="dp-col-label">5m</div><div class="dp-col-value">5.09</div></div>
+                    <div class="dp-col"><div class="dp-col-label">15m</div><div class="dp-col-value">5.32</div></div>
+                </div>
+                <!-- 2-column per-core grid (14 cores) -->
+                <div class="dp-core-grid">
+                    <div class="dp-core-row"><span class="dp-core-label">0</span><div class="dp-core-track"><div class="dp-core-fill" style="width:35%;background:var(--accent-blue)"></div></div></div>
+                    <div class="dp-core-row"><span class="dp-core-label">1</span><div class="dp-core-track"><div class="dp-core-fill" style="width:18%;background:var(--accent-blue)"></div></div></div>
+                    <div class="dp-core-row"><span class="dp-core-label">2</span><div class="dp-core-track"><div class="dp-core-fill" style="width:42%;background:var(--accent-blue)"></div></div></div>
+                    <div class="dp-core-row"><span class="dp-core-label">3</span><div class="dp-core-track"><div class="dp-core-fill" style="width:28%;background:var(--accent-blue)"></div></div></div>
+                    <div class="dp-core-row"><span class="dp-core-label">4</span><div class="dp-core-track"><div class="dp-core-fill" style="width:55%;background:var(--accent-blue)"></div></div></div>
+                    <div class="dp-core-row"><span class="dp-core-label">5</span><div class="dp-core-track"><div class="dp-core-fill" style="width:12%;background:var(--accent-blue)"></div></div></div>
+                    <div class="dp-core-row"><span class="dp-core-label">6</span><div class="dp-core-track"><div class="dp-core-fill" style="width:5%;background:var(--accent-blue)"></div></div></div>
+                    <div class="dp-core-row"><span class="dp-core-label">7</span><div class="dp-core-track"><div class="dp-core-fill" style="width:8%;background:var(--accent-blue)"></div></div></div>
+                    <div class="dp-core-row"><span class="dp-core-label">8</span><div class="dp-core-track"><div class="dp-core-fill" style="width:22%;background:var(--accent-blue)"></div></div></div>
+                    <div class="dp-core-row"><span class="dp-core-label">9</span><div class="dp-core-track"><div class="dp-core-fill" style="width:6%;background:var(--accent-blue)"></div></div></div>
+                    <div class="dp-core-row"><span class="dp-core-label">10</span><div class="dp-core-track"><div class="dp-core-fill" style="width:15%;background:var(--accent-blue)"></div></div></div>
+                    <div class="dp-core-row"><span class="dp-core-label">11</span><div class="dp-core-track"><div class="dp-core-fill" style="width:9%;background:var(--accent-blue)"></div></div></div>
+                    <div class="dp-core-row"><span class="dp-core-label">12</span><div class="dp-core-track"><div class="dp-core-fill" style="width:3%;background:var(--accent-blue)"></div></div></div>
+                    <div class="dp-core-row"><span class="dp-core-label">13</span><div class="dp-core-track"><div class="dp-core-fill" style="width:7%;background:var(--accent-blue)"></div></div></div>
+                </div>
+                <div class="dp-chart-wrap">
+                    <div class="dp-chart-label">Usage over time</div>
+                    <div class="dp-chart-container">
+                        <div class="dp-chart-yaxis"><span>100%</span><span>50%</span><span>0%</span></div>
+                        <div class="dp-chart"><svg id="chart-cpu" viewBox="0 0 200 50"><defs><linearGradient id="cpuG" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="rgba(10,132,255,0.3)"/><stop offset="100%" stop-color="rgba(10,132,255,0)"/></linearGradient></defs><path class="chart-area" d="" fill="url(#cpuG)"/><path class="chart-line" d="" fill="none" stroke="var(--accent-blue)" stroke-width="1.5"/></svg></div>
+                    </div>
+                </div>
+                <div class="dp-divider"></div>
+                <div class="dp-section-title">Top Processes</div>
+                <div class="dp-proc"><div class="dp-proc-icon" style="background:rgba(0,122,255,0.15)"><svg viewBox="0 0 16 16"><circle cx="8" cy="8" r="6" fill="#007AFF"/><path d="M8 3L5 11h2l.5-1.5h1L9 11h2L8 3zm0 3.5l.5 2h-1l.5-2z" fill="#fff" font-size="6"/></svg></div><div class="dp-proc-name">Safari</div><div class="dp-proc-val">8.2%</div></div>
+                <div class="dp-proc"><div class="dp-proc-icon" style="background:rgba(255,255,255,0.08)"><svg viewBox="0 0 16 16" fill="#8e8e93" opacity="0.6"><circle cx="8" cy="8" r="6"/></svg></div><div class="dp-proc-name">WindowServer</div><div class="dp-proc-val">5.4%</div></div>
+                <div class="dp-proc"><div class="dp-proc-icon" style="background:rgba(75,0,130,0.2)"><svg viewBox="0 0 16 16"><circle cx="8" cy="8" r="6" fill="#4A154B"/><path d="M6 5h1v2h2V5h1v6h-1V9H7v2H6V5z" fill="#fff"/></svg></div><div class="dp-proc-name">Slack</div><div class="dp-proc-val">4.1%</div></div>
+                <div class="dp-proc"><div class="dp-proc-icon" style="background:rgba(30,215,96,0.15)"><svg viewBox="0 0 16 16"><circle cx="8" cy="8" r="6" fill="#1DB954"/><circle cx="8" cy="8" r="3" fill="none" stroke="#fff" stroke-width="1.2"/></svg></div><div class="dp-proc-name">Spotify</div><div class="dp-proc-val">2.4%</div></div>
+                <div class="dp-proc"><div class="dp-proc-icon" style="background:rgba(0,122,255,0.12)"><svg viewBox="0 0 16 16"><circle cx="8" cy="8" r="6" fill="#007AFF"/><rect x="5" y="5.5" width="6" height="4" rx="0.5" fill="#fff" opacity="0.9"/></svg></div><div class="dp-proc-name">Mail</div><div class="dp-proc-val">1.1%</div></div>
             </div>
-            <div class="demo-dot"></div>
+
+            <!-- Memory Detail -->
+            <div class="demo-detail right-side" id="panel-memory">
+                <div class="dp-header">
+                    <svg viewBox="0 0 24 24" fill="var(--accent)"><rect x="3" y="6" width="18" height="12" rx="2"/><rect x="7" y="3" width="2" height="3" rx="0.5"/><rect x="11" y="3" width="2" height="3" rx="0.5"/><rect x="15" y="3" width="2" height="3" rx="0.5"/><rect x="6" y="9" width="5" height="4" rx="1" fill-opacity="0.4"/><rect x="13" y="9" width="5" height="4" rx="1" fill-opacity="0.4"/></svg>
+                    <span class="dp-header-title">Memory</span>
+                    <span class="dp-header-right"><span class="dp-header-value" style="color:var(--accent)">42%</span></span>
+                </div>
+                <div class="dp-row"><span class="dp-row-label">Total</span><span class="dp-row-value">48 GB</span></div>
+                <div style="margin: 4px 0">
+                    <div class="dp-dot-row"><div class="dp-dot" style="background:var(--accent-blue)"></div><span class="dp-dot-label">App Memory</span><span class="dp-dot-value">15.42 GB</span></div>
+                    <div class="dp-dot-row"><div class="dp-dot" style="background:var(--accent-orange)"></div><span class="dp-dot-label">Wired</span><span class="dp-dot-value">3.47 GB</span></div>
+                    <div class="dp-dot-row"><div class="dp-dot" style="background:var(--accent-purple)"></div><span class="dp-dot-label">Compressed</span><span class="dp-dot-value">1.12 GB</span></div>
+                </div>
+                <div class="dp-divider"></div>
+                <div style="margin: 4px 0">
+                    <div class="dp-dot-row"><div class="dp-dot" style="background:var(--accent)"></div><span class="dp-dot-label">Memory Used</span><span class="dp-dot-value">20.01 GB</span></div>
+                    <div class="dp-dot-row"><div class="dp-dot" style="background:var(--accent-cyan)"></div><span class="dp-dot-label">Cached Files</span><span class="dp-dot-value">11.79 GB</span></div>
+                    <div class="dp-dot-row"><div class="dp-dot" style="background:rgba(255,255,255,0.25)"></div><span class="dp-dot-label">Free</span><span class="dp-dot-value">27.99 GB</span></div>
+                </div>
+                <div class="dp-dot-row"><div class="dp-dot" style="background:var(--accent-yellow)"></div><span class="dp-dot-label">Swap Used</span><span class="dp-dot-value">Zero KB</span></div>
+                <div class="dp-pressure-row">
+                    <span class="dp-pressure-label">Pressure</span>
+                    <div class="dp-pressure-track"><div class="dp-pressure-fill" style="width:15%;background:var(--accent)"></div></div>
+                    <span class="dp-pressure-text" style="color:var(--accent)">Normal</span>
+                </div>
+                <div class="dp-chart-wrap">
+                    <div class="dp-chart-label">Usage over time</div>
+                    <div class="dp-chart-container">
+                        <div class="dp-chart-yaxis"><span>100%</span><span>50%</span><span>0%</span></div>
+                        <div class="dp-chart"><svg id="chart-mem" viewBox="0 0 200 50"><defs><linearGradient id="memG" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="rgba(48,209,88,0.3)"/><stop offset="100%" stop-color="rgba(48,209,88,0)"/></linearGradient></defs><path class="chart-area" d="" fill="url(#memG)"/><path class="chart-line" d="" fill="none" stroke="var(--accent)" stroke-width="1.5"/></svg></div>
+                    </div>
+                </div>
+                <div class="dp-divider"></div>
+                <div class="dp-section-title">Top Processes</div>
+                <div class="dp-proc"><div class="dp-proc-icon" style="background:rgba(0,122,255,0.15)"><svg viewBox="0 0 16 16"><circle cx="8" cy="8" r="6" fill="#007AFF"/><path d="M8 3L5 11h2l.5-1.5h1L9 11h2L8 3zm0 3.5l.5 2h-1l.5-2z" fill="#fff"/></svg></div><div class="dp-proc-name">Safari</div><div class="dp-proc-val">1.4 GB</div></div>
+                <div class="dp-proc"><div class="dp-proc-icon" style="background:rgba(75,0,130,0.2)"><svg viewBox="0 0 16 16"><circle cx="8" cy="8" r="6" fill="#4A154B"/><path d="M6 5h1v2h2V5h1v6h-1V9H7v2H6V5z" fill="#fff"/></svg></div><div class="dp-proc-name">Slack</div><div class="dp-proc-val">890 MB</div></div>
+                <div class="dp-proc"><div class="dp-proc-icon" style="background:rgba(30,215,96,0.15)"><svg viewBox="0 0 16 16"><circle cx="8" cy="8" r="6" fill="#1DB954"/><circle cx="8" cy="8" r="3" fill="none" stroke="#fff" stroke-width="1.2"/></svg></div><div class="dp-proc-name">Spotify</div><div class="dp-proc-val">620 MB</div></div>
+                <div class="dp-proc"><div class="dp-proc-icon" style="background:rgba(0,122,255,0.12)"><svg viewBox="0 0 16 16"><circle cx="8" cy="8" r="6" fill="#007AFF"/><rect x="5" y="5.5" width="6" height="4" rx="0.5" fill="#fff" opacity="0.9"/></svg></div><div class="dp-proc-name">Mail</div><div class="dp-proc-val">340 MB</div></div>
+                <div class="dp-proc"><div class="dp-proc-icon" style="background:rgba(0,122,255,0.12)"><svg viewBox="0 0 16 16"><rect x="3" y="3" width="10" height="10" rx="2" fill="#339CEC"/><circle cx="8" cy="7" r="2" fill="#fff"/><path d="M5 11c0-1.5 1.3-2.5 3-2.5s3 1 3 2.5" fill="#fff"/></svg></div><div class="dp-proc-name">Finder</div><div class="dp-proc-val">210 MB</div></div>
+            </div>
+
+            <!-- Disk Detail -->
+            <div class="demo-detail right-side" id="panel-disk">
+                <div class="dp-header">
+                    <svg viewBox="0 0 24 24" fill="var(--accent-orange)"><rect x="4" y="7" width="16" height="10" rx="3"/><circle cx="16" cy="12" r="1.5" fill-opacity="0.4"/><rect x="7" y="11" width="5" height="2" rx="1" fill-opacity="0.4"/></svg>
+                    <span class="dp-header-title">Disk</span>
+                    <span class="dp-header-right">
+                        <span style="display:inline-block;width:6px;height:6px;border-radius:50%;background:var(--accent)"></span>
+                        <span style="font-size:10px;color:var(--text-secondary)">Verified</span>
+                    </span>
+                </div>
+                <div class="dp-cols">
+                    <div class="dp-col"><div class="dp-col-label" style="display:flex;align-items:center;gap:3px"><span style="color:var(--accent)">&#8595;</span> Read</div><div class="dp-col-value">1 KB/s</div></div>
+                    <div class="dp-col"><div class="dp-col-label" style="display:flex;align-items:center;gap:3px"><span style="color:var(--accent-blue)">&#8593;</span> Write</div><div class="dp-col-value">261 KB/s</div></div>
+                </div>
+                <div class="dp-cols">
+                    <div class="dp-col"><div class="dp-col-label">Total Read</div><div class="dp-col-value">318.1 GB</div></div>
+                    <div class="dp-col"><div class="dp-col-label">Total Written</div><div class="dp-col-value">275.2 GB</div></div>
+                </div>
+                <div class="dp-chart-wrap">
+                    <div class="dp-chart-label">Read / Write over time</div>
+                    <div class="dp-chart-container">
+                        <div class="dp-chart-yaxis"><span>6.0 MB/s</span><span>3.0 MB/s</span><span>0 B/s</span></div>
+                        <div class="dp-chart">
+                            <svg viewBox="0 0 200 50">
+                                <defs>
+                                    <linearGradient id="dkRG" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="rgba(48,209,88,0.15)"/><stop offset="100%" stop-color="rgba(48,209,88,0)"/></linearGradient>
+                                    <linearGradient id="dkWG" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="rgba(10,132,255,0.15)"/><stop offset="100%" stop-color="rgba(10,132,255,0)"/></linearGradient>
+                                </defs>
+                                <path id="chart-disk-read-area" class="chart-area" d="" fill="url(#dkRG)"/>
+                                <path id="chart-disk-read-line" class="chart-line" d="" fill="none" stroke="var(--accent)" stroke-width="1.2"/>
+                                <path id="chart-disk-write-area" class="chart-area" d="" fill="url(#dkWG)"/>
+                                <path id="chart-disk-write-line" class="chart-line" d="" fill="none" stroke="var(--accent-cyan)" stroke-width="1.2"/>
+                            </svg>
+                        </div>
+                    </div>
+                    <div class="dp-chart-legend" style="margin-left:42px">
+                        <div class="dp-chart-legend-item"><div class="dp-chart-legend-dot" style="background:var(--accent)"></div>Read</div>
+                        <div class="dp-chart-legend-item"><div class="dp-chart-legend-dot" style="background:var(--accent-cyan)"></div>Write</div>
+                    </div>
+                </div>
+                <div class="dp-divider"></div>
+                <!-- Macintosh HD volume -->
+                <div class="dp-vol-header">
+                    <svg viewBox="0 0 16 16" fill="var(--text-secondary)"><rect x="2" y="4" width="12" height="8" rx="2"/><circle cx="11" cy="8" r="1" fill-opacity="0.4"/><rect x="4.5" y="7.5" width="4" height="1" rx="0.5" fill-opacity="0.4"/></svg>
+                    <span class="dp-vol-name">Macintosh HD</span>
+                    <span class="dp-vol-pct">65%</span>
+                </div>
+                <div class="dp-vol-bar"><div class="dp-vol-fill" style="width:65%"></div></div>
+                <div class="dp-vol-info"><span>2.59 TB used</span><span>1.41 TB free</span></div>
+            </div>
+
+            <!-- Network Detail -->
+            <div class="demo-detail left-side" id="panel-network">
+                <div class="dp-header">
+                    <svg viewBox="0 0 24 24" fill="var(--accent-cyan)"><circle cx="12" cy="19" r="1.5"/><path d="M8.5 15.5a5 5 0 0 1 7 0" stroke="var(--accent-cyan)" stroke-width="2" stroke-linecap="round" fill="none"/><path d="M5 12a10 10 0 0 1 14 0" stroke="var(--accent-cyan)" stroke-width="2" stroke-linecap="round" fill="none"/><path d="M1.5 8.5a15 15 0 0 1 21 0" stroke="var(--accent-cyan)" stroke-width="2" stroke-linecap="round" fill="none"/></svg>
+                    <span class="dp-header-title">Network</span>
+                    <span class="dp-header-right"><span style="display:inline-block;width:7px;height:7px;border-radius:50%;background:var(--accent)"></span></span>
+                </div>
+                <div class="dp-cols">
+                    <div class="dp-col"><div class="dp-col-label" style="color:var(--accent)">&#8595; Download</div><div class="dp-col-value" id="net-dl">7 KB/s</div></div>
+                    <div class="dp-col"><div class="dp-col-label" style="color:var(--accent-blue)">&#8593; Upload</div><div class="dp-col-value" id="net-ul">3 KB/s</div></div>
+                </div>
+                <div class="dp-cols">
+                    <div class="dp-col"><div class="dp-col-label" style="display:flex;align-items:center;gap:2px"><svg width="9" height="9" viewBox="0 0 16 16" fill="none" stroke="var(--accent-yellow)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M1 8h3l1.5-4 2 8 2-6 1.5 2H15"/></svg> WAN Ping</div><div class="dp-col-value" style="color:var(--accent)">3 ms</div></div>
+                    <div class="dp-col"><div class="dp-col-label" style="display:flex;align-items:center;gap:2px"><svg width="9" height="9" viewBox="0 0 16 16" fill="none" stroke="var(--accent-yellow)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M1 8h3l1.5-4 2 8 2-6 1.5 2H15"/></svg> Router Ping</div><div class="dp-col-value" style="color:var(--accent)">3 ms</div></div>
+                </div>
+                <div class="dp-cols">
+                    <div class="dp-col"><div class="dp-col-label">Total Down</div><div class="dp-col-value">3.9 GB</div></div>
+                    <div class="dp-col"><div class="dp-col-label">Total Up</div><div class="dp-col-value">3.6 GB</div></div>
+                </div>
+                <div class="dp-chart-wrap">
+                    <div class="dp-chart-label">Bandwidth over time</div>
+                    <div class="dp-chart-container">
+                        <div class="dp-chart-yaxis"><span>4.0 MB/s</span><span>2.0 MB/s</span><span>0 B/s</span></div>
+                        <div class="dp-chart">
+                            <svg viewBox="0 0 200 50"><defs><linearGradient id="nDG" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="rgba(48,209,88,0.15)"/><stop offset="100%" stop-color="rgba(48,209,88,0)"/></linearGradient><linearGradient id="nUG" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="rgba(10,132,255,0.15)"/><stop offset="100%" stop-color="rgba(10,132,255,0)"/></linearGradient></defs>
+                            <path id="chart-net-dl-area" class="chart-area" d="" fill="url(#nDG)"/>
+                            <path id="chart-net-dl-line" class="chart-line" d="" fill="none" stroke="var(--accent)" stroke-width="1.2"/>
+                            <path id="chart-net-ul-area" class="chart-area" d="" fill="url(#nUG)"/>
+                            <path id="chart-net-ul-line" class="chart-line" d="" fill="none" stroke="var(--accent-blue)" stroke-width="1.2"/>
+                            </svg>
+                        </div>
+                    </div>
+                    <div class="dp-chart-legend">
+                        <div class="dp-chart-legend-item"><div class="dp-chart-legend-dot" style="background:var(--accent)"></div>Down</div>
+                        <div class="dp-chart-legend-item"><div class="dp-chart-legend-dot" style="background:var(--accent-blue)"></div>Up</div>
+                    </div>
+                </div>
+                <div class="dp-divider"></div>
+                <div class="dp-section-title">Active Interfaces</div>
+                <div style="margin-bottom:6px">
+                    <div style="display:flex;align-items:baseline;gap:6px;margin-bottom:2px"><span style="font-size:12px;font-weight:600">Wi-Fi</span><span style="font-size:9px;color:var(--text-secondary)">(en0)</span></div>
+                    <div class="dp-row"><span class="dp-row-label">IPv4</span><span class="dp-row-value">192.168.1.42 <span style="cursor:pointer;opacity:0.3;font-size:9px">&#9112;</span></span></div>
+                    <div class="dp-row"><span class="dp-row-label">IPv6</span><span class="dp-row-value" style="font-size:9px">fe80::1a2b:3c4d:5e6f <span style="cursor:pointer;opacity:0.3;font-size:8px">&#9112;</span></span></div>
+                    <div class="dp-row"><span class="dp-row-label">MAC</span><span class="dp-row-value" style="font-size:9px">AA:BB:CC:11:22:33 <span style="cursor:pointer;opacity:0.3;font-size:8px">&#9112;</span></span></div>
+                </div>
+                <div class="dp-row"><span class="dp-row-label">Router</span><span class="dp-row-value">192.168.1.1 <span style="cursor:pointer;opacity:0.3;font-size:9px">&#9112;</span></span></div>
+                <div class="dp-row"><span class="dp-row-label">WAN IP</span><span id="wan-ip-btn" class="dp-row-value" style="color:var(--accent-blue);cursor:pointer;font-size:10px">Tap to reveal</span></div>
+            </div>
+
+            <!-- GPU Detail -->
+            <div class="demo-detail right-side" id="panel-gpu">
+                <div class="dp-header">
+                    <svg viewBox="0 0 24 24" fill="var(--accent-purple)"><rect x="2" y="4" width="8" height="6" rx="1.5"/><rect x="14" y="4" width="8" height="6" rx="1.5"/><rect x="5" y="14" width="14" height="6" rx="1.5"/></svg>
+                    <span class="dp-header-title">GPU</span>
+                    <span class="dp-header-right"><span class="dp-header-value" style="color:var(--accent-purple)">67%</span></span>
+                </div>
+                <div class="dp-row"><span class="dp-row-label">Renderer</span><span class="dp-row-value">Apple M4 Pro</span></div>
+                <div class="dp-row"><span class="dp-row-label">GPU Cores</span><span class="dp-row-value">20</span></div>
+                <div class="dp-row"><span class="dp-row-label">Utilization</span><span class="dp-row-value">67%</span></div>
+                <div style="margin:6px 0">
+                    <div style="height:8px;background:rgba(191,90,242,0.1);border-radius:4px;overflow:hidden">
+                        <div style="width:67%;height:100%;background:var(--accent-purple);border-radius:4px"></div>
+                    </div>
+                </div>
+                <div class="dp-chart-wrap">
+                    <div class="dp-chart-label">Usage over time</div>
+                    <div class="dp-chart-container">
+                        <div class="dp-chart-yaxis"><span>100%</span><span>50%</span><span>0%</span></div>
+                        <div class="dp-chart"><svg id="chart-gpu" viewBox="0 0 200 50"><defs><linearGradient id="gpuG" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="rgba(191,90,242,0.3)"/><stop offset="100%" stop-color="rgba(191,90,242,0)"/></linearGradient></defs><path class="chart-area" d="" fill="url(#gpuG)"/><path class="chart-line" d="" fill="none" stroke="var(--accent-purple)" stroke-width="1.5"/></svg></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Thermal Detail -->
+            <div class="demo-detail left-side" id="panel-thermal">
+                <div class="dp-header">
+                    <svg viewBox="0 0 24 24" fill="var(--accent)"><rect x="10" y="2" width="4" height="14" rx="2"/><circle cx="12" cy="18" r="4"/><circle cx="12" cy="18" r="2" fill-opacity="0.4"/><rect x="11" y="5" width="2" height="8" rx="0.5" fill-opacity="0.4"/></svg>
+                    <span class="dp-header-title">Thermal</span>
+                    <span class="dp-header-right"><span class="dp-header-value" style="color:var(--accent)">Nominal</span></span>
+                </div>
+                <div style="font-size:11px;color:var(--text-secondary);margin-bottom:8px">System is running within normal thermal limits.</div>
+                <div class="dp-divider"></div>
+                <div style="display:flex;align-items:center;gap:5px;margin:6px 0 4px">
+                    <svg width="12" height="12" viewBox="0 0 16 16" fill="var(--accent-orange)"><path d="M8 1C8 1 3 6 3 10a5 5 0 0010 0C13 6 8 1 8 1z"/></svg>
+                    <span style="font-size:13px;font-weight:600">Temperatures</span>
+                </div>
+                <div class="dp-row"><span class="dp-row-label">CPU</span><span class="dp-row-value" style="color:var(--accent)">42&deg;C</span></div>
+                <div class="dp-row"><span class="dp-row-label">GPU</span><span class="dp-row-value" style="color:var(--accent)">38&deg;C</span></div>
+                <div class="dp-divider"></div>
+                <div style="display:flex;align-items:center;gap:5px;margin:6px 0 4px">
+                    <svg width="12" height="12" viewBox="0 0 16 16" fill="var(--accent-teal)"><path d="M8 6.5a1.5 1.5 0 110 3 1.5 1.5 0 010-3zm0-5.5c1.2 0 2.2.9 2.4 2.1.6-.2 1.3 0 1.8.5s.7 1.2.5 1.8C14.1 5.8 15 6.8 15 8c0 1.2-.9 2.2-2.1 2.4.2.6 0 1.3-.5 1.8s-1.2.7-1.8.5C10.2 14.1 9.2 15 8 15c-1.2 0-2.2-.9-2.4-2.1-.6.2-1.3 0-1.8-.5s-.7-1.2-.5-1.8C1.9 10.2 1 9.2 1 8c0-1.2.9-2.2 2.1-2.4-.2-.6 0-1.3.5-1.8s1.2-.7 1.8-.5C5.8 1.9 6.8 1 8 1z"/></svg>
+                    <span style="font-size:13px;font-weight:600">Fans</span>
+                </div>
+                <div class="dp-fan-bar">
+                    <div class="dp-fan-header"><span class="dp-fan-name">Left Fan</span><span class="dp-fan-rpm">1200 RPM</span></div>
+                    <div class="dp-fan-track"><div class="dp-fan-fill" style="width:20%"></div></div>
+                    <div class="dp-fan-range"><span>0 RPM</span><span>6200 RPM</span></div>
+                </div>
+                <div class="dp-fan-bar">
+                    <div class="dp-fan-header"><span class="dp-fan-name">Right Fan</span><span class="dp-fan-rpm">1180 RPM</span></div>
+                    <div class="dp-fan-track"><div class="dp-fan-fill" style="width:19%"></div></div>
+                    <div class="dp-fan-range"><span>0 RPM</span><span>6200 RPM</span></div>
+                </div>
+            </div>
+
+            <!-- Battery Detail -->
+            <div class="demo-detail left-side" id="panel-battery">
+                <div class="dp-header">
+                    <svg viewBox="0 0 28 24" fill="var(--accent-red)"><rect x="2" y="7" width="20" height="10" rx="2.5"/><rect x="4" y="9" width="16" height="6" rx="1" fill-opacity="0.5"/><path d="M22 10v4a2 2 0 0 0 0-4z"/></svg>
+                    <span class="dp-header-title">Battery</span>
+                    <span class="dp-header-right"><span class="dp-header-value" style="color:var(--accent-red)">100%</span></span>
+                </div>
+                <div style="height:8px;background:rgba(255,69,58,0.1);border-radius:4px;overflow:hidden;margin-bottom:8px">
+                    <div style="width:100%;height:100%;background:var(--accent-red);border-radius:4px"></div>
+                </div>
+                <div class="dp-row"><span class="dp-row-label">Status</span><span class="dp-row-value">Charging</span></div>
+                <div class="dp-row"><span class="dp-row-label">Source</span><span class="dp-row-value">AC Power</span></div>
+                <div class="dp-row"><span class="dp-row-label">Health</span><span class="dp-row-value">98%</span></div>
+                <div class="dp-row"><span class="dp-row-label">Condition</span><span class="dp-row-value">Normal</span></div>
+                <div class="dp-row"><span class="dp-row-label">Cycle Count</span><span class="dp-row-value">42</span></div>
+                <div class="dp-row"><span class="dp-row-label">Temperature</span><span class="dp-row-value">34.2&deg;C</span></div>
+            </div>
+
+            <!-- Style Showcase -->
+            <div class="style-showcase" id="styleShowcase">
+                <div class="style-showcase-title">Menu Bar Styles</div>
+                <div class="style-variant" id="sv-horizontal">
+                    <span class="style-variant-label">Horizontal</span>
+                    <div class="style-variant-bar">
+                        <div class="sv-item"><span class="sv-label">CPU</span><div class="sv-bar"><div class="sv-fill" style="width:19%;background:var(--accent-blue)"></div></div><span class="sv-val" style="color:var(--accent-blue)">19</span></div>
+                        <div class="sv-item"><span class="sv-label">MEM</span><div class="sv-bar"><div class="sv-fill" style="width:42%;background:var(--accent)"></div></div><span class="sv-val" style="color:var(--accent)">42</span></div>
+                        <div class="sv-item"><span class="sv-label">HD</span><div class="sv-bar"><div class="sv-fill" style="width:65%;background:var(--accent-orange)"></div></div><span class="sv-val" style="color:var(--accent-orange)">65</span></div>
+                        <div class="sv-dot" style="background:var(--accent);box-shadow:0 0 4px rgba(48,209,88,0.5)"></div>
+                    </div>
+                </div>
+                <div class="style-variant" id="sv-stacked">
+                    <span class="style-variant-label">Stacked</span>
+                    <div class="style-variant-bar">
+                        <div class="sv-stacked">
+                            <div class="sv-stacked-row"><span class="sv-label">CPU</span><div class="sv-bar"><div class="sv-fill" style="width:19%;background:var(--accent-blue)"></div></div><span class="sv-val" style="color:var(--accent-blue)">19</span></div>
+                            <div class="sv-stacked-row"><span class="sv-label">MEM</span><div class="sv-bar"><div class="sv-fill" style="width:42%;background:var(--accent)"></div></div><span class="sv-val" style="color:var(--accent)">42</span></div>
+                            <div class="sv-stacked-row"><span class="sv-label">HD</span><div class="sv-bar"><div class="sv-fill" style="width:65%;background:var(--accent-orange)"></div></div><span class="sv-val" style="color:var(--accent-orange)">65</span></div>
+                        </div>
+                        <div class="sv-dot" style="background:var(--accent);box-shadow:0 0 4px rgba(48,209,88,0.5)"></div>
+                    </div>
+                </div>
+                <div class="style-variant" id="sv-monochrome">
+                    <span class="style-variant-label">Monochrome</span>
+                    <div class="style-variant-bar">
+                        <div class="sv-item"><span class="sv-label">CPU</span><div class="sv-bar"><div class="sv-fill" style="width:19%;background:var(--text)"></div></div><span class="sv-val" style="color:var(--text)">19</span></div>
+                        <div class="sv-item"><span class="sv-label">MEM</span><div class="sv-bar"><div class="sv-fill" style="width:42%;background:var(--text)"></div></div><span class="sv-val" style="color:var(--text)">42</span></div>
+                        <div class="sv-item"><span class="sv-label">HD</span><div class="sv-bar"><div class="sv-fill" style="width:65%;background:var(--text)"></div></div><span class="sv-val" style="color:var(--text)">65</span></div>
+                        <div class="sv-dot" style="background:var(--text)"></div>
+                    </div>
+                </div>
+                <div class="style-variant" id="sv-custom">
+                    <span class="style-variant-label">Custom Color</span>
+                    <div class="style-variant-bar">
+                        <div class="sv-item"><span class="sv-label">CPU</span><div class="sv-bar"><div class="sv-fill" style="width:19%;background:var(--accent-cyan)"></div></div><span class="sv-val" style="color:var(--accent-cyan)">19</span></div>
+                        <div class="sv-item"><span class="sv-label">MEM</span><div class="sv-bar"><div class="sv-fill" style="width:42%;background:var(--accent-cyan)"></div></div><span class="sv-val" style="color:var(--accent-cyan)">42</span></div>
+                        <div class="sv-item"><span class="sv-label">HD</span><div class="sv-bar"><div class="sv-fill" style="width:65%;background:var(--accent-cyan)"></div></div><span class="sv-val" style="color:var(--accent-cyan)">65</span></div>
+                        <div class="sv-dot" style="background:var(--accent-cyan);box-shadow:0 0 4px rgba(100,210,255,0.5)"></div>
+                    </div>
+                </div>
+                <div class="style-variant" id="sv-minimal">
+                    <span class="style-variant-label">Bars Only</span>
+                    <div class="style-variant-bar">
+                        <div class="sv-item"><div class="sv-bar"><div class="sv-fill" style="width:19%;background:var(--accent-blue)"></div></div></div>
+                        <div class="sv-item"><div class="sv-bar"><div class="sv-fill" style="width:42%;background:var(--accent)"></div></div></div>
+                        <div class="sv-item"><div class="sv-bar"><div class="sv-fill" style="width:65%;background:var(--accent-orange)"></div></div></div>
+                        <div class="sv-dot" style="background:var(--accent);box-shadow:0 0 4px rgba(48,209,88,0.5)"></div>
+                    </div>
+                </div>
+            </div>
+
         </div>
+        <p style="text-align:center;font-size:11px;color:rgba(255,255,255,0.2);margin-top:14px;font-style:italic">This demo is a close approximation. Some differences may be present in the installed native Mac app.</p>
     </div>
 </section>
 
 <section class="stats-bar">
     <div class="container">
         <div class="stats-row">
-            <div class="stat-item">
-                <div class="stat-value" style="color:var(--accent)">~2 MB</div>
-                <div class="stat-label">Binary size</div>
-            </div>
-            <div class="stat-item">
-                <div class="stat-value" style="color:var(--accent-blue)">0</div>
-                <div class="stat-label">Dependencies</div>
-            </div>
-            <div class="stat-item">
-                <div class="stat-value" style="color:var(--accent-purple)">~250 MB</div>
-                <div class="stat-label">Memory footprint</div>
-            </div>
-            <div class="stat-item">
-                <div class="stat-value" style="color:var(--accent-orange)">MIT</div>
-                <div class="stat-label">License</div>
-            </div>
+            <div class="stat-item"><div class="stat-value" style="color:var(--accent)">~2 MB</div><div class="stat-label">Binary size</div></div>
+            <div class="stat-item"><div class="stat-value" style="color:var(--accent-blue)">0</div><div class="stat-label">Dependencies</div></div>
+            <div class="stat-item"><div class="stat-value" style="color:var(--accent-purple)">~250 MB</div><div class="stat-label">Memory footprint</div></div>
+            <div class="stat-item"><div class="stat-value" style="color:var(--accent-orange)">MIT</div><div class="stat-label">License</div></div>
         </div>
     </div>
 </section>
@@ -564,52 +941,51 @@
     <div class="container">
         <h2>Everything you need, nothing you don't.</h2>
         <p class="subtitle">Blip monitors what matters and stays out of your way.</p>
-
         <div class="feature-grid">
             <div class="feature-card">
-                <div class="feature-icon" style="background:rgba(10,132,255,0.15)">⚡</div>
+                <div class="feature-icon" style="background:rgba(10,132,255,0.15)">&#9889;</div>
                 <h3>CPU Monitoring</h3>
-                <p>Total and per-core usage, user/system breakdown, load averages (1m/5m/15m), P-core and E-core counts. See which apps are using the most CPU with their icons.</p>
+                <p>Total and per-core usage, user/system/idle breakdown, load averages (1m/5m/15m), P-core and E-core counts. Accurate delta-based CPU per process with app icons.</p>
             </div>
             <div class="feature-card">
-                <div class="feature-icon" style="background:rgba(48,209,88,0.15)">🧠</div>
+                <div class="feature-icon" style="background:rgba(48,209,88,0.15)">&#129504;</div>
                 <h3>Memory</h3>
-                <p>Active, wired, compressed, and app memory breakdown. Memory pressure indicator with top processes by memory usage and their app icons.</p>
+                <p>App memory, wired, compressed breakdown matching Activity Monitor. Swap usage, cached files, kernel-level pressure indicator. Accurate phys_footprint memory per process.</p>
             </div>
             <div class="feature-card">
-                <div class="feature-icon" style="background:rgba(255,159,10,0.15)">💾</div>
+                <div class="feature-icon" style="background:rgba(255,159,10,0.15)">&#128190;</div>
                 <h3>Disk</h3>
-                <p>Space used and available for all mounted volumes. Real-time read and write speeds via IOKit. Root volume and external drives shown separately.</p>
+                <p>Space used and available for all mounted volumes. Real-time read/write speeds via IOKit with total data read/written since boot. SMART status and I/O chart with Y-axis labels.</p>
             </div>
             <div class="feature-card">
-                <div class="feature-icon" style="background:rgba(100,210,255,0.15)">🌐</div>
+                <div class="feature-icon" style="background:rgba(100,210,255,0.15)">&#127760;</div>
                 <h3>Network</h3>
-                <p>Live connectivity dot, upload and download speeds, WAN and router ping latency, IPv4/IPv6, LAN IP, router IP, MAC address, WAN IP reveal, and VPN detection including Tailscale and WireGuard.</p>
+                <p>Upload/download speeds with totals, all active interfaces, WAN and router ping, IPv4/IPv6, MAC address, WAN IP reveal, VPN detection. Bandwidth chart with Y-axis labels.</p>
             </div>
             <div class="feature-card">
-                <div class="feature-icon" style="background:rgba(191,90,242,0.15)">🎮</div>
+                <div class="feature-icon" style="background:rgba(191,90,242,0.15)">&#127918;</div>
                 <h3>GPU</h3>
                 <p>Apple Silicon GPU utilization percentage with renderer name. Historical usage chart shows GPU load over time with smooth monotone interpolation.</p>
             </div>
             <div class="feature-card">
-                <div class="feature-icon" style="background:rgba(48,209,88,0.15)">🔋</div>
+                <div class="feature-icon" style="background:rgba(48,209,88,0.15)">&#128267;</div>
                 <h3>Battery &amp; Fans</h3>
-                <p>Charge level, health percentage, cycle count, temperature, charging status, and time remaining. Fan RPM with min/max ranges shown in detail view.</p>
+                <p>Charge level, health matching Settings app, battery condition, cycle count, temperature, charging status. Fan RPM with min/max ranges.</p>
             </div>
             <div class="feature-card">
-                <div class="feature-icon" style="background:rgba(255,69,58,0.15)">📊</div>
+                <div class="feature-icon" style="background:rgba(255,69,58,0.15)">&#128202;</div>
                 <h3>Beautiful Charts</h3>
-                <p>Historical sparkline charts for CPU, memory, and GPU powered by Swift Charts. Smooth animations with area gradients and monotone curve interpolation.</p>
+                <p>Historical sparklines for CPU, memory, and GPU. Bandwidth and disk I/O charts with auto-scaled Y-axis labels. Detail panels live-refresh as data changes.</p>
             </div>
             <div class="feature-card">
-                <div class="feature-icon" style="background:rgba(255,255,255,0.1)">🪶</div>
+                <div class="feature-icon" style="background:rgba(255,255,255,0.1)">&#129718;</div>
                 <h3>Featherlight</h3>
-                <p>~2 MB binary. Zero external dependencies. Polls every 2 seconds with efficient ring buffers. Shows its own memory usage in the footer so you can verify.</p>
+                <p>~2 MB binary. Zero external dependencies. Polls every 2 seconds with efficient ring buffers. Shows its own memory usage in the footer.</p>
             </div>
             <div class="feature-card">
-                <div class="feature-icon" style="background:rgba(255,159,10,0.15)">🎨</div>
+                <div class="feature-icon" style="background:rgba(255,159,10,0.15)">&#127912;</div>
                 <h3>Customizable</h3>
-                <p>Follows system accent color by default. Custom color override via color picker. Toggle individual menu bar items and labels. Launch at login support.</p>
+                <p>Category colors, monochrome, or custom color via picker. Optional utilization colorization. Two layouts (horizontal/stacked). Toggle individual items and labels. Launch at login.</p>
             </div>
         </div>
     </div>
@@ -670,29 +1046,508 @@
 
 <footer>
     <div class="container">
-        <p>Built by <a href="https://github.com/blaineam">Blaine Miller</a> · <a href="https://github.com/blaineam/blip">Open Source</a> under MIT License</p>
+        <p>Built by <a href="https://github.com/blaineam">Blaine Miller</a> &middot; <a href="https://github.com/blaineam/blip">Open Source</a> under MIT License</p>
     </div>
 </footer>
 
 <script>
-    // Sync demo bar widths with their value labels
-    (function() {
-        const bars = [
-            { bar: document.getElementById('cpu-bar'), val: document.getElementById('cpu-val') },
-            { bar: document.getElementById('mem-bar'), val: document.getElementById('mem-val') },
-            { bar: document.getElementById('dsk-bar'), val: document.getElementById('dsk-val') },
-        ];
-        function update() {
-            for (const { bar, val } of bars) {
-                const parentWidth = bar.parentElement.offsetWidth;
-                if (parentWidth > 0) {
-                    val.textContent = Math.round((bar.offsetWidth / parentWidth) * 100);
-                }
-            }
-            requestAnimationFrame(update);
+(function() {
+    const cursor = document.getElementById('cursor');
+    const popover = document.getElementById('popover');
+    const wrapper = document.getElementById('demoWrapper');
+    const menubar = document.getElementById('menubar');
+    const rows = popover.querySelectorAll('.pop-row[data-panel]');
+    const panels = {};
+    rows.forEach(r => panels[r.dataset.panel] = document.getElementById('panel-' + r.dataset.panel));
+
+    const panelOrder = ['cpu', 'memory', 'disk', 'network', 'gpu', 'thermal', 'battery'];
+    const showcase = document.getElementById('styleShowcase');
+    const styleVariants = ['sv-horizontal', 'sv-stacked', 'sv-monochrome', 'sv-custom', 'sv-minimal'];
+    let step = 0;
+    let autoRunning = true;
+    let interactive = false;
+    let autoTimeout = null;
+    let menubarStyleIdx = 0;
+
+    function moveCursor(x, y) { cursor.style.left = x + 'px'; cursor.style.top = y + 'px'; }
+    function showCursor() { cursor.style.opacity = '1'; }
+    function hideCursor() { cursor.style.opacity = '0'; }
+
+    function openPopover() { popover.classList.remove('hidden'); popover.classList.add('visible'); }
+    function closePopover() { popover.classList.remove('visible'); popover.classList.add('hidden'); }
+    function isPopoverOpen() { return popover.classList.contains('visible'); }
+
+    function highlightRow(name) {
+        rows.forEach(r => r.classList.remove('hovered'));
+        if (name) {
+            const row = popover.querySelector('[data-panel="' + name + '"]');
+            if (row) row.classList.add('hovered');
         }
-        requestAnimationFrame(update);
-    })();
+    }
+
+    function showPanel(name) {
+        Object.values(panels).forEach(p => { if (p) p.classList.remove('visible'); });
+        if (name && panels[name]) panels[name].classList.add('visible');
+    }
+
+    function hideMenubar() { menubar.style.opacity = '0'; }
+    function showMenubar() { menubar.style.opacity = '1'; }
+
+    function showShowcase() { showcase.classList.add('visible'); }
+    function hideShowcase() {
+        showcase.classList.remove('visible');
+        styleVariants.forEach(id => document.getElementById(id).classList.remove('show'));
+    }
+    function revealVariant(id) { document.getElementById(id).classList.add('show'); }
+
+    function getRowCenter(name) {
+        const row = popover.querySelector('[data-panel="' + name + '"]');
+        if (!row) return { x: 350, y: 200 };
+        const rr = row.getBoundingClientRect();
+        const wr = wrapper.getBoundingClientRect();
+        return { x: rr.left - wr.left + rr.width * 0.6, y: rr.top - wr.top + rr.height / 2 };
+    }
+
+    function getMenubarCenter() {
+        const rr = menubar.getBoundingClientRect();
+        const wr = wrapper.getBoundingClientRect();
+        return { x: rr.left - wr.left + rr.width / 2, y: rr.top - wr.top + rr.height / 2 };
+    }
+
+    function isVisible() {
+        const rect = wrapper.getBoundingClientRect();
+        return rect.top < window.innerHeight && rect.bottom > 0;
+    }
+
+    function resetAll() {
+        hideCursor(); closePopover(); highlightRow(null); showPanel(null);
+        hideShowcase(); showMenubar();
+    }
+
+    // ── Auto-play timeline ──
+    const timeline = [];
+
+    // Phase 1: Cursor appears, moves to menu bar, clicks
+    timeline.push({ delay: 2000, fn: () => {
+        const mc = getMenubarCenter();
+        moveCursor(mc.x - 100, mc.y - 50);
+        showCursor();
+    }});
+    timeline.push({ delay: 1200, fn: () => {
+        const mc = getMenubarCenter();
+        moveCursor(mc.x, mc.y);
+    }});
+    timeline.push({ delay: 1000, fn: () => { openPopover(); }});
+
+    // Phase 2: Hover each row
+    panelOrder.forEach((name, i) => {
+        timeline.push({ delay: i === 0 ? 1500 : 1200, fn: () => {
+            const rc = getRowCenter(name);
+            moveCursor(rc.x, rc.y);
+        }});
+        timeline.push({ delay: 600, fn: () => {
+            highlightRow(name);
+            showPanel(name);
+        }});
+        timeline.push({ delay: 5000, fn: () => {} });
+    });
+
+    // Phase 3: Close popover, style showcase
+    timeline.push({ delay: 1000, fn: () => {
+        highlightRow(null); showPanel(null); hideCursor();
+    }});
+    timeline.push({ delay: 800, fn: () => {
+        closePopover(); hideMenubar();
+    }});
+    timeline.push({ delay: 1200, fn: () => { showShowcase(); }});
+
+    // Phase 4: Reveal styles
+    styleVariants.forEach((id, i) => {
+        timeline.push({ delay: i === 0 ? 1000 : 1500, fn: () => { revealVariant(id); }});
+    });
+    timeline.push({ delay: 10000, fn: () => {} });
+
+    // Phase 5: Loop
+    timeline.push({ delay: 800, fn: () => { hideShowcase(); }});
+    timeline.push({ delay: 1000, fn: () => { showMenubar(); }});
+    timeline.push({ delay: 3000, fn: () => { step = 0; runStep(); }});
+
+    function clearAutoTimer() {
+        if (autoTimeout) { clearTimeout(autoTimeout); autoTimeout = null; }
+    }
+
+    function runStep() {
+        if (!autoRunning || interactive) return;
+        if (step >= timeline.length) return;
+        const s = timeline[step];
+        step++;
+        autoTimeout = setTimeout(() => {
+            autoTimeout = null;
+            if (!autoRunning || interactive) return;
+            if (!isVisible()) {
+                resetAll(); step = 0;
+                autoTimeout = setTimeout(() => runStep(), 2000);
+                return;
+            }
+            s.fn();
+            runStep();
+        }, s.delay);
+    }
+
+    setTimeout(() => runStep(), 2000);
+
+    document.addEventListener('visibilitychange', () => {
+        if (document.hidden) {
+            autoRunning = false; clearAutoTimer(); resetAll();
+        } else {
+            autoRunning = true; step = 0;
+            setTimeout(() => runStep(), 1500);
+        }
+    });
+
+    // ── Interactive mode ──
+
+    function enterInteractive() {
+        if (interactive) return;
+        interactive = true;
+        clearAutoTimer();
+        hideCursor(); hideShowcase(); showMenubar();
+        highlightRow(null); showPanel(null);
+    }
+
+    function exitInteractive() {
+        if (!interactive) return;
+        interactive = false;
+        highlightRow(null); showPanel(null);
+        closePopover();
+        step = 0;
+        setTimeout(() => { if (!interactive) runStep(); }, 3000);
+    }
+
+    wrapper.addEventListener('mouseenter', enterInteractive);
+    wrapper.addEventListener('mouseleave', exitInteractive);
+
+    // Click menubar to toggle popover
+    menubar.addEventListener('click', (e) => {
+        if (!interactive) return;
+        e.stopPropagation();
+        if (isPopoverOpen()) {
+            closePopover();
+            highlightRow(null);
+            showPanel(null);
+        } else {
+            openPopover();
+        }
+    });
+
+    // Double-click menubar to cycle styles
+    const mbStyles = [
+        { layout:'row', labels:true, values:true, colors:['var(--accent-blue)','var(--accent)','var(--accent-orange)'] },
+        { layout:'row', labels:true, values:true, colors:['var(--text)','var(--text)','var(--text)'] },
+        { layout:'row', labels:true, values:true, colors:['var(--accent-cyan)','var(--accent-cyan)','var(--accent-cyan)'] },
+        { layout:'row', labels:true, values:false, colors:['var(--accent-blue)','var(--accent)','var(--accent-orange)'] },
+        { layout:'row', labels:false, values:true, colors:['var(--accent-blue)','var(--accent)','var(--accent-orange)'] },
+        { layout:'row', labels:false, values:false, colors:['var(--accent-blue)','var(--accent)','var(--accent-orange)'] },
+        { layout:'col', labels:true, values:true, colors:['var(--accent-blue)','var(--accent)','var(--accent-orange)'] },
+        { layout:'col', labels:true, values:false, colors:['var(--accent-blue)','var(--accent)','var(--accent-orange)'] },
+        { layout:'col', labels:false, values:false, colors:['var(--accent-blue)','var(--accent)','var(--accent-orange)'] },
+    ];
+
+    function applyMenubarStyle(idx) {
+        const s = mbStyles[idx];
+        const items = menubar.querySelectorAll('.mb-item');
+        const fills = menubar.querySelectorAll('.mb-fill');
+        const vals = menubar.querySelectorAll('.mb-val');
+        const labels = menubar.querySelectorAll('.mb-label');
+        fills.forEach((f, i) => f.style.background = s.colors[i]);
+        vals.forEach((v, i) => { v.style.color = s.colors[i]; v.style.display = s.values ? '' : 'none'; });
+        labels.forEach(l => l.style.display = s.labels ? '' : 'none');
+        const mbItemsEl = document.getElementById('mbItems');
+        if (s.layout === 'col') {
+            mbItemsEl.classList.add('stacked');
+        } else {
+            mbItemsEl.classList.remove('stacked');
+        }
+    }
+
+    menubar.addEventListener('dblclick', (e) => {
+        if (!interactive) return;
+        e.stopPropagation();
+        menubarStyleIdx = (menubarStyleIdx + 1) % mbStyles.length;
+        applyMenubarStyle(menubarStyleIdx);
+    });
+
+    // ── Animated values & charts — realistic fluctuations every 2s ──
+    const baseValues = { cpu: 19, mem: 42, gpu: 67, disk: 65 };
+    const coreCount = 14;
+    let coreBases = [35,18,42,28,55,12,5,8,22,6,15,9,3,7];
+
+    let batteryLevel = 82;
+    let batteryCharging = false;
+    let batteryTick = 0;
+
+    function rand(min, max) { return min + Math.random() * (max - min); }
+    function clamp(v, lo, hi) { return Math.max(lo, Math.min(hi, v)); }
+
+    // Ring buffers for charts (30 data points each)
+    const CHART_PTS = 30;
+    const chartData = {
+        cpu: Array.from({length: CHART_PTS}, () => rand(12, 30)),
+        mem: Array.from({length: CHART_PTS}, () => rand(39, 45)),
+        gpu: Array.from({length: CHART_PTS}, () => rand(50, 80)),
+        diskR: Array.from({length: CHART_PTS}, () => rand(0, 15)),
+        diskW: Array.from({length: CHART_PTS}, () => rand(0, 5)),
+        netDl: Array.from({length: CHART_PTS}, () => rand(0, 8)),
+        netUl: Array.from({length: CHART_PTS}, () => rand(0, 3)),
+    };
+
+    function pushChart(arr, val) { arr.shift(); arr.push(val); }
+
+    function buildPath(data, maxVal, h) {
+        const w = 200;
+        const step = w / (data.length - 1);
+        let line = '';
+        let area = '';
+        data.forEach((v, i) => {
+            const x = (i * step).toFixed(1);
+            const y = (h - (v / maxVal) * h).toFixed(1);
+            if (i === 0) { line = 'M' + x + ',' + y; area = 'M' + x + ',' + y; }
+            else { line += ' L' + x + ',' + y; area += ' L' + x + ',' + y; }
+        });
+        area += ' L200,' + h + ' L0,' + h + 'Z';
+        return { line, area };
+    }
+
+    function updateChart(svgId, data, maxVal) {
+        const svg = document.getElementById(svgId);
+        if (!svg) return;
+        const paths = buildPath(data, maxVal, 50);
+        const areaEl = svg.querySelector('.chart-area');
+        const lineEl = svg.querySelector('.chart-line');
+        if (areaEl) areaEl.setAttribute('d', paths.area);
+        if (lineEl) lineEl.setAttribute('d', paths.line);
+    }
+
+    function updateDualChart(areaId, lineId, data, maxVal) {
+        const paths = buildPath(data, maxVal, 50);
+        const a = document.getElementById(areaId);
+        const l = document.getElementById(lineId);
+        if (a) a.setAttribute('d', paths.area);
+        if (l) l.setAttribute('d', paths.line);
+    }
+
+    // Initial chart render
+    function renderAllCharts() {
+        updateChart('chart-cpu', chartData.cpu, 100);
+        updateChart('chart-mem', chartData.mem, 100);
+        updateChart('chart-gpu', chartData.gpu, 100);
+        updateDualChart('chart-disk-read-area', 'chart-disk-read-line', chartData.diskR, 20);
+        updateDualChart('chart-disk-write-area', 'chart-disk-write-line', chartData.diskW, 20);
+        updateDualChart('chart-net-dl-area', 'chart-net-dl-line', chartData.netDl, 12);
+        updateDualChart('chart-net-ul-area', 'chart-net-ul-line', chartData.netUl, 12);
+    }
+    renderAllCharts();
+
+    function animateValues() {
+        // Fluctuate CPU (15-30)
+        const cpu = Math.round(clamp(baseValues.cpu + rand(-5, 5), 12, 35));
+        baseValues.cpu = cpu;
+        // Update menubar
+        const mbFills = menubar.querySelectorAll('.mb-fill');
+        const mbVals = menubar.querySelectorAll('.mb-val');
+        if (mbFills[0]) mbFills[0].style.width = cpu + '%';
+        if (mbVals[0]) mbVals[0].textContent = cpu;
+        // Update popover CPU row
+        const cpuRow = popover.querySelector('[data-panel="cpu"]');
+        if (cpuRow) {
+            const fill = cpuRow.querySelector('.pop-row-fill');
+            const val = cpuRow.querySelector('.pop-row-value');
+            if (fill) fill.style.width = cpu + '%';
+            if (val) val.textContent = cpu + '%';
+        }
+        // Update CPU detail header
+        const cpuPanel = document.getElementById('panel-cpu');
+        if (cpuPanel) {
+            const hv = cpuPanel.querySelector('.dp-header-value');
+            if (hv) hv.textContent = cpu + '%';
+            // Update user/system/idle
+            const cols = cpuPanel.querySelectorAll('.dp-cols');
+            if (cols[0]) {
+                const cvs = cols[0].querySelectorAll('.dp-col-value');
+                const user = Math.round(cpu * 0.65);
+                const sys = cpu - user;
+                if (cvs[0]) cvs[0].textContent = user + '%';
+                if (cvs[1]) cvs[1].textContent = sys + '%';
+                if (cvs[2]) cvs[2].textContent = (100 - cpu) + '%';
+            }
+        }
+
+        // Fluctuate per-core bars
+        const coreRows = document.querySelectorAll('.dp-core-fill');
+        coreRows.forEach((fill, i) => {
+            coreBases[i] = clamp(coreBases[i] + rand(-8, 8), 1, 80);
+            fill.style.width = Math.round(coreBases[i]) + '%';
+        });
+
+        // Fluctuate GPU (50-80)
+        const gpu = Math.round(clamp(baseValues.gpu + rand(-6, 6), 40, 85));
+        baseValues.gpu = gpu;
+        const gpuRow = popover.querySelector('[data-panel="gpu"]');
+        if (gpuRow) {
+            const fill = gpuRow.querySelector('.pop-row-fill');
+            const val = gpuRow.querySelector('.pop-row-value');
+            if (fill) fill.style.width = gpu + '%';
+            if (val) val.textContent = gpu + '%';
+        }
+        const gpuPanel = document.getElementById('panel-gpu');
+        if (gpuPanel) {
+            const hv = gpuPanel.querySelector('.dp-header-value');
+            if (hv) hv.textContent = gpu + '%';
+            const rows = gpuPanel.querySelectorAll('.dp-row-value');
+            if (rows[2]) rows[2].textContent = gpu + '%';
+            // GPU usage bar
+            const bar = gpuPanel.querySelector('[style*="width:67%"]') || gpuPanel.querySelector('div[style*="width:"]');
+            const barContainer = gpuPanel.querySelectorAll('div > div');
+        }
+
+        // Fluctuate network speed display
+        const netRow = popover.querySelector('[data-panel="network"]');
+        if (netRow) {
+            const nv = netRow.querySelector('.pop-row-net-value');
+            const dl = Math.round(rand(1, 15));
+            const ul = Math.round(rand(0, 5));
+            if (nv) nv.innerHTML = '<span style="color:var(--accent)">\u2193</span>' + dl + 'K <span style="color:var(--accent-blue)">\u2191</span>' + ul + 'K';
+        }
+
+        // Fluctuate fan RPMs
+        const fanRpms = document.querySelectorAll('.dp-fan-rpm');
+        const fanFills = document.querySelectorAll('.dp-fan-fill');
+        if (fanRpms[0]) {
+            const rpm1 = Math.round(clamp(2310 + rand(-200, 200), 1800, 3200));
+            const rpm2 = Math.round(clamp(2501 + rand(-200, 200), 1800, 3200));
+            fanRpms[0].textContent = rpm1.toLocaleString() + ' RPM';
+            fanRpms[1].textContent = rpm2.toLocaleString() + ' RPM';
+            if (fanFills[0]) fanFills[0].style.width = (rpm1 / 7826 * 100) + '%';
+            if (fanFills[1]) fanFills[1].style.width = (rpm2 / 7826 * 100) + '%';
+        }
+
+        // Fluctuate CPU temps
+        const thermalPanel = document.getElementById('panel-thermal');
+        if (thermalPanel) {
+            const tvs = thermalPanel.querySelectorAll('.dp-row-value');
+            if (tvs[0]) tvs[0].innerHTML = clamp(42 + rand(-3, 5), 35, 55).toFixed(1) + '&deg;C';
+            if (tvs[1]) tvs[1].innerHTML = clamp(38 + rand(-2, 4), 32, 50).toFixed(1) + '&deg;C';
+        }
+
+        // Battery: tick up charge, occasionally switch charging state
+        batteryTick++;
+        if (batteryTick === 8) {
+            // Switch to charging
+            batteryCharging = true;
+            batteryLevel = 72;
+        }
+        if (batteryCharging && batteryLevel < 100) {
+            batteryLevel = Math.min(100, batteryLevel + Math.round(rand(1, 3)));
+        }
+        if (batteryTick === 22) {
+            // Unplug
+            batteryCharging = false;
+        }
+        if (!batteryCharging && batteryLevel > 20) {
+            batteryLevel = Math.max(20, batteryLevel - Math.round(rand(0, 1)));
+        }
+        if (batteryTick >= 30) batteryTick = 0;
+
+        const batColor = batteryCharging ? 'var(--accent)' : (batteryLevel < 20 ? 'var(--accent-red)' : 'var(--accent)');
+        // Update popover battery row
+        const batRow = popover.querySelector('[data-panel="battery"]');
+        if (batRow) {
+            const fill = batRow.querySelector('.pop-row-fill');
+            const val = batRow.querySelector('.pop-row-value');
+            const icon = batRow.querySelector('.pop-row-icon');
+            if (fill) { fill.style.width = batteryLevel + '%'; fill.style.background = batColor; }
+            if (val) val.textContent = batteryLevel + '%';
+            if (icon) icon.style.color = batColor;
+        }
+        // Update battery detail panel
+        const batPanel = document.getElementById('panel-battery');
+        if (batPanel) {
+            const hv = batPanel.querySelector('.dp-header-value');
+            if (hv) { hv.textContent = batteryLevel + '%'; hv.style.color = batColor; }
+            const bar = batPanel.querySelector('.dp-bar-fill') || batPanel.querySelector('div[style*="width:100%"]');
+            // Update the battery bar and status rows
+            const barContainer = batPanel.querySelectorAll('div > div');
+            const rows = batPanel.querySelectorAll('.dp-row-value');
+            if (rows[0]) rows[0].textContent = batteryCharging ? 'Charging' : 'On Battery';
+            if (rows[1]) rows[1].textContent = batteryCharging ? 'AC Power' : 'Battery Power';
+        }
+
+        // Push new values into chart ring buffers and redraw
+        pushChart(chartData.cpu, cpu);
+        pushChart(chartData.mem, clamp(baseValues.mem + rand(-1, 1), 39, 45));
+        pushChart(chartData.gpu, gpu);
+        pushChart(chartData.diskR, rand(0.2, 12));
+        pushChart(chartData.diskW, rand(0.1, 4));
+        pushChart(chartData.netDl, rand(0.5, 8));
+        pushChart(chartData.netUl, rand(0.1, 2.5));
+        renderAllCharts();
+    }
+
+    setInterval(animateValues, 2000);
+
+    // Hovering popover rows in interactive mode
+    let activePanel = null;
+    let panelHideTimeout = null;
+
+    function setActivePanel(name) {
+        if (panelHideTimeout) { clearTimeout(panelHideTimeout); panelHideTimeout = null; }
+        activePanel = name;
+        highlightRow(name);
+        showPanel(name);
+    }
+
+    function scheduleHidePanel() {
+        panelHideTimeout = setTimeout(() => {
+            activePanel = null;
+            highlightRow(null);
+            showPanel(null);
+        }, 100);
+    }
+
+    rows.forEach(row => {
+        row.addEventListener('mouseenter', () => {
+            if (!interactive || !isPopoverOpen()) return;
+            setActivePanel(row.dataset.panel);
+        });
+        row.addEventListener('mouseleave', () => {
+            if (!interactive || !isPopoverOpen()) return;
+            scheduleHidePanel();
+        });
+    });
+
+    // Tap to reveal WAN IP
+    const wanBtn = document.getElementById('wan-ip-btn');
+    if (wanBtn) {
+        wanBtn.addEventListener('click', () => {
+            wanBtn.textContent = '198.51.100.42';
+            wanBtn.style.color = 'var(--text)';
+            wanBtn.style.cursor = 'default';
+        });
+    }
+
+    // Keep panel open when hovering the detail panel itself
+    Object.entries(panels).forEach(([name, panel]) => {
+        if (!panel) return;
+        panel.addEventListener('mouseenter', () => {
+            if (!interactive || !isPopoverOpen()) return;
+            setActivePanel(name);
+        });
+        panel.addEventListener('mouseleave', () => {
+            if (!interactive || !isPopoverOpen()) return;
+            scheduleHidePanel();
+        });
+    });
+})();
 </script>
 
 </body>

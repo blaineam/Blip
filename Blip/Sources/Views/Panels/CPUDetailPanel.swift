@@ -19,60 +19,31 @@ struct CPUDetailPanel: View {
             }
 
             // Usage breakdown
-            HStack(spacing: 16) {
-                VStack(alignment: .leading, spacing: 2) {
-                    Text("User")
-                        .font(.system(size: 10))
-                        .foregroundStyle(.secondary)
-                    Text(Fmt.percent(stats.userUsage))
-                        .font(.system(size: 11, design: .monospaced))
-                }
-                VStack(alignment: .leading, spacing: 2) {
-                    Text("System")
-                        .font(.system(size: 10))
-                        .foregroundStyle(.secondary)
-                    Text(Fmt.percent(stats.systemUsage))
-                        .font(.system(size: 11, design: .monospaced))
-                }
+            HStack(spacing: 0) {
+                statColumn("User", value: Fmt.percent(stats.userUsage))
+                statColumn("System", value: Fmt.percent(stats.systemUsage))
+                statColumn("Idle", value: Fmt.percent(max(100 - stats.totalUsage, 0)), secondary: true)
             }
 
             // Core counts
-            HStack(spacing: 12) {
+            HStack(spacing: 0) {
                 if stats.performanceCores > 0 {
-                    coreLabel("P-Cores", count: stats.performanceCores)
-                    coreLabel("E-Cores", count: stats.efficiencyCores)
+                    statColumn("P-Cores", value: "\(stats.performanceCores)")
+                    statColumn("E-Cores", value: "\(stats.efficiencyCores)")
                 }
-                coreLabel("Logical", count: stats.logicalCores)
+                statColumn("Logical", value: "\(stats.logicalCores)")
             }
 
             // Load averages
-            HStack(spacing: 12) {
-                VStack(alignment: .leading, spacing: 2) {
-                    Text("Load 1m")
-                        .font(.system(size: 10))
-                        .foregroundStyle(.secondary)
-                    Text(String(format: "%.2f", stats.loadAverage1))
-                        .font(.system(size: 11, design: .monospaced))
-                }
-                VStack(alignment: .leading, spacing: 2) {
-                    Text("5m")
-                        .font(.system(size: 10))
-                        .foregroundStyle(.secondary)
-                    Text(String(format: "%.2f", stats.loadAverage5))
-                        .font(.system(size: 11, design: .monospaced))
-                }
-                VStack(alignment: .leading, spacing: 2) {
-                    Text("15m")
-                        .font(.system(size: 10))
-                        .foregroundStyle(.secondary)
-                    Text(String(format: "%.2f", stats.loadAverage15))
-                        .font(.system(size: 11, design: .monospaced))
-                }
+            HStack(spacing: 0) {
+                statColumn("Load 1m", value: String(format: "%.2f", stats.loadAverage1))
+                statColumn("5m", value: String(format: "%.2f", stats.loadAverage5))
+                statColumn("15m", value: String(format: "%.2f", stats.loadAverage15))
             }
 
             // Per-core bars — grid layout for compactness
             if !stats.coreUsages.isEmpty {
-                let columns = stats.coreUsages.count > 16 ? 4 : (stats.coreUsages.count > 8 ? 2 : 1)
+                let columns = stats.coreUsages.count > 16 ? 4 : (stats.coreUsages.count > 12 ? 3 : (stats.coreUsages.count > 8 ? 2 : 1))
                 let rows = (stats.coreUsages.count + columns - 1) / columns
 
                 VStack(spacing: 2) {
@@ -128,13 +99,15 @@ struct CPUDetailPanel: View {
         return .blue
     }
 
-    private func coreLabel(_ label: String, count: Int) -> some View {
+    private func statColumn(_ label: String, value: String, secondary: Bool = false) -> some View {
         VStack(alignment: .leading, spacing: 2) {
             Text(label)
                 .font(.system(size: 10))
                 .foregroundStyle(.secondary)
-            Text("\(count)")
+            Text(value)
                 .font(.system(size: 11, design: .monospaced))
+                .foregroundStyle(secondary ? .secondary : .primary)
         }
+        .frame(maxWidth: .infinity, alignment: .leading)
     }
 }

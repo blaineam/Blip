@@ -24,32 +24,14 @@ struct NetworkDetailPanel: View {
                     .frame(width: 6, height: 6)
             }
 
-            // Speed + Ping
-            HStack(spacing: 16) {
-                VStack(alignment: .leading, spacing: 2) {
-                    HStack(spacing: 2) {
-                        Image(systemName: "arrow.down")
-                            .font(.system(size: 9))
-                            .foregroundStyle(.green)
-                        Text("Download")
-                            .font(.system(size: 10))
-                            .foregroundStyle(.secondary)
-                    }
-                    Text(Fmt.speed(stats.downloadSpeed))
-                        .font(.system(size: 11, design: .monospaced))
-                }
-                VStack(alignment: .leading, spacing: 2) {
-                    HStack(spacing: 2) {
-                        Image(systemName: "arrow.up")
-                            .font(.system(size: 9))
-                            .foregroundStyle(.blue)
-                        Text("Upload")
-                            .font(.system(size: 10))
-                            .foregroundStyle(.secondary)
-                    }
-                    Text(Fmt.speed(stats.uploadSpeed))
-                        .font(.system(size: 11, design: .monospaced))
-                }
+            // Speeds row
+            HStack(spacing: 0) {
+                netStatColumn(icon: "arrow.down", iconColor: .green, label: "Download", value: Fmt.speed(stats.downloadSpeed))
+                netStatColumn(icon: "arrow.up", iconColor: .blue, label: "Upload", value: Fmt.speed(stats.uploadSpeed))
+            }
+
+            // Ping row
+            HStack(spacing: 0) {
                 VStack(alignment: .leading, spacing: 2) {
                     HStack(spacing: 2) {
                         Image(systemName: "waveform.path.ecg")
@@ -69,13 +51,15 @@ struct NetworkDetailPanel: View {
                             .foregroundStyle(.secondary)
                     }
                 }
+                .frame(maxWidth: .infinity, alignment: .leading)
+
                 if stats.routerIP != "—" {
                     VStack(alignment: .leading, spacing: 2) {
                         HStack(spacing: 2) {
                             Image(systemName: "waveform.path.ecg")
                                 .font(.system(size: 9))
                                 .foregroundStyle(.cyan)
-                            Text("Router")
+                            Text("Router Ping")
                                 .font(.system(size: 10))
                                 .foregroundStyle(.secondary)
                         }
@@ -89,7 +73,28 @@ struct NetworkDetailPanel: View {
                                 .foregroundStyle(.secondary)
                         }
                     }
+                    .frame(maxWidth: .infinity, alignment: .leading)
                 }
+            }
+
+            // Totals row
+            HStack(spacing: 0) {
+                VStack(alignment: .leading, spacing: 2) {
+                    Text("Total Down")
+                        .font(.system(size: 10))
+                        .foregroundStyle(.secondary)
+                    Text(Fmt.totalBytes(stats.totalBytesDownloaded))
+                        .font(.system(size: 11, design: .monospaced))
+                }
+                .frame(maxWidth: .infinity, alignment: .leading)
+                VStack(alignment: .leading, spacing: 2) {
+                    Text("Total Up")
+                        .font(.system(size: 10))
+                        .foregroundStyle(.secondary)
+                    Text(Fmt.totalBytes(stats.totalBytesUploaded))
+                        .font(.system(size: 11, design: .monospaced))
+                }
+                .frame(maxWidth: .infinity, alignment: .leading)
             }
 
             // Bandwidth chart
@@ -99,15 +104,48 @@ struct NetworkDetailPanel: View {
 
             Divider()
 
-            // Addresses
-            VStack(alignment: .leading, spacing: 4) {
-                addressRow("Interface", value: stats.interfaceName)
-                addressRow("IPv4 (LAN)", value: stats.lanAddress)
-                addressRow("Router", value: stats.routerIP)
-                addressRow("IPv6", value: stats.ipv6Address)
-                if stats.macAddress != "—" {
-                    addressRow("MAC", value: stats.macAddress)
+            // Active interfaces
+            if stats.interfaces.count > 1 {
+                Text("Active Interfaces")
+                    .font(.system(size: 10, weight: .medium))
+                    .foregroundStyle(.secondary)
+
+                ForEach(stats.interfaces) { iface in
+                    VStack(alignment: .leading, spacing: 2) {
+                        HStack {
+                            Text(iface.name)
+                                .font(.system(size: 11, weight: .medium))
+                            Text("(\(iface.id))")
+                                .font(.system(size: 9, design: .monospaced))
+                                .foregroundStyle(.tertiary)
+                            Spacer()
+                        }
+                        addressRow("IPv4", value: iface.ipv4)
+                        if iface.ipv6 != "—" {
+                            addressRow("IPv6", value: iface.ipv6)
+                        }
+                        if iface.macAddress != "—" {
+                            addressRow("MAC", value: iface.macAddress)
+                        }
+                    }
+                    .padding(.vertical, 2)
                 }
+                addressRow("Router", value: stats.routerIP)
+            } else {
+                // Single interface — original layout
+                VStack(alignment: .leading, spacing: 4) {
+                    addressRow("Interface", value: stats.interfaceName)
+                    addressRow("IPv4 (LAN)", value: stats.lanAddress)
+                    addressRow("Router", value: stats.routerIP)
+                    addressRow("IPv6", value: stats.ipv6Address)
+                    if stats.macAddress != "—" {
+                        addressRow("MAC", value: stats.macAddress)
+                    }
+                }
+            }
+
+            // Addresses (shared section)
+            VStack(alignment: .leading, spacing: 4) {
 
                 // WAN IP — hidden by default, click to reveal
                 HStack {
@@ -192,7 +230,18 @@ struct NetworkDetailPanel: View {
             }
             .chartLegend(.hidden)
             .chartXAxis(.hidden)
-            .chartYAxis(.hidden)
+            .chartYAxis {
+                AxisMarks(position: .trailing) { value in
+                    AxisValueLabel {
+                        if let v = value.as(Double.self) {
+                            Text(Fmt.chartSpeed(v))
+                                .font(.system(size: 7))
+                        }
+                    }
+                    AxisGridLine(stroke: StrokeStyle(lineWidth: 0.5, dash: [2]))
+                        .foregroundStyle(.quaternary)
+                }
+            }
             .frame(height: 80)
 
             HStack(spacing: 12) {
@@ -229,6 +278,22 @@ struct NetworkDetailPanel: View {
             .buttonStyle(.plain)
             .help("Click to copy")
         }
+    }
+
+    private func netStatColumn(icon: String, iconColor: Color, label: String, value: String) -> some View {
+        VStack(alignment: .leading, spacing: 2) {
+            HStack(spacing: 2) {
+                Image(systemName: icon)
+                    .font(.system(size: 9))
+                    .foregroundStyle(iconColor)
+                Text(label)
+                    .font(.system(size: 10))
+                    .foregroundStyle(.secondary)
+            }
+            Text(value)
+                .font(.system(size: 11, design: .monospaced))
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
     }
 
     private func pingColor(_ ms: Double) -> Color {

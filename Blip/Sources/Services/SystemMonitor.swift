@@ -65,7 +65,7 @@ final class SystemMonitor: ObservableObject {
         async let gpuRead = Task.detached { [gpuMonitor] in gpuMonitor.read() }.value
         async let battRead = batteryMonitor.read()
         async let fanRead = fanMonitor.read()
-        async let procRead = processMonitor.read()
+        async let procRead = Task.detached { [processMonitor] in await processMonitor.read() }.value
 
         let cpu = await cpuRead
         let memory = await memRead

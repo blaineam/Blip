@@ -28,16 +28,49 @@ struct MemoryDetailPanel: View {
                     .font(.system(size: 11, weight: .medium, design: .monospaced))
             }
 
-            // Breakdown
+            // Breakdown (matches Activity Monitor categories)
             VStack(spacing: 4) {
-                memoryRow("Used", value: stats.used, color: .green)
+                memoryRow("App Memory", value: stats.appMemory, color: .blue)
                 memoryRow("Wired", value: stats.wired, color: .orange)
                 memoryRow("Compressed", value: stats.compressed, color: .purple)
-                memoryRow("App Memory", value: stats.appMemory, color: .blue)
+            }
+
+            Divider()
+
+            VStack(spacing: 4) {
+                memoryRow("Memory Used", value: stats.used, color: .green)
+                memoryRow("Cached Files", value: stats.cachedFiles, color: .cyan)
                 memoryRow("Free", value: stats.free, color: .gray)
             }
 
-            // Pressure bar
+            // Swap (always shown)
+            VStack(spacing: 4) {
+                HStack {
+                    Circle()
+                        .fill(Color.yellow)
+                        .frame(width: 6, height: 6)
+                    Text("Swap Used")
+                        .font(.system(size: 11))
+                    Spacer()
+                    Text(Fmt.bytes(stats.swapUsed))
+                        .font(.system(size: 11, design: .monospaced))
+                        .foregroundStyle(.secondary)
+                }
+                if stats.swapTotal > 0 {
+                    GeometryReader { geo in
+                        ZStack(alignment: .leading) {
+                            RoundedRectangle(cornerRadius: 2)
+                                .fill(Color.yellow.opacity(0.1))
+                            RoundedRectangle(cornerRadius: 2)
+                                .fill(Color.yellow)
+                                .frame(width: geo.size.width * min(Double(stats.swapUsed) / Double(stats.swapTotal), 1))
+                        }
+                    }
+                    .frame(height: 6)
+                }
+            }
+
+            // Pressure bar (uses kernel pressure level)
             HStack(spacing: 4) {
                 Text("Pressure")
                     .font(.system(size: 10))
@@ -45,13 +78,16 @@ struct MemoryDetailPanel: View {
                 GeometryReader { geo in
                     ZStack(alignment: .leading) {
                         RoundedRectangle(cornerRadius: 2)
-                            .fill(Color.green.opacity(0.1))
+                            .fill(pressureColor.opacity(0.1))
                         RoundedRectangle(cornerRadius: 2)
                             .fill(pressureColor)
-                            .frame(width: geo.size.width * min(stats.usagePercent / 100, 1))
+                            .frame(width: geo.size.width * pressureBarFill)
                     }
                 }
                 .frame(height: 6)
+                Text(pressureLabel)
+                    .font(.system(size: 9))
+                    .foregroundStyle(pressureColor)
             }
 
             // Chart
@@ -86,9 +122,31 @@ struct MemoryDetailPanel: View {
         }
     }
 
+    // Kernel pressure level: 1=normal, 2=warning, 4=critical
     private var pressureColor: Color {
-        if stats.usagePercent > 90 { return .red }
-        if stats.usagePercent > 75 { return .orange }
-        return .green
+        switch stats.pressureLevel {
+        case 1: return .green
+        case 2: return .yellow
+        case 4: return .red
+        default: return .green
+        }
+    }
+
+    private var pressureLabel: String {
+        switch stats.pressureLevel {
+        case 1: return "Normal"
+        case 2: return "Warning"
+        case 4: return "Critical"
+        default: return "Normal"
+        }
+    }
+
+    private var pressureBarFill: Double {
+        switch stats.pressureLevel {
+        case 1: return 0.15
+        case 2: return 0.55
+        case 4: return 1.0
+        default: return 0.15
+        }
     }
 }

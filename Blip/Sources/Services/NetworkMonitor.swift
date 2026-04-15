@@ -36,7 +36,12 @@ final class NetworkMonitor: @unchecked Sendable {
 
         var totalBytesIn: UInt64 = 0
         var totalBytesOut: UInt64 = 0
-        var activeMacInterfaces = Set<String>() // track interfaces with IPs
+        var activeMacInterfaces = Set<String>()
+        // Collect per-interface data for multi-interface display
+        var ifIPv4: [String: String] = [:]
+        var ifIPv6: [String: String] = [:]
+        var ifMAC: [String: String] = [:]
+        var ifHasIP: Set<String> = []
 
         var current = firstAddr
         while true {
@@ -55,10 +60,14 @@ final class NetworkMonitor: @unchecked Sendable {
                     let ip = String(decoding: hostname.map { UInt8(bitPattern: $0) }, as: UTF8.self)
                         .trimmingCharacters(in: .controlCharacters)
 
-                    if name.hasPrefix("en") && stats.lanAddress == "—" {
-                        stats.lanAddress = ip
-                        stats.ipv4Address = ip
-                        stats.interfaceName = name
+                    if name.hasPrefix("en") {
+                        ifIPv4[name] = ip
+                        ifHasIP.insert(name)
+                        if stats.lanAddress == "—" {
+                            stats.lanAddress = ip
+                            stats.ipv4Address = ip
+                            stats.interfaceName = name
+                        }
                         activeMacInterfaces.insert(name)
                     } else if name.hasPrefix("utun") || name.hasPrefix("tailscale") || name.hasPrefix("wg") {
                         stats.vpnAddress = ip
@@ -71,8 +80,13 @@ final class NetworkMonitor: @unchecked Sendable {
                                &hostname, socklen_t(hostname.count), nil, 0, NI_NUMERICHOST)
                     let ip = String(decoding: hostname.map { UInt8(bitPattern: $0) }, as: UTF8.self)
                         .trimmingCharacters(in: .controlCharacters)
-                    if name.hasPrefix("en") && stats.ipv6Address == "—" && !ip.hasPrefix("fe80") {
-                        stats.ipv6Address = ip
+                    if name.hasPrefix("en") && !ip.hasPrefix("fe80") {
+                        if ifIPv6[name] == nil {
+                            ifIPv6[name] = ip
+                        }
+                        if stats.ipv6Address == "—" {
+                            stats.ipv6Address = ip
+                        }
                     }
                 }
 
@@ -87,8 +101,11 @@ final class NetworkMonitor: @unchecked Sendable {
                                 macBytes = [UInt8](UnsafeBufferPointer(start: base.assumingMemoryBound(to: UInt8.self), count: 6))
                             }
                             let macStr = macBytes.map { String(format: "%02X", $0) }.joined(separator: ":")
-                            if macStr != "00:00:00:00:00:00" && stats.macAddress == "—" {
-                                stats.macAddress = macStr
+                            if macStr != "00:00:00:00:00:00" {
+                                ifMAC[name] = macStr
+                                if stats.macAddress == "—" {
+                                    stats.macAddress = macStr
+                                }
                             }
                         }
                     }
@@ -113,6 +130,23 @@ final class NetworkMonitor: @unchecked Sendable {
 
             guard let next = interface.ifa_next else { break }
             current = next
+        }
+
+        // Expose cumulative totals since boot
+        stats.totalBytesDownloaded = totalBytesIn
+        stats.totalBytesUploaded = totalBytesOut
+
+        // Build interface list for all active en* interfaces with IPs
+        stats.interfaces = ifHasIP.sorted().map { ifName in
+            let displayName = Self.interfaceDisplayName(ifName)
+            return InterfaceInfo(
+                id: ifName,
+                name: displayName,
+                ipv4: ifIPv4[ifName] ?? "—",
+                ipv6: ifIPv6[ifName] ?? "—",
+                macAddress: ifMAC[ifName] ?? "—",
+                isActive: true
+            )
         }
 
         // Get router (default gateway) IP
@@ -171,6 +205,22 @@ final class NetworkMonitor: @unchecked Sendable {
             }
         } catch {}
         return "—"
+    }
+
+    /// Maps interface names to user-friendly display names
+    private static func interfaceDisplayName(_ name: String) -> String {
+        // Common macOS interface mappings
+        switch name {
+        case "en0": return "Wi-Fi"
+        case "en1": return "Thunderbolt Ethernet"
+        case "en2": return "Thunderbolt Ethernet 2"
+        case "en3": return "Thunderbolt Ethernet 3"
+        case "en4": return "Thunderbolt Ethernet 4"
+        case "en5": return "USB Ethernet"
+        default:
+            if name.hasPrefix("en") { return "Ethernet (\(name))" }
+            return name
+        }
     }
 
     /// Measures latency by timing a TCP connection to a host

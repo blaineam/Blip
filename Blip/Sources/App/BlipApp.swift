@@ -1,5 +1,6 @@
 import SwiftUI
 import AppKit
+import Combine
 
 @main
 struct BlipApp: App {
@@ -26,12 +27,14 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     private var currentSection: PopoverSection?
     private var settingsWindow: NSWindow?
     private var dismissWorkItem: DispatchWorkItem?
+    private var cancellables = Set<AnyCancellable>()
 
     func applicationDidFinishLaunching(_ notification: Notification) {
         setupStatusItem()
         setupPopover()
         setupDetailPanel()
         setupEventMonitor()
+        setupLiveRefresh()
         monitor.start()
     }
 
@@ -275,6 +278,49 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
 
         window.makeKeyAndOrderFront(nil)
         NSApp.activate(ignoringOtherApps: true)
+    }
+
+    // MARK: - Live Refresh
+
+    private func setupLiveRefresh() {
+        monitor.$snapshot
+            .receive(on: RunLoop.main)
+            .sink { [weak self] _ in
+                guard let self, let section = self.currentSection,
+                      let panel = self.detailPanel, panel.isVisible else { return }
+                self.refreshDetailContent(for: section)
+            }
+            .store(in: &cancellables)
+    }
+
+    private func refreshDetailContent(for section: PopoverSection) {
+        guard detailPanel != nil else { return }
+
+        let cornerRadius: CGFloat = 10
+        let contentView = detailContent(for: section)
+        let wrappedView = AnyView(
+            contentView
+                .background(
+                    VisualEffectView(material: .popover, blendingMode: .behindWindow)
+                )
+                .clipShape(RoundedRectangle(cornerRadius: cornerRadius))
+                .overlay(
+                    RoundedRectangle(cornerRadius: cornerRadius)
+                        .stroke(Color.primary.opacity(0.08), lineWidth: 0.5)
+                )
+                .onHover { [weak self] hovering in
+                    if hovering {
+                        self?.dismissWorkItem?.cancel()
+                        self?.dismissWorkItem = nil
+                    } else {
+                        self?.handleSectionHover(nil)
+                    }
+                }
+        )
+
+        if let existing = detailHostingView {
+            existing.rootView = wrappedView
+        }
     }
 
     // MARK: - Event Monitor

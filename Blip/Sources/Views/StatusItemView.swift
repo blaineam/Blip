@@ -10,7 +10,8 @@ struct StatusItemView: View {
     @AppStorage("showNetworkDot") private var showNetworkDot = true
     @AppStorage("showMeasurementLabels") private var showMeasurementLabels = true
     @AppStorage("showValueLabels") private var showValueLabels = true
-    @AppStorage("menuBarLayout") private var menuBarLayout: String = "stacked"
+    @AppStorage("menuBarLayout") private var menuBarLayout: String = "horizontal"
+    @AppStorage("colorizeUtilization") private var colorizeUtilization = true
 
     var body: some View {
         Group {
@@ -128,6 +129,7 @@ struct StatusItemView: View {
     }
 
     private func barColor(_ value: Double, base: Color) -> Color {
+        guard colorizeUtilization else { return resolvedColor(base) }
         if value > 90 { return .red }
         if value > 70 { return .orange }
         return resolvedColor(base)

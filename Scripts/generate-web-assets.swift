@@ -104,17 +104,24 @@ func generateOGPoster() -> NSImage {
         return image
     }
 
-    // Dark background
-    ctx.setFillColor(NSColor(red: 0.04, green: 0.04, blue: 0.06, alpha: 1).cgColor)
-    ctx.fill(CGRect(x: 0, y: 0, width: w, height: h))
-
-    // Ambient glow
-    let glowColors = [
-        NSColor(red: 0.19, green: 0.82, blue: 0.35, alpha: 0.08).cgColor,
-        NSColor.clear.cgColor,
+    // Background: dark navy to deep blue diagonal gradient (-45 degrees)
+    let bgGradientColors = [
+        NSColor(red: 0.05, green: 0.08, blue: 0.18, alpha: 1).cgColor,
+        NSColor(red: 0.10, green: 0.15, blue: 0.30, alpha: 1).cgColor,
     ] as CFArray
-    if let gradient = CGGradient(colorsSpace: CGColorSpaceCreateDeviceRGB(), colors: glowColors, locations: [0, 1]) {
-        ctx.drawRadialGradient(gradient, startCenter: CGPoint(x: 350, y: 400), startRadius: 0, endCenter: CGPoint(x: 350, y: 400), endRadius: 300, options: [])
+    if let bgGradient = CGGradient(colorsSpace: CGColorSpaceCreateDeviceRGB(), colors: bgGradientColors, locations: [0, 1]) {
+        // -45 degrees: top-left to bottom-right (in CG coords, bottom-left to top-right)
+        ctx.drawLinearGradient(bgGradient, start: CGPoint(x: 0, y: h), end: CGPoint(x: w, y: 0), options: [])
+    }
+
+    // Subtle cyan radial glow in the center area
+    let cyanGlowColors = [
+        NSColor(red: 0.2, green: 0.8, blue: 1.0, alpha: 0.08).cgColor,
+        NSColor(red: 0.2, green: 0.8, blue: 1.0, alpha: 0.0).cgColor,
+    ] as CFArray
+    if let cyanGlow = CGGradient(colorsSpace: CGColorSpaceCreateDeviceRGB(), colors: cyanGlowColors, locations: [0, 1]) {
+        let glowCenter = CGPoint(x: w * 0.5, y: h * 0.5)
+        ctx.drawRadialGradient(cyanGlow, startCenter: glowCenter, startRadius: 0, endCenter: glowCenter, endRadius: 350, options: [])
     }
 
     // Draw the icon at left-center

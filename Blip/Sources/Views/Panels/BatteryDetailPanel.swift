@@ -34,6 +34,7 @@ struct BatteryDetailPanel: View {
                     detailRow("Status", value: stats.isCharging ? "Charging" : "On Battery")
                     detailRow("Source", value: stats.powerSource)
                     detailRow("Health", value: Fmt.percent(stats.health))
+                    detailRow("Condition", value: stats.condition)
                     detailRow("Cycle Count", value: "\(stats.cycleCount)")
                     if stats.temperature > 0 {
                         detailRow("Temperature", value: Fmt.temperature(stats.temperature))
