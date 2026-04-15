@@ -1,6 +1,6 @@
 import Foundation
 import IOKit
-import Metal
+@preconcurrency import Metal
 
 final class GPUMonitor: Sendable {
     private let device: (any MTLDevice)?
