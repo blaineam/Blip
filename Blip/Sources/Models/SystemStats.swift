@@ -60,7 +60,7 @@ struct DiskStats: Sendable {
 }
 
 struct VolumeInfo: Identifiable, Sendable {
-    let id = UUID()
+    var id: String { mountPoint }
     let name: String
     let mountPoint: String
     let totalBytes: UInt64

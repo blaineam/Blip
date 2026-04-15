@@ -12,6 +12,8 @@ final class NetworkMonitor: @unchecked Sendable {
     private var lastPing: Double?
     private var lastRouterPing: Double?
     private var pingCount = 0
+    private var cachedGateway: String?
+    private var gatewayPollCount = 0
     var pingTarget: String = "1.1.1.1"
 
     init() {
@@ -149,8 +151,12 @@ final class NetworkMonitor: @unchecked Sendable {
             )
         }
 
-        // Get router (default gateway) IP
-        stats.routerIP = Self.readDefaultGateway()
+        // Get router (default gateway) IP — cache and refresh every 15th cycle (~30s)
+        gatewayPollCount += 1
+        if cachedGateway == nil || gatewayPollCount % 15 == 1 {
+            cachedGateway = Self.readDefaultGateway()
+        }
+        stats.routerIP = cachedGateway ?? "—"
 
         // Calculate speed from delta
         let now = Date()

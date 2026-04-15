@@ -3,7 +3,7 @@ import AppKit
 import Darwin
 
 final class ProcessMonitor: @unchecked Sendable {
-    private let iconCache = NSCache<NSNumber, NSImage>()
+    private let iconCache = NSCache<NSNumber, NSData>()
     private var previousCPUTimes: [pid_t: (user: UInt64, system: UInt64, wallNs: UInt64)] = [:]
 
     /// Mach absolute time → nanoseconds conversion factor.
@@ -15,8 +15,8 @@ final class ProcessMonitor: @unchecked Sendable {
     }()
 
     init() {
-        iconCache.countLimit = 20
-        iconCache.totalCostLimit = 5 * 1024 * 1024
+        iconCache.countLimit = 10
+        iconCache.totalCostLimit = 2 * 1024 * 1024
     }
 
     func read() async -> (byCPU: [ProcessInfo], byMemory: [ProcessInfo]) {
@@ -117,7 +117,7 @@ final class ProcessMonitor: @unchecked Sendable {
             previousCPUTimes[pid] = (user: currentUser, system: currentSystem, wallNs: nowNs)
 
             // Get process name
-            var nameBuffer = [CChar](repeating: 0, count: 4 * Int(MAXPATHLEN))
+            var nameBuffer = [CChar](repeating: 0, count: Int(MAXPATHLEN))
             proc_pidpath(pid, &nameBuffer, UInt32(nameBuffer.count))
             let pathLen = Int(strlen(nameBuffer))
             let path = String(decoding: nameBuffer.prefix(pathLen).map { UInt8(bitPattern: $0) }, as: UTF8.self)
@@ -185,7 +185,7 @@ final class ProcessMonitor: @unchecked Sendable {
     private func appIcon(for pid: pid_t) -> Data? {
         let key = NSNumber(value: pid)
         if let cached = iconCache.object(forKey: key) {
-            return pngData(from: cached)
+            return cached as Data
         }
 
         guard let app = NSRunningApplication(processIdentifier: pid),
@@ -193,16 +193,23 @@ final class ProcessMonitor: @unchecked Sendable {
             return nil
         }
 
-        let smallIcon = NSImage(size: NSSize(width: 32, height: 32))
+        // Render at 16×16 (half previous 32×32) — sufficient for process row display
+        let smallIcon = NSImage(size: NSSize(width: 16, height: 16))
         smallIcon.lockFocus()
-        icon.draw(in: NSRect(x: 0, y: 0, width: 32, height: 32),
+        icon.draw(in: NSRect(x: 0, y: 0, width: 16, height: 16),
                   from: NSRect(origin: .zero, size: icon.size),
                   operation: .copy,
                   fraction: 1.0)
         smallIcon.unlockFocus()
 
-        iconCache.setObject(smallIcon, forKey: key, cost: 32 * 32 * 4)
-        return pngData(from: smallIcon)
+        guard let tiff = smallIcon.tiffRepresentation,
+              let rep = NSBitmapImageRep(data: tiff),
+              let pngData = rep.representation(using: .png, properties: [:]) else {
+            return nil
+        }
+
+        iconCache.setObject(pngData as NSData, forKey: key, cost: pngData.count)
+        return pngData
     }
 
     private func procName(for pid: pid_t) -> String? {
@@ -211,11 +218,5 @@ final class ProcessMonitor: @unchecked Sendable {
         guard len > 0 else { return nil }
         let length = Int(len)
         return String(decoding: name.prefix(length).map { UInt8(bitPattern: $0) }, as: UTF8.self)
-    }
-
-    private func pngData(from image: NSImage) -> Data? {
-        guard let tiff = image.tiffRepresentation,
-              let rep = NSBitmapImageRep(data: tiff) else { return nil }
-        return rep.representation(using: .png, properties: [.compressionFactor: 0.8])
     }
 }

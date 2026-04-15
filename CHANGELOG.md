@@ -1,5 +1,22 @@
 # Changelog
 
+## v1.3.0
+
+### Memory Optimization
+- **Icon cache overhaul** — process icons now cached as PNG `Data` directly, eliminating redundant tiff-to-bitmap-to-PNG re-encoding on every cache hit (was running 10+ conversions per poll cycle)
+- **Smaller icons** — process icons rendered at 16x16 instead of 32x32, reducing per-icon memory by 4x
+- **Tighter cache limits** — icon cache reduced from 20 items / 5 MB to 10 items / 2 MB
+- **Subprocess elimination** — `netstat` gateway lookup now cached and refreshed every ~30 seconds instead of spawning a new process every 2 seconds
+- **GPU metadata caching** — GPU name and core count fetched once at init instead of re-querying sysctl and IOKit every poll cycle
+- **Stable SwiftUI identity** — `VolumeInfo` uses `mountPoint` as its stable `Identifiable` id instead of allocating a new `UUID` every poll, reducing allocation churn and improving SwiftUI diffing
+- **Process buffer reduction** — process name path buffer reduced from 4x `MAXPATHLEN` to 1x, saving ~3 KB per process per poll
+
+### Result
+- **Physical footprint** — reduced from ~250 MB to ~42 MB steady-state (measured via macOS `footprint` tool)
+- **Per-poll allocations** — significantly reduced through caching, buffer reuse, and subprocess elimination
+
+---
+
 ## v1.2.0
 
 ### Accuracy Improvements

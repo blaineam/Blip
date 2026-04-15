@@ -3,31 +3,49 @@ import IOKit
 @preconcurrency import Metal
 
 final class GPUMonitor: Sendable {
-    private let device: (any MTLDevice)?
+    /// Static GPU metadata fetched once at init
+    private let gpuName: String
+    private let gpuCoreCount: Int
 
     init() {
-        self.device = MTLCreateSystemDefaultDevice()
+        let device = MTLCreateSystemDefaultDevice()
+        gpuName = device?.name ?? "Apple GPU"
+
+        // Core count from sysctl (preferred) or IOKit fallback
+        var cores: Int = 0
+        var gpuCores: Int32 = 0
+        var size = MemoryLayout<Int32>.size
+        if sysctlbyname("machdep.gpu.core_count", &gpuCores, &size, nil, 0) == 0 {
+            cores = Int(gpuCores)
+        }
+        if cores == 0 {
+            // One-time IOKit lookup for core count
+            var iterator: io_iterator_t = 0
+            if let matching = IOServiceMatching("IOAccelerator"),
+               IOServiceGetMatchingServices(kIOMainPortDefault, matching, &iterator) == kIOReturnSuccess {
+                defer { IOObjectRelease(iterator) }
+                var entry = IOIteratorNext(iterator)
+                while entry != 0 {
+                    defer { IOObjectRelease(entry); entry = IOIteratorNext(iterator) }
+                    var properties: Unmanaged<CFMutableDictionary>?
+                    if IORegistryEntryCreateCFProperties(entry, &properties, kCFAllocatorDefault, 0) == kIOReturnSuccess,
+                       let dict = properties?.takeRetainedValue() as? [String: Any],
+                       let c = dict["gpu-core-count"] as? NSNumber {
+                        cores = c.intValue
+                        break
+                    }
+                }
+            }
+        }
+        gpuCoreCount = cores
     }
 
     func read() -> GPUStats {
         var stats = GPUStats()
-        stats.name = device?.name ?? "Apple GPU"
+        stats.name = gpuName
+        stats.coreCount = gpuCoreCount
 
-        // GPU core count from Metal
-        if let device = device {
-            // Apple Silicon GPUs don't expose core count directly via Metal,
-            // but we can read it from IOKit or sysctl
-            var gpuCores: Int32 = 0
-            var size = MemoryLayout<Int32>.size
-            if sysctlbyname("machdep.gpu.core_count", &gpuCores, &size, nil, 0) == 0 {
-                stats.coreCount = Int(gpuCores)
-            } else {
-                // Fallback: estimate from device name or use Metal's max threads
-                stats.coreCount = device.maxThreadsPerThreadgroup.width > 0 ? 0 : 0
-            }
-        }
-
-        // Read GPU utilization from IOKit accelerator stats
+        // Only poll utilization — the dynamic value
         var iterator: io_iterator_t = 0
         let matching = IOServiceMatching("IOAccelerator")
         guard IOServiceGetMatchingServices(kIOMainPortDefault, matching, &iterator) == kIOReturnSuccess else {
@@ -44,24 +62,15 @@ final class GPUMonitor: Sendable {
 
             var properties: Unmanaged<CFMutableDictionary>?
             guard IORegistryEntryCreateCFProperties(entry, &properties, kCFAllocatorDefault, 0) == kIOReturnSuccess,
-                  let dict = properties?.takeRetainedValue() as? [String: Any] else {
+                  let dict = properties?.takeRetainedValue() as? [String: Any],
+                  let perfStats = dict["PerformanceStatistics"] as? [String: Any] else {
                 continue
             }
 
-            if let perfStats = dict["PerformanceStatistics"] as? [String: Any] {
-                // Apple Silicon reports "Device Utilization %" directly
-                if let utilization = perfStats["Device Utilization %"] as? NSNumber {
-                    stats.utilization = utilization.doubleValue
-                } else if let gpuActivity = perfStats["GPU Activity(%)"] as? NSNumber {
-                    stats.utilization = gpuActivity.doubleValue
-                }
-
-                // Try to get core count from IOKit if sysctl failed
-                if stats.coreCount == 0 {
-                    if let cores = dict["gpu-core-count"] as? NSNumber {
-                        stats.coreCount = cores.intValue
-                    }
-                }
+            if let utilization = perfStats["Device Utilization %"] as? NSNumber {
+                stats.utilization = utilization.doubleValue
+            } else if let gpuActivity = perfStats["GPU Activity(%)"] as? NSNumber {
+                stats.utilization = gpuActivity.doubleValue
             }
         }
 

@@ -13,7 +13,7 @@
 
 Existing system monitors are either bloated, expensive, or missing key features. Blip takes the best ideas from iStats Menus and Stats Panel, strips away the fluff, and delivers a monitor that's:
 
-- **Tiny** — ~2 MB app bundle, ~250 MB memory footprint
+- **Tiny** — ~2 MB app bundle, ~42 MB memory footprint
 - **Fast** — async/await throughout, polls every 2 seconds
 - **Pretty** — clean layout, smooth charts, hover detail panels
 - **Focused** — system metrics only, no weather or clock widgets
@@ -95,7 +95,7 @@ chmod +x Scripts/build-dmg.sh
               │                     │
               │  Mac14,7 · macOS 15 │
               │  ⏱ 3d 2h │ Nominal │
-              │  Blip v1.2.0       │
+              │  Blip v1.3.0       │
               └─────────────────────┘
 ```
 
@@ -180,7 +180,7 @@ Blip reads hardware sensors (SMC for fans, IOKit for GPU/disk I/O, process list 
 <details>
 <summary><strong>How much memory does Blip use?</strong></summary>
 <br>
-Typically around 250 MB. Blip shows its own memory footprint in the popover footer so you can always verify.
+Typically around 42 MB physical footprint. Blip shows its own memory usage in the popover footer so you can always verify.
 </details>
 
 <details>
