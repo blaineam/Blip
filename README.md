@@ -9,7 +9,7 @@
 
 ---
 
-## Why Blip?
+## 💡 Why Blip?
 
 Existing system monitors are either bloated, expensive, or missing key features. Blip takes the best ideas from iStats Menus and Stats Panel, strips away the fluff, and delivers a monitor that's:
 
@@ -19,7 +19,7 @@ Existing system monitors are either bloated, expensive, or missing key features.
 - **Focused** — system metrics only, no weather or clock widgets
 - **Free** — open source under MIT, notarized releases on GitHub
 
-## Features
+## ✨ Features
 
 | Category | Menu Bar | Detail Panel |
 |----------|----------|-------------|
@@ -39,7 +39,7 @@ Plus:
 - **Customizable** — category colors, monochrome, or custom color picker; separate measurement and value label toggles
 - **Launch at login** — one toggle in settings
 
-## Install
+## 📦 Install
 
 ### Homebrew (Recommended)
 
@@ -74,7 +74,7 @@ chmod +x Scripts/build-dmg.sh
 ./Scripts/build-dmg.sh --skip-notarize  # unsigned local build
 ```
 
-## How It Works
+## 🔧 How It Works
 
 ```
 ┌──────────────────────────────────────────────────────────┐
@@ -99,7 +99,7 @@ chmod +x Scripts/build-dmg.sh
               └─────────────────────┘
 ```
 
-## Project Structure
+## 🗂 Project Structure
 
 ```
 Blip/
@@ -142,7 +142,7 @@ Blip/
 └── LICENSE                              # MIT
 ```
 
-## Contributing
+## 🤝 Contributing
 
 1. Fork and clone the repo
 2. `brew install xcodegen && xcodegen generate`
@@ -157,13 +157,13 @@ Blip/
 - Test on actual hardware — simulators can't read SMC or IOKit sensors
 - Open an issue first for large changes
 
-## Requirements
+## 🖥 Requirements
 
 - **macOS 14.0** (Sonoma) or later
 - **Apple Silicon** (M1, M2, M3, M4, or newer)
 - Xcode 16+ and XcodeGen (for building from source)
 
-## FAQ
+## ❓ FAQ
 
 <details>
 <summary><strong>Does Blip work on Intel Macs?</strong></summary>
@@ -189,7 +189,7 @@ Typically around 250 MB. Blip shows its own memory footprint in the popover foot
 Possibly. The unsandboxed requirement makes App Store distribution more complex, but it's on the radar.
 </details>
 
-## License
+## 📄 License
 
 MIT — free as in beer and free as in freedom. See [LICENSE](LICENSE) for details.
 
