@@ -1,0 +1,36 @@
+# Xcode
+*.xcodeproj
+*.xcworkspace
+xcuserdata/
+DerivedData/
+build/
+dist/
+*.app
+*.dSYM
+*.dSYM.zip
+
+# Swift Package Manager
+.build/
+Packages/
+Package.resolved
+
+# macOS
+.DS_Store
+*.swp
+*~
+
+# Signing & Secrets
+*.p12
+*.cer
+*.key
+*.pem
+*.mobileprovision
+*.provisionprofile
+Keychain/
+.env
+.env.*
+
+# Build artifacts
+*.dmg
+*.zip
+*.ipa

@@ -1,0 +1,699 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Blip — Lightweight System Monitor for Mac</title>
+    <meta name="description" content="Blip is a featherlight, open-source macOS menu bar app that monitors CPU, memory, disk, GPU, network, battery, and more. Beautiful charts, tiny footprint.">
+
+    <!-- Favicon & Icons -->
+    <link rel="icon" type="image/png" sizes="32x32" href="assets/favicon.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="assets/favicon-16.png">
+    <link rel="apple-touch-icon" sizes="180x180" href="assets/apple-touch-icon.png">
+
+    <!-- SEO -->
+    <link rel="canonical" href="https://blip.wemiller.com/">
+    <meta name="robots" content="index, follow">
+    <meta name="author" content="Blaine Miller">
+    <meta name="keywords" content="mac system monitor, macOS menu bar, CPU monitor, memory monitor, Apple Silicon, open source, lightweight, system stats">
+    <meta name="theme-color" content="#0a0a0f">
+
+    <!-- Open Graph -->
+    <meta property="og:title" content="Blip — Lightweight System Monitor for Mac">
+    <meta property="og:description" content="A featherlight macOS menu bar system monitor. CPU, memory, disk, GPU, network, battery — all in a tiny, beautiful package.">
+    <meta property="og:image" content="https://blip.wemiller.com/assets/og-poster.png">
+    <meta property="og:url" content="https://blip.wemiller.com/">
+    <meta property="og:type" content="website">
+    <meta property="og:site_name" content="Blip">
+
+    <!-- Twitter Card -->
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="Blip — Lightweight System Monitor for Mac">
+    <meta name="twitter:description" content="A featherlight macOS menu bar system monitor. CPU, memory, disk, GPU, network, battery — all in a tiny, beautiful package.">
+    <meta name="twitter:image" content="https://blip.wemiller.com/assets/og-poster.png">
+
+    <!-- Structured Data -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "SoftwareApplication",
+      "name": "Blip",
+      "operatingSystem": "macOS 14.0+",
+      "applicationCategory": "UtilitiesApplication",
+      "description": "A featherlight macOS menu bar system monitor for Apple Silicon. CPU, memory, disk, GPU, network, battery — all in a tiny, beautiful package.",
+      "offers": { "@type": "Offer", "price": "0", "priceCurrency": "USD" },
+      "author": { "@type": "Person", "name": "Blaine Miller", "url": "https://github.com/blaineam" },
+      "license": "https://opensource.org/licenses/MIT",
+      "url": "https://blip.wemiller.com/",
+      "downloadUrl": "https://github.com/blaineam/blip/releases/latest",
+      "softwareVersion": "1.1.0",
+      "processorRequirements": "Apple Silicon (ARM64)"
+    }
+    </script>
+
+    <style>
+        :root {
+            --bg: #0a0a0f;
+            --surface: rgba(255, 255, 255, 0.04);
+            --surface-hover: rgba(255, 255, 255, 0.07);
+            --glass: rgba(255, 255, 255, 0.06);
+            --glass-border: rgba(255, 255, 255, 0.1);
+            --text: #e8e8ed;
+            --text-secondary: #8e8e93;
+            --accent: #30d158;
+            --accent-blue: #0a84ff;
+            --accent-purple: #bf5af2;
+            --accent-orange: #ff9f0a;
+            --accent-cyan: #64d2ff;
+            --accent-red: #ff453a;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Helvetica Neue', sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            line-height: 1.6;
+            overflow-x: hidden;
+        }
+
+        /* Ambient glow background */
+        body::before {
+            content: '';
+            position: fixed;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(ellipse at 30% 20%, rgba(48, 209, 88, 0.06) 0%, transparent 50%),
+                        radial-gradient(ellipse at 70% 60%, rgba(10, 132, 255, 0.04) 0%, transparent 50%),
+                        radial-gradient(ellipse at 50% 80%, rgba(191, 90, 242, 0.03) 0%, transparent 50%);
+            z-index: -1;
+            animation: ambientShift 20s ease-in-out infinite alternate;
+        }
+
+        @keyframes ambientShift {
+            0% { transform: translate(0, 0) rotate(0deg); }
+            100% { transform: translate(-2%, -1%) rotate(2deg); }
+        }
+
+        .container {
+            max-width: 960px;
+            margin: 0 auto;
+            padding: 0 24px;
+        }
+
+        /* Nav */
+        nav {
+            padding: 20px 0;
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            background: rgba(10, 10, 15, 0.7);
+            border-bottom: 1px solid var(--glass-border);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        nav .container {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 18px;
+            font-weight: 700;
+            text-decoration: none;
+            color: var(--text);
+        }
+
+        .logo-dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            background: var(--accent);
+            box-shadow: 0 0 12px var(--accent), 0 0 24px rgba(48, 209, 88, 0.3);
+            animation: pulse 2s ease-in-out infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; box-shadow: 0 0 12px var(--accent), 0 0 24px rgba(48, 209, 88, 0.3); }
+            50% { opacity: 0.7; box-shadow: 0 0 8px var(--accent), 0 0 16px rgba(48, 209, 88, 0.2); }
+        }
+
+        .nav-links { display: flex; gap: 24px; align-items: center; }
+        .nav-links a {
+            color: var(--text-secondary);
+            text-decoration: none;
+            font-size: 14px;
+            font-weight: 500;
+            transition: color 0.2s;
+        }
+        .nav-links a:hover { color: var(--text); }
+
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 10px 20px;
+            border-radius: 12px;
+            font-size: 14px;
+            font-weight: 600;
+            text-decoration: none;
+            transition: all 0.2s;
+        }
+
+        .btn-primary {
+            background: var(--accent);
+            color: #000;
+        }
+        .btn-primary:hover {
+            background: #3bde63;
+            transform: translateY(-1px);
+            box-shadow: 0 4px 20px rgba(48, 209, 88, 0.3);
+        }
+
+        .btn-secondary {
+            background: var(--surface);
+            color: var(--text);
+            border: 1px solid var(--glass-border);
+        }
+        .btn-secondary:hover {
+            background: var(--surface-hover);
+            transform: translateY(-1px);
+        }
+
+        /* Hero */
+        .hero {
+            padding: 100px 0 80px;
+            text-align: center;
+        }
+
+        .hero-badge {
+            display: inline-block;
+            padding: 6px 14px;
+            border-radius: 20px;
+            background: var(--glass);
+            border: 1px solid var(--glass-border);
+            font-size: 12px;
+            font-weight: 600;
+            color: var(--accent);
+            margin-bottom: 24px;
+            letter-spacing: 0.5px;
+        }
+
+        .hero h1 {
+            font-size: 56px;
+            font-weight: 800;
+            letter-spacing: -1.5px;
+            line-height: 1.1;
+            margin-bottom: 20px;
+            background: linear-gradient(135deg, var(--text) 0%, var(--text-secondary) 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .hero p {
+            font-size: 18px;
+            color: var(--text-secondary);
+            max-width: 540px;
+            margin: 0 auto 36px;
+            line-height: 1.7;
+        }
+
+        .hero-buttons { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; }
+
+        /* Menu bar demo */
+        .demo-section { padding: 40px 0 80px; }
+
+        .demo-menubar {
+            max-width: 600px;
+            margin: 0 auto;
+            background: rgba(30, 30, 35, 0.8);
+            backdrop-filter: blur(30px);
+            -webkit-backdrop-filter: blur(30px);
+            border: 1px solid var(--glass-border);
+            border-radius: 12px;
+            padding: 12px 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 20px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+        }
+
+        .demo-stat {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 11px;
+            font-family: 'SF Mono', 'Menlo', monospace;
+        }
+
+        .demo-label {
+            color: var(--text-secondary);
+            font-size: 9px;
+            font-weight: 600;
+            letter-spacing: 0.5px;
+        }
+
+        .demo-bar {
+            width: 28px;
+            height: 3px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 2px;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .demo-bar-fill {
+            height: 100%;
+            border-radius: 2px;
+            transition: width 1.5s ease;
+        }
+
+        .demo-value {
+            font-size: 10px;
+            font-weight: 600;
+            min-width: 22px;
+            text-align: right;
+        }
+
+        .demo-dot {
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            background: var(--accent);
+            box-shadow: 0 0 8px rgba(48, 209, 88, 0.5);
+        }
+
+        /* Features */
+        .features { padding: 80px 0; }
+        .features h2 {
+            font-size: 36px;
+            font-weight: 700;
+            text-align: center;
+            margin-bottom: 12px;
+            letter-spacing: -0.5px;
+        }
+        .features .subtitle {
+            text-align: center;
+            color: var(--text-secondary);
+            margin-bottom: 48px;
+            font-size: 16px;
+        }
+
+        .feature-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 16px;
+        }
+
+        .feature-card {
+            background: var(--glass);
+            border: 1px solid var(--glass-border);
+            border-radius: 16px;
+            padding: 24px;
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            transition: all 0.3s;
+        }
+        .feature-card:hover {
+            background: var(--surface-hover);
+            transform: translateY(-2px);
+            box-shadow: 0 8px 30px rgba(0, 0, 0, 0.3);
+        }
+
+        .feature-icon {
+            width: 36px;
+            height: 36px;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
+            margin-bottom: 14px;
+        }
+
+        .feature-card h3 {
+            font-size: 15px;
+            font-weight: 600;
+            margin-bottom: 6px;
+        }
+
+        .feature-card p {
+            font-size: 13px;
+            color: var(--text-secondary);
+            line-height: 1.5;
+        }
+
+        /* Stats bar */
+        .stats-bar {
+            padding: 60px 0;
+            border-top: 1px solid var(--glass-border);
+            border-bottom: 1px solid var(--glass-border);
+        }
+
+        .stats-row {
+            display: flex;
+            justify-content: center;
+            gap: 60px;
+            flex-wrap: wrap;
+        }
+
+        .stat-item { text-align: center; }
+        .stat-value {
+            font-size: 36px;
+            font-weight: 800;
+            letter-spacing: -1px;
+        }
+        .stat-label {
+            font-size: 13px;
+            color: var(--text-secondary);
+            margin-top: 4px;
+        }
+
+        /* FAQ */
+        .faq { padding: 80px 0; }
+        .faq h2 {
+            font-size: 36px;
+            font-weight: 700;
+            text-align: center;
+            margin-bottom: 40px;
+            letter-spacing: -0.5px;
+        }
+
+        .faq-list {
+            max-width: 640px;
+            margin: 0 auto;
+        }
+
+        .faq-item {
+            border-bottom: 1px solid var(--glass-border);
+            padding: 20px 0;
+        }
+
+        .faq-item summary {
+            font-size: 15px;
+            font-weight: 600;
+            cursor: pointer;
+            list-style: none;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .faq-item summary::-webkit-details-marker { display: none; }
+        .faq-item summary::after { content: '+'; font-size: 20px; color: var(--text-secondary); }
+        .faq-item[open] summary::after { content: '−'; }
+
+        .faq-item p {
+            margin-top: 12px;
+            font-size: 14px;
+            color: var(--text-secondary);
+            line-height: 1.7;
+        }
+
+        /* CTA */
+        .cta {
+            padding: 80px 0;
+            text-align: center;
+        }
+
+        .cta-card {
+            background: var(--glass);
+            border: 1px solid var(--glass-border);
+            border-radius: 20px;
+            padding: 60px 40px;
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+        }
+
+        .cta h2 {
+            font-size: 32px;
+            font-weight: 700;
+            margin-bottom: 12px;
+        }
+
+        .cta p {
+            color: var(--text-secondary);
+            margin-bottom: 28px;
+            font-size: 16px;
+        }
+
+        .cta-buttons { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; }
+
+        /* Footer */
+        footer {
+            padding: 40px 0;
+            text-align: center;
+            border-top: 1px solid var(--glass-border);
+        }
+
+        footer p {
+            font-size: 13px;
+            color: var(--text-secondary);
+        }
+
+        footer a { color: var(--accent); text-decoration: none; }
+        footer a:hover { text-decoration: underline; }
+
+        /* Responsive */
+        @media (max-width: 640px) {
+            .hero h1 { font-size: 36px; }
+            .hero p { font-size: 16px; }
+            .stats-row { gap: 30px; }
+            .stat-value { font-size: 28px; }
+            .demo-menubar { flex-wrap: wrap; gap: 12px; padding: 10px 14px; }
+        }
+
+        /* Animated values in demo */
+        @keyframes cpuAnim { 0%,100% { width: 55%; } 30% { width: 72%; } 60% { width: 38%; } }
+        @keyframes memAnim { 0%,100% { width: 67%; } 40% { width: 71%; } 70% { width: 64%; } }
+        @keyframes dskAnim { 0%,100% { width: 34%; } 50% { width: 35%; } }
+        .anim-cpu { animation: cpuAnim 8s ease-in-out infinite; }
+        .anim-mem { animation: memAnim 10s ease-in-out infinite; }
+        .anim-dsk { animation: dskAnim 15s ease-in-out infinite; }
+    </style>
+</head>
+<body>
+
+<nav>
+    <div class="container">
+        <a href="#" class="logo">
+            <span class="logo-dot"></span>
+            Blip
+        </a>
+        <div class="nav-links">
+            <a href="#features">Features</a>
+            <a href="#faq">FAQ</a>
+            <a href="https://github.com/blaineam/blip" class="btn btn-secondary">GitHub</a>
+        </div>
+    </div>
+</nav>
+
+<section class="hero">
+    <div class="container">
+        <span class="hero-badge">v1.1.0 — Open Source &amp; Free</span>
+        <h1>Your Mac's vitals,<br>at a glance.</h1>
+        <p>Blip is a featherlight macOS menu bar app that monitors CPU, memory, disk, GPU, network, and battery. Beautiful charts, tiny footprint, zero dependencies.</p>
+        <div class="hero-buttons">
+            <a href="https://github.com/blaineam/blip/releases/latest" class="btn btn-primary">
+                <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor"><path d="M8 12l-4-4h2.5V4h3v4H12L8 12z"/><path d="M14 14H2v-2h12v2z"/></svg>
+                Download
+            </a>
+            <a href="https://github.com/blaineam/blip" class="btn btn-secondary">
+                View Source
+            </a>
+        </div>
+    </div>
+</section>
+
+<section class="demo-section">
+    <div class="container">
+        <div class="demo-menubar">
+            <div class="demo-stat">
+                <span class="demo-label">CPU</span>
+                <div class="demo-bar"><div class="demo-bar-fill anim-cpu" id="cpu-bar" style="background:var(--accent-blue);width:55%"></div></div>
+                <span class="demo-value" id="cpu-val" style="color:var(--accent-blue)">45</span>
+            </div>
+            <div class="demo-stat">
+                <span class="demo-label">MEM</span>
+                <div class="demo-bar"><div class="demo-bar-fill anim-mem" id="mem-bar" style="background:var(--accent);width:67%"></div></div>
+                <span class="demo-value" id="mem-val" style="color:var(--accent)">67</span>
+            </div>
+            <div class="demo-stat">
+                <span class="demo-label">HD</span>
+                <div class="demo-bar"><div class="demo-bar-fill anim-dsk" id="dsk-bar" style="background:var(--accent-orange);width:34%"></div></div>
+                <span class="demo-value" id="dsk-val" style="color:var(--accent-orange)">34</span>
+            </div>
+            <div class="demo-dot"></div>
+        </div>
+    </div>
+</section>
+
+<section class="stats-bar">
+    <div class="container">
+        <div class="stats-row">
+            <div class="stat-item">
+                <div class="stat-value" style="color:var(--accent)">~2 MB</div>
+                <div class="stat-label">Binary size</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-value" style="color:var(--accent-blue)">0</div>
+                <div class="stat-label">Dependencies</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-value" style="color:var(--accent-purple)">~250 MB</div>
+                <div class="stat-label">Memory footprint</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-value" style="color:var(--accent-orange)">MIT</div>
+                <div class="stat-label">License</div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<section class="features" id="features">
+    <div class="container">
+        <h2>Everything you need, nothing you don't.</h2>
+        <p class="subtitle">Blip monitors what matters and stays out of your way.</p>
+
+        <div class="feature-grid">
+            <div class="feature-card">
+                <div class="feature-icon" style="background:rgba(10,132,255,0.15)">⚡</div>
+                <h3>CPU Monitoring</h3>
+                <p>Total and per-core usage, user/system breakdown, load averages (1m/5m/15m), P-core and E-core counts. See which apps are using the most CPU with their icons.</p>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon" style="background:rgba(48,209,88,0.15)">🧠</div>
+                <h3>Memory</h3>
+                <p>Active, wired, compressed, and app memory breakdown. Memory pressure indicator with top processes by memory usage and their app icons.</p>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon" style="background:rgba(255,159,10,0.15)">💾</div>
+                <h3>Disk</h3>
+                <p>Space used and available for all mounted volumes. Real-time read and write speeds via IOKit. Root volume and external drives shown separately.</p>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon" style="background:rgba(100,210,255,0.15)">🌐</div>
+                <h3>Network</h3>
+                <p>Live connectivity dot, upload and download speeds, WAN and router ping latency, IPv4/IPv6, LAN IP, router IP, MAC address, WAN IP reveal, and VPN detection including Tailscale and WireGuard.</p>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon" style="background:rgba(191,90,242,0.15)">🎮</div>
+                <h3>GPU</h3>
+                <p>Apple Silicon GPU utilization percentage with renderer name. Historical usage chart shows GPU load over time with smooth monotone interpolation.</p>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon" style="background:rgba(48,209,88,0.15)">🔋</div>
+                <h3>Battery &amp; Fans</h3>
+                <p>Charge level, health percentage, cycle count, temperature, charging status, and time remaining. Fan RPM with min/max ranges shown in detail view.</p>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon" style="background:rgba(255,69,58,0.15)">📊</div>
+                <h3>Beautiful Charts</h3>
+                <p>Historical sparkline charts for CPU, memory, and GPU powered by Swift Charts. Smooth animations with area gradients and monotone curve interpolation.</p>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon" style="background:rgba(255,255,255,0.1)">🪶</div>
+                <h3>Featherlight</h3>
+                <p>~2 MB binary. Zero external dependencies. Polls every 2 seconds with efficient ring buffers. Shows its own memory usage in the footer so you can verify.</p>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon" style="background:rgba(255,159,10,0.15)">🎨</div>
+                <h3>Customizable</h3>
+                <p>Follows system accent color by default. Custom color override via color picker. Toggle individual menu bar items and labels. Launch at login support.</p>
+            </div>
+        </div>
+    </div>
+</section>
+
+<section class="faq" id="faq">
+    <div class="container">
+        <h2>Questions &amp; Answers</h2>
+        <div class="faq-list">
+            <details class="faq-item">
+                <summary>Does Blip work on Intel Macs?</summary>
+                <p>Blip is built exclusively for Apple Silicon (M1, M2, M3, M4 and newer). It uses ARM64-specific optimizations and Apple Silicon IOKit interfaces for GPU and thermal monitoring.</p>
+            </details>
+            <details class="faq-item">
+                <summary>What macOS version do I need?</summary>
+                <p>macOS 14.0 (Sonoma) or later. Blip uses Swift Charts and other APIs introduced in macOS 14.</p>
+            </details>
+            <details class="faq-item">
+                <summary>How much memory does Blip use?</summary>
+                <p>Typically around 250 MB. Blip shows its own memory footprint in the popover footer so you can always check. The binary itself is around 2 MB.</p>
+            </details>
+            <details class="faq-item">
+                <summary>Is it safe? Why does it need to run unsandboxed?</summary>
+                <p>Blip needs to read hardware sensors (SMC for fans, IOKit for GPU/disk I/O, process list for top apps) which require unsandboxed access. The app is fully open source — you can audit every line of code, and every release is notarized by Apple.</p>
+            </details>
+            <details class="faq-item">
+                <summary>How does the hover detail panel work?</summary>
+                <p>Hover over any row in the main popover to reveal a detailed sub-panel to the side — just like iStats Menus. It shows charts, breakdowns, and top processes for that category.</p>
+            </details>
+            <details class="faq-item">
+                <summary>Can I customize what shows in the menu bar?</summary>
+                <p>Yes. Open Settings (gear icon in the popover) and toggle individual items: CPU, Memory, Disk, Network dot, and labels. You can also set a custom accent color.</p>
+            </details>
+            <details class="faq-item">
+                <summary>Will there be a Mac App Store version?</summary>
+                <p>Possibly in the future. The current version requires unsandboxed access for full hardware monitoring, which makes App Store distribution more complex. For now, download the notarized DMG from GitHub Releases.</p>
+            </details>
+            <details class="faq-item">
+                <summary>How do I build from source?</summary>
+                <p>Clone the repo, install XcodeGen (<code>brew install xcodegen</code>), run <code>xcodegen generate</code>, then build with Xcode or <code>xcodebuild</code>. See the README for full instructions.</p>
+            </details>
+        </div>
+    </div>
+</section>
+
+<section class="cta">
+    <div class="container">
+        <div class="cta-card">
+            <h2>Try Blip today.</h2>
+            <p>Free, open source, and built for Apple Silicon.</p>
+            <div class="cta-buttons">
+                <a href="https://github.com/blaineam/blip/releases/latest" class="btn btn-primary">Download Latest Release</a>
+                <a href="https://github.com/blaineam/blip" class="btn btn-secondary">View on GitHub</a>
+            </div>
+        </div>
+    </div>
+</section>
+
+<footer>
+    <div class="container">
+        <p>Built by <a href="https://github.com/blaineam">Blaine Miller</a> · <a href="https://github.com/blaineam/blip">Open Source</a> under MIT License</p>
+    </div>
+</footer>
+
+<script>
+    // Sync demo bar widths with their value labels
+    (function() {
+        const bars = [
+            { bar: document.getElementById('cpu-bar'), val: document.getElementById('cpu-val') },
+            { bar: document.getElementById('mem-bar'), val: document.getElementById('mem-val') },
+            { bar: document.getElementById('dsk-bar'), val: document.getElementById('dsk-val') },
+        ];
+        function update() {
+            for (const { bar, val } of bars) {
+                const parentWidth = bar.parentElement.offsetWidth;
+                if (parentWidth > 0) {
+                    val.textContent = Math.round((bar.offsetWidth / parentWidth) * 100);
+                }
+            }
+            requestAnimationFrame(update);
+        }
+        requestAnimationFrame(update);
+    })();
+</script>
+
+</body>
+</html>

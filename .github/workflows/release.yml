@@ -1,0 +1,151 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    name: Build, Notarize & Release
+    runs-on: macos-15
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install XcodeGen
+        run: brew install xcodegen
+
+      - name: Generate Xcode Project
+        run: xcodegen generate
+
+      - name: Generate Brand Assets
+        run: swift Scripts/generate-assets.swift .build/assets
+
+      - name: Import Signing Certificate
+        env:
+          CERTIFICATE_P12: ${{ secrets.DEVELOPER_ID_CERTIFICATE_P12 }}
+          CERTIFICATE_PASSWORD: ${{ secrets.DEVELOPER_ID_CERTIFICATE_PASSWORD }}
+        run: |
+          KEYCHAIN_PATH="$RUNNER_TEMP/signing.keychain-db"
+          KEYCHAIN_PASSWORD="$(openssl rand -base64 32)"
+
+          security create-keychain -p "$KEYCHAIN_PASSWORD" "$KEYCHAIN_PATH"
+          security set-keychain-settings -lut 21600 "$KEYCHAIN_PATH"
+          security unlock-keychain -p "$KEYCHAIN_PASSWORD" "$KEYCHAIN_PATH"
+
+          echo "$CERTIFICATE_P12" | base64 --decode > "$RUNNER_TEMP/cert.p12"
+          security import "$RUNNER_TEMP/cert.p12" \
+            -P "$CERTIFICATE_PASSWORD" \
+            -A -t cert -f pkcs12 \
+            -k "$KEYCHAIN_PATH"
+          rm -f "$RUNNER_TEMP/cert.p12"
+
+          security list-keychains -d user -s "$KEYCHAIN_PATH" login.keychain
+          security set-key-partition-list -S apple-tool:,apple: -s -k "$KEYCHAIN_PASSWORD" "$KEYCHAIN_PATH"
+
+          IDENTITY=$(security find-identity -v -p codesigning "$KEYCHAIN_PATH" | grep "Developer ID Application" | head -1 | awk -F'"' '{print $2}')
+          echo "IDENTITY=$IDENTITY" >> "$GITHUB_ENV"
+
+      - name: Build Release
+        run: |
+          xcodebuild -scheme Blip -configuration Release \
+            -derivedDataPath .build/DerivedData \
+            -arch arm64 \
+            CODE_SIGN_IDENTITY="$IDENTITY" \
+            CODE_SIGN_STYLE=Manual \
+            ENABLE_HARDENED_RUNTIME=YES \
+            OTHER_CODE_SIGN_FLAGS="--timestamp --options runtime" \
+            CODE_SIGN_INJECT_BASE_ENTITLEMENTS=NO \
+            -quiet
+
+      - name: QA Checks
+        run: |
+          APP_PATH=".build/DerivedData/Build/Products/Release/Blip.app"
+
+          echo "=== Binary Size Check ==="
+          BINARY_SIZE=$(stat -f%z "$APP_PATH/Contents/MacOS/Blip")
+          echo "Binary size: $BINARY_SIZE bytes"
+          if [ "$BINARY_SIZE" -gt 5242880 ]; then
+            echo "::error::Binary exceeds 5MB limit ($BINARY_SIZE bytes)"
+            exit 1
+          fi
+          echo "✓ Binary is under 5MB"
+
+          echo "=== Architecture Check ==="
+          ARCHS=$(lipo -archs "$APP_PATH/Contents/MacOS/Blip")
+          echo "Architectures: $ARCHS"
+          if [[ "$ARCHS" != *"arm64"* ]]; then
+            echo "::error::Binary missing arm64 architecture"
+            exit 1
+          fi
+          echo "✓ arm64 architecture present"
+
+          echo "=== Info.plist Validation ==="
+          BUNDLE_ID=$(/usr/libexec/PlistBuddy -c "Print :CFBundleIdentifier" "$APP_PATH/Contents/Info.plist")
+          VERSION=$(/usr/libexec/PlistBuddy -c "Print :CFBundleShortVersionString" "$APP_PATH/Contents/Info.plist")
+          LS_UI=$(/usr/libexec/PlistBuddy -c "Print :LSUIElement" "$APP_PATH/Contents/Info.plist")
+          echo "Bundle ID: $BUNDLE_ID"
+          echo "Version: $VERSION"
+          echo "LSUIElement: $LS_UI"
+          if [ "$LS_UI" != "true" ]; then
+            echo "::error::LSUIElement must be true for menu bar app"
+            exit 1
+          fi
+          echo "✓ Info.plist valid"
+
+          echo "=== Hardened Runtime Check ==="
+          codesign -dvv "$APP_PATH" 2>&1 | grep -q "flags=0x10000(runtime)" && echo "✓ Hardened runtime enabled" || echo "::warning::Hardened runtime flag not detected (expected in signed builds)"
+
+          echo "=== Security Scan ==="
+          # Check no secrets or API keys leaked into the binary
+          if strings "$APP_PATH/Contents/MacOS/Blip" | grep -iE "(api_key|secret_key|password|token=)" > /dev/null 2>&1; then
+            echo "::error::Potential secret found in binary"
+            exit 1
+          fi
+          echo "✓ No secrets detected in binary"
+
+          echo "=== Framework Dependencies ==="
+          otool -L "$APP_PATH/Contents/MacOS/Blip" | grep -v "System\|usr/lib" | head -5
+          echo "✓ QA checks passed"
+
+      - name: Package DMG
+        run: |
+          mkdir -p dist
+          STAGING="$RUNNER_TEMP/dmg-staging"
+          mkdir -p "$STAGING"
+
+          APP_PATH=".build/DerivedData/Build/Products/Release/Blip.app"
+          cp -R "$APP_PATH" "$STAGING/"
+          ln -s /Applications "$STAGING/Applications"
+
+          hdiutil create -volname "Blip" \
+            -srcfolder "$STAGING" \
+            -ov -format UDZO \
+            -imagekey zlib-level=9 \
+            "dist/Blip.dmg"
+
+          codesign --sign "$IDENTITY" --timestamp "dist/Blip.dmg"
+
+      - name: Notarize DMG
+        env:
+          APPLE_ID: ${{ secrets.APPLE_ID }}
+          APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
+          APPLE_APP_PASSWORD: ${{ secrets.APPLE_APP_PASSWORD }}
+        run: |
+          xcrun notarytool submit dist/Blip.dmg \
+            --apple-id "$APPLE_ID" \
+            --team-id "$APPLE_TEAM_ID" \
+            --password "$APPLE_APP_PASSWORD" \
+            --wait
+
+          xcrun stapler staple dist/Blip.dmg
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: dist/Blip.dmg
+          generate_release_notes: true

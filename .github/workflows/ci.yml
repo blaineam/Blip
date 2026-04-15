@@ -1,0 +1,72 @@
+name: CI
+
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main]
+
+jobs:
+  build:
+    name: Build & QA
+    runs-on: macos-15
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install XcodeGen
+        run: brew install xcodegen
+
+      - name: Generate Xcode Project
+        run: xcodegen generate
+
+      - name: Build
+        run: |
+          xcodebuild -scheme Blip -configuration Debug \
+            -derivedDataPath .build/DerivedData \
+            -arch arm64 \
+            CODE_SIGN_IDENTITY="" \
+            CODE_SIGNING_REQUIRED=NO \
+            CODE_SIGNING_ALLOWED=NO \
+            -quiet
+
+      - name: QA Checks
+        run: |
+          APP=".build/DerivedData/Build/Products/Debug/Blip.app"
+
+          echo "=== Binary Size ==="
+          BINARY_SIZE=$(stat -f%z "$APP/Contents/MacOS/Blip")
+          echo "Size: $BINARY_SIZE bytes ($(( BINARY_SIZE / 1024 )) KB)"
+          if [ "$BINARY_SIZE" -gt 5242880 ]; then
+            echo "::error::Binary exceeds 5MB limit"
+            exit 1
+          fi
+          echo "✓ Under 5MB limit"
+
+          echo "=== Architecture ==="
+          ARCHS=$(lipo -archs "$APP/Contents/MacOS/Blip")
+          echo "Architectures: $ARCHS"
+          if [[ "$ARCHS" != *"arm64"* ]]; then
+            echo "::error::Missing arm64"
+            exit 1
+          fi
+          echo "✓ arm64 present"
+
+          echo "=== Info.plist ==="
+          LS_UI=$(/usr/libexec/PlistBuddy -c "Print :LSUIElement" "$APP/Contents/Info.plist")
+          if [ "$LS_UI" != "true" ]; then
+            echo "::error::LSUIElement must be true"
+            exit 1
+          fi
+          echo "✓ LSUIElement = true"
+
+          echo "=== Security Scan ==="
+          if strings "$APP/Contents/MacOS/Blip" | grep -iE "(api_key|secret_key|password=|token=)" > /dev/null 2>&1; then
+            echo "::error::Potential secret in binary"
+            exit 1
+          fi
+          echo "✓ No secrets in binary"
+
+          echo "=== Dependency Check ==="
+          DEPS=$(otool -L "$APP/Contents/MacOS/Blip" | grep -cv "System\|usr/lib\|:")
+          echo "Non-system dependencies: $DEPS"
+          echo "✓ All QA checks passed"
