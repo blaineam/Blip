@@ -112,23 +112,83 @@ jobs:
           otool -L "$APP_PATH/Contents/MacOS/Blip" | grep -v "System\|usr/lib" | head -5
           echo "✓ QA checks passed"
 
+      - name: Inject App Icon
+        run: |
+          APP_PATH=".build/DerivedData/Build/Products/Release/Blip.app"
+          if [[ -f ".build/assets/Blip.icns" ]]; then
+            echo "→ Injecting app icon..."
+            mkdir -p "$APP_PATH/Contents/Resources"
+            cp ".build/assets/Blip.icns" "$APP_PATH/Contents/Resources/AppIcon.icns"
+            /usr/libexec/PlistBuddy -c "Set :CFBundleIconFile AppIcon" "$APP_PATH/Contents/Info.plist" 2>/dev/null || \
+            /usr/libexec/PlistBuddy -c "Add :CFBundleIconFile string AppIcon" "$APP_PATH/Contents/Info.plist"
+          fi
+
+      - name: Re-sign After Icon Injection
+        run: |
+          APP_PATH=".build/DerivedData/Build/Products/Release/Blip.app"
+          codesign --force --deep --sign "$IDENTITY" --timestamp --options runtime "$APP_PATH"
+
       - name: Package DMG
         run: |
           mkdir -p dist
-          STAGING="$RUNNER_TEMP/dmg-staging"
-          mkdir -p "$STAGING"
-
           APP_PATH=".build/DerivedData/Build/Products/Release/Blip.app"
-          cp -R "$APP_PATH" "$STAGING/"
-          ln -s /Applications "$STAGING/Applications"
+          DMG_TEMP=".build/blip-temp.dmg"
+          DMG_FINAL="dist/Blip.dmg"
+          VOLUME_NAME="Blip"
 
-          hdiutil create -volname "Blip" \
-            -srcfolder "$STAGING" \
-            -ov -format UDZO \
-            -imagekey zlib-level=9 \
-            "dist/Blip.dmg"
+          # Create writable DMG
+          hdiutil create -size 50m -fs HFS+ -volname "$VOLUME_NAME" -ov "$DMG_TEMP"
 
-          codesign --sign "$IDENTITY" --timestamp "dist/Blip.dmg"
+          # Mount it
+          MOUNT_POINT=$(hdiutil attach "$DMG_TEMP" -readwrite -noverify -noautoopen | grep "$VOLUME_NAME" | awk '{print $NF}' | head -1)
+          if [[ -z "$MOUNT_POINT" ]]; then
+            MOUNT_POINT="/Volumes/$VOLUME_NAME"
+          fi
+
+          # Copy app
+          cp -R "$APP_PATH" "$MOUNT_POINT/"
+
+          # Create Applications alias
+          ln -s /Applications "$MOUNT_POINT/Applications"
+
+          # Copy DMG background
+          if [[ -f ".build/assets/dmg-background.jpg" ]]; then
+            mkdir -p "$MOUNT_POINT/.background"
+            cp ".build/assets/dmg-background.jpg" "$MOUNT_POINT/.background/background.jpg"
+          fi
+
+          # Style the DMG window via AppleScript
+          osascript <<'APPLESCRIPT'
+          tell application "Finder"
+            tell disk "Blip"
+              open
+              set current view of container window to icon view
+              set toolbar visible of container window to false
+              set statusbar visible of container window to false
+              set the bounds of container window to {100, 100, 760, 500}
+              set theViewOptions to icon view options of container window
+              set arrangement of theViewOptions to not arranged
+              set icon size of theViewOptions to 100
+              try
+                set background picture of theViewOptions to file ".background:background.jpg"
+              end try
+              set position of item "Blip.app" of container window to {145, 185}
+              set position of item "Applications" of container window to {515, 185}
+              update without registering applications
+              close
+            end tell
+          end tell
+          APPLESCRIPT
+
+          # Detach and convert to compressed DMG
+          sync
+          hdiutil detach "$MOUNT_POINT" -force 2>/dev/null || true
+          sleep 1
+          hdiutil convert "$DMG_TEMP" -format UDZO -imagekey zlib-level=9 -o "$DMG_FINAL" -ov
+          rm -f "$DMG_TEMP"
+
+          # Sign DMG
+          codesign --sign "$IDENTITY" --timestamp "$DMG_FINAL"
 
       - name: Notarize DMG
         env:
