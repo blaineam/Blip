@@ -134,7 +134,7 @@ jobs:
             cp ".build/assets/dmg-background.jpg" "$MOUNT_POINT/.background/background.jpg"
           fi
 
-          osascript <<'APPLESCRIPT'
+          osascript <<'APPLESCRIPT' || true
           tell application "Finder"
             tell disk "Blip"
               open
@@ -148,8 +148,12 @@ jobs:
               try
                 set background picture of theViewOptions to file ".background:background.jpg"
               end try
-              set position of item "Blip.app" of container window to {145, 185}
-              set position of item "Applications" of container window to {515, 185}
+              try
+                set position of item "Blip.app" of container window to {145, 185}
+              end try
+              try
+                set position of item "Applications" of container window to {515, 185}
+              end try
               update without registering applications
               close
             end tell
@@ -188,7 +192,7 @@ jobs:
               cp ".build/assets/dmg-background.jpg" "$MOUNT_POINT/.background/background.jpg"
             fi
 
-            osascript <<'APPLESCRIPT'
+            osascript <<'APPLESCRIPT' || true
           tell application "Finder"
             tell disk "Blip Helper"
               open
@@ -202,8 +206,12 @@ jobs:
               try
                 set background picture of theViewOptions to file ".background:background.jpg"
               end try
-              set position of item "Blip Helper.app" of container window to {145, 185}
-              set position of item "Applications" of container window to {515, 185}
+              try
+                set position of item "Blip Helper.app" of container window to {145, 185}
+              end try
+              try
+                set position of item "Applications" of container window to {515, 185}
+              end try
               update without registering applications
               close
             end tell
