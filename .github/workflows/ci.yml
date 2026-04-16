@@ -6,6 +6,9 @@ on:
   push:
     branches: [main]
 
+permissions:
+  contents: write
+
 jobs:
   build:
     name: Build & QA
@@ -90,3 +93,37 @@ jobs:
           DEPS=$(otool -L "$APP/Contents/MacOS/Blip" | grep -cv "System\|usr/lib\|:")
           echo "Non-system dependencies: $DEPS"
           echo "✓ All QA checks passed"
+
+      - name: Package Pre-release App
+        if: github.event_name == 'pull_request'
+        run: |
+          APP=".build/DerivedData/Build/Products/Debug/Blip.app"
+          HELPER=".build/DerivedData/Build/Products/Debug/BlipHelper"
+
+          mkdir -p dist
+
+          # Blip.app into a zip (unsigned debug build — for testing only)
+          ditto -c -k --keepParent "$APP" dist/Blip-PR${{ github.event.pull_request.number }}.zip
+
+          # BlipHelper alongside
+          if [ -f "$HELPER" ]; then
+            cp "$HELPER" dist/BlipHelper
+            cd dist && zip BlipHelper-PR${{ github.event.pull_request.number }}.zip BlipHelper && rm BlipHelper && cd ..
+          fi
+
+      - name: Create Pre-release
+        if: github.event_name == 'pull_request'
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: pr-${{ github.event.pull_request.number }}
+          name: "PR #${{ github.event.pull_request.number }} — ${{ github.event.pull_request.title }}"
+          body: |
+            Automated pre-release build from PR #${{ github.event.pull_request.number }}.
+
+            **This is an unsigned debug build for testing only — not notarized.**
+
+            To run: unzip, right-click Blip.app → Open (bypasses Gatekeeper for unsigned apps).
+          prerelease: true
+          files: |
+            dist/Blip-PR${{ github.event.pull_request.number }}.zip
+            dist/BlipHelper-PR${{ github.event.pull_request.number }}.zip
