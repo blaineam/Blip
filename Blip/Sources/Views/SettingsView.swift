@@ -19,6 +19,8 @@ struct SettingsView: View {
     @State private var selectedTab: Int = 2
     @State private var selectedMode: ColorMode = .category
     @State private var customColor: Color = .blue
+    @State private var helperConnected = false
+    @State private var helperInstalled = false
 
     enum ColorMode: String, CaseIterable {
         case category = "Category Colors"
@@ -58,6 +60,10 @@ struct SettingsView: View {
                     customColor = c
                 }
             }
+            refreshHelperStatus()
+        }
+        .onReceive(Timer.publish(every: 3, on: .main, in: .common).autoconnect()) { _ in
+            refreshHelperStatus()
         }
     }
 
@@ -89,18 +95,18 @@ struct SettingsView: View {
                 }
             }
 
-            if let helperClient {
+            if helperClient != nil {
                 Section("Blip Helper") {
                     LabeledContent("Status") {
                         HStack(spacing: 4) {
                             Circle()
-                                .fill(helperClient.isConnected ? Color.green : Color.secondary.opacity(0.4))
+                                .fill(helperConnected ? Color.green : Color.secondary.opacity(0.4))
                                 .frame(width: 7, height: 7)
-                            Text(helperClient.isConnected ? "Connected" : helperClient.isHelperInstalled ? "Not Running" : "Not Installed")
+                            Text(helperConnected ? "Connected" : helperInstalled ? "Not Running" : "Not Installed")
                                 .foregroundStyle(.secondary)
                         }
                     }
-                    if !helperClient.isConnected {
+                    if !helperConnected {
                         Text("Install Blip Helper for fan speeds, temperatures, GPU utilization, disk I/O, battery health, and process monitoring.")
                             .font(.caption)
                             .foregroundStyle(.secondary)
@@ -300,6 +306,12 @@ struct SettingsView: View {
         case .monochrome: return .primary
         case .custom: return customColor
         }
+    }
+
+    private func refreshHelperStatus() {
+        guard let helperClient else { return }
+        helperConnected = helperClient.isConnected
+        helperInstalled = helperClient.isHelperInstalled
     }
 
     private func applyColorMode(_ mode: ColorMode) {
