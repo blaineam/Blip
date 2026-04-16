@@ -186,7 +186,7 @@ Typically around 42 MB physical footprint. Blip shows its own memory usage in th
 <details>
 <summary><strong>Will there be a Mac App Store version?</strong></summary>
 <br>
-Possibly. The unsandboxed requirement makes App Store distribution more complex, but it's on the radar.
+It may be added someday. The unsandboxed requirement makes App Store distribution more complex.
 </details>
 
 ## 📄 License

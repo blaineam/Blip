@@ -31,7 +31,14 @@ final class SystemMonitor: ObservableObject {
     private let processMonitor = ProcessMonitor()
 
     /// Helper client for privileged data when running sandboxed.
+    /// Only activated when the app is inside an App Sandbox.
     let helperClient = HelperClient()
+
+    /// True when the app is running inside App Sandbox (MAS version).
+    /// The direct-download version is unsandboxed and never needs the helper.
+    private let isSandboxed: Bool = {
+        ProcessInfo.processInfo.environment["APP_SANDBOX_CONTAINER_ID"] != nil
+    }()
 
     private var pollTask: Task<Void, Never>?
     private var diskPollCount = 0
@@ -74,9 +81,12 @@ final class SystemMonitor: ObservableObject {
         async let fanRead = fanMonitor.read()
         async let procRead = Task.detached { [processMonitor] in await processMonitor.read() }.value
 
-        // Also poll the helper (no-op if helper isn't running)
-        await helperClient.poll()
-        let helper = helperClient.latestSnapshot
+        // Poll the helper only when sandboxed (MAS version).
+        // The direct-download version reads everything in-process.
+        if isSandboxed {
+            await helperClient.poll()
+        }
+        let helper = isSandboxed ? helperClient.latestSnapshot : nil
 
         let cpu = await cpuRead
         let memory = await memRead

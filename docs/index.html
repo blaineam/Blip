@@ -75,6 +75,24 @@
             --ambient-purple: rgba(191, 90, 242, 0.03);
             --card-shadow: rgba(0, 0, 0, 0.3);
             --hint-color: rgba(255, 255, 255, 0.2);
+
+            /* Demo mockup colors */
+            --demo-menubar-bg: rgba(30, 30, 35, 0.92);
+            --demo-panel-bg: rgba(40, 40, 44, 0.96);
+            --demo-overlay-subtle: rgba(255,255,255,0.02);
+            --demo-overlay-light: rgba(255,255,255,0.06);
+            --demo-overlay: rgba(255,255,255,0.08);
+            --demo-overlay-border: rgba(255,255,255,0.12);
+            --demo-overlay-strong: rgba(255,255,255,0.15);
+            --demo-muted: rgba(255,255,255,0.2);
+            --demo-muted-medium: rgba(255,255,255,0.25);
+            --demo-muted-strong: rgba(255,255,255,0.3);
+            --demo-muted-text: rgba(255,255,255,0.35);
+            --demo-shadow-sm: rgba(0,0,0,0.4);
+            --demo-shadow-md: rgba(0,0,0,0.5);
+            --demo-shadow-lg: rgba(0,0,0,0.6);
+            --demo-drop-shadow: drop-shadow(0 1px 2px rgba(0,0,0,0.5));
+            --demo-icon-bg: rgba(255,255,255,0.1);
         }
 
         @media (prefers-color-scheme: light) {
@@ -101,6 +119,24 @@
                 --ambient-purple: rgba(165, 80, 192, 0.03);
                 --card-shadow: rgba(0, 0, 0, 0.08);
                 --hint-color: rgba(0, 0, 0, 0.25);
+
+                /* Demo mockup colors (light) */
+                --demo-menubar-bg: rgba(240, 240, 245, 0.92);
+                --demo-panel-bg: rgba(255, 255, 255, 0.96);
+                --demo-overlay-subtle: rgba(0,0,0,0.02);
+                --demo-overlay-light: rgba(0,0,0,0.04);
+                --demo-overlay: rgba(0,0,0,0.06);
+                --demo-overlay-border: rgba(0,0,0,0.12);
+                --demo-overlay-strong: rgba(0,0,0,0.15);
+                --demo-muted: rgba(0,0,0,0.2);
+                --demo-muted-medium: rgba(0,0,0,0.25);
+                --demo-muted-strong: rgba(0,0,0,0.3);
+                --demo-muted-text: rgba(0,0,0,0.4);
+                --demo-shadow-sm: rgba(0,0,0,0.1);
+                --demo-shadow-md: rgba(0,0,0,0.08);
+                --demo-shadow-lg: rgba(0,0,0,0.12);
+                --demo-drop-shadow: drop-shadow(0 1px 2px rgba(0,0,0,0.15));
+                --demo-icon-bg: rgba(0,0,0,0.06);
             }
         }
 
@@ -197,20 +233,20 @@
             opacity: 0;
             transition: left 0.6s cubic-bezier(.4,0,.2,1), top 0.6s cubic-bezier(.4,0,.2,1), opacity 0.3s;
             pointer-events: none;
-            filter: drop-shadow(0 1px 2px rgba(0,0,0,0.5));
+            filter: var(--demo-drop-shadow);
         }
 
         /* Menu bar strip */
         .demo-menubar {
             position: absolute; top: 0; left: 50%; transform: translateX(-50%);
-            background: rgba(30, 30, 35, 0.92);
+            background: var(--demo-menubar-bg);
             backdrop-filter: blur(30px);
             border: 1px solid var(--glass-border);
             border-radius: 8px;
             padding: 6px 14px;
             height: 28px;
             display: flex; align-items: center; gap: 8px;
-            box-shadow: 0 4px 20px rgba(0,0,0,0.4);
+            box-shadow: 0 4px 20px var(--demo-shadow-sm);
             font-family: 'SF Mono', 'Menlo', monospace;
             font-size: 10px;
             cursor: default;
@@ -224,7 +260,7 @@
         .mb-items.stacked .mb-val { font-size: 6px; min-width: 12px; }
         .mb-item { display: flex; align-items: center; gap: 4px; }
         .mb-label { color: var(--text-secondary); font-size: 8px; font-weight: 600; letter-spacing: 0.5px; }
-        .mb-bar { width: 28px; height: 3px; background: rgba(255,255,255,0.08); border-radius: 2px; overflow: hidden; }
+        .mb-bar { width: 28px; height: 3px; background: var(--demo-overlay); border-radius: 2px; overflow: hidden; }
         .mb-fill { height: 100%; border-radius: 2px; }
         .mb-val { font-size: 9px; font-weight: 600; min-width: 18px; text-align: right; }
         .mb-dot { width: 5px; height: 5px; border-radius: 50%; background: var(--accent); box-shadow: 0 0 6px rgba(48,209,88,0.5); }
@@ -233,12 +269,12 @@
         .demo-popover {
             position: absolute; top: 36px; left: 50%; transform: translateX(-50%);
             width: 280px;
-            background: rgba(40, 40, 44, 0.96);
+            background: var(--demo-panel-bg);
             backdrop-filter: blur(40px);
-            border: 1px solid rgba(255,255,255,0.12);
+            border: 1px solid var(--demo-overlay-border);
             border-radius: 12px;
             padding: 6px 0;
-            box-shadow: 0 20px 60px rgba(0,0,0,0.6);
+            box-shadow: 0 20px 60px var(--demo-shadow-lg);
             opacity: 0; transform-origin: top center;
             transition: opacity 0.3s, transform 0.3s;
         }
@@ -252,26 +288,26 @@
             border-radius: 4px;
             margin: 0 4px;
         }
-        .pop-row.hovered { background: rgba(255,255,255,0.06); }
+        .pop-row.hovered { background: var(--demo-overlay-light); }
         .pop-row-icon { width: 18px; height: 18px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
         .pop-row-icon svg { width: 15px; height: 15px; }
         .pop-row-label { font-size: 12px; font-weight: 500; width: 64px; flex-shrink: 0; }
         .pop-row-bar-wrap { flex: 1; display: flex; align-items: center; }
-        .pop-row-bar { width: 100%; height: 5px; background: rgba(255,255,255,0.08); border-radius: 3px; overflow: hidden; }
+        .pop-row-bar { width: 100%; height: 5px; background: var(--demo-overlay); border-radius: 3px; overflow: hidden; }
         .pop-row-fill { height: 100%; border-radius: 3px; transition: width 0.5s; }
         .pop-row-value { font-size: 11px; font-family: 'SF Mono','Menlo',monospace; color: var(--text-secondary); min-width: 36px; text-align: right; flex-shrink: 0; }
         .pop-row-net-value { font-size: 10px; font-family: 'SF Mono','Menlo',monospace; color: var(--text-secondary); flex: 1; text-align: right; }
         .pop-row-thermal-value { font-size: 11px; font-weight: 600; flex: 1; text-align: right; }
-        .pop-row-chevron { font-size: 10px; color: rgba(255,255,255,0.15); margin-left: 2px; flex-shrink: 0; }
+        .pop-row-chevron { font-size: 10px; color: var(--demo-overlay-strong); margin-left: 2px; flex-shrink: 0; }
 
-        .pop-divider { height: 1px; background: rgba(255,255,255,0.08); margin: 4px 12px; }
+        .pop-divider { height: 1px; background: var(--demo-overlay); margin: 4px 12px; }
 
         .pop-footer {
             padding: 4px 12px 2px;
         }
         .pop-footer-row {
             display: flex; align-items: center; gap: 5px;
-            font-size: 9px; color: rgba(255,255,255,0.35);
+            font-size: 9px; color: var(--demo-muted-text);
             padding: 1px 0;
         }
         .pop-footer-row svg { width: 8px; height: 8px; opacity: 0.4; }
@@ -280,22 +316,22 @@
             padding: 2px 0 0;
         }
         .pop-footer-version {
-            font-size: 8px; color: rgba(255,255,255,0.2);
+            font-size: 8px; color: var(--demo-muted);
             font-family: 'SF Mono','Menlo',monospace;
         }
         .pop-footer-btns { display: flex; gap: 8px; }
-        .pop-footer-btns svg { width: 11px; height: 11px; color: rgba(255,255,255,0.3); cursor: pointer; }
+        .pop-footer-btns svg { width: 11px; height: 11px; color: var(--demo-muted-strong); cursor: pointer; }
 
         /* Detail panel */
         .demo-detail {
             position: absolute; top: 36px;
             width: 280px;
-            background: rgba(40, 40, 44, 0.96);
+            background: var(--demo-panel-bg);
             backdrop-filter: blur(40px);
-            border: 1px solid rgba(255,255,255,0.12);
+            border: 1px solid var(--demo-overlay-border);
             border-radius: 12px;
             padding: 12px;
-            box-shadow: 0 20px 60px rgba(0,0,0,0.5);
+            box-shadow: 0 20px 60px var(--demo-shadow-md);
             opacity: 0;
             transition: opacity 0.25s, transform 0.25s;
             transform: translateX(10px);
@@ -322,7 +358,7 @@
         .dp-col-label { font-size: 10px; color: var(--text-secondary); margin-bottom: 1px; }
         .dp-col-value { font-size: 11px; font-family: 'SF Mono','Menlo',monospace; font-weight: 500; }
 
-        .dp-divider { height: 1px; background: rgba(255,255,255,0.08); margin: 8px 0; }
+        .dp-divider { height: 1px; background: var(--demo-overlay); margin: 8px 0; }
 
         /* Per-core grid (2-column) */
         .dp-core-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 2px 8px; margin: 6px 0; }
@@ -342,8 +378,8 @@
         .dp-chart-label { font-size: 10px; color: var(--text-secondary); margin-bottom: 2px; }
         .dp-chart-container { display: flex; gap: 0; }
         .dp-chart-yaxis { display: flex; flex-direction: column; justify-content: space-between; align-items: flex-start; padding: 0 0 0 4px; width: 42px; flex-shrink: 0; order: 1; }
-        .dp-chart-yaxis span { font-size: 7px; color: rgba(255,255,255,0.25); font-family: 'SF Mono','Menlo',monospace; line-height: 1; }
-        .dp-chart { flex: 1; height: 50px; background: rgba(255,255,255,0.02); border-radius: 4px; overflow: hidden; position: relative; }
+        .dp-chart-yaxis span { font-size: 7px; color: var(--demo-muted-medium); font-family: 'SF Mono','Menlo',monospace; line-height: 1; }
+        .dp-chart { flex: 1; height: 50px; background: var(--demo-overlay-subtle); border-radius: 4px; overflow: hidden; position: relative; }
         .dp-chart svg { width: 100%; height: 100%; }
 
         /* Disk chart legend */
@@ -352,7 +388,7 @@
         .dp-chart-legend-dot { width: 5px; height: 5px; border-radius: 50%; }
 
         /* Pressure/usage bars */
-        .dp-bar-track { width: 100%; height: 6px; background: rgba(255,255,255,0.06); border-radius: 3px; overflow: hidden; }
+        .dp-bar-track { width: 100%; height: 6px; background: var(--demo-overlay-light); border-radius: 3px; overflow: hidden; }
         .dp-bar-fill { height: 100%; border-radius: 3px; }
 
         /* Volume bars */
@@ -377,7 +413,7 @@
         /* Pressure row */
         .dp-pressure-row { display: flex; align-items: center; gap: 6px; margin: 4px 0; }
         .dp-pressure-label { font-size: 10px; color: var(--text-secondary); flex-shrink: 0; }
-        .dp-pressure-track { flex: 1; height: 6px; background: rgba(255,255,255,0.06); border-radius: 3px; overflow: hidden; }
+        .dp-pressure-track { flex: 1; height: 6px; background: var(--demo-overlay-light); border-radius: 3px; overflow: hidden; }
         .dp-pressure-fill { height: 100%; border-radius: 3px; }
         .dp-pressure-text { font-size: 10px; font-weight: 600; flex-shrink: 0; }
 
@@ -388,7 +424,7 @@
         .dp-fan-rpm { font-size: 11px; font-family: 'SF Mono','Menlo',monospace; color: var(--text-secondary); }
         .dp-fan-track { width: 100%; height: 6px; background: rgba(106,196,220,0.1); border-radius: 3px; overflow: hidden; margin: 3px 0; }
         .dp-fan-fill { height: 100%; border-radius: 3px; background: var(--accent-teal); }
-        .dp-fan-range { display: flex; justify-content: space-between; font-size: 8px; color: rgba(255,255,255,0.25); }
+        .dp-fan-range { display: flex; justify-content: space-between; font-size: 8px; color: var(--demo-muted-medium); }
 
         /* Style showcase */
         .style-showcase {
@@ -660,7 +696,7 @@
                 <div class="dp-divider"></div>
                 <div class="dp-section-title">Top Processes</div>
                 <div class="dp-proc"><div class="dp-proc-icon" style="background:rgba(0,122,255,0.15)"><svg viewBox="0 0 16 16"><circle cx="8" cy="8" r="6" fill="#007AFF"/><path d="M8 3L5 11h2l.5-1.5h1L9 11h2L8 3zm0 3.5l.5 2h-1l.5-2z" fill="#fff" font-size="6"/></svg></div><div class="dp-proc-name">Safari</div><div class="dp-proc-val">8.2%</div></div>
-                <div class="dp-proc"><div class="dp-proc-icon" style="background:rgba(255,255,255,0.08)"><svg viewBox="0 0 16 16" fill="#8e8e93" opacity="0.6"><circle cx="8" cy="8" r="6"/></svg></div><div class="dp-proc-name">WindowServer</div><div class="dp-proc-val">5.4%</div></div>
+                <div class="dp-proc"><div class="dp-proc-icon" style="background:var(--demo-overlay)"><svg viewBox="0 0 16 16" fill="#8e8e93" opacity="0.6"><circle cx="8" cy="8" r="6"/></svg></div><div class="dp-proc-name">WindowServer</div><div class="dp-proc-val">5.4%</div></div>
                 <div class="dp-proc"><div class="dp-proc-icon" style="background:rgba(75,0,130,0.2)"><svg viewBox="0 0 16 16"><circle cx="8" cy="8" r="6" fill="#4A154B"/><path d="M6 5h1v2h2V5h1v6h-1V9H7v2H6V5z" fill="#fff"/></svg></div><div class="dp-proc-name">Slack</div><div class="dp-proc-val">4.1%</div></div>
                 <div class="dp-proc"><div class="dp-proc-icon" style="background:rgba(30,215,96,0.15)"><svg viewBox="0 0 16 16"><circle cx="8" cy="8" r="6" fill="#1DB954"/><circle cx="8" cy="8" r="3" fill="none" stroke="#fff" stroke-width="1.2"/></svg></div><div class="dp-proc-name">Spotify</div><div class="dp-proc-val">2.4%</div></div>
                 <div class="dp-proc"><div class="dp-proc-icon" style="background:rgba(0,122,255,0.12)"><svg viewBox="0 0 16 16"><circle cx="8" cy="8" r="6" fill="#007AFF"/><rect x="5" y="5.5" width="6" height="4" rx="0.5" fill="#fff" opacity="0.9"/></svg></div><div class="dp-proc-name">Mail</div><div class="dp-proc-val">1.1%</div></div>
@@ -683,7 +719,7 @@
                 <div style="margin: 4px 0">
                     <div class="dp-dot-row"><div class="dp-dot" style="background:var(--accent)"></div><span class="dp-dot-label">Memory Used</span><span class="dp-dot-value">20.01 GB</span></div>
                     <div class="dp-dot-row"><div class="dp-dot" style="background:var(--accent-cyan)"></div><span class="dp-dot-label">Cached Files</span><span class="dp-dot-value">11.79 GB</span></div>
-                    <div class="dp-dot-row"><div class="dp-dot" style="background:rgba(255,255,255,0.25)"></div><span class="dp-dot-label">Free</span><span class="dp-dot-value">27.99 GB</span></div>
+                    <div class="dp-dot-row"><div class="dp-dot" style="background:var(--demo-muted-medium)"></div><span class="dp-dot-label">Free</span><span class="dp-dot-value">27.99 GB</span></div>
                 </div>
                 <div class="dp-dot-row"><div class="dp-dot" style="background:var(--accent-yellow)"></div><span class="dp-dot-label">Swap Used</span><span class="dp-dot-value">Zero KB</span></div>
                 <div class="dp-pressure-row">
@@ -944,7 +980,7 @@
                 <p>Historical sparklines for CPU, memory, and GPU. Bandwidth and disk I/O charts with auto-scaled Y-axis labels. Detail panels live-refresh as data changes.</p>
             </div>
             <div class="feature-card">
-                <div class="feature-icon" style="background:rgba(255,255,255,0.1)">&#129718;</div>
+                <div class="feature-icon" style="background:var(--demo-icon-bg)">&#129718;</div>
                 <h3>Featherlight</h3>
                 <p>~2 MB binary. Zero external dependencies. Polls every 2 seconds with efficient ring buffers. Shows its own memory usage in the footer.</p>
             </div>
@@ -992,7 +1028,7 @@
             </details>
             <details class="faq-item">
                 <summary>Will there be a Mac App Store version?</summary>
-                <p>Possibly in the future. The current version requires unsandboxed access for full hardware monitoring, which makes App Store distribution more complex. For now, download the notarized DMG from GitHub Releases.</p>
+                <p>It may be added someday. The current version requires unsandboxed access for full hardware monitoring, which makes App Store distribution more complex. For now, download the notarized DMG from GitHub Releases.</p>
             </details>
             <details class="faq-item">
                 <summary>How do I build from source?</summary>
@@ -1011,6 +1047,9 @@
                 <a href="https://github.com/blaineam/blip/releases/latest" class="btn btn-primary">Download Latest Release</a>
                 <a href="https://github.com/blaineam/blip" class="btn btn-secondary">View on GitHub</a>
             </div>
+            <p style="margin-top:16px;font-size:13px;color:var(--text-secondary)">
+                Optional: <a href="https://github.com/blaineam/blip/releases/latest" style="color:var(--accent-cyan)">Download Blip Helper</a> for fan speeds, temperatures, GPU utilization, disk I/O, battery health, and process monitoring when using the App Store version.
+            </p>
         </div>
     </div>
 </section>

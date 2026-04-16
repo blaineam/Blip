@@ -50,9 +50,21 @@ jobs:
           IDENTITY=$(security find-identity -v -p codesigning "$KEYCHAIN_PATH" | grep "Developer ID Application" | head -1 | awk -F'"' '{print $2}')
           echo "IDENTITY=$IDENTITY" >> "$GITHUB_ENV"
 
-      - name: Build Release
+      - name: Build Release (Blip)
         run: |
           xcodebuild -scheme Blip -configuration Release \
+            -derivedDataPath .build/DerivedData \
+            -arch arm64 \
+            CODE_SIGN_IDENTITY="$IDENTITY" \
+            CODE_SIGN_STYLE=Manual \
+            ENABLE_HARDENED_RUNTIME=YES \
+            OTHER_CODE_SIGN_FLAGS="--timestamp --options runtime" \
+            CODE_SIGN_INJECT_BASE_ENTITLEMENTS=NO \
+            -quiet
+
+      - name: Build Release (BlipHelper)
+        run: |
+          xcodebuild -scheme BlipHelper -configuration Release \
             -derivedDataPath .build/DerivedData \
             -arch arm64 \
             CODE_SIGN_IDENTITY="$IDENTITY" \
@@ -190,22 +202,75 @@ jobs:
           # Sign DMG
           codesign --sign "$IDENTITY" --timestamp "$DMG_FINAL"
 
-      - name: Notarize DMG
+      - name: Package BlipHelper DMG
+        run: |
+          HELPER_BINARY=".build/DerivedData/Build/Products/Release/BlipHelper"
+          HELPER_DMG_TEMP=".build/helper-temp.dmg"
+          HELPER_DMG_FINAL="dist/BlipHelper.dmg"
+
+          # Sign the helper binary
+          codesign --force --sign "$IDENTITY" --timestamp --options runtime "$HELPER_BINARY"
+
+          # Create writable DMG
+          hdiutil create -size 10m -fs HFS+ -volname "BlipHelper" -ov "$HELPER_DMG_TEMP"
+          MOUNT_POINT=$(hdiutil attach "$HELPER_DMG_TEMP" -readwrite -noverify -noautoopen | grep "BlipHelper" | awk '{print $NF}' | head -1)
+          if [[ -z "$MOUNT_POINT" ]]; then
+            MOUNT_POINT="/Volumes/BlipHelper"
+          fi
+
+          # Copy helper binary and LaunchAgent plist
+          cp "$HELPER_BINARY" "$MOUNT_POINT/"
+          cp "BlipHelper/Resources/com.blainemiller.BlipHelper.plist" "$MOUNT_POINT/"
+
+          # Create a simple install script
+          cat > "$MOUNT_POINT/install.sh" << 'INSTALL_EOF'
+          #!/bin/bash
+          set -euo pipefail
+          SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
+          echo "Installing BlipHelper..."
+          cp "$SCRIPT_DIR/BlipHelper" /usr/local/bin/BlipHelper
+          cp "$SCRIPT_DIR/com.blainemiller.BlipHelper.plist" ~/Library/LaunchAgents/
+          launchctl load ~/Library/LaunchAgents/com.blainemiller.BlipHelper.plist
+          echo "BlipHelper installed and started."
+          INSTALL_EOF
+          chmod +x "$MOUNT_POINT/install.sh"
+
+          # Detach and compress
+          sync
+          hdiutil detach "$MOUNT_POINT" -force 2>/dev/null || true
+          sleep 1
+          hdiutil convert "$HELPER_DMG_TEMP" -format UDZO -imagekey zlib-level=9 -o "$HELPER_DMG_FINAL" -ov
+          rm -f "$HELPER_DMG_TEMP"
+
+          # Sign the DMG
+          codesign --sign "$IDENTITY" --timestamp "$HELPER_DMG_FINAL"
+
+      - name: Notarize DMGs
         env:
           APPLE_ID: ${{ secrets.APPLE_ID }}
           APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
           APPLE_APP_PASSWORD: ${{ secrets.APPLE_APP_PASSWORD }}
         run: |
+          # Notarize Blip.dmg
           xcrun notarytool submit dist/Blip.dmg \
             --apple-id "$APPLE_ID" \
             --team-id "$APPLE_TEAM_ID" \
             --password "$APPLE_APP_PASSWORD" \
             --wait
-
           xcrun stapler staple dist/Blip.dmg
+
+          # Notarize BlipHelper.dmg
+          xcrun notarytool submit dist/BlipHelper.dmg \
+            --apple-id "$APPLE_ID" \
+            --team-id "$APPLE_TEAM_ID" \
+            --password "$APPLE_APP_PASSWORD" \
+            --wait
+          xcrun stapler staple dist/BlipHelper.dmg
 
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v2
         with:
-          files: dist/Blip.dmg
+          files: |
+            dist/Blip.dmg
+            dist/BlipHelper.dmg
           generate_release_notes: true
