@@ -221,11 +221,20 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
                 topProcesses: monitor.snapshot.topProcessesByMemory
             )
         case .disk:
+            #if APPSTORE
+            DiskDetailPanel(
+                stats: monitor.snapshot.disk,
+                readHistory: monitor.diskReadHistory.values,
+                writeHistory: monitor.diskWriteHistory.values,
+                hasIOData: monitor.helperClient.isConnected
+            )
+            #else
             DiskDetailPanel(
                 stats: monitor.snapshot.disk,
                 readHistory: monitor.diskReadHistory.values,
                 writeHistory: monitor.diskWriteHistory.values
             )
+            #endif
         case .network:
             NetworkDetailPanel(
                 stats: monitor.snapshot.network,

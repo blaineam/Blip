@@ -5,6 +5,7 @@ struct DiskDetailPanel: View {
     let stats: DiskStats
     let readHistory: [Double]
     let writeHistory: [Double]
+    var hasIOData: Bool = true
 
     var body: some View {
         VStack(alignment: .leading, spacing: 10) {
@@ -27,62 +28,64 @@ struct DiskDetailPanel: View {
                 }
             }
 
-            // I/O Speed
-            HStack(spacing: 0) {
-                VStack(alignment: .leading, spacing: 2) {
-                    HStack(spacing: 2) {
-                        Image(systemName: "arrow.down.doc")
-                            .font(.system(size: 9))
-                            .foregroundStyle(.green)
-                        Text("Read")
+            if hasIOData {
+                // I/O Speed
+                HStack(spacing: 0) {
+                    VStack(alignment: .leading, spacing: 2) {
+                        HStack(spacing: 2) {
+                            Image(systemName: "arrow.down.doc")
+                                .font(.system(size: 9))
+                                .foregroundStyle(.green)
+                            Text("Read")
+                                .font(.system(size: 10))
+                                .foregroundStyle(.secondary)
+                        }
+                        Text(Fmt.speed(stats.readBytesPerSec))
+                            .font(.system(size: 11, design: .monospaced))
+                    }
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    VStack(alignment: .leading, spacing: 2) {
+                        HStack(spacing: 2) {
+                            Image(systemName: "arrow.up.doc")
+                                .font(.system(size: 9))
+                                .foregroundStyle(.blue)
+                            Text("Write")
+                                .font(.system(size: 10))
+                                .foregroundStyle(.secondary)
+                        }
+                        Text(Fmt.speed(stats.writeBytesPerSec))
+                            .font(.system(size: 11, design: .monospaced))
+                    }
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                }
+
+                // Total read/written since boot
+                HStack(spacing: 0) {
+                    VStack(alignment: .leading, spacing: 2) {
+                        Text("Total Read")
                             .font(.system(size: 10))
                             .foregroundStyle(.secondary)
+                        Text(Fmt.totalBytes(stats.totalBytesRead))
+                            .font(.system(size: 11, design: .monospaced))
                     }
-                    Text(Fmt.speed(stats.readBytesPerSec))
-                        .font(.system(size: 11, design: .monospaced))
-                }
-                .frame(maxWidth: .infinity, alignment: .leading)
-                VStack(alignment: .leading, spacing: 2) {
-                    HStack(spacing: 2) {
-                        Image(systemName: "arrow.up.doc")
-                            .font(.system(size: 9))
-                            .foregroundStyle(.blue)
-                        Text("Write")
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    VStack(alignment: .leading, spacing: 2) {
+                        Text("Total Written")
                             .font(.system(size: 10))
                             .foregroundStyle(.secondary)
+                        Text(Fmt.totalBytes(stats.totalBytesWritten))
+                            .font(.system(size: 11, design: .monospaced))
                     }
-                    Text(Fmt.speed(stats.writeBytesPerSec))
-                        .font(.system(size: 11, design: .monospaced))
+                    .frame(maxWidth: .infinity, alignment: .leading)
                 }
-                .frame(maxWidth: .infinity, alignment: .leading)
-            }
 
-            // Total read/written since boot
-            HStack(spacing: 0) {
-                VStack(alignment: .leading, spacing: 2) {
-                    Text("Total Read")
-                        .font(.system(size: 10))
-                        .foregroundStyle(.secondary)
-                    Text(Fmt.totalBytes(stats.totalBytesRead))
-                        .font(.system(size: 11, design: .monospaced))
+                // I/O History Chart
+                if !readHistory.isEmpty || !writeHistory.isEmpty {
+                    ioChart
                 }
-                .frame(maxWidth: .infinity, alignment: .leading)
-                VStack(alignment: .leading, spacing: 2) {
-                    Text("Total Written")
-                        .font(.system(size: 10))
-                        .foregroundStyle(.secondary)
-                    Text(Fmt.totalBytes(stats.totalBytesWritten))
-                        .font(.system(size: 11, design: .monospaced))
-                }
-                .frame(maxWidth: .infinity, alignment: .leading)
-            }
 
-            // I/O History Chart
-            if !readHistory.isEmpty || !writeHistory.isEmpty {
-                ioChart
+                Divider()
             }
-
-            Divider()
 
             // Volumes
             ForEach(stats.volumes) { volume in

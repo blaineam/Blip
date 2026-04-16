@@ -5,6 +5,9 @@ import SwiftUI
 struct PopoverView: View {
     @ObservedObject var monitor: SystemMonitor
     @AppStorage("accentColorOverride") private var colorOverride: String = ""
+    #if APPSTORE
+    private var helperConnected: Bool { monitor.helperClient.isConnected }
+    #endif
 
     /// Callback when a section is hovered — AppDelegate handles showing the detail window.
     var onHoverSection: ((PopoverSection?) -> Void)?
@@ -16,7 +19,13 @@ struct PopoverView: View {
             overviewRow(.memory)
             overviewRow(.disk)
             overviewRow(.network)
+            #if APPSTORE
+            if helperConnected {
+                overviewRow(.gpu)
+            }
+            #else
             overviewRow(.gpu)
+            #endif
             overviewRow(.thermal)
 
             if monitor.snapshot.battery.isPresent {

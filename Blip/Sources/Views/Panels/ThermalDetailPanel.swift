@@ -24,7 +24,7 @@ struct ThermalDetailPanel: View {
                 .foregroundStyle(.secondary)
                 .fixedSize(horizontal: false, vertical: true)
 
-            // Temperatures
+            // Temperatures (only shown when data is available from SMC/helper)
             if fanStats.cpuTemperature != nil || fanStats.gpuTemperature != nil {
                 Divider()
                 HStack {
@@ -44,17 +44,17 @@ struct ThermalDetailPanel: View {
                 }
             }
 
-            Divider()
-
-            // Fan section
-            HStack {
-                Image(systemName: "fan")
-                    .foregroundStyle(.teal)
-                Text("Fans")
-                    .font(.system(size: 13, weight: .semibold))
-            }
-
+            // Fan section (only shown when fan data is available)
             if !fanStats.fans.isEmpty {
+                Divider()
+
+                HStack {
+                    Image(systemName: "fan")
+                        .foregroundStyle(.teal)
+                    Text("Fans")
+                        .font(.system(size: 13, weight: .semibold))
+                }
+
                 ForEach(fanStats.fans) { fan in
                     VStack(alignment: .leading, spacing: 3) {
                         HStack {
@@ -87,25 +87,6 @@ struct ThermalDetailPanel: View {
                             }
                         }
                     }
-                }
-            } else {
-                VStack(alignment: .leading, spacing: 6) {
-                    Text("No fan data available")
-                        .font(.system(size: 10))
-                        .foregroundStyle(.secondary)
-                    Text("SMC access may be restricted. Grant Blip access in System Settings → Privacy & Security → Full Disk Access, then relaunch.")
-                        .font(.system(size: 9))
-                        .foregroundStyle(.tertiary)
-                        .fixedSize(horizontal: false, vertical: true)
-                    Button {
-                        if let url = URL(string: "x-apple.systempreferences:com.apple.preference.security?Privacy_AllFiles") {
-                            NSWorkspace.shared.open(url)
-                        }
-                    } label: {
-                        Text("Open Privacy Settings")
-                            .font(.system(size: 10))
-                    }
-                    .buttonStyle(.link)
                 }
             }
         }
