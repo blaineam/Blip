@@ -144,12 +144,12 @@ final class SystemMonitor: ObservableObject {
             // Processes: use helper if in-process proc_* returned empty
             if topByCPU.isEmpty && !h.topProcessesByCPU.isEmpty {
                 topByCPU = h.topProcessesByCPU.map {
-                    ProcessInfo(id: $0.pid, name: $0.name, cpu: $0.cpu, memory: $0.memory, icon: nil)
+                    ProcessInfo(id: $0.pid, name: $0.name, cpu: $0.cpu, memory: $0.memory, icon: $0.icon)
                 }
             }
             if topByMemory.isEmpty && !h.topProcessesByMemory.isEmpty {
                 topByMemory = h.topProcessesByMemory.map {
-                    ProcessInfo(id: $0.pid, name: $0.name, cpu: $0.cpu, memory: $0.memory, icon: nil)
+                    ProcessInfo(id: $0.pid, name: $0.name, cpu: $0.cpu, memory: $0.memory, icon: $0.icon)
                 }
             }
         }
@@ -201,9 +201,13 @@ final class SystemMonitor: ObservableObject {
         @unknown default: info.thermalLevel = .nominal
         }
 
-        // Mac model
+        // Mac model — try helper's marketing name first (MAS build),
+        // then fall back to in-process fetch
         if let cached = cachedModelName {
             info.macModel = cached
+        } else if let helperModel = helperClient.latestSnapshot?.macModelName, !helperModel.isEmpty {
+            cachedModelName = helperModel
+            info.macModel = helperModel
         } else {
             let modelName = Self.fetchMarketingModelName()
             cachedModelName = modelName

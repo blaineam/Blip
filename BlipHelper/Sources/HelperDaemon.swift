@@ -2,6 +2,7 @@ import Foundation
 import IOKit
 import IOKit.ps
 import Darwin
+import AppKit
 
 /// Polls privileged system APIs and produces HelperSnapshots.
 /// Runs in the helper process (unsandboxed) to collect data
@@ -19,6 +20,15 @@ final class HelperDaemon {
     }()
 
     private var cachedSmartStatus: String?
+
+    private let iconCache = NSCache<NSNumber, NSData>()
+
+    private var cachedModelName: String?
+
+    init() {
+        iconCache.countLimit = 15
+        iconCache.totalCostLimit = 2 * 1024 * 1024
+    }
 
     /// Collect all privileged data into a HelperSnapshot.
     func poll() -> HelperSnapshot {
@@ -45,8 +55,38 @@ final class HelperDaemon {
             batteryTemperature: battery.temperature,
             topProcessesByCPU: procs.byCPU,
             topProcessesByMemory: procs.byMemory,
+            macModelName: fetchModelName(),
             timestamp: Date()
         )
+    }
+
+    // MARK: - Mac Model Name (via system_profiler)
+
+    private func fetchModelName() -> String? {
+        if let cached = cachedModelName { return cached }
+        let process = Foundation.Process()
+        process.executableURL = URL(fileURLWithPath: "/usr/sbin/system_profiler")
+        process.arguments = ["SPHardwareDataType", "-json"]
+        let pipe = Pipe()
+        process.standardOutput = pipe
+        process.standardError = FileHandle.nullDevice
+        do {
+            try process.run()
+            let data = pipe.fileHandleForReading.readDataToEndOfFile()
+            process.waitUntilExit()
+            if let json = try JSONSerialization.jsonObject(with: data) as? [String: Any],
+               let items = json["SPHardwareDataType"] as? [[String: Any]],
+               let first = items.first {
+                let name = first["machine_name"] as? String ?? ""
+                let chip = first["chip_type"] as? String ?? ""
+                if !name.isEmpty && !chip.isEmpty {
+                    cachedModelName = "\(name) (\(chip))"
+                } else if !name.isEmpty {
+                    cachedModelName = name
+                }
+            }
+        } catch {}
+        return cachedModelName
     }
 
     // MARK: - Fan & Thermal (via SMC)
@@ -276,16 +316,67 @@ final class HelperDaemon {
             let name = (path as NSString).lastPathComponent
 
             guard !name.isEmpty, (cpuPercent > 0.1 || memory > 1_048_576) else { continue }
-            results.append(HelperProcess(pid: pid, name: name, cpu: cpuPercent, memory: memory))
+            results.append(HelperProcess(pid: pid, name: name, cpu: cpuPercent, memory: memory, icon: nil))
         }
 
         // Prune stale PIDs
         let activePIDs = Set(results.map { $0.pid })
         previousCPUTimes = previousCPUTimes.filter { activePIDs.contains($0.key) }
 
-        let byCPU = Array(results.sorted { $0.cpu > $1.cpu }.prefix(5))
-        let byMemory = Array(results.sorted { $0.memory > $1.memory }.prefix(5))
+        var byCPU = Array(results.sorted { $0.cpu > $1.cpu }.prefix(5))
+        var byMemory = Array(results.sorted { $0.memory > $1.memory }.prefix(5))
+
+        // Fetch icons and display names for the visible processes only
+        var seenPIDs = Set<pid_t>()
+        for p in byCPU + byMemory { seenPIDs.insert(p.pid) }
+
+        var iconMap: [pid_t: Data?] = [:]
+        var nameMap: [pid_t: String] = [:]
+        for pid in seenPIDs {
+            iconMap[pid] = appIcon(for: pid)
+            if let app = NSRunningApplication(processIdentifier: pid),
+               let displayName = app.localizedName, !displayName.isEmpty {
+                nameMap[pid] = displayName
+            }
+        }
+
+        byCPU = byCPU.map { p in
+            HelperProcess(pid: p.pid, name: nameMap[p.pid] ?? p.name,
+                          cpu: p.cpu, memory: p.memory, icon: iconMap[p.pid] ?? nil)
+        }
+        byMemory = byMemory.map { p in
+            HelperProcess(pid: p.pid, name: nameMap[p.pid] ?? p.name,
+                          cpu: p.cpu, memory: p.memory, icon: iconMap[p.pid] ?? nil)
+        }
+
         return (byCPU, byMemory)
+    }
+
+    // MARK: - App Icons
+
+    private func appIcon(for pid: pid_t) -> Data? {
+        let key = NSNumber(value: pid)
+        if let cached = iconCache.object(forKey: key) {
+            return cached as Data
+        }
+
+        guard let app = NSRunningApplication(processIdentifier: pid),
+              let icon = app.icon else { return nil }
+
+        // Render at 16x16 to keep TCP payload small
+        let smallIcon = NSImage(size: NSSize(width: 16, height: 16))
+        smallIcon.lockFocus()
+        icon.draw(in: NSRect(x: 0, y: 0, width: 16, height: 16),
+                  from: NSRect(origin: .zero, size: icon.size),
+                  operation: .copy, fraction: 1.0)
+        smallIcon.unlockFocus()
+
+        guard let tiff = smallIcon.tiffRepresentation,
+              let rep = NSBitmapImageRep(data: tiff),
+              let pngData = rep.representation(using: .png, properties: [:]) else { return nil }
+
+        iconCache.setObject(pngData as NSData, forKey: key, cost: pngData.count)
+        return pngData
     }
 
     private func physFootprint(for pid: pid_t) -> UInt64 {

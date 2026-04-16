@@ -81,6 +81,7 @@ targets:
         GENERATE_INFOPLIST_FILE: NO
     frameworks:
       - sdk: IOKit.framework
+      - sdk: AppKit.framework
 
 schemes:
   Blip:

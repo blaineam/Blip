@@ -69,6 +69,9 @@ struct HelperSnapshot: Codable, Sendable {
     var topProcessesByCPU: [HelperProcess]
     var topProcessesByMemory: [HelperProcess]
 
+    // System info (system_profiler subprocess blocked in sandbox)
+    var macModelName: String?
+
     var timestamp: Date
 }
 
@@ -85,6 +88,8 @@ struct HelperProcess: Codable, Sendable {
     var name: String
     var cpu: Double
     var memory: UInt64
+    /// PNG-encoded app icon (16x16), nil for system processes without a bundle.
+    var icon: Data?
 }
 
 // MARK: - TCP Framing
