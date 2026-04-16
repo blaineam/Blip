@@ -99,9 +99,9 @@ chmod +x Scripts/build-dmg.sh
                   |   GPU     12%     >  |         | Loads  |
                   |   Battery 89%     >  |         | Procs  |
                   |                      |         | Charts |
-                  |  Mac14,7 - macOS 15  |         +--------+
+                  |  MacBook Pro (M4)    |         +--------+
                   |  Up 3d 2h | Nominal  |
-                  |  Blip v1.3.0         |
+                  |  Blip v1.4.0         |
                   +----------------------+
 ```
 
