@@ -1,7 +1,6 @@
 import Foundation
 import Combine
 import Darwin
-import IOKit
 import SwiftUI
 
 /// Central coordinator that polls all hardware monitors on a timer
