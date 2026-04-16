@@ -77,26 +77,24 @@ chmod +x Scripts/build-dmg.sh
 ## 🔧 How It Works
 
 ```
-┌──────────────────────────────────────────────────────────┐
-│                     Menu Bar (NSStatusItem)               │
-│  ┌─────┐ ┌─────┐ ┌─────┐                                │
-│  │ CPU │ │ MEM │ │  HD │ ●                               │
-│  └─────┘ └─────┘ └─────┘                                │
-└────────────────────────┬─────────────────────────────────┘
-                         │ click
-              ┌──────────▼──────────┐  hover  ┌─────────────┐
-              │   Popover           │ ──────► │ Detail Panel │
-              │  ┌─ CPU    45%   ► │         │  Per-core    │
-              │  ├─ Memory 67%   ► │         │  Load avgs   │
-              │  ├─ Disk   34%   ► │         │  Top procs   │
-              │  ├─ Network ↓↑   ► │         │  Charts      │
-              │  ├─ GPU    12%   ► │         │  ...         │
-              │  └─ Battery 89%  ► │         └─────────────┘
-              │                     │
-              │  Mac14,7 · macOS 15 │
-              │  ⏱ 3d 2h │ Nominal │
-              │  Blip v1.3.0       │
-              └─────────────────────┘
++-----------------------------------------------------------+
+|                   Menu Bar (NSStatusItem)                  |
+|   [CPU]  [MEM]  [HD]  *                                   |
++----------------------------+------------------------------+
+                             | click
+                  +----------v-----------+
+                  |  Popover             |  hover  +--------+
+                  |   CPU     45%     >  | ------> | Detail |
+                  |   Memory  67%     >  |         | Panel  |
+                  |   Disk    34%     >  |         +--------+
+                  |   Network  v^     >  |         | Cores  |
+                  |   GPU     12%     >  |         | Loads  |
+                  |   Battery 89%     >  |         | Procs  |
+                  |                      |         | Charts |
+                  |  Mac14,7 - macOS 15  |         +--------+
+                  |  Up 3d 2h | Nominal  |
+                  |  Blip v1.3.0         |
+                  +----------------------+
 ```
 
 ## 🗂 Project Structure
