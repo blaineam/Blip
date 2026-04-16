@@ -9,6 +9,8 @@ struct NetworkDetailPanel: View {
     @State private var wanIP: String? = nil
     @State private var showWAN = false
     @State private var loadingWAN = false
+    @State private var showMAC = false
+    @State private var showVPNIP = false
 
     var body: some View {
         VStack(alignment: .leading, spacing: 10) {
@@ -125,7 +127,7 @@ struct NetworkDetailPanel: View {
                             addressRow("IPv6", value: iface.ipv6)
                         }
                         if iface.macAddress != "—" {
-                            addressRow("MAC", value: iface.macAddress)
+                            revealRow("MAC", value: iface.macAddress, revealed: $showMAC)
                         }
                     }
                     .padding(.vertical, 2)
@@ -139,7 +141,7 @@ struct NetworkDetailPanel: View {
                     addressRow("Router", value: stats.routerIP)
                     addressRow("IPv6", value: stats.ipv6Address)
                     if stats.macAddress != "—" {
-                        addressRow("MAC", value: stats.macAddress)
+                        revealRow("MAC", value: stats.macAddress, revealed: $showMAC)
                     }
                 }
             }
@@ -193,7 +195,7 @@ struct NetworkDetailPanel: View {
                             .font(.system(size: 11, weight: .medium))
                             .foregroundStyle(.green)
                     }
-                    addressRow("VPN IP", value: stats.vpnAddress)
+                    revealRow("VPN IP", value: stats.vpnAddress, revealed: $showVPNIP)
                     addressRow("VPN Interface", value: stats.vpnInterface)
                 }
             }
@@ -253,6 +255,40 @@ struct NetworkDetailPanel: View {
                     Circle().fill(.blue).frame(width: 5, height: 5)
                     Text("Up").font(.system(size: 9)).foregroundStyle(.secondary)
                 }
+            }
+        }
+    }
+
+    private func revealRow(_ label: String, value: String, revealed: Binding<Bool>) -> some View {
+        HStack {
+            Text(label)
+                .font(.system(size: 11))
+                .foregroundStyle(.secondary)
+            Spacer()
+            if revealed.wrappedValue {
+                Button {
+                    NSPasteboard.general.clearContents()
+                    NSPasteboard.general.setString(value, forType: .string)
+                } label: {
+                    HStack(spacing: 3) {
+                        Text(value)
+                            .font(.system(size: 11, design: .monospaced))
+                        Image(systemName: "doc.on.doc")
+                            .font(.system(size: 8))
+                            .foregroundStyle(.tertiary)
+                    }
+                }
+                .buttonStyle(.plain)
+                .help("Click to copy")
+            } else {
+                Button {
+                    revealed.wrappedValue = true
+                } label: {
+                    Text("Tap to reveal")
+                        .font(.system(size: 10))
+                        .foregroundStyle(.blue)
+                }
+                .buttonStyle(.plain)
             }
         }
     }

@@ -104,6 +104,8 @@ struct SettingsView: View {
                         Text("Install Blip Helper for fan speeds, temperatures, GPU utilization, disk I/O, battery health, and process monitoring.")
                             .font(.caption)
                             .foregroundStyle(.secondary)
+                        Link("Download Blip Helper", destination: URL(string: "https://github.com/blaineam/blip/releases/latest")!)
+                            .font(.caption)
                     }
                 }
             }
@@ -112,6 +114,10 @@ struct SettingsView: View {
                 LabeledContent("Version") {
                     Text(Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "1.0.0")
                         .foregroundStyle(.secondary)
+                }
+                LabeledContent("Website") {
+                    Link("blip.wemiller.com", destination: URL(string: "https://blip.wemiller.com")!)
+                        .font(.system(size: 12))
                 }
                 LabeledContent("GitHub") {
                     Link("blaineam/blip", destination: URL(string: "https://github.com/blaineam/blip")!)

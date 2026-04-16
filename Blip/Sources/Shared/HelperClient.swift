@@ -18,7 +18,16 @@ final class HelperClient: @unchecked Sendable {
 
     /// Check if the helper appears to be installed.
     var isHelperInstalled: Bool {
-        FileManager.default.fileExists(atPath: HelperConstants.portFileURL.path)
+        // Check port file (helper has run before)
+        if FileManager.default.fileExists(atPath: HelperConstants.portFileURL.path) {
+            return true
+        }
+        // Check common install locations
+        let paths = [
+            "/Applications/Blip Helper.app",
+            NSHomeDirectory() + "/Applications/Blip Helper.app",
+        ]
+        return paths.contains { FileManager.default.fileExists(atPath: $0) }
     }
 
     /// Attempt to read the helper's port file and fetch a snapshot.
