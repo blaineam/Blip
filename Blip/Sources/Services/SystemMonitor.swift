@@ -201,11 +201,10 @@ final class SystemMonitor: ObservableObject {
         @unknown default: info.thermalLevel = .nominal
         }
 
-        // Mac model — use cached marketing name from system_profiler
+        // Mac model
         if let cached = cachedModelName {
             info.macModel = cached
         } else {
-            // Run system_profiler once to get the marketing model name
             let modelName = Self.fetchMarketingModelName()
             cachedModelName = modelName
             info.macModel = modelName
@@ -215,7 +214,8 @@ final class SystemMonitor: ObservableObject {
         let osVersion = Foundation.ProcessInfo.processInfo.operatingSystemVersion
         info.macOSVersion = "macOS \(osVersion.majorVersion).\(osVersion.minorVersion).\(osVersion.patchVersion)"
 
-        // Blip's own resource usage
+        #if !APPSTORE
+        // Blip's own resource usage (proc_pid_rusage is private API)
         var rusage = rusage_info_current()
         let result = withUnsafeMutablePointer(to: &rusage) { ptr in
             ptr.withMemoryRebound(to: Optional<rusage_info_t>.self, capacity: 1) { rusagePtr in
@@ -225,12 +225,17 @@ final class SystemMonitor: ObservableObject {
         if result == 0 {
             info.blipMemoryMB = Double(rusage.ri_phys_footprint) / 1_048_576
         }
+        #endif
 
         return info
     }
 
-    /// Fetches the marketing model name via system_profiler (e.g. "MacBook Pro (16-inch, Nov 2024)")
+    /// Fetches the marketing model name.
+    /// On the direct-download version, uses system_profiler for the full name.
+    /// On the App Store version, uses the sysctl hw.model fallback only.
     private static func fetchMarketingModelName() -> String {
+        #if !APPSTORE
+        // system_profiler subprocess — not permitted on App Store
         let process = Foundation.Process()
         process.executableURL = URL(fileURLWithPath: "/usr/sbin/system_profiler")
         process.arguments = ["SPHardwareDataType", "-json"]
@@ -255,7 +260,8 @@ final class SystemMonitor: ObservableObject {
         } catch {
             // Fall through to sysctl fallback
         }
-        // Fallback to hw.model
+        #endif
+        // hw.model via sysctl (public API, safe for App Store)
         var size = 0
         sysctlbyname("hw.model", nil, &size, nil, 0)
         if size > 0 {

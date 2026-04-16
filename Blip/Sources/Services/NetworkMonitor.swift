@@ -195,8 +195,12 @@ final class NetworkMonitor: @unchecked Sendable {
     private static func readDefaultGateway() -> String {
         // Try sysctl route lookup first — no subprocess, sandbox-friendly
         if let gw = readGatewayViaSysctl() { return gw }
-        // Fallback to netstat (works outside sandbox)
+        #if !APPSTORE
+        // Fallback to netstat (subprocess, not permitted on App Store)
         return readGatewayViaNetstat()
+        #else
+        return "—"
+        #endif
     }
 
     /// Parse the routing table via sysctl NET_RT_FLAGS to find the default gateway.
@@ -254,6 +258,7 @@ final class NetworkMonitor: @unchecked Sendable {
         return nil
     }
 
+    #if !APPSTORE
     /// Fallback: reads the default gateway via netstat subprocess.
     private static func readGatewayViaNetstat() -> String {
         let task = Foundation.Process()
@@ -276,6 +281,7 @@ final class NetworkMonitor: @unchecked Sendable {
         } catch {}
         return "—"
     }
+    #endif
 
     /// Maps interface names to user-friendly display names
     private static func interfaceDisplayName(_ name: String) -> String {

@@ -1,12 +1,29 @@
 import Foundation
+#if !APPSTORE
 import IOKit
+#endif
 
 // MARK: - SMC Interface for Apple Silicon
 
 /// Lightweight SMC (System Management Controller) reader.
 /// Used for fan RPM and thermal data on Apple Silicon Macs.
 /// Supports both fpe2 (older Apple Silicon) and flt (M4+) data formats.
+///
+/// On the App Store build, all methods return empty/false since the
+/// undocumented SMC kernel interface is not permitted.
 enum SMC {
+#if APPSTORE
+    static func open() -> Bool { false }
+    static func close() {}
+    static var available: Bool { false }
+    static func readFanCount() -> Int { 0 }
+    static func readFanRPM(fan: Int) -> Int { 0 }
+    static func readFanMin(fan: Int) -> Int { 0 }
+    static func readFanMax(fan: Int) -> Int { 0 }
+    static func readTemperature(_ key: String) -> Double? { nil }
+    static func readCPUTemperature() -> Double? { nil }
+    static func readGPUTemperature() -> Double? { nil }
+#else
     nonisolated(unsafe) private static var connection: io_connect_t = 0
     nonisolated(unsafe) private static var isOpen = false
 
@@ -218,4 +235,5 @@ enum SMC {
         }
         return (dataType, bytes)
     }
+#endif
 }

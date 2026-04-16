@@ -1,12 +1,15 @@
 import Foundation
+#if !APPSTORE
 import IOKit
+#endif
 
 final class DiskMonitor: @unchecked Sendable {
+    #if !APPSTORE
     private var previousReadBytes: UInt64 = 0
     private var previousWriteBytes: UInt64 = 0
     private var previousTimestamp: Date?
-
     private var cachedSmartStatus: String?
+    #endif
 
     func read() -> DiskStats {
         var stats = DiskStats()
@@ -49,10 +52,11 @@ final class DiskMonitor: @unchecked Sendable {
             return a.name < b.name
         }
 
-        // Read disk I/O from IOKit
+        #if !APPSTORE
+        // Read disk I/O from IOKit (undocumented IOBlockStorageDriver properties)
         readDiskIO(&stats)
 
-        // SMART status (cached, only read once)
+        // SMART status (cached, only read once — uses diskutil subprocess)
         if let cached = cachedSmartStatus {
             stats.smartStatus = cached
         } else {
@@ -60,10 +64,12 @@ final class DiskMonitor: @unchecked Sendable {
             cachedSmartStatus = smart
             stats.smartStatus = smart
         }
+        #endif
 
         return stats
     }
 
+    #if !APPSTORE
     private static func readSmartStatus() -> String {
         let task = Foundation.Process()
         let pipe = Pipe()
@@ -152,4 +158,5 @@ final class DiskMonitor: @unchecked Sendable {
         previousWriteBytes = totalWrite
         previousTimestamp = now
     }
+    #endif
 }

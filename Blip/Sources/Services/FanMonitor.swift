@@ -1,10 +1,13 @@
 import Foundation
+#if !APPSTORE
 import IOKit
+#endif
 
 final class FanMonitor: Sendable {
     func read() async -> FanStats {
         var stats = FanStats()
 
+        #if !APPSTORE
         if SMC.open() {
             // Read temperatures via SMC
             stats.cpuTemperature = SMC.readCPUTemperature()
@@ -37,10 +40,12 @@ final class FanMonitor: Sendable {
                 stats.fans = ioKitFans
             }
         }
+        #endif
 
         return stats
     }
 
+    #if !APPSTORE
     /// Reads fan data from IOKit AppleSmartBattery / ACPI fans as a fallback
     private func readFansFromIOKit() -> [FanInfo] {
         var fans: [FanInfo] = []
@@ -76,4 +81,5 @@ final class FanMonitor: Sendable {
 
         return fans
     }
+    #endif
 }

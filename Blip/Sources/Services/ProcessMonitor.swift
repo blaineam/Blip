@@ -1,12 +1,15 @@
 import Foundation
+#if !APPSTORE
 import AppKit
 import Darwin
+#endif
 
 final class ProcessMonitor: @unchecked Sendable {
+    #if !APPSTORE
     private let iconCache = NSCache<NSNumber, NSData>()
     private var previousCPUTimes: [pid_t: (user: UInt64, system: UInt64, wallNs: UInt64)] = [:]
 
-    /// Mach absolute time → nanoseconds conversion factor.
+    /// Mach absolute time -> nanoseconds conversion factor.
     /// pti_total_user/system are in Mach ticks; multiply by this to get nanoseconds.
     private let machToNs: Double = {
         var info = mach_timebase_info_data_t()
@@ -18,8 +21,16 @@ final class ProcessMonitor: @unchecked Sendable {
         iconCache.countLimit = 10
         iconCache.totalCostLimit = 2 * 1024 * 1024
     }
+    #else
+    init() {}
+    #endif
 
     func read() async -> (byCPU: [ProcessInfo], byMemory: [ProcessInfo]) {
+        #if APPSTORE
+        // Process enumeration uses private proc_* APIs not permitted on the App Store.
+        // The helper tool provides this data instead.
+        return ([], [])
+        #else
         let parsed = readAllProcesses()
 
         let byCPU = Array(parsed.sorted { $0.cpu > $1.cpu }.prefix(5))
@@ -58,8 +69,10 @@ final class ProcessMonitor: @unchecked Sendable {
         previousCPUTimes = previousCPUTimes.filter { activePIDs.contains($0.key) }
 
         return (byCPUWithIcons, byMemWithIcons)
+        #endif
     }
 
+    #if !APPSTORE
     private func readAllProcesses() -> [ProcessInfo] {
         // Get all PIDs
         let bufferSize = proc_listpids(UInt32(PROC_ALL_PIDS), 0, nil, 0)
@@ -193,7 +206,7 @@ final class ProcessMonitor: @unchecked Sendable {
             return nil
         }
 
-        // Render at 16×16 (half previous 32×32) — sufficient for process row display
+        // Render at 16x16 (half previous 32x32) -- sufficient for process row display
         let smallIcon = NSImage(size: NSSize(width: 16, height: 16))
         smallIcon.lockFocus()
         icon.draw(in: NSRect(x: 0, y: 0, width: 16, height: 16),
@@ -219,4 +232,5 @@ final class ProcessMonitor: @unchecked Sendable {
         let length = Int(len)
         return String(decoding: name.prefix(length).map { UInt8(bitPattern: $0) }, as: UTF8.self)
     }
+    #endif
 }

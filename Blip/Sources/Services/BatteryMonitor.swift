@@ -1,4 +1,7 @@
 import Foundation
+#if !APPSTORE
+import IOKit
+#endif
 import IOKit.ps
 
 final class BatteryMonitor: Sendable {
@@ -37,12 +40,16 @@ final class BatteryMonitor: Sendable {
             }
         }
 
+        #if !APPSTORE
         // Read battery health and cycle count from IOKit registry
+        // (undocumented AppleSmartBattery keys — not permitted on App Store)
         await readBatteryHealth(&stats)
+        #endif
 
         return stats
     }
 
+    #if !APPSTORE
     /// IOKit service names to try for battery health — Apple may rename on future hardware.
     private static let batteryServiceNames = [
         "AppleSmartBattery",
@@ -101,4 +108,5 @@ final class BatteryMonitor: Sendable {
             }
         }
     }
+    #endif
 }

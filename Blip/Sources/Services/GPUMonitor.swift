@@ -1,5 +1,7 @@
 import Foundation
+#if !APPSTORE
 import IOKit
+#endif
 @preconcurrency import Metal
 
 final class GPUMonitor: Sendable {
@@ -11,15 +13,16 @@ final class GPUMonitor: Sendable {
         let device = MTLCreateSystemDefaultDevice()
         gpuName = device?.name ?? "Apple GPU"
 
-        // Core count from sysctl (preferred) or IOKit fallback
+        // Core count from sysctl (public API, safe for App Store)
         var cores: Int = 0
         var gpuCores: Int32 = 0
         var size = MemoryLayout<Int32>.size
         if sysctlbyname("machdep.gpu.core_count", &gpuCores, &size, nil, 0) == 0 {
             cores = Int(gpuCores)
         }
+        #if !APPSTORE
         if cores == 0 {
-            // One-time IOKit lookup for core count
+            // One-time IOKit lookup for core count (undocumented IOAccelerator)
             var iterator: io_iterator_t = 0
             if let matching = IOServiceMatching("IOAccelerator"),
                IOServiceGetMatchingServices(kIOMainPortDefault, matching, &iterator) == kIOReturnSuccess {
@@ -37,28 +40,30 @@ final class GPUMonitor: Sendable {
                 }
             }
         }
+        #endif
         gpuCoreCount = cores
     }
-
-    /// Known IOKit utilization key names — Apple may add new ones on future hardware.
-    private static let utilizationKeys = [
-        "Device Utilization %",
-        "GPU Activity(%)",
-        "GPU Core Utilization %",
-    ]
 
     func read() -> GPUStats {
         var stats = GPUStats()
         stats.name = gpuName
         stats.coreCount = gpuCoreCount
 
-        // Only poll utilization — the dynamic value
+        #if !APPSTORE
+        // GPU utilization requires undocumented IOKit IOAccelerator properties.
+        // On the App Store build, the helper provides this data instead.
         var iterator: io_iterator_t = 0
         guard let matching = IOServiceMatching("IOAccelerator"),
               IOServiceGetMatchingServices(kIOMainPortDefault, matching, &iterator) == kIOReturnSuccess else {
             return stats
         }
         defer { IOObjectRelease(iterator) }
+
+        let utilizationKeys = [
+            "Device Utilization %",
+            "GPU Activity(%)",
+            "GPU Core Utilization %",
+        ]
 
         var entry: io_object_t = IOIteratorNext(iterator)
         while entry != 0 {
@@ -74,14 +79,14 @@ final class GPUMonitor: Sendable {
                 continue
             }
 
-            // Try known utilization keys — future hardware may use a new name
-            for key in Self.utilizationKeys {
+            for key in utilizationKeys {
                 if let value = perfStats[key] as? NSNumber {
                     stats.utilization = value.doubleValue
                     break
                 }
             }
         }
+        #endif
 
         return stats
     }
