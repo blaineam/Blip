@@ -41,7 +41,15 @@ Plus:
 
 ## 📦 Install
 
-### Homebrew (Recommended)
+### Mac App Store
+
+Blip is available on the Mac App Store as **Blip Stats** for $2.99.
+
+[![Download on the Mac App Store](https://developer.apple.com/assets/elements/badges/download-on-the-mac-app-store.svg)](https://apps.apple.com/app/blip-stats/id6762329495)
+
+Some advanced features (fan speeds, temperatures, GPU utilization, disk I/O, top processes) require the free [Blip Helper](https://github.com/blaineam/blip/releases/latest) companion app.
+
+### Homebrew (Recommended for Direct Download)
 
 ```bash
 brew install --cask blaineam/tap/blip
@@ -182,9 +190,9 @@ Typically around 42 MB physical footprint. Blip shows its own memory usage in th
 </details>
 
 <details>
-<summary><strong>Will there be a Mac App Store version?</strong></summary>
+<summary><strong>Why does the App Store version cost $2.99?</strong></summary>
 <br>
-It may be added someday. The unsandboxed requirement makes App Store distribution more complex.
+The direct download and Homebrew versions are free and always will be. The $2.99 App Store price helps cover Apple Developer Program costs and supports ongoing development and maintenance. If you'd rather not pay, grab the identical free version from GitHub Releases or Homebrew.
 </details>
 
 ## 📄 License

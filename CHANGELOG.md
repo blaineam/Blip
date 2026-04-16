@@ -1,15 +1,30 @@
 # Changelog
 
-## Unreleased
+## v1.4.0
+
+### Mac App Store
+- **App Store release** — Blip is now available on the Mac App Store as "Blip Stats" ($2.99)
+- **Sandboxed gracefully** — features that require hardware-level access (disk I/O, GPU utilization, fan speeds, temperatures, top processes) are hidden cleanly when the optional Blip Helper isn't installed, instead of showing zeroed-out data
+- **Model name resolution** — built-in lookup table translates hardware identifiers (e.g. Mac16,8) to marketing names (MacBook Pro 14" M4 Max) without needing system_profiler
+- **Export compliance** — ITSAppUsesNonExemptEncryption set to skip the encryption dialog on every upload
 
 ### BlipHelper
 - **Converted to proper .app** — BlipHelper is now a macOS app you drag to Applications and launch, instead of a CLI tool requiring manual LaunchAgent setup
-- **Auto login item** — registers itself as a login item via SMAppService on first launch; togglable from the menu bar
-- **Menu bar presence** — shows a bolt icon in the menu bar with status and quit options
-- **Distinct icon** — BlipHelper has its own icon (gold lightning bolt) to differentiate from the main Blip app
+- **Auto login item** — registers itself as a login item via SMAppService on first launch
+- **Runs invisibly** — no menu bar icon; runs as a background daemon
+- **Distinct icon** — BlipHelper has its own app icon (gold lightning bolt) to differentiate from the main Blip app
+
+### Privacy
+- **MAC address** — now hidden behind a "Tap to reveal" button, matching the WAN IP pattern
+- **VPN IP** — also hidden behind "Tap to reveal" for privacy
+
+### Settings
+- **Website link** — settings now links to blip.wemiller.com
+- **Helper download link** — App Store build includes a direct link to download Blip Helper from GitHub Releases
 
 ### CI/CD
 - **DMG pre-releases** — PR pre-release builds now package as DMGs instead of zips, consistent with the release pipeline
+- **Reliable DMG packaging** — fixed detach failures on volumes with spaces in the name by using device-path-based unmounting
 
 ## v1.3.0
 
