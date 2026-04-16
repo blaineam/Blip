@@ -217,8 +217,21 @@ final class SystemMonitor: ObservableObject {
         let osVersion = Foundation.ProcessInfo.processInfo.operatingSystemVersion
         info.macOSVersion = "macOS \(osVersion.majorVersion).\(osVersion.minorVersion).\(osVersion.patchVersion)"
 
-        #if !APPSTORE
-        // Blip's own resource usage (proc_pid_rusage is private API)
+        // Blip's own memory footprint
+        #if APPSTORE
+        // Use task_info (public Mach API, sandbox-safe)
+        var vmInfo = task_vm_info_data_t()
+        var vmCount = mach_msg_type_number_t(MemoryLayout<task_vm_info_data_t>.size / MemoryLayout<natural_t>.size)
+        let vmResult = withUnsafeMutablePointer(to: &vmInfo) { ptr in
+            ptr.withMemoryRebound(to: integer_t.self, capacity: Int(vmCount)) { intPtr in
+                task_info(mach_task_self_, task_flavor_t(TASK_VM_INFO), intPtr, &vmCount)
+            }
+        }
+        if vmResult == KERN_SUCCESS {
+            info.blipMemoryMB = Double(vmInfo.phys_footprint) / 1_048_576
+        }
+        #else
+        // proc_pid_rusage (private API, not permitted on App Store)
         var rusage = rusage_info_current()
         let result = withUnsafeMutablePointer(to: &rusage) { ptr in
             ptr.withMemoryRebound(to: Optional<rusage_info_t>.self, capacity: 1) { rusagePtr in
@@ -283,8 +296,8 @@ final class SystemMonitor: ObservableObject {
     /// Known Apple Silicon Mac model identifiers → marketing names.
     /// Covers M1 through M4 generation. Falls back to raw identifier if unknown.
     private static let modelLookup: [String: String] = [
-        // M1
-        "MacBookAir10,1": "MacBook Air (M1, 2020)",
+        // M1 (2020-2021)
+        "MacBookAir10,1": "MacBook Air 13\" (M1, 2020)",
         "MacBookPro17,1": "MacBook Pro 13\" (M1, 2020)",
         "MacBookPro18,1": "MacBook Pro 16\" (M1 Pro, 2021)",
         "MacBookPro18,2": "MacBook Pro 16\" (M1 Max, 2021)",
@@ -295,41 +308,44 @@ final class SystemMonitor: ObservableObject {
         "iMac21,2": "iMac 24\" (M1, 2021)",
         "Mac13,1": "Mac Studio (M1 Max, 2022)",
         "Mac13,2": "Mac Studio (M1 Ultra, 2022)",
-        // M2
-        "Mac14,2": "MacBook Air (M2, 2022)",
+        // M2 (2022-2023)
+        "Mac14,2": "MacBook Air 13\" (M2, 2022)",
         "Mac14,15": "MacBook Air 15\" (M2, 2023)",
         "Mac14,7": "MacBook Pro 13\" (M2, 2022)",
-        "Mac14,9": "MacBook Pro 14\" (M2 Pro, 2023)",
-        "Mac14,10": "MacBook Pro 16\" (M2 Pro, 2023)",
-        "Mac14,5": "MacBook Pro 14\" (M2 Max, 2023)",
-        "Mac14,6": "MacBook Pro 16\" (M2 Max, 2023)",
+        "Mac14,5": "MacBook Pro 14\" (M2 Pro, 2023)",
+        "Mac14,9": "MacBook Pro 14\" (M2 Max, 2023)",
+        "Mac14,6": "MacBook Pro 16\" (M2 Pro, 2023)",
+        "Mac14,10": "MacBook Pro 16\" (M2 Max, 2023)",
         "Mac14,3": "Mac mini (M2, 2023)",
         "Mac14,12": "Mac mini (M2 Pro, 2023)",
         "Mac14,8": "Mac Pro (M2 Ultra, 2023)",
         "Mac14,13": "Mac Studio (M2 Max, 2023)",
         "Mac14,14": "Mac Studio (M2 Ultra, 2023)",
-        // M3
-        "Mac15,3": "MacBook Air (M3, 2024)",
-        "Mac15,2": "MacBook Air 15\" (M3, 2024)",
+        // M3 (2023-2025)
+        "Mac15,3": "MacBook Pro 14\" (M3, 2023)",
+        "Mac15,12": "MacBook Air 13\" (M3, 2024)",
+        "Mac15,13": "MacBook Air 15\" (M3, 2024)",
         "Mac15,4": "iMac 24\" (M3, 2023)",
         "Mac15,5": "iMac 24\" (M3, 2023)",
-        "Mac15,6": "MacBook Pro 14\" (M3, 2023)",
+        "Mac15,6": "MacBook Pro 14\" (M3 Pro, 2023)",
+        "Mac15,10": "MacBook Pro 14\" (M3 Max, 2023)",
+        "Mac15,8": "MacBook Pro 14\" (M3 Max, 2023)",
         "Mac15,7": "MacBook Pro 16\" (M3 Pro, 2023)",
-        "Mac15,8": "MacBook Pro 14\" (M3 Pro, 2023)",
-        "Mac15,9": "MacBook Pro 14\" (M3 Max, 2023)",
-        "Mac15,10": "MacBook Pro 16\" (M3 Max, 2023)",
         "Mac15,11": "MacBook Pro 16\" (M3 Max, 2023)",
-        // M4
+        "Mac15,9": "MacBook Pro 16\" (M3 Max, 2023)",
+        "Mac15,14": "Mac Studio (M3 Ultra, 2025)",
+        // M4 (2024-2025)
         "Mac16,1": "MacBook Pro 14\" (M4, 2024)",
-        "Mac16,2": "MacBook Pro 14\" (M4 Pro, 2024)",
-        "Mac16,3": "MacBook Pro 14\" (M4 Pro, 2024)",
-        "Mac16,5": "iMac 24\" (M4, 2024)",
-        "Mac16,6": "MacBook Pro 16\" (M4 Pro, 2024)",
-        "Mac16,7": "MacBook Pro 16\" (M4 Max, 2024)",
-        "Mac16,8": "MacBook Pro 14\" (M4 Max, 2024)",
+        "Mac16,8": "MacBook Pro 14\" (M4 Pro, 2024)",
+        "Mac16,6": "MacBook Pro 14\" (M4 Max, 2024)",
+        "Mac16,7": "MacBook Pro 16\" (M4 Pro, 2024)",
+        "Mac16,5": "MacBook Pro 16\" (M4 Max, 2024)",
+        "Mac16,2": "iMac 24\" (M4, 2024)",
+        "Mac16,3": "iMac 24\" (M4, 2024)",
         "Mac16,10": "Mac mini (M4, 2024)",
         "Mac16,11": "Mac mini (M4 Pro, 2024)",
-        "Mac16,12": "MacBook Air (M4, 2025)",
+        "Mac16,9": "Mac Studio (M4 Max, 2025)",
+        "Mac16,12": "MacBook Air 13\" (M4, 2025)",
         "Mac16,13": "MacBook Air 15\" (M4, 2025)",
     ]
 }
