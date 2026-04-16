@@ -18,20 +18,4 @@ xcodegen generate
 
 echo "=== Xcode project generated successfully ==="
 
-# Generate app icon assets (needed for release builds)
-if [ -f "Scripts/generate-assets.swift" ]; then
-    echo "Generating app icon assets..."
-    mkdir -p .build/assets
-    swift Scripts/generate-assets.swift .build/assets
-
-    # Copy generated icon into asset catalog if needed
-    if [ -d ".build/assets/Blip.iconset" ]; then
-        ICONSET_DIR="Blip/Resources/Assets.xcassets/AppIcon.appiconset"
-        if [ -d "$ICONSET_DIR" ]; then
-            cp .build/assets/Blip.iconset/*.png "$ICONSET_DIR/" 2>/dev/null || true
-            echo "App icon assets updated."
-        fi
-    fi
-fi
-
 echo "=== Post-clone complete ==="
