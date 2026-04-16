@@ -2,6 +2,12 @@
 
 ## Unreleased
 
+### BlipHelper
+- **Converted to proper .app** — BlipHelper is now a macOS app you drag to Applications and launch, instead of a CLI tool requiring manual LaunchAgent setup
+- **Auto login item** — registers itself as a login item via SMAppService on first launch; togglable from the menu bar
+- **Menu bar presence** — shows a bolt icon in the menu bar with status and quit options
+- **Distinct icon** — BlipHelper has its own icon (gold lightning bolt) to differentiate from the main Blip app
+
 ### CI/CD
 - **DMG pre-releases** — PR pre-release builds now package as DMGs instead of zips, consistent with the release pipeline
 

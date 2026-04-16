@@ -166,6 +166,134 @@ func drawIcon(size: CGFloat) -> NSImage {
     return image
 }
 
+// MARK: - Helper App Icon
+
+func generateHelperIcon() throws {
+    let sizes: [(CGFloat, String)] = [
+        (16, "icon_16x16"),
+        (32, "icon_16x16@2x"),
+        (32, "icon_32x32"),
+        (64, "icon_32x32@2x"),
+        (128, "icon_128x128"),
+        (256, "icon_128x128@2x"),
+        (256, "icon_256x256"),
+        (512, "icon_256x256@2x"),
+        (512, "icon_512x512"),
+        (1024, "icon_512x512@2x"),
+    ]
+
+    let iconsetPath = "\(outputDir)/BlipHelper.iconset"
+    try FileManager.default.createDirectory(atPath: iconsetPath, withIntermediateDirectories: true)
+
+    for (size, name) in sizes {
+        let image = drawHelperIcon(size: size)
+        let rep = NSBitmapImageRep(
+            bitmapDataPlanes: nil,
+            pixelsWide: Int(size),
+            pixelsHigh: Int(size),
+            bitsPerSample: 8,
+            samplesPerPixel: 4,
+            hasAlpha: true,
+            isPlanar: false,
+            colorSpaceName: .deviceRGB,
+            bytesPerRow: 0,
+            bitsPerPixel: 0
+        )!
+        rep.size = NSSize(width: size, height: size)
+
+        NSGraphicsContext.saveGraphicsState()
+        NSGraphicsContext.current = NSGraphicsContext(bitmapImageRep: rep)
+        image.draw(in: NSRect(x: 0, y: 0, width: size, height: size))
+        NSGraphicsContext.restoreGraphicsState()
+
+        let data = rep.representation(using: NSBitmapImageRep.FileType.png, properties: [:])!
+        try data.write(to: URL(fileURLWithPath: "\(iconsetPath)/\(name).png"))
+    }
+
+    let process = Process()
+    process.executableURL = URL(fileURLWithPath: "/usr/bin/iconutil")
+    process.arguments = ["-c", "icns", "-o", "\(outputDir)/BlipHelper.icns", iconsetPath]
+    try process.run()
+    process.waitUntilExit()
+
+    print("✓ Generated BlipHelper.icns")
+}
+
+func drawHelperIcon(size: CGFloat) -> NSImage {
+    let image = NSImage(size: NSSize(width: size, height: size))
+    image.lockFocus()
+
+    let rect = NSRect(x: 0, y: 0, width: size, height: size)
+    let cornerRadius = size * 0.22
+
+    // Background gradient: slightly warmer deep navy
+    let path = NSBezierPath(roundedRect: rect, xRadius: cornerRadius, yRadius: cornerRadius)
+    let gradient = NSGradient(
+        colors: [
+            NSColor(red: 0.06, green: 0.06, blue: 0.16, alpha: 1.0),
+            NSColor(red: 0.12, green: 0.10, blue: 0.28, alpha: 1.0),
+        ],
+        atLocations: [0.0, 1.0],
+        colorSpace: .deviceRGB
+    )!
+    gradient.draw(in: path, angle: -45)
+
+    // Lightning bolt in the center
+    let boltColor = NSColor(red: 1.0, green: 0.8, blue: 0.2, alpha: 1.0)
+    let boltGlow = NSColor(red: 1.0, green: 0.8, blue: 0.2, alpha: 0.3)
+
+    // Outer glow
+    let glowSize = size * 0.5
+    let glowRect = NSRect(
+        x: (size - glowSize) / 2,
+        y: (size - glowSize) / 2,
+        width: glowSize,
+        height: glowSize
+    )
+    let glowGradient = NSGradient(
+        colors: [boltGlow, boltGlow.withAlphaComponent(0.0)]
+    )!
+    glowGradient.draw(in: NSBezierPath(ovalIn: glowRect), relativeCenterPosition: .zero)
+
+    // Draw lightning bolt shape
+    let bolt = NSBezierPath()
+    let cx = size * 0.5
+    let topY = size * 0.82
+    let botY = size * 0.18
+    let midY = size * 0.52
+
+    bolt.move(to: NSPoint(x: cx - size * 0.02, y: topY))          // top
+    bolt.line(to: NSPoint(x: cx - size * 0.12, y: midY))          // left notch
+    bolt.line(to: NSPoint(x: cx + size * 0.02, y: midY + size * 0.04)) // right notch
+    bolt.line(to: NSPoint(x: cx + size * 0.02, y: botY))          // bottom
+    bolt.line(to: NSPoint(x: cx + size * 0.12, y: size * 0.48))   // right upper
+    bolt.line(to: NSPoint(x: cx - size * 0.02, y: size * 0.44))   // left upper
+    bolt.close()
+
+    boltColor.setFill()
+    bolt.fill()
+
+    // Small "helper" bars at bottom
+    let barWidth = size * 0.4
+    let barHeight = size * 0.03
+    let barX = size * 0.3
+    let barY = size * 0.12
+
+    let barBg = NSColor(red: 1.0, green: 0.8, blue: 0.2, alpha: 0.15)
+    let bgRect = NSRect(x: barX, y: barY, width: barWidth, height: barHeight)
+    let bgPath = NSBezierPath(roundedRect: bgRect, xRadius: barHeight / 2, yRadius: barHeight / 2)
+    barBg.setFill()
+    bgPath.fill()
+
+    let fillRect = NSRect(x: barX, y: barY, width: barWidth * 0.7, height: barHeight)
+    let fillPath = NSBezierPath(roundedRect: fillRect, xRadius: barHeight / 2, yRadius: barHeight / 2)
+    boltColor.withAlphaComponent(0.6).setFill()
+    fillPath.fill()
+
+    image.unlockFocus()
+    return image
+}
+
 // MARK: - DMG Background
 
 func generateDMGBackground() throws {
@@ -247,6 +375,7 @@ func generateDMGBackground() throws {
 
 do {
     try generateAppIcon()
+    try generateHelperIcon()
     try generateDMGBackground()
     print("✓ All assets generated in \(outputDir)")
 } catch {

@@ -64,9 +64,9 @@ targets:
     frameworks:
       - sdk: IOKit.framework
 
-  # ---------- Helper Tool (Direct Distribution, unsandboxed) ----------
+  # ---------- Helper App (Direct Distribution, unsandboxed) ----------
   BlipHelper:
-    type: tool
+    type: application
     platform: macOS
     sources:
       - path: BlipHelper/Sources
@@ -77,11 +77,14 @@ targets:
         PRODUCT_BUNDLE_IDENTIFIER: com.blainemiller.BlipHelper
         INFOPLIST_FILE: BlipHelper/Resources/Info.plist
         CODE_SIGN_ENTITLEMENTS: BlipHelper/Resources/BlipHelper.entitlements
-        PRODUCT_NAME: BlipHelper
+        LD_RUNPATH_SEARCH_PATHS: "@executable_path/../Frameworks"
+        PRODUCT_NAME: "Blip Helper"
         GENERATE_INFOPLIST_FILE: NO
+        COMBINE_HIDPI_IMAGES: YES
     frameworks:
       - sdk: IOKit.framework
       - sdk: AppKit.framework
+      - sdk: ServiceManagement.framework
 
 schemes:
   Blip:

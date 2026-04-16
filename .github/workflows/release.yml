@@ -202,77 +202,70 @@ jobs:
           # Sign DMG
           codesign --sign "$IDENTITY" --timestamp "$DMG_FINAL"
 
-      - name: Package BlipHelper DMG
+      - name: Inject BlipHelper App Icon
         run: |
-          HELPER_BINARY=".build/DerivedData/Build/Products/Release/BlipHelper"
-          HELPER_DMG_TEMP=".build/helper-temp.dmg"
-          HELPER_DMG_FINAL="dist/BlipHelper.dmg"
-
-          # Sign the helper binary
-          codesign --force --sign "$IDENTITY" --timestamp --options runtime "$HELPER_BINARY"
-
-          # Create writable DMG
-          hdiutil create -size 10m -fs HFS+ -volname "BlipHelper" -ov "$HELPER_DMG_TEMP"
-          MOUNT_POINT=$(hdiutil attach "$HELPER_DMG_TEMP" -readwrite -noverify -noautoopen | grep "BlipHelper" | awk '{print $NF}' | head -1)
-          if [[ -z "$MOUNT_POINT" ]]; then
-            MOUNT_POINT="/Volumes/BlipHelper"
+          HELPER_APP=".build/DerivedData/Build/Products/Release/Blip Helper.app"
+          if [[ -f ".build/assets/BlipHelper.icns" ]]; then
+            mkdir -p "$HELPER_APP/Contents/Resources"
+            cp ".build/assets/BlipHelper.icns" "$HELPER_APP/Contents/Resources/AppIcon.icns"
+            /usr/libexec/PlistBuddy -c "Set :CFBundleIconFile AppIcon" "$HELPER_APP/Contents/Info.plist" 2>/dev/null || \
+            /usr/libexec/PlistBuddy -c "Add :CFBundleIconFile string AppIcon" "$HELPER_APP/Contents/Info.plist"
           fi
 
-          # Copy helper binary and LaunchAgent plist
-          cp "$HELPER_BINARY" "$MOUNT_POINT/"
-          cp "BlipHelper/Resources/com.blainemiller.BlipHelper.plist" "$MOUNT_POINT/"
+      - name: Re-sign BlipHelper After Icon Injection
+        run: |
+          HELPER_APP=".build/DerivedData/Build/Products/Release/Blip Helper.app"
+          codesign --force --deep --sign "$IDENTITY" --timestamp --options runtime "$HELPER_APP"
 
-          # Create a simple install script
-          cat > "$MOUNT_POINT/install.sh" << 'INSTALL_EOF'
-          #!/bin/bash
-          set -euo pipefail
-          SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
-          echo "Installing BlipHelper..."
-          cp "$SCRIPT_DIR/BlipHelper" /usr/local/bin/BlipHelper
-          cp "$SCRIPT_DIR/com.blainemiller.BlipHelper.plist" ~/Library/LaunchAgents/
-          launchctl load ~/Library/LaunchAgents/com.blainemiller.BlipHelper.plist
-          echo "BlipHelper installed and started."
-          INSTALL_EOF
-          chmod +x "$MOUNT_POINT/install.sh"
+      - name: Package BlipHelper DMG
+        run: |
+          HELPER_APP=".build/DerivedData/Build/Products/Release/Blip Helper.app"
+          HELPER_DMG_TEMP=".build/helper-temp.dmg"
+          HELPER_DMG_FINAL="dist/BlipHelper.dmg"
+          VOLUME_NAME="Blip Helper"
 
-          # Copy DMG background
+          hdiutil create -size 20m -fs HFS+ -volname "$VOLUME_NAME" -ov "$HELPER_DMG_TEMP"
+          MOUNT_POINT=$(hdiutil attach "$HELPER_DMG_TEMP" -readwrite -noverify -noautoopen | grep "$VOLUME_NAME" | awk '{print $NF}' | head -1)
+          if [[ -z "$MOUNT_POINT" ]]; then
+            MOUNT_POINT="/Volumes/$VOLUME_NAME"
+          fi
+
+          cp -R "$HELPER_APP" "$MOUNT_POINT/"
+          ln -s /Applications "$MOUNT_POINT/Applications"
+
           if [[ -f ".build/assets/dmg-background.jpg" ]]; then
             mkdir -p "$MOUNT_POINT/.background"
             cp ".build/assets/dmg-background.jpg" "$MOUNT_POINT/.background/background.jpg"
           fi
 
-          # Style the DMG window
           osascript <<'APPLESCRIPT'
           tell application "Finder"
-            tell disk "BlipHelper"
+            tell disk "Blip Helper"
               open
               set current view of container window to icon view
               set toolbar visible of container window to false
               set statusbar visible of container window to false
-              set the bounds of container window to {100, 100, 600, 400}
+              set the bounds of container window to {100, 100, 760, 500}
               set theViewOptions to icon view options of container window
               set arrangement of theViewOptions to not arranged
-              set icon size of theViewOptions to 80
+              set icon size of theViewOptions to 100
               try
                 set background picture of theViewOptions to file ".background:background.jpg"
               end try
-              set position of item "BlipHelper" of container window to {120, 150}
-              set position of item "com.blainemiller.BlipHelper.plist" of container window to {340, 150}
-              set position of item "install.sh" of container window to {230, 270}
+              set position of item "Blip Helper.app" of container window to {145, 185}
+              set position of item "Applications" of container window to {515, 185}
               update without registering applications
               close
             end tell
           end tell
           APPLESCRIPT
 
-          # Detach and compress
           sync
           hdiutil detach "$MOUNT_POINT" -force 2>/dev/null || true
           sleep 1
           hdiutil convert "$HELPER_DMG_TEMP" -format UDZO -imagekey zlib-level=9 -o "$HELPER_DMG_FINAL" -ov
           rm -f "$HELPER_DMG_TEMP"
 
-          # Sign the DMG
           codesign --sign "$IDENTITY" --timestamp "$HELPER_DMG_FINAL"
 
       - name: Notarize DMGs

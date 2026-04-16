@@ -162,17 +162,26 @@ jobs:
           hdiutil convert "$DMG_TEMP" -format UDZO -imagekey zlib-level=9 -o "$DMG_FINAL" -ov
           rm -f "$DMG_TEMP"
 
-          # --- BlipHelper DMG ---
-          if [ -f "$HELPER" ]; then
+          # --- Blip Helper.app DMG ---
+          HELPER_APP=".build/DerivedData/Build/Products/Debug/Blip Helper.app"
+          if [ -d "$HELPER_APP" ]; then
+            # Inject icon into helper app
+            if [[ -f ".build/assets/BlipHelper.icns" ]]; then
+              mkdir -p "$HELPER_APP/Contents/Resources"
+              cp ".build/assets/BlipHelper.icns" "$HELPER_APP/Contents/Resources/AppIcon.icns"
+              /usr/libexec/PlistBuddy -c "Set :CFBundleIconFile AppIcon" "$HELPER_APP/Contents/Info.plist" 2>/dev/null || \
+              /usr/libexec/PlistBuddy -c "Add :CFBundleIconFile string AppIcon" "$HELPER_APP/Contents/Info.plist"
+            fi
+
             HELPER_TEMP=".build/helper-pr-temp.dmg"
             HELPER_FINAL="dist/BlipHelper-PR${PR_NUM}.dmg"
 
-            hdiutil create -size 10m -fs HFS+ -volname "BlipHelper" -ov "$HELPER_TEMP"
-            MOUNT_POINT=$(hdiutil attach "$HELPER_TEMP" -readwrite -noverify -noautoopen | grep "BlipHelper" | awk '{print $NF}' | head -1)
-            if [[ -z "$MOUNT_POINT" ]]; then MOUNT_POINT="/Volumes/BlipHelper"; fi
+            hdiutil create -size 20m -fs HFS+ -volname "Blip Helper" -ov "$HELPER_TEMP"
+            MOUNT_POINT=$(hdiutil attach "$HELPER_TEMP" -readwrite -noverify -noautoopen | grep "Blip Helper" | awk '{print $NF}' | head -1)
+            if [[ -z "$MOUNT_POINT" ]]; then MOUNT_POINT="/Volumes/Blip Helper"; fi
 
-            cp "$HELPER" "$MOUNT_POINT/"
-            cp "BlipHelper/Resources/com.blainemiller.BlipHelper.plist" "$MOUNT_POINT/"
+            cp -R "$HELPER_APP" "$MOUNT_POINT/"
+            ln -s /Applications "$MOUNT_POINT/Applications"
 
             if [[ -f ".build/assets/dmg-background.jpg" ]]; then
               mkdir -p "$MOUNT_POINT/.background"
@@ -181,21 +190,20 @@ jobs:
 
             osascript <<'APPLESCRIPT'
             tell application "Finder"
-              tell disk "BlipHelper"
+              tell disk "Blip Helper"
                 open
                 set current view of container window to icon view
                 set toolbar visible of container window to false
                 set statusbar visible of container window to false
-                set the bounds of container window to {100, 100, 600, 400}
+                set the bounds of container window to {100, 100, 760, 500}
                 set theViewOptions to icon view options of container window
                 set arrangement of theViewOptions to not arranged
-                set icon size of theViewOptions to 80
+                set icon size of theViewOptions to 100
                 try
                   set background picture of theViewOptions to file ".background:background.jpg"
                 end try
-                set position of item "BlipHelper" of container window to {120, 150}
-                set position of item "com.blainemiller.BlipHelper.plist" of container window to {340, 150}
-                set position of item "install.sh" of container window to {230, 270}
+                set position of item "Blip Helper.app" of container window to {145, 185}
+                set position of item "Applications" of container window to {515, 185}
                 update without registering applications
                 close
               end tell
