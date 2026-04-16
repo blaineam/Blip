@@ -7,7 +7,7 @@ import AppKit
 /// Polls privileged system APIs and produces HelperSnapshots.
 /// Runs in the helper process (unsandboxed) to collect data
 /// that the sandboxed MAS app cannot access directly.
-final class HelperDaemon {
+final class HelperDaemon: @unchecked Sendable {
     private var previousDiskRead: UInt64 = 0
     private var previousDiskWrite: UInt64 = 0
     private var previousDiskTimestamp: Date?

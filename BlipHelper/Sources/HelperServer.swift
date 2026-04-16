@@ -3,7 +3,7 @@ import Network
 
 /// TCP server that listens on localhost and serves HelperSnapshots to the main app.
 /// Uses TOTP authentication to prevent unauthorized access.
-final class HelperServer {
+final class HelperServer: @unchecked Sendable {
     private var listener: NWListener?
     private let queue = DispatchQueue(label: "com.blainemiller.BlipHelper.server")
     private let daemon = HelperDaemon()
@@ -25,12 +25,12 @@ final class HelperServer {
         }
 
         let semaphore = DispatchSemaphore(value: 0)
-        var assignedPort: UInt16?
+        nonisolated(unsafe) var assignedPort: UInt16?
 
-        listener?.stateUpdateHandler = { state in
+        listener?.stateUpdateHandler = { [weak self] state in
             switch state {
             case .ready:
-                assignedPort = self.listener?.port?.rawValue
+                assignedPort = self?.listener?.port?.rawValue
                 semaphore.signal()
             case .failed(let error):
                 fputs("BlipHelper: Listener failed: \(error)\n", stderr)

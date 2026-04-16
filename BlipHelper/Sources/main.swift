@@ -8,7 +8,7 @@ import Foundation
 // display fan speeds, temperatures, GPU utilization, disk I/O,
 // battery health, and process lists.
 
-let server = HelperServer()
+nonisolated(unsafe) let server = HelperServer()
 
 // Handle termination gracefully
 let signalSource = DispatchSource.makeSignalSource(signal: SIGTERM, queue: .main)
