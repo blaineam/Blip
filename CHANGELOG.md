@@ -1,5 +1,11 @@
 # Changelog
 
+## v1.4.3
+
+### Fixes
+- **Settings preview network dot respects color mode** — the green connectivity dot in the settings preview now follows the selected color mode (monochrome/custom/category) instead of always rendering green, matching the actual menu bar behavior introduced in v1.4.2
+- **Battery health capped at 100%** — new batteries can report slightly above design capacity due to manufacturing variance; health percentage is now clamped to 100% instead of showing impossible values like 103%
+
 ## v1.4.2
 
 ### UI

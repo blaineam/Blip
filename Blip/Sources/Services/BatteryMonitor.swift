@@ -86,9 +86,8 @@ final class BatteryMonitor: Sendable {
         let currentCap = Self.capacityKeys.lazy.compactMap { dict[$0] as? Int }.first
         let designCap = Self.designCapacityKeys.lazy.compactMap { dict[$0] as? Int }.first
         if let current = currentCap, let design = designCap, design > 0 {
-            let health = Double(current) / Double(design) * 100
-            // Sanity check: health should be 0-200% range
-            if health > 0 && health < 200 {
+            let health = min(Double(current) / Double(design) * 100, 100)
+            if health > 0 {
                 stats.health = health
             }
         }

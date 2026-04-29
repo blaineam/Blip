@@ -225,7 +225,7 @@ struct SettingsView: View {
 
             if showNetworkDot {
                 Circle()
-                    .fill(Color.green)
+                    .fill(resolvedPreviewColor(.green))
                     .frame(width: 4, height: 4)
             }
         }
@@ -243,7 +243,7 @@ struct SettingsView: View {
             if showDisk { horizontalPreviewItem(label: "HD", fill: 0.34, color: resolvedPreviewColor(.orange)) }
             if showNetworkDot {
                 Circle()
-                    .fill(Color.green)
+                    .fill(resolvedPreviewColor(.green))
                     .frame(width: 4, height: 4)
             }
         }
