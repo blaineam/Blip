@@ -124,22 +124,6 @@ jobs:
           otool -L "$APP_PATH/Contents/MacOS/Blip" | grep -v "System\|usr/lib" | head -5
           echo "✓ QA checks passed"
 
-      - name: Inject App Icon
-        run: |
-          APP_PATH=".build/DerivedData/Build/Products/Release/Blip.app"
-          if [[ -f ".build/assets/Blip.icns" ]]; then
-            echo "→ Injecting app icon..."
-            mkdir -p "$APP_PATH/Contents/Resources"
-            cp ".build/assets/Blip.icns" "$APP_PATH/Contents/Resources/AppIcon.icns"
-            /usr/libexec/PlistBuddy -c "Set :CFBundleIconFile AppIcon" "$APP_PATH/Contents/Info.plist" 2>/dev/null || \
-            /usr/libexec/PlistBuddy -c "Add :CFBundleIconFile string AppIcon" "$APP_PATH/Contents/Info.plist"
-          fi
-
-      - name: Re-sign After Icon Injection
-        run: |
-          APP_PATH=".build/DerivedData/Build/Products/Release/Blip.app"
-          codesign --force --deep --sign "$IDENTITY" --timestamp --options runtime "$APP_PATH"
-
       - name: Package DMG
         run: |
           mkdir -p dist

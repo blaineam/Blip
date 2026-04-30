@@ -1,5 +1,10 @@
 # Changelog
 
+## v1.4.5
+
+### Build
+- **App icon now sourced from the asset catalog** — removed the post-build `.icns` injection from `Scripts/build-dmg.sh` and the `Inject App Icon` / `Re-sign After Icon Injection` steps from the release workflow; the icon now comes exclusively from `Assets.xcassets/AppIcon.appiconset` as compiled by `actool`, eliminating a duplicate icon source that could drift from the bundled catalog
+
 ## v1.4.4
 
 ### Icon

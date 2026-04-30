@@ -52,28 +52,19 @@ xcodebuild -scheme Blip -configuration Release \
 APP_PATH="$BUILD_DIR/DerivedData/Build/Products/Release/Blip.app"
 echo "→ Built: $APP_PATH"
 
-# 5. Inject generated icon (fallback if asset catalog didn't produce one)
-if [[ -f "$BUILD_DIR/assets/Blip.icns" ]]; then
-    echo "→ Injecting app icon..."
-    mkdir -p "$APP_PATH/Contents/Resources"
-    cp "$BUILD_DIR/assets/Blip.icns" "$APP_PATH/Contents/Resources/AppIcon.icns"
-    /usr/libexec/PlistBuddy -c "Set :CFBundleIconFile AppIcon" "$APP_PATH/Contents/Info.plist" 2>/dev/null || \
-    /usr/libexec/PlistBuddy -c "Add :CFBundleIconFile string AppIcon" "$APP_PATH/Contents/Info.plist"
-fi
-
-# 6. Clean xattrs (needed if on iCloud Drive)
+# 5. Clean xattrs (needed if on iCloud Drive)
 STAGING=$(mktemp -d)
 cp -R "$APP_PATH" "$STAGING/"
 xattr -cr "$STAGING/Blip.app"
 
-# 7. Codesign the staged app (proper signing after xattr cleanup)
+# 6. Codesign the staged app (proper signing after xattr cleanup)
 if [[ "$IDENTITY" != "-" ]]; then
     codesign --force --deep --sign "$IDENTITY" --timestamp --options runtime "$STAGING/Blip.app"
 else
     codesign --force --deep --sign - "$STAGING/Blip.app"
 fi
 
-# 8. Create styled DMG
+# 7. Create styled DMG
 echo "→ Packaging styled DMG..."
 mkdir -p "$DIST_DIR"
 
@@ -143,7 +134,7 @@ fi
 # Clean up staging
 rm -rf "$STAGING"
 
-# 9. Notarize
+# 8. Notarize
 if [[ "$SKIP_NOTARIZE" == false && "$IDENTITY" != "-" ]]; then
     echo "→ Notarizing..."
     xcrun notarytool submit "$DMG_FINAL" \
