@@ -189,21 +189,6 @@ jobs:
           # Sign DMG
           codesign --sign "$IDENTITY" --timestamp "$DMG_FINAL"
 
-      - name: Inject BlipHelper App Icon
-        run: |
-          HELPER_APP=".build/DerivedData/Build/Products/Release/Blip Helper.app"
-          if [[ -f ".build/assets/BlipHelper.icns" ]]; then
-            mkdir -p "$HELPER_APP/Contents/Resources"
-            cp ".build/assets/BlipHelper.icns" "$HELPER_APP/Contents/Resources/AppIcon.icns"
-            /usr/libexec/PlistBuddy -c "Set :CFBundleIconFile AppIcon" "$HELPER_APP/Contents/Info.plist" 2>/dev/null || \
-            /usr/libexec/PlistBuddy -c "Add :CFBundleIconFile string AppIcon" "$HELPER_APP/Contents/Info.plist"
-          fi
-
-      - name: Re-sign BlipHelper After Icon Injection
-        run: |
-          HELPER_APP=".build/DerivedData/Build/Products/Release/Blip Helper.app"
-          codesign --force --deep --sign "$IDENTITY" --timestamp --options runtime "$HELPER_APP"
-
       - name: Package BlipHelper DMG
         run: |
           HELPER_APP=".build/DerivedData/Build/Products/Release/Blip Helper.app"

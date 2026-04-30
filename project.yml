@@ -68,6 +68,7 @@ targets:
       - path: BlipHelper/Sources
       - path: Shared
       - path: Blip/Sources/Services/SMCKit.swift
+      - path: BlipHelper/Resources/Assets.xcassets
     settings:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: com.blainemiller.BlipHelper
@@ -75,6 +76,7 @@ targets:
         CODE_SIGN_ENTITLEMENTS: BlipHelper/Resources/BlipHelper.entitlements
         LD_RUNPATH_SEARCH_PATHS: "@executable_path/../Frameworks"
         PRODUCT_NAME: "Blip Helper"
+        ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
         GENERATE_INFOPLIST_FILE: NO
         COMBINE_HIDPI_IMAGES: YES
     frameworks:

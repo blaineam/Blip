@@ -1,5 +1,10 @@
 # Changelog
 
+## v1.4.6
+
+### Build
+- **BlipHelper icon now sourced from the asset catalog** — added `BlipHelper/Resources/Assets.xcassets/AppIcon.appiconset` with all required mac sizes, wired into the `BlipHelper` target via `ASSETCATALOG_COMPILER_APPICON_NAME` + `CFBundleIconName`, and removed the post-build `.icns` injection (`Inject BlipHelper App Icon` / `Re-sign BlipHelper After Icon Injection`) from the release workflow; the helper bundle's icon now comes exclusively from `actool` output, matching the main app
+
 ## v1.4.5
 
 ### Build
