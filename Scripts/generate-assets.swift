@@ -83,10 +83,9 @@ func drawIcon(size: CGFloat) -> NSImage {
     image.lockFocus()
 
     let rect = NSRect(x: 0, y: 0, width: size, height: size)
-    let cornerRadius = size * 0.22
 
-    // Background gradient: deep navy to dark blue
-    let path = NSBezierPath(roundedRect: rect, xRadius: cornerRadius, yRadius: cornerRadius)
+    // Full-bleed square background — macOS 26 clips the icon shape itself
+    let path = NSBezierPath(rect: rect)
     let gradient = NSGradient(
         colors: [brandDarkNavy, brandDeepBlue],
         atLocations: [0.0, 1.0],
@@ -224,10 +223,9 @@ func drawHelperIcon(size: CGFloat) -> NSImage {
     image.lockFocus()
 
     let rect = NSRect(x: 0, y: 0, width: size, height: size)
-    let cornerRadius = size * 0.22
 
-    // Background gradient: slightly warmer deep navy
-    let path = NSBezierPath(roundedRect: rect, xRadius: cornerRadius, yRadius: cornerRadius)
+    // Full-bleed square background — macOS 26 clips the icon shape itself
+    let path = NSBezierPath(rect: rect)
     let gradient = NSGradient(
         colors: [
             NSColor(red: 0.06, green: 0.06, blue: 0.16, alpha: 1.0),

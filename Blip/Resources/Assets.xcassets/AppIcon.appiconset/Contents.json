@@ -1,7 +1,7 @@
 {
   "images" : [
     {
-      "filename" : "icon_512x512_2x.png",
+      "filename" : "AppIcon.png",
       "idiom" : "universal",
       "platform" : "mac",
       "size" : "1024x1024"
