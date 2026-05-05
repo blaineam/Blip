@@ -3,7 +3,7 @@ options:
   bundleIdPrefix: com.blainemiller
   deploymentTarget:
     macOS: "14.0"
-  xcodeVersion: "16.3"
+  xcodeVersion: "26.0"
 settings:
   base:
     SWIFT_VERSION: "6.0"
