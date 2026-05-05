@@ -11,11 +11,13 @@ echo "=== Blip: Xcode Cloud Post-Clone ==="
 echo "Installing XcodeGen..."
 brew install xcodegen
 
+# Generate app icons (full-bleed PNGs for macOS 26 xcassets format)
+echo "Generating app icons..."
+cd "$CI_PRIMARY_REPOSITORY_PATH"
+swift Scripts/generate-icon.swift
+
 # Generate the Xcode project
 echo "Generating Xcode project..."
-cd "$CI_PRIMARY_REPOSITORY_PATH"
 xcodegen generate
-
-echo "=== Xcode project generated successfully ==="
 
 echo "=== Post-clone complete ==="
