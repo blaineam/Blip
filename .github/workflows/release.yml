@@ -19,6 +19,9 @@ jobs:
       - name: Install XcodeGen
         run: brew install xcodegen
 
+      - name: Generate App Icons
+        run: swift Scripts/generate-icon.swift
+
       - name: Generate Xcode Project
         run: xcodegen generate
 
