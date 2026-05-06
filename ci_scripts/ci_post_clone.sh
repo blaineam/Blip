@@ -16,6 +16,4 @@ echo "Generating Xcode project..."
 cd "$CI_PRIMARY_REPOSITORY_PATH"
 xcodegen generate
 
-echo "=== Xcode project generated successfully ==="
-
 echo "=== Post-clone complete ==="

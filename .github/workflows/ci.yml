@@ -19,6 +19,9 @@ jobs:
       - name: Install XcodeGen
         run: brew install xcodegen
 
+      - name: Generate App Icons
+        run: swift Scripts/generate-icon.swift
+
       - name: Generate Xcode Project
         run: xcodegen generate
 
@@ -151,39 +154,6 @@ jobs:
       - name: Generate Brand Assets
         if: github.event_name == 'pull_request'
         run: swift Scripts/generate-assets.swift .build/assets
-
-      - name: Inject App Icons
-        if: github.event_name == 'pull_request'
-        run: |
-          APP=".build/ReleaseDerivedData/Build/Products/Release/Blip.app"
-          HELPER_APP=".build/ReleaseDerivedData/Build/Products/Release/Blip Helper.app"
-
-          # Blip icon
-          if [[ -f ".build/assets/Blip.icns" ]]; then
-            mkdir -p "$APP/Contents/Resources"
-            cp ".build/assets/Blip.icns" "$APP/Contents/Resources/AppIcon.icns"
-            /usr/libexec/PlistBuddy -c "Set :CFBundleIconFile AppIcon" "$APP/Contents/Info.plist" 2>/dev/null || \
-            /usr/libexec/PlistBuddy -c "Add :CFBundleIconFile string AppIcon" "$APP/Contents/Info.plist"
-          fi
-
-          # Helper icon
-          if [[ -d "$HELPER_APP" && -f ".build/assets/BlipHelper.icns" ]]; then
-            mkdir -p "$HELPER_APP/Contents/Resources"
-            cp ".build/assets/BlipHelper.icns" "$HELPER_APP/Contents/Resources/AppIcon.icns"
-            /usr/libexec/PlistBuddy -c "Set :CFBundleIconFile AppIcon" "$HELPER_APP/Contents/Info.plist" 2>/dev/null || \
-            /usr/libexec/PlistBuddy -c "Add :CFBundleIconFile string AppIcon" "$HELPER_APP/Contents/Info.plist"
-          fi
-
-      - name: Re-sign After Icon Injection
-        if: github.event_name == 'pull_request'
-        run: |
-          codesign --force --deep --sign "$IDENTITY" --timestamp --options runtime \
-            ".build/ReleaseDerivedData/Build/Products/Release/Blip.app"
-
-          HELPER_APP=".build/ReleaseDerivedData/Build/Products/Release/Blip Helper.app"
-          if [ -d "$HELPER_APP" ]; then
-            codesign --force --deep --sign "$IDENTITY" --timestamp --options runtime "$HELPER_APP"
-          fi
 
       - name: Package Pre-release DMGs
         if: github.event_name == 'pull_request'
