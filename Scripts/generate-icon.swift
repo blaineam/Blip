@@ -1,192 +1,108 @@
 #!/usr/bin/env swift
-// Generates Blip and BlipHelper app icons for macOS 26 xcassets format.
-// macOS 26: single 1024×1024 full-bleed PNG — the system clips the shape.
-// Run from the repo root: swift Scripts/generate-icon.swift
+// Generates Blip app icon at all required macOS sizes.
+// Design: Dark navy gradient background with 3 colored horizontal bars (CPU/MEM/DISK)
+// and a cyan radar "blip" dot with rings — matching the menu bar aesthetic.
+// Background fills the full square; macOS applies its own rounded-rect mask.
 
 import Cocoa
 
-// MARK: - Blip icon (bars + radar dot)
+let brandDarkNavy = NSColor(red: 0.05, green: 0.08, blue: 0.18, alpha: 1.0)
+let brandDeepBlue = NSColor(red: 0.10, green: 0.15, blue: 0.30, alpha: 1.0)
+let brandCyan = NSColor(red: 0.3, green: 0.9, blue: 1.0, alpha: 1.0)
+let brandCyanGlow = NSColor(red: 0.2, green: 0.8, blue: 1.0, alpha: 0.4)
 
-func drawBlipIcon(size: CGFloat) -> NSImage {
-    let s = size
-    let image = NSImage(size: NSSize(width: s, height: s))
-    image.lockFocus()
-
-    guard let ctx = NSGraphicsContext.current?.cgContext else {
-        image.unlockFocus()
-        return image
-    }
-
-    // Full-bleed square background — macOS 26 clips the icon shape itself
-    let bgRect = CGRect(x: 0, y: 0, width: s, height: s)
-    ctx.setFillColor(NSColor(red: 0.05, green: 0.08, blue: 0.18, alpha: 1).cgColor)
-    ctx.fill(bgRect)
-
-    // Subtle gradient overlay for depth (clipped to square, not rounded rect)
-    let gradientColors = [
-        NSColor(white: 1, alpha: 0.06).cgColor,
-        NSColor(white: 0, alpha: 0.05).cgColor,
-    ] as CFArray
-    if let gradient = CGGradient(
-        colorsSpace: CGColorSpaceCreateDeviceRGB(),
-        colors: gradientColors,
-        locations: [0, 1]
-    ) {
-        ctx.saveGState()
-        ctx.clip(to: bgRect)
-        ctx.drawLinearGradient(
-            gradient,
-            start: CGPoint(x: s / 2, y: s),
-            end: CGPoint(x: s / 2, y: 0),
-            options: []
-        )
-        ctx.restoreGState()
-    }
-
-    // Bar layout
-    let barHeight  = s * 0.065
-    let barSpacing = s * 0.045
-    let barCorner  = barHeight / 2
-    let barLeftX   = s * 0.22
-    let barWidth   = s * 0.56
-
-    let totalBarsHeight = 3 * barHeight + 2 * barSpacing
-    let barsStartY = (s - totalBarsHeight) / 2 + totalBarsHeight
-
-    struct BarInfo { let fill: CGFloat; let r, g, b: CGFloat }
-    let bars: [BarInfo] = [
-        BarInfo(fill: 0.55, r: 0.25, g: 0.52, b: 1.0),  // CPU — blue
-        BarInfo(fill: 0.72, r: 0.30, g: 0.78, b: 0.40),  // MEM — green
-        BarInfo(fill: 0.40, r: 1.0,  g: 0.58, b: 0.20),  // DISK — orange
-    ]
-
-    for (i, bar) in bars.enumerated() {
-        let y = barsStartY - CGFloat(i) * (barHeight + barSpacing) - barHeight
-
-        let trackPath = CGPath(
-            roundedRect: CGRect(x: barLeftX, y: y, width: barWidth, height: barHeight),
-            cornerWidth: barCorner, cornerHeight: barCorner, transform: nil
-        )
-        ctx.setFillColor(NSColor(red: bar.r, green: bar.g, blue: bar.b, alpha: 0.2).cgColor)
-        ctx.addPath(trackPath); ctx.fillPath()
-
-        let fillPath = CGPath(
-            roundedRect: CGRect(x: barLeftX, y: y, width: barWidth * bar.fill, height: barHeight),
-            cornerWidth: barCorner, cornerHeight: barCorner, transform: nil
-        )
-        ctx.setFillColor(NSColor(red: bar.r, green: bar.g, blue: bar.b, alpha: 1.0).cgColor)
-        ctx.addPath(fillPath); ctx.fillPath()
-    }
-
-    // Radar dot with glow
-    let dotRadius = s * 0.075
-    let dotCenter = CGPoint(x: s * 0.5, y: s * 0.72)
-    let dotRect   = CGRect(
-        x: dotCenter.x - dotRadius, y: dotCenter.y - dotRadius,
-        width: dotRadius * 2, height: dotRadius * 2
-    )
-
-    // Outer glow rings
-    let cyanGlow = NSColor(red: 0.2, green: 0.8, blue: 1.0, alpha: 0.4)
-    for multiplier: CGFloat in [3.0, 2.0] {
-        let ringSize = dotRadius * 2 * multiplier
-        let ringRect = CGRect(
-            x: dotCenter.x - ringSize / 2, y: dotCenter.y - ringSize / 2,
-            width: ringSize, height: ringSize
-        )
-        NSGradient(colors: [cyanGlow, cyanGlow.withAlphaComponent(0.0)])!
-            .draw(in: NSBezierPath(ovalIn: ringRect), relativeCenterPosition: .zero)
-    }
-
-    // Glow pass
-    ctx.saveGState()
-    ctx.setShadow(
-        offset: .zero, blur: s * 0.06,
-        color: NSColor(red: 0.2, green: 0.8, blue: 1.0, alpha: 0.9).cgColor
-    )
-    ctx.setFillColor(NSColor(red: 0.3, green: 0.9, blue: 1.0, alpha: 1).cgColor)
-    ctx.fillEllipse(in: dotRect)
-    ctx.restoreGState()
-
-    // Crisp dot on top
-    ctx.setFillColor(NSColor(red: 0.3, green: 0.9, blue: 1.0, alpha: 1).cgColor)
-    ctx.fillEllipse(in: dotRect)
-
-    image.unlockFocus()
-    return image
-}
-
-// MARK: - BlipHelper icon (lightning bolt)
-
-func drawHelperIcon(size: CGFloat) -> NSImage {
+func generateIcon(size: CGFloat) -> NSImage {
     let image = NSImage(size: NSSize(width: size, height: size))
     image.lockFocus()
 
     let rect = NSRect(x: 0, y: 0, width: size, height: size)
 
-    // Full-bleed square background
-    NSGradient(
-        colors: [
-            NSColor(red: 0.06, green: 0.06, blue: 0.16, alpha: 1.0),
-            NSColor(red: 0.12, green: 0.10, blue: 0.28, alpha: 1.0),
-        ],
+    // Background gradient: full square (macOS applies its own rounded-rect mask)
+    let path = NSBezierPath(rect: rect)
+    let gradient = NSGradient(
+        colors: [brandDarkNavy, brandDeepBlue],
         atLocations: [0.0, 1.0],
         colorSpace: .deviceRGB
-    )!.draw(in: NSBezierPath(rect: rect), angle: -45)
+    )!
+    gradient.draw(in: path, angle: -45)
 
-    let boltColor = NSColor(red: 1.0, green: 0.8, blue: 0.2, alpha: 1.0)
-    let boltGlow  = NSColor(red: 1.0, green: 0.8, blue: 0.2, alpha: 0.3)
+    // Draw 3 horizontal monitor bars (CPU/MEM/HD style)
+    let barWidth = size * 0.72
+    let barHeight = size * 0.075
+    let barX = size * 0.14
+    let barSpacing = size * 0.135
+    let barStartY = size * 0.42
 
-    let glowSize = size * 0.75
-    NSGradient(colors: [boltGlow, boltGlow.withAlphaComponent(0.0)])!
-        .draw(
-            in: NSBezierPath(ovalIn: NSRect(
-                x: (size - glowSize) / 2, y: (size - glowSize) / 2,
-                width: glowSize, height: glowSize
-            )),
-            relativeCenterPosition: .zero
+    let barColors: [(NSColor, CGFloat)] = [
+        (NSColor(red: 0.04, green: 0.52, blue: 1.0, alpha: 1.0), 0.65),
+        (NSColor(red: 0.19, green: 0.82, blue: 0.35, alpha: 1.0), 0.45),
+        (NSColor(red: 1.0, green: 0.62, blue: 0.04, alpha: 1.0), 0.30),
+    ]
+
+    for (i, (color, fillPercent)) in barColors.enumerated() {
+        let y = barStartY - CGFloat(i) * barSpacing
+        let bgRect = NSRect(x: barX, y: y, width: barWidth, height: barHeight)
+        let bgPath = NSBezierPath(roundedRect: bgRect, xRadius: barHeight / 2, yRadius: barHeight / 2)
+        color.withAlphaComponent(0.2).setFill()
+        bgPath.fill()
+
+        let fillRect = NSRect(x: barX, y: y, width: barWidth * fillPercent, height: barHeight)
+        let fillPath = NSBezierPath(roundedRect: fillRect, xRadius: barHeight / 2, yRadius: barHeight / 2)
+        color.setFill()
+        fillPath.fill()
+    }
+
+    // Draw a radar "blip" dot above bars
+    let dotSize = size * 0.15
+    let dotCenter = NSPoint(x: size * 0.5, y: size * 0.74)
+
+    // Outer glow
+    let glowSize = dotSize * 3
+    let glowRect = NSRect(
+        x: dotCenter.x - glowSize / 2,
+        y: dotCenter.y - glowSize / 2,
+        width: glowSize,
+        height: glowSize
+    )
+    let glowGradient = NSGradient(
+        colors: [brandCyanGlow, brandCyanGlow.withAlphaComponent(0.0)]
+    )!
+    glowGradient.draw(in: NSBezierPath(ovalIn: glowRect), relativeCenterPosition: .zero)
+
+    // Inner dot
+    let dotRect = NSRect(
+        x: dotCenter.x - dotSize / 2,
+        y: dotCenter.y - dotSize / 2,
+        width: dotSize,
+        height: dotSize
+    )
+    brandCyan.setFill()
+    NSBezierPath(ovalIn: dotRect).fill()
+
+    // Subtle radar rings
+    brandCyan.withAlphaComponent(0.1).setStroke()
+    for i in 1...2 {
+        let ringSize = dotSize * CGFloat(i) * 2.0
+        let ringRect = NSRect(
+            x: dotCenter.x - ringSize / 2,
+            y: dotCenter.y - ringSize / 2,
+            width: ringSize,
+            height: ringSize
         )
-
-    let bolt = NSBezierPath()
-    let cx = size * 0.5
-    bolt.move(to: NSPoint(x: cx - size * 0.03, y: size * 0.92))
-    bolt.line(to: NSPoint(x: cx - size * 0.18, y: size * 0.55))
-    bolt.line(to: NSPoint(x: cx + size * 0.03, y: size * 0.55 + size * 0.06))
-    bolt.line(to: NSPoint(x: cx + size * 0.03, y: size * 0.22))
-    bolt.line(to: NSPoint(x: cx + size * 0.18, y: size * 0.50))
-    bolt.line(to: NSPoint(x: cx - size * 0.03, y: size * 0.44))
-    bolt.close()
-    boltColor.setFill()
-    bolt.fill()
-
-    let barH = size * 0.045
-    let barX = size * 0.2
-    let barY = size * 0.10
-
-    NSColor(red: 1.0, green: 0.8, blue: 0.2, alpha: 0.15).setFill()
-    NSBezierPath(
-        roundedRect: NSRect(x: barX, y: barY, width: size * 0.6, height: barH),
-        xRadius: barH / 2, yRadius: barH / 2
-    ).fill()
-
-    boltColor.withAlphaComponent(0.6).setFill()
-    NSBezierPath(
-        roundedRect: NSRect(x: barX, y: barY, width: size * 0.6 * 0.7, height: barH),
-        xRadius: barH / 2, yRadius: barH / 2
-    ).fill()
+        let ring = NSBezierPath(ovalIn: ringRect)
+        ring.lineWidth = size * 0.008
+        ring.stroke()
+    }
 
     image.unlockFocus()
     return image
 }
 
-// MARK: - Save helpers
-
-func savePNG(_ image: NSImage, to path: String) {
-    let size = image.size
+func savePNG(_ image: NSImage, to path: String, pixelSize: Int) {
     let rep = NSBitmapImageRep(
         bitmapDataPlanes: nil,
-        pixelsWide: Int(size.width),
-        pixelsHigh: Int(size.height),
+        pixelsWide: pixelSize,
+        pixelsHigh: pixelSize,
         bitsPerSample: 8,
         samplesPerPixel: 4,
         hasAlpha: true,
@@ -195,45 +111,65 @@ func savePNG(_ image: NSImage, to path: String) {
         bytesPerRow: 0,
         bitsPerPixel: 0
     )!
-    rep.size = size
+    rep.size = image.size
     NSGraphicsContext.saveGraphicsState()
     NSGraphicsContext.current = NSGraphicsContext(bitmapImageRep: rep)
-    image.draw(in: NSRect(origin: .zero, size: size))
+    image.draw(in: NSRect(origin: .zero, size: image.size))
     NSGraphicsContext.restoreGraphicsState()
-    try! rep.representation(using: .png, properties: [:])!
-        .write(to: URL(fileURLWithPath: path))
+
+    let data = rep.representation(using: .png, properties: [:])!
+    try! data.write(to: URL(fileURLWithPath: path))
 }
 
-func writeContentsJSON(to dir: String) {
-    let contents: [String: Any] = [
-        "images": [
-            [
-                "filename": "AppIcon.png",
-                "idiom": "universal",
-                "platform": "mac",
-                "size": "1024x1024",
-            ]
-        ],
-        "info": ["author": "xcode", "version": 1],
+// Generate all required sizes
+let outputDir = "Blip/Resources/Assets.xcassets/AppIcon.appiconset"
+
+struct IconSize {
+    let points: Int
+    let scale: Int
+    var pixels: Int { points * scale }
+    var filename: String { "icon_\(points)x\(points)_\(scale)x.png" }
+}
+
+let sizes: [IconSize] = [
+    IconSize(points: 16, scale: 1),
+    IconSize(points: 16, scale: 2),
+    IconSize(points: 32, scale: 1),
+    IconSize(points: 32, scale: 2),
+    IconSize(points: 128, scale: 1),
+    IconSize(points: 128, scale: 2),
+    IconSize(points: 256, scale: 1),
+    IconSize(points: 256, scale: 2),
+    IconSize(points: 512, scale: 1),
+    IconSize(points: 512, scale: 2),
+]
+
+for iconSize in sizes {
+    let icon = generateIcon(size: CGFloat(iconSize.pixels))
+    let path = "\(outputDir)/\(iconSize.filename)"
+    savePNG(icon, to: path, pixelSize: iconSize.pixels)
+    print("Generated \(iconSize.filename) (\(iconSize.pixels)x\(iconSize.pixels)px)")
+}
+
+// Update Contents.json
+let images = sizes.map { size -> [String: String] in
+    [
+        "filename": size.filename,
+        "idiom": "mac",
+        "scale": "\(size.scale)x",
+        "size": "\(size.points)x\(size.points)"
     ]
-    let data = try! JSONSerialization.data(
-        withJSONObject: contents,
-        options: [.prettyPrinted, .sortedKeys]
-    )
-    try! data.write(to: URL(fileURLWithPath: "\(dir)/Contents.json"))
 }
 
-// MARK: - Main
+let contents: [String: Any] = [
+    "images": images,
+    "info": [
+        "author": "xcode",
+        "version": 1
+    ]
+]
 
-let blipDir   = "Blip/Resources/Assets.xcassets/AppIcon.appiconset"
-let helperDir = "BlipHelper/Resources/Assets.xcassets/AppIcon.appiconset"
-
-savePNG(drawBlipIcon(size: 1024),   to: "\(blipDir)/AppIcon.png")
-writeContentsJSON(to: blipDir)
-print("✓ Blip AppIcon.png → \(blipDir)")
-
-savePNG(drawHelperIcon(size: 1024), to: "\(helperDir)/AppIcon.png")
-writeContentsJSON(to: helperDir)
-print("✓ BlipHelper AppIcon.png → \(helperDir)")
-
-print("Done! Re-run XcodeGen if Contents.json changed.")
+let jsonData = try! JSONSerialization.data(withJSONObject: contents, options: [.prettyPrinted, .sortedKeys])
+try! jsonData.write(to: URL(fileURLWithPath: "\(outputDir)/Contents.json"))
+print("Updated Contents.json")
+print("Done!")

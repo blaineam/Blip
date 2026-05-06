@@ -1,93 +1,95 @@
 #!/usr/bin/env swift
 // Generates web assets (favicon, og-poster, homescreen icon) matching the Blip app icon design.
-// Design: Dark rounded-rect bg, 3 colored progress bars (blue/green/orange), green glowing "blip" dot.
+// Design: Dark navy gradient bg, 3 colored progress bars (blue/green/orange), cyan glowing "blip" dot with radar rings.
+// Background fills the full square; no transparent corners.
 
 import Cocoa
+
+let brandDarkNavy = NSColor(red: 0.05, green: 0.08, blue: 0.18, alpha: 1.0)
+let brandDeepBlue = NSColor(red: 0.10, green: 0.15, blue: 0.30, alpha: 1.0)
+let brandCyan = NSColor(red: 0.3, green: 0.9, blue: 1.0, alpha: 1.0)
+let brandCyanGlow = NSColor(red: 0.2, green: 0.8, blue: 1.0, alpha: 0.4)
 
 func generateIcon(size: Int) -> NSImage {
     let s = CGFloat(size)
     let image = NSImage(size: NSSize(width: s, height: s))
     image.lockFocus()
 
-    guard let ctx = NSGraphicsContext.current?.cgContext else {
-        image.unlockFocus()
-        return image
-    }
+    let rect = NSRect(x: 0, y: 0, width: s, height: s)
 
-    // Background: dark rounded rect
-    let bgRect = CGRect(x: 0, y: 0, width: s, height: s)
-    let cornerRadius = s * 0.22
-    let bgPath = CGPath(roundedRect: bgRect, cornerWidth: cornerRadius, cornerHeight: cornerRadius, transform: nil)
-    ctx.setFillColor(NSColor(red: 0.12, green: 0.12, blue: 0.14, alpha: 1).cgColor)
-    ctx.addPath(bgPath)
-    ctx.fillPath()
+    // Background gradient: full square
+    let path = NSBezierPath(rect: rect)
+    let gradient = NSGradient(
+        colors: [brandDarkNavy, brandDeepBlue],
+        atLocations: [0.0, 1.0],
+        colorSpace: .deviceRGB
+    )!
+    gradient.draw(in: path, angle: -45)
 
-    // Subtle gradient overlay for depth
-    let gradientColors = [
-        NSColor(white: 1, alpha: 0.06).cgColor,
-        NSColor(white: 0, alpha: 0.05).cgColor,
-    ] as CFArray
-    if let gradient = CGGradient(colorsSpace: CGColorSpaceCreateDeviceRGB(), colors: gradientColors, locations: [0, 1]) {
-        ctx.saveGState()
-        ctx.addPath(bgPath)
-        ctx.clip()
-        ctx.drawLinearGradient(gradient, start: CGPoint(x: s / 2, y: s), end: CGPoint(x: s / 2, y: 0), options: [])
-        ctx.restoreGState()
-    }
+    // Draw 3 horizontal monitor bars
+    let barWidth = s * 0.72
+    let barHeight = s * 0.075
+    let barX = s * 0.14
+    let barSpacing = s * 0.135
+    let barStartY = s * 0.42
 
-    // Bar layout parameters
-    let barHeight = s * 0.065
-    let barSpacing = s * 0.045
-    let barCorner = barHeight / 2
-    let barLeftX = s * 0.22
-    let barWidth = s * 0.56
-
-    // Three bars centered vertically
-    let totalBarsHeight = 3 * barHeight + 2 * barSpacing
-    let barsStartY = (s - totalBarsHeight) / 2 + totalBarsHeight
-
-    struct BarInfo {
-        let fill: CGFloat
-        let r: CGFloat; let g: CGFloat; let b: CGFloat
-    }
-
-    let bars: [BarInfo] = [
-        BarInfo(fill: 0.55, r: 0.25, g: 0.52, b: 1.0),   // CPU — blue
-        BarInfo(fill: 0.72, r: 0.30, g: 0.78, b: 0.40),   // MEM — green
-        BarInfo(fill: 0.40, r: 1.0,  g: 0.58, b: 0.20),   // DISK — orange
+    let barColors: [(NSColor, CGFloat)] = [
+        (NSColor(red: 0.04, green: 0.52, blue: 1.0, alpha: 1.0), 0.65),
+        (NSColor(red: 0.19, green: 0.82, blue: 0.35, alpha: 1.0), 0.45),
+        (NSColor(red: 1.0, green: 0.62, blue: 0.04, alpha: 1.0), 0.30),
     ]
 
-    for (i, bar) in bars.enumerated() {
-        let y = barsStartY - CGFloat(i) * (barHeight + barSpacing) - barHeight
+    for (i, (color, fillPercent)) in barColors.enumerated() {
+        let y = barStartY - CGFloat(i) * barSpacing
+        let bgRect = NSRect(x: barX, y: y, width: barWidth, height: barHeight)
+        let bgPath = NSBezierPath(roundedRect: bgRect, xRadius: barHeight / 2, yRadius: barHeight / 2)
+        color.withAlphaComponent(0.2).setFill()
+        bgPath.fill()
 
-        let trackRect = CGRect(x: barLeftX, y: y, width: barWidth, height: barHeight)
-        let trackPath = CGPath(roundedRect: trackRect, cornerWidth: barCorner, cornerHeight: barCorner, transform: nil)
-        ctx.setFillColor(NSColor(red: bar.r, green: bar.g, blue: bar.b, alpha: 0.2).cgColor)
-        ctx.addPath(trackPath)
-        ctx.fillPath()
-
-        let fillWidth = barWidth * bar.fill
-        let fillRect = CGRect(x: barLeftX, y: y, width: fillWidth, height: barHeight)
-        let fillPath = CGPath(roundedRect: fillRect, cornerWidth: barCorner, cornerHeight: barCorner, transform: nil)
-        ctx.setFillColor(NSColor(red: bar.r, green: bar.g, blue: bar.b, alpha: 1.0).cgColor)
-        ctx.addPath(fillPath)
-        ctx.fillPath()
+        let fillRect = NSRect(x: barX, y: y, width: barWidth * fillPercent, height: barHeight)
+        let fillPath = NSBezierPath(roundedRect: fillRect, xRadius: barHeight / 2, yRadius: barHeight / 2)
+        color.setFill()
+        fillPath.fill()
     }
 
-    // Blip dot
-    let dotRadius = s * 0.045
-    let dotX = s * 0.74
-    let dotY = s * 0.72
-    let dotRect = CGRect(x: dotX - dotRadius, y: dotY - dotRadius, width: dotRadius * 2, height: dotRadius * 2)
+    // Radar "blip" dot
+    let dotSize = s * 0.15
+    let dotCenter = NSPoint(x: s * 0.5, y: s * 0.74)
 
-    ctx.saveGState()
-    ctx.setShadow(offset: .zero, blur: s * 0.04, color: NSColor(red: 0.3, green: 0.85, blue: 0.4, alpha: 0.8).cgColor)
-    ctx.setFillColor(NSColor(red: 0.3, green: 0.85, blue: 0.4, alpha: 1).cgColor)
-    ctx.fillEllipse(in: dotRect)
-    ctx.restoreGState()
+    let glowSize = dotSize * 3
+    let glowRect = NSRect(
+        x: dotCenter.x - glowSize / 2,
+        y: dotCenter.y - glowSize / 2,
+        width: glowSize,
+        height: glowSize
+    )
+    let glowGradient = NSGradient(
+        colors: [brandCyanGlow, brandCyanGlow.withAlphaComponent(0.0)]
+    )!
+    glowGradient.draw(in: NSBezierPath(ovalIn: glowRect), relativeCenterPosition: .zero)
 
-    ctx.setFillColor(NSColor(red: 0.3, green: 0.85, blue: 0.4, alpha: 1).cgColor)
-    ctx.fillEllipse(in: dotRect)
+    let dotRect = NSRect(
+        x: dotCenter.x - dotSize / 2,
+        y: dotCenter.y - dotSize / 2,
+        width: dotSize,
+        height: dotSize
+    )
+    brandCyan.setFill()
+    NSBezierPath(ovalIn: dotRect).fill()
+
+    brandCyan.withAlphaComponent(0.1).setStroke()
+    for i in 1...2 {
+        let ringSize = dotSize * CGFloat(i) * 2.0
+        let ringRect = NSRect(
+            x: dotCenter.x - ringSize / 2,
+            y: dotCenter.y - ringSize / 2,
+            width: ringSize,
+            height: ringSize
+        )
+        let ring = NSBezierPath(ovalIn: ringRect)
+        ring.lineWidth = s * 0.008
+        ring.stroke()
+    }
 
     image.unlockFocus()
     return image
@@ -104,17 +106,14 @@ func generateOGPoster() -> NSImage {
         return image
     }
 
-    // Background: dark navy to deep blue diagonal gradient (-45 degrees)
     let bgGradientColors = [
         NSColor(red: 0.05, green: 0.08, blue: 0.18, alpha: 1).cgColor,
         NSColor(red: 0.10, green: 0.15, blue: 0.30, alpha: 1).cgColor,
     ] as CFArray
     if let bgGradient = CGGradient(colorsSpace: CGColorSpaceCreateDeviceRGB(), colors: bgGradientColors, locations: [0, 1]) {
-        // -45 degrees: top-left to bottom-right (in CG coords, bottom-left to top-right)
         ctx.drawLinearGradient(bgGradient, start: CGPoint(x: 0, y: h), end: CGPoint(x: w, y: 0), options: [])
     }
 
-    // Subtle cyan radial glow in the center area
     let cyanGlowColors = [
         NSColor(red: 0.2, green: 0.8, blue: 1.0, alpha: 0.08).cgColor,
         NSColor(red: 0.2, green: 0.8, blue: 1.0, alpha: 0.0).cgColor,
@@ -124,13 +123,11 @@ func generateOGPoster() -> NSImage {
         ctx.drawRadialGradient(cyanGlow, startCenter: glowCenter, startRadius: 0, endCenter: glowCenter, endRadius: 350, options: [])
     }
 
-    // Draw the icon at left-center
     let iconSize: CGFloat = 200
     let iconImage = generateIcon(size: Int(iconSize))
     let iconRect = NSRect(x: 120, y: (h - iconSize) / 2, width: iconSize, height: iconSize)
     iconImage.draw(in: iconRect)
 
-    // Text: "Blip" title
     let titleFont = NSFont.systemFont(ofSize: 72, weight: .bold)
     let titleAttrs: [NSAttributedString.Key: Any] = [
         .font: titleFont,
@@ -139,7 +136,6 @@ func generateOGPoster() -> NSImage {
     let titleStr = NSAttributedString(string: "Blip", attributes: titleAttrs)
     titleStr.draw(at: NSPoint(x: 380, y: h / 2 + 20))
 
-    // Subtitle
     let subFont = NSFont.systemFont(ofSize: 24, weight: .medium)
     let subAttrs: [NSAttributedString.Key: Any] = [
         .font: subFont,
@@ -178,32 +174,26 @@ func savePNG(_ image: NSImage, to path: String, pixelSize: NSSize? = nil) {
 
 let outputDir = "docs/assets"
 
-// Favicon (32x32)
 let favicon = generateIcon(size: 32)
 savePNG(favicon, to: "\(outputDir)/favicon.png")
 print("Generated favicon.png (32x32)")
 
-// Favicon ICO-compatible (16x16)
 let favicon16 = generateIcon(size: 16)
 savePNG(favicon16, to: "\(outputDir)/favicon-16.png")
 print("Generated favicon-16.png (16x16)")
 
-// Apple touch icon / homescreen icon (180x180)
 let touchIcon = generateIcon(size: 180)
 savePNG(touchIcon, to: "\(outputDir)/apple-touch-icon.png")
 print("Generated apple-touch-icon.png (180x180)")
 
-// Web app icon (192x192) — Android/PWA
 let webIcon = generateIcon(size: 192)
 savePNG(webIcon, to: "\(outputDir)/icon-192.png")
 print("Generated icon-192.png (192x192)")
 
-// Large icon (512x512) — PWA / sharing
 let largeIcon = generateIcon(size: 512)
 savePNG(largeIcon, to: "\(outputDir)/icon-512.png")
 print("Generated icon-512.png (512x512)")
 
-// OG poster (1200x630)
 let poster = generateOGPoster()
 savePNG(poster, to: "\(outputDir)/og-poster.png", pixelSize: NSSize(width: 1200, height: 630))
 print("Generated og-poster.png (1200x630)")
