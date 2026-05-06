@@ -121,55 +121,9 @@ func savePNG(_ image: NSImage, to path: String, pixelSize: Int) {
     try! data.write(to: URL(fileURLWithPath: path))
 }
 
-// Generate all required sizes
+// Generate single 1024x1024 AppIcon.png (macOS single-image format)
 let outputDir = "Blip/Resources/Assets.xcassets/AppIcon.appiconset"
-
-struct IconSize {
-    let points: Int
-    let scale: Int
-    var pixels: Int { points * scale }
-    var filename: String { "icon_\(points)x\(points)_\(scale)x.png" }
-}
-
-let sizes: [IconSize] = [
-    IconSize(points: 16, scale: 1),
-    IconSize(points: 16, scale: 2),
-    IconSize(points: 32, scale: 1),
-    IconSize(points: 32, scale: 2),
-    IconSize(points: 128, scale: 1),
-    IconSize(points: 128, scale: 2),
-    IconSize(points: 256, scale: 1),
-    IconSize(points: 256, scale: 2),
-    IconSize(points: 512, scale: 1),
-    IconSize(points: 512, scale: 2),
-]
-
-for iconSize in sizes {
-    let icon = generateIcon(size: CGFloat(iconSize.pixels))
-    let path = "\(outputDir)/\(iconSize.filename)"
-    savePNG(icon, to: path, pixelSize: iconSize.pixels)
-    print("Generated \(iconSize.filename) (\(iconSize.pixels)x\(iconSize.pixels)px)")
-}
-
-// Update Contents.json
-let images = sizes.map { size -> [String: String] in
-    [
-        "filename": size.filename,
-        "idiom": "mac",
-        "scale": "\(size.scale)x",
-        "size": "\(size.points)x\(size.points)"
-    ]
-}
-
-let contents: [String: Any] = [
-    "images": images,
-    "info": [
-        "author": "xcode",
-        "version": 1
-    ]
-]
-
-let jsonData = try! JSONSerialization.data(withJSONObject: contents, options: [.prettyPrinted, .sortedKeys])
-try! jsonData.write(to: URL(fileURLWithPath: "\(outputDir)/Contents.json"))
-print("Updated Contents.json")
+let icon = generateIcon(size: 1024)
+savePNG(icon, to: "\(outputDir)/AppIcon.png", pixelSize: 1024)
+print("Generated AppIcon.png (1024x1024)")
 print("Done!")
