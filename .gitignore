@@ -34,3 +34,4 @@ Keychain/
 *.dmg
 *.zip
 *.ipa
+.claude/
