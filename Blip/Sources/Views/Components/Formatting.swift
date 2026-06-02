@@ -71,6 +71,14 @@ enum Fmt {
         return String(format: "%.0f B/s", bytesPerSec)
     }
 
+    /// Format a throughput in Mbps, switching to Gbps at >= 1000 Mbps.
+    static func throughput(_ mbps: Double) -> String {
+        if mbps >= 1000 {
+            return String(format: "%.2f Gbps", mbps / 1000)
+        }
+        return String(format: "%.0f Mbps", mbps)
+    }
+
     /// Format cumulative byte totals (e.g. "12.3 GB")
     static func totalBytes(_ bytes: UInt64) -> String {
         if bytes >= 1_000_000_000_000 {

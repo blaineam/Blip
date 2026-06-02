@@ -199,6 +199,10 @@ struct NetworkDetailPanel: View {
                     addressRow("VPN Interface", value: stats.vpnInterface)
                 }
             }
+
+            // Speed Test (self-contained block — see SpeedTestSection below)
+            Divider()
+            SpeedTestSection()
         }
         .padding(12)
         .frame(width: 260)
@@ -359,5 +363,238 @@ struct NetworkDetailPanel: View {
                 }
             }
         }
+    }
+}
+
+// MARK: - Speed Test Section (self-contained — added for the network throughput test feature)
+
+/// Expandable "Speed Test" section: runs a multi-gig throughput test via
+/// `SpeedTester`, shows live progress, the last result, and an optional
+/// auto-run timer with a small sparkline of recent results.
+///
+/// Fully self-contained so it merges cleanly alongside other panel additions.
+struct SpeedTestSection: View {
+    @StateObject private var tester = SpeedTester()
+    @State private var expanded = false
+    @State private var autoRun = false
+    @State private var intervalMinutes = 15
+    @State private var autoTimer: Timer?
+
+    private let intervalOptions = [5, 15, 30, 60]
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            // Header (tap to expand/collapse)
+            Button {
+                expanded.toggle()
+            } label: {
+                HStack(spacing: 4) {
+                    Image(systemName: "gauge.with.dots.needle.67percent")
+                        .font(.system(size: 10))
+                        .foregroundStyle(.purple)
+                    Text("Speed Test")
+                        .font(.system(size: 11, weight: .medium))
+                    Spacer()
+                    if let last = tester.lastResult, !expanded {
+                        Text(Fmt.throughput(last.downMbps))
+                            .font(.system(size: 10, design: .monospaced))
+                            .foregroundStyle(.secondary)
+                    }
+                    Image(systemName: expanded ? "chevron.up" : "chevron.down")
+                        .font(.system(size: 9))
+                        .foregroundStyle(.tertiary)
+                }
+            }
+            .buttonStyle(.plain)
+
+            if expanded {
+                content
+            }
+        }
+        .onDisappear { stopAutoTimer() }
+    }
+
+    @ViewBuilder
+    private var content: some View {
+        // Run / Cancel control
+        HStack {
+            if tester.isRunning {
+                Button {
+                    tester.cancel()
+                } label: {
+                    Text("Cancel")
+                        .font(.system(size: 10, weight: .medium))
+                        .foregroundStyle(.red)
+                }
+                .buttonStyle(.plain)
+                Spacer()
+                ProgressView().controlSize(.small)
+            } else {
+                Button {
+                    tester.start()
+                } label: {
+                    HStack(spacing: 3) {
+                        Image(systemName: "play.fill").font(.system(size: 8))
+                        Text("Run Test").font(.system(size: 10, weight: .medium))
+                    }
+                    .foregroundStyle(.blue)
+                }
+                .buttonStyle(.plain)
+                Spacer()
+            }
+        }
+
+        // Phase + live throughput
+        liveStatus
+
+        // Last result (down / up)
+        if let last = tester.lastResult {
+            HStack(spacing: 0) {
+                resultColumn(icon: "arrow.down", color: .green, label: "Download", mbps: last.downMbps)
+                resultColumn(icon: "arrow.up", color: .blue, label: "Upload", mbps: last.upMbps)
+            }
+        }
+
+        // Sparkline of recent download results
+        if tester.history.count > 1 {
+            sparkline
+        }
+
+        // Auto-run controls
+        Toggle(isOn: Binding(get: { autoRun }, set: { setAutoRun($0) })) {
+            Text("Auto-run every")
+                .font(.system(size: 10))
+                .foregroundStyle(.secondary)
+        }
+        .toggleStyle(.switch)
+        .controlSize(.mini)
+
+        if autoRun {
+            Picker("", selection: Binding(get: { intervalMinutes }, set: { setInterval($0) })) {
+                ForEach(intervalOptions, id: \.self) { m in
+                    Text("\(m) min").tag(m)
+                }
+            }
+            .labelsHidden()
+            .pickerStyle(.menu)
+            .controlSize(.small)
+            .font(.system(size: 10))
+        }
+    }
+
+    @ViewBuilder
+    private var liveStatus: some View {
+        switch tester.phase {
+        case .idle:
+            EmptyView()
+        case .download:
+            phaseRow(text: "Download…", color: .green, mbps: tester.liveMbps)
+        case .upload:
+            phaseRow(text: "Upload…", color: .blue, mbps: tester.liveMbps)
+        case .done:
+            EmptyView()
+        case .failed(let message):
+            HStack(spacing: 3) {
+                Image(systemName: "exclamationmark.triangle.fill")
+                    .font(.system(size: 9))
+                    .foregroundStyle(.orange)
+                Text(message)
+                    .font(.system(size: 10))
+                    .foregroundStyle(.secondary)
+            }
+        }
+    }
+
+    private func phaseRow(text: String, color: Color, mbps: Double) -> some View {
+        HStack {
+            Text(text)
+                .font(.system(size: 10))
+                .foregroundStyle(color)
+            Spacer()
+            Text(Fmt.throughput(mbps))
+                .font(.system(size: 11, weight: .medium, design: .monospaced))
+        }
+    }
+
+    private func resultColumn(icon: String, color: Color, label: String, mbps: Double) -> some View {
+        VStack(alignment: .leading, spacing: 2) {
+            HStack(spacing: 2) {
+                Image(systemName: icon)
+                    .font(.system(size: 9))
+                    .foregroundStyle(color)
+                Text(label)
+                    .font(.system(size: 10))
+                    .foregroundStyle(.secondary)
+            }
+            Text(Fmt.throughput(mbps))
+                .font(.system(size: 11, design: .monospaced))
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
+    }
+
+    private var sparkline: some View {
+        VStack(alignment: .leading, spacing: 2) {
+            Text("Recent (download)")
+                .font(.system(size: 9))
+                .foregroundStyle(.secondary)
+            Chart {
+                ForEach(Array(tester.history.enumerated()), id: \.element.id) { i, r in
+                    LineMark(x: .value("N", i), y: .value("Mbps", r.downMbps))
+                        .foregroundStyle(.green)
+                        .lineStyle(StrokeStyle(lineWidth: 1.5))
+                        .interpolationMethod(.monotone)
+                    PointMark(x: .value("N", i), y: .value("Mbps", r.downMbps))
+                        .foregroundStyle(.green)
+                        .symbolSize(8)
+                }
+            }
+            .chartLegend(.hidden)
+            .chartXAxis(.hidden)
+            .chartYAxis {
+                AxisMarks(position: .trailing) { value in
+                    AxisValueLabel {
+                        if let v = value.as(Double.self) {
+                            Text(Fmt.throughput(v))
+                                .font(.system(size: 7))
+                        }
+                    }
+                    AxisGridLine(stroke: StrokeStyle(lineWidth: 0.5, dash: [2]))
+                        .foregroundStyle(.quaternary)
+                }
+            }
+            .frame(height: 44)
+        }
+    }
+
+    // MARK: Auto-run timer
+
+    private func setAutoRun(_ on: Bool) {
+        autoRun = on
+        if on {
+            startAutoTimer()
+        } else {
+            stopAutoTimer()
+        }
+    }
+
+    private func setInterval(_ minutes: Int) {
+        intervalMinutes = minutes
+        if autoRun { startAutoTimer() }
+    }
+
+    private func startAutoTimer() {
+        stopAutoTimer()
+        if !tester.isRunning { tester.start() }
+        let timer = Timer.scheduledTimer(withTimeInterval: TimeInterval(intervalMinutes * 60), repeats: true) { _ in
+            Task { @MainActor in
+                if !tester.isRunning { tester.start() }
+            }
+        }
+        autoTimer = timer
+    }
+
+    private func stopAutoTimer() {
+        autoTimer?.invalidate()
+        autoTimer = nil
     }
 }

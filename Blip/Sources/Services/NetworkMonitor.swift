@@ -2,6 +2,231 @@ import Foundation
 import Network
 import SystemConfiguration
 import Darwin
+import SwiftUI
+
+// MARK: - Network Speed Test
+
+/// Result of a single throughput test run.
+struct NetSpeedResult: Identifiable, Sendable {
+    let id = UUID()
+    let downMbps: Double
+    let upMbps: Double
+    let timestamp: Date
+}
+
+/// Phase of the current speed test, used to drive UI labels.
+enum SpeedTestPhase: Sendable, Equatable {
+    case idle
+    case download
+    case upload
+    case done
+    case failed(String)
+}
+
+/// Drives a multi-gigabit throughput test against Cloudflare's free speed
+/// endpoints using several concurrent `URLSession` transfers. Fully async and
+/// cancelable; publishes live Mbps and a short history of results.
+///
+/// Works under the App Store sandbox: only outbound `URLSession` is used.
+@MainActor
+final class SpeedTester: ObservableObject {
+    @Published private(set) var phase: SpeedTestPhase = .idle
+    @Published private(set) var liveMbps: Double = 0       // current direction throughput while running
+    @Published private(set) var lastResult: NetSpeedResult?
+    @Published private(set) var history: [NetSpeedResult] = []
+
+    /// Number of concurrent transfers used to saturate fast links.
+    private let parallelism = 6
+    /// Duration of each measured phase (seconds).
+    private let phaseDuration: TimeInterval = 9
+    /// Short warm-up window discarded from the measurement (seconds).
+    private let warmup: TimeInterval = 1.5
+    /// Bytes requested per download chunk (100 MB) — large enough to keep a
+    /// fast link busy without finishing too quickly.
+    private let downloadChunkBytes = 100_000_000
+    /// Bytes posted per upload chunk (25 MB in-memory body).
+    private let uploadChunkBytes = 25_000_000
+    private let maxHistory = 10
+
+    private var runTask: Task<Void, Never>?
+
+    var isRunning: Bool {
+        if case .idle = phase { return false }
+        if case .done = phase { return false }
+        if case .failed = phase { return false }
+        return true
+    }
+
+    private lazy var session: URLSession = {
+        let config = URLSessionConfiguration.ephemeral
+        config.requestCachePolicy = .reloadIgnoringLocalAndRemoteCacheData
+        config.timeoutIntervalForRequest = 15
+        config.timeoutIntervalForResource = 30
+        config.httpMaximumConnectionsPerHost = 12
+        config.urlCache = nil
+        return URLSession(configuration: config)
+    }()
+
+    func start() {
+        guard runTask == nil else { return }
+        liveMbps = 0
+        runTask = Task { [weak self] in
+            await self?.run()
+            self?.runTask = nil
+        }
+    }
+
+    func cancel() {
+        runTask?.cancel()
+        runTask = nil
+        if isRunning { phase = .idle }
+        liveMbps = 0
+    }
+
+    private func run() async {
+        do {
+            phase = .download
+            liveMbps = 0
+            let down = try await measure(direction: .download)
+            try Task.checkCancellation()
+
+            phase = .upload
+            liveMbps = 0
+            let up = try await measure(direction: .upload)
+            try Task.checkCancellation()
+
+            let result = NetSpeedResult(downMbps: down, upMbps: up, timestamp: Date())
+            lastResult = result
+            history.append(result)
+            if history.count > maxHistory { history.removeFirst(history.count - maxHistory) }
+            phase = .done
+            liveMbps = 0
+        } catch is CancellationError {
+            phase = .idle
+            liveMbps = 0
+        } catch {
+            phase = .failed(Self.message(for: error))
+            liveMbps = 0
+        }
+    }
+
+    private enum Direction { case download, upload }
+
+    /// Runs `parallelism` concurrent transfers for `phaseDuration` seconds and
+    /// returns the measured throughput in Mbps (warm-up window excluded).
+    private func measure(direction: Direction) async throws -> Double {
+        let counter = ByteCounter()
+        let start = Date()
+        let warmupEnd = start.addingTimeInterval(warmup)
+        let deadline = start.addingTimeInterval(phaseDuration)
+
+        try await withThrowingTaskGroup(of: Void.self) { group in
+            // Concurrent transfer workers.
+            for _ in 0..<parallelism {
+                group.addTask { [weak self] in
+                    guard let self else { return }
+                    while Date() < deadline {
+                        try Task.checkCancellation()
+                        switch direction {
+                        case .download:
+                            try await self.streamDownload(into: counter, until: deadline, warmupEnd: warmupEnd)
+                        case .upload:
+                            try await self.streamUpload(into: counter, until: deadline, warmupEnd: warmupEnd)
+                        }
+                    }
+                }
+            }
+
+            // Live progress reporter.
+            group.addTask { [weak self] in
+                guard let self else { return }
+                while Date() < deadline {
+                    try Task.checkCancellation()
+                    try await Task.sleep(nanoseconds: 250_000_000)
+                    let elapsed = Date().timeIntervalSince(warmupEnd)
+                    if elapsed > 0 {
+                        let mbps = await counter.mbps(over: elapsed)
+                        await MainActor.run { self.liveMbps = mbps }
+                    }
+                }
+            }
+
+            try await group.waitForAll()
+        }
+
+        let measuredSeconds = deadline.timeIntervalSince(warmupEnd)
+        guard measuredSeconds > 0 else { return 0 }
+        let total = await counter.total
+        guard total > 0 else {
+            throw URLError(.cannotConnectToHost)
+        }
+        return Double(total) * 8 / measuredSeconds / 1_000_000
+    }
+
+    private func streamDownload(into counter: ByteCounter, until deadline: Date, warmupEnd: Date) async throws {
+        guard let url = URL(string: "https://speed.cloudflare.com/__down?bytes=\(downloadChunkBytes)") else {
+            throw URLError(.badURL)
+        }
+        var request = URLRequest(url: url)
+        request.cachePolicy = .reloadIgnoringLocalAndRemoteCacheData
+        let (bytes, response) = try await session.bytes(for: request)
+        if let http = response as? HTTPURLResponse, http.statusCode >= 400 {
+            throw URLError(.badServerResponse)
+        }
+        var batch = 0
+        for try await _ in bytes {
+            batch += 1
+            // Accrue in batches to limit actor hops on multi-gig links.
+            if batch >= 16384 {
+                if Date() >= warmupEnd { await counter.add(batch) }
+                batch = 0
+                if Date() >= deadline { break }
+                try Task.checkCancellation()
+            }
+        }
+        if Date() >= warmupEnd { await counter.add(batch) }
+    }
+
+    private func streamUpload(into counter: ByteCounter, until deadline: Date, warmupEnd: Date) async throws {
+        guard let url = URL(string: "https://speed.cloudflare.com/__up") else {
+            throw URLError(.badURL)
+        }
+        var request = URLRequest(url: url)
+        request.httpMethod = "POST"
+        request.setValue("application/octet-stream", forHTTPHeaderField: "Content-Type")
+        let body = Data(count: uploadChunkBytes)
+        let (_, response) = try await session.upload(for: request, from: body)
+        if let http = response as? HTTPURLResponse, http.statusCode >= 400 {
+            throw URLError(.badServerResponse)
+        }
+        // The whole body is uploaded by the time this returns.
+        if Date() >= warmupEnd { await counter.add(uploadChunkBytes) }
+    }
+
+    private static func message(for error: Error) -> String {
+        if let urlError = error as? URLError {
+            switch urlError.code {
+            case .notConnectedToInternet, .cannotConnectToHost, .networkConnectionLost:
+                return "Network unavailable"
+            case .timedOut:
+                return "Timed out"
+            default:
+                return "Test failed"
+            }
+        }
+        return "Test failed"
+    }
+}
+
+/// Thread-safe byte accumulator for the concurrent transfer workers.
+private actor ByteCounter {
+    private(set) var total: Int = 0
+    func add(_ n: Int) { total += n }
+    func mbps(over seconds: TimeInterval) -> Double {
+        guard seconds > 0 else { return 0 }
+        return Double(total) * 8 / seconds / 1_000_000
+    }
+}
 
 final class NetworkMonitor: @unchecked Sendable {
     private let pathMonitor = NWPathMonitor()
