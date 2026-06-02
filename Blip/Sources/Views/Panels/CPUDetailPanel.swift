@@ -4,6 +4,8 @@ struct CPUDetailPanel: View {
     let stats: CPUStats
     let history: [Double]
     let topProcesses: [ProcessInfo]
+    /// Optional kill handler forwarded to each ProcessRow (Feature A).
+    var onKill: ((pid_t, Bool) async -> (ok: Bool, message: String))? = nil
 
     var body: some View {
         VStack(alignment: .leading, spacing: 10) {
@@ -85,7 +87,7 @@ struct CPUDetailPanel: View {
                     .font(.system(size: 10))
                     .foregroundStyle(.secondary)
                 ForEach(topProcesses) { proc in
-                    ProcessRow(process: proc, mode: .cpu)
+                    ProcessRow(process: proc, mode: .cpu, onKill: onKill)
                 }
             }
         }

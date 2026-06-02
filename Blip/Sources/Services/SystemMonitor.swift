@@ -67,6 +67,77 @@ final class SystemMonitor: ObservableObject {
         pollTask = nil
     }
 
+    // MARK: - Kill Process (Feature A)
+
+    /// Terminate a process. In sandboxed builds this routes through the helper;
+    /// in the unsandboxed direct build we can signal user-owned processes directly.
+    func killProcess(pid: pid_t, force: Bool) async -> (ok: Bool, message: String) {
+        #if APPSTORE
+        guard helperClient.isHelperInstalled else {
+            return (false, "Helper not installed")
+        }
+        return await helperClient.killProcess(pid: pid, force: force)
+        #else
+        let result = kill(pid, force ? SIGKILL : SIGTERM)
+        if result == 0 { return (true, force ? "Force killed" : "Terminated") }
+        switch errno {
+        case EPERM: return (false, "Permission denied (system process)")
+        case ESRCH: return (false, "Process no longer running")
+        default:    return (false, "Failed (errno \(errno))")
+        }
+        #endif
+    }
+
+    // MARK: - Traceroute / MTR (Feature B)
+    //
+    // Routed through the helper: the sandboxed MAS app cannot spawn
+    // /usr/sbin/traceroute, and the unsandboxed direct build uses the same
+    // path for consistency (falling back to a local run only if no helper).
+
+    /// Start a continuous traceroute session against `host`.
+    func startTraceroute(host: String) async {
+        #if APPSTORE
+        await helperClient.startTraceroute(host: host)
+        #else
+        if helperClient.isHelperInstalled {
+            await helperClient.startTraceroute(host: host)
+        } else {
+            localTrace.start(host: host)
+        }
+        #endif
+    }
+
+    /// Stop the active traceroute session.
+    func stopTraceroute() async {
+        #if APPSTORE
+        await helperClient.stopTraceroute()
+        #else
+        if helperClient.isHelperInstalled {
+            await helperClient.stopTraceroute()
+        } else {
+            localTrace.stop()
+        }
+        #endif
+    }
+
+    /// Fetch the current per-hop stats + running flag.
+    func tracerouteHops() async -> (hops: [HelperTraceHop], running: Bool) {
+        #if APPSTORE
+        return await helperClient.tracerouteHops()
+        #else
+        if helperClient.isHelperInstalled {
+            return await helperClient.tracerouteHops()
+        } else {
+            return localTrace.snapshot()
+        }
+        #endif
+    }
+
+    #if !APPSTORE
+    /// Local traceroute runner used by the unsandboxed build when no helper is present.
+    private let localTrace = LocalTraceRunner()
+    #endif
+
     private func poll() async {
         // Pass user's ping target preference to network monitor
         networkMonitor.pingTarget = pingTarget.isEmpty ? "1.1.1.1" : pingTarget
@@ -380,3 +451,134 @@ final class SystemMonitor: ObservableObject {
         return dict
     }()
 }
+
+#if !APPSTORE
+// MARK: - Local Traceroute Runner (Feature B, unsandboxed fallback)
+
+/// Mirrors the helper's continuous traceroute but runs in-process. Only used
+/// by the direct (unsandboxed) build when no BlipHelper is installed.
+final class LocalTraceRunner: @unchecked Sendable {
+    private let lock = NSLock()
+    private var hops: [Int: HopStat] = [:]
+    private var thread: Thread?
+    private var stopFlag = false
+    private var currentHost: String = ""
+
+    private struct HopStat {
+        var host: String = "*"
+        var sent: Int = 0
+        var recv: Int = 0
+        var last: Double?
+        var best: Double?
+        var worst: Double?
+        var total: Double = 0
+    }
+
+    static func isValidHost(_ host: String) -> Bool {
+        guard !host.isEmpty, host.count <= 253 else { return false }
+        let allowed = CharacterSet(charactersIn:
+            "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789.-:")
+        return host.unicodeScalars.allSatisfy { allowed.contains($0) }
+    }
+
+    func start(host: String) {
+        guard Self.isValidHost(host) else { return }
+        lock.lock()
+        if currentHost == host, thread != nil, !stopFlag { lock.unlock(); return }
+        stopFlagLocked(true)
+        hops.removeAll()
+        currentHost = host
+        stopFlag = false
+        let t = Thread { [weak self] in self?.runLoop(host: host) }
+        t.stackSize = 512 * 1024
+        thread = t
+        lock.unlock()
+        t.start()
+    }
+
+    func stop() {
+        lock.lock(); stopFlagLocked(true); lock.unlock()
+    }
+
+    private func stopFlagLocked(_ value: Bool) {
+        stopFlag = value
+        if value { thread = nil }
+    }
+
+    func snapshot() -> (hops: [HelperTraceHop], running: Bool) {
+        lock.lock(); defer { lock.unlock() }
+        let result = hops.keys.sorted().map { num -> HelperTraceHop in
+            let s = hops[num]!
+            let loss = s.sent > 0 ? Double(s.sent - s.recv) / Double(s.sent) * 100 : 0
+            let avg = s.recv > 0 ? s.total / Double(s.recv) : nil
+            return HelperTraceHop(hop: num, host: s.host, sent: s.sent, recv: s.recv,
+                                  lossPct: loss, lastMs: s.last, avgMs: avg,
+                                  bestMs: s.best, worstMs: s.worst)
+        }
+        return (result, !stopFlag && thread != nil)
+    }
+
+    private func shouldStop() -> Bool {
+        lock.lock(); defer { lock.unlock() }
+        return stopFlag
+    }
+
+    private func runLoop(host: String) {
+        while !shouldStop() {
+            runOnePass(host: host)
+            for _ in 0..<10 {
+                if shouldStop() { return }
+                Thread.sleep(forTimeInterval: 0.1)
+            }
+        }
+    }
+
+    private func runOnePass(host: String) {
+        let process = Foundation.Process()
+        process.executableURL = URL(fileURLWithPath: "/usr/sbin/traceroute")
+        process.arguments = ["-n", "-w", "1", "-q", "1", "-m", "30", host]
+        let pipe = Pipe()
+        process.standardOutput = pipe
+        process.standardError = FileHandle.nullDevice
+        do { try process.run() } catch { return }
+        let data = pipe.fileHandleForReading.readDataToEndOfFile()
+        process.waitUntilExit()
+        guard !shouldStop() else { return }
+        let output = String(data: data, encoding: .utf8) ?? ""
+        for line in output.components(separatedBy: "\n") { parseHopLine(line) }
+    }
+
+    private func parseHopLine(_ rawLine: String) {
+        let line = rawLine.trimmingCharacters(in: .whitespaces)
+        guard !line.isEmpty else { return }
+        let tokens = line.split(whereSeparator: { $0 == " " || $0 == "\t" }).map(String.init)
+        guard let first = tokens.first, let hopNum = Int(first) else { return }
+
+        var hostStr = "*"
+        var rtt: Double?
+        var i = 1
+        while i < tokens.count {
+            let tok = tokens[i]
+            if tok == "ms", i > 1, let ms = Double(tokens[i - 1]) {
+                rtt = ms
+            } else if tok != "*" && tok != "ms" && Double(tok) == nil {
+                if hostStr == "*" { hostStr = tok }
+            }
+            i += 1
+        }
+
+        lock.lock(); defer { lock.unlock() }
+        var stat = hops[hopNum] ?? HopStat()
+        if hostStr != "*" { stat.host = hostStr }
+        stat.sent += 1
+        if let rtt {
+            stat.recv += 1
+            stat.last = rtt
+            stat.total += rtt
+            stat.best = stat.best.map { min($0, rtt) } ?? rtt
+            stat.worst = stat.worst.map { max($0, rtt) } ?? rtt
+        }
+        hops[hopNum] = stat
+    }
+}
+#endif

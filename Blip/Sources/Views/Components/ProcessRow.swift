@@ -4,11 +4,19 @@ import SwiftUI
 struct ProcessRow: View {
     let process: ProcessInfo
     let mode: Mode
+    /// Optional kill handler. When provided, a quit control appears on hover.
+    /// Returns the result message (nil = success, non-nil = error to surface).
+    var onKill: ((pid_t, Bool) async -> (ok: Bool, message: String))? = nil
 
     enum Mode {
         case cpu
         case memory
     }
+
+    @State private var hovering = false
+    @State private var confirming = false
+    @State private var killing = false
+    @State private var errorMessage: String?
 
     var body: some View {
         HStack(spacing: 6) {
@@ -32,19 +40,87 @@ struct ProcessRow: View {
 
             Spacer(minLength: 4)
 
-            switch mode {
-            case .cpu:
-                Text(String(format: "%.1f%%", process.cpu))
-                    .font(.system(size: 11, design: .monospaced))
-                    .foregroundStyle(.secondary)
-                    .frame(width: 50, alignment: .trailing)
-            case .memory:
-                Text(Fmt.bytes(process.memory))
-                    .font(.system(size: 11, design: .monospaced))
-                    .foregroundStyle(.secondary)
-                    .frame(width: 60, alignment: .trailing)
+            // Surface a kill error briefly inline, otherwise show the usage value.
+            if let errorMessage {
+                Text(errorMessage)
+                    .font(.system(size: 9))
+                    .foregroundStyle(.red)
+                    .lineLimit(1)
+                    .truncationMode(.tail)
+            } else {
+                switch mode {
+                case .cpu:
+                    Text(String(format: "%.1f%%", process.cpu))
+                        .font(.system(size: 11, design: .monospaced))
+                        .foregroundStyle(.secondary)
+                        .frame(width: 50, alignment: .trailing)
+                case .memory:
+                    Text(Fmt.bytes(process.memory))
+                        .font(.system(size: 11, design: .monospaced))
+                        .foregroundStyle(.secondary)
+                        .frame(width: 60, alignment: .trailing)
+                }
+            }
+
+            // Kill control — only when a handler is wired and on hover.
+            if onKill != nil {
+                killControl
+                    .frame(width: 16)
+                    .opacity(hovering || confirming ? 1 : 0)
             }
         }
         .padding(.vertical, 1)
+        .contentShape(Rectangle())
+        .onHover { h in
+            hovering = h
+            if !h { confirming = false }
+        }
+    }
+
+    @ViewBuilder
+    private var killControl: some View {
+        if killing {
+            ProgressView()
+                .controlSize(.mini)
+                .scaleEffect(0.6)
+        } else {
+            Button {
+                if confirming {
+                    performKill()
+                } else {
+                    // First click arms the confirm; a brief window then disarms.
+                    confirming = true
+                    DispatchQueue.main.asyncAfter(deadline: .now() + 3) {
+                        confirming = false
+                    }
+                }
+            } label: {
+                Image(systemName: confirming ? "xmark.circle.fill" : "xmark.circle")
+                    .font(.system(size: 11))
+                    .foregroundStyle(confirming ? .red : .secondary)
+            }
+            .buttonStyle(.plain)
+            .help(confirming ? "Click again to quit \(process.name)" : "Quit \(process.name)")
+        }
+    }
+
+    private func performKill() {
+        guard let onKill else { return }
+        confirming = false
+        killing = true
+        errorMessage = nil
+        Task {
+            let result = await onKill(process.id, false)
+            await MainActor.run {
+                killing = false
+                if !result.ok {
+                    errorMessage = result.message
+                    // Clear the inline error after a few seconds.
+                    DispatchQueue.main.asyncAfter(deadline: .now() + 4) {
+                        errorMessage = nil
+                    }
+                }
+            }
+        }
     }
 }

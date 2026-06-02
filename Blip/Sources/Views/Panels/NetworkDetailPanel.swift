@@ -6,6 +6,11 @@ struct NetworkDetailPanel: View {
     let downloadHistory: [Double]
     let uploadHistory: [Double]
 
+    // Feature B — Traceroute / MTR handlers (optional for back-compat).
+    var traceStart: ((String) async -> Void)? = nil
+    var traceStop: (() async -> Void)? = nil
+    var tracePoll: (() async -> (hops: [HelperTraceHop], running: Bool))? = nil
+
     @State private var wanIP: String? = nil
     @State private var showWAN = false
     @State private var loadingWAN = false
@@ -200,12 +205,30 @@ struct NetworkDetailPanel: View {
                 }
             }
 
+            // Feature B — Traceroute / MTR (self-contained section)
+            if let traceStart, let traceStop, let tracePoll {
+                Divider()
+                TracerouteSection(
+                    defaultHost: tracerouteDefaultHost,
+                    start: traceStart,
+                    stop: traceStop,
+                    poll: tracePoll
+                )
+            }
+
             // Speed Test (self-contained block — see SpeedTestSection below)
             Divider()
             SpeedTestSection()
         }
         .padding(12)
         .frame(width: 260)
+    }
+
+    /// Default traceroute target: the user's WAN ping target if known, else the router.
+    private var tracerouteDefaultHost: String {
+        if stats.pingMs != nil, stats.routerIP != "—" { return stats.routerIP }
+        if stats.routerIP != "—" { return stats.routerIP }
+        return "1.1.1.1"
     }
 
     private var bandwidthChart: some View {
@@ -363,6 +386,161 @@ struct NetworkDetailPanel: View {
                 }
             }
         }
+    }
+}
+
+// MARK: - Traceroute / MTR Section (Feature B)
+//
+// Self-contained subview: an expandable host field + Start/Stop and a live
+// per-hop table. Kept in its own type so it merges cleanly alongside other
+// edits to NetworkDetailPanel.
+private struct TracerouteSection: View {
+    let defaultHost: String
+    let start: (String) async -> Void
+    let stop: () async -> Void
+    let poll: () async -> (hops: [HelperTraceHop], running: Bool)
+
+    @State private var expanded = false
+    @State private var host: String = ""
+    @State private var running = false
+    @State private var hops: [HelperTraceHop] = []
+    @State private var pollTimer: Timer?
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 6) {
+            // Collapsible header
+            Button {
+                expanded.toggle()
+            } label: {
+                HStack(spacing: 6) {
+                    Image(systemName: expanded ? "chevron.down" : "chevron.right")
+                        .font(.system(size: 8))
+                        .foregroundStyle(.secondary)
+                    Image(systemName: "point.topleft.down.to.point.bottomright.curvepath")
+                        .font(.system(size: 9))
+                        .foregroundStyle(.purple)
+                    Text("Traceroute / MTR")
+                        .font(.system(size: 11, weight: .medium))
+                    Spacer()
+                    if running {
+                        Circle().fill(.green).frame(width: 5, height: 5)
+                    }
+                }
+                .contentShape(Rectangle())
+            }
+            .buttonStyle(.plain)
+
+            if expanded {
+                // Host field + controls
+                HStack(spacing: 6) {
+                    TextField("host or IP", text: $host)
+                        .textFieldStyle(.roundedBorder)
+                        .font(.system(size: 10, design: .monospaced))
+                        .disabled(running)
+                    if running {
+                        Button("Stop") { stopTrace() }
+                            .controlSize(.small)
+                            .tint(.red)
+                    } else {
+                        Button("Start") { startTrace() }
+                            .controlSize(.small)
+                            .disabled(host.trimmingCharacters(in: .whitespaces).isEmpty)
+                    }
+                }
+
+                if !hops.isEmpty {
+                    hopTable
+                } else if running {
+                    Text("Probing…")
+                        .font(.system(size: 9))
+                        .foregroundStyle(.secondary)
+                }
+            }
+        }
+        .onAppear {
+            if host.isEmpty { host = defaultHost }
+        }
+        .onDisappear {
+            // Don't leave a session or timer running when the panel closes.
+            stopTrace()
+        }
+    }
+
+    private var hopTable: some View {
+        VStack(alignment: .leading, spacing: 2) {
+            // Header row
+            HStack(spacing: 4) {
+                Text("#").frame(width: 14, alignment: .trailing)
+                Text("Host").frame(maxWidth: .infinity, alignment: .leading)
+                Text("Loss").frame(width: 34, alignment: .trailing)
+                Text("Last").frame(width: 38, alignment: .trailing)
+                Text("Avg").frame(width: 38, alignment: .trailing)
+            }
+            .font(.system(size: 8, weight: .medium))
+            .foregroundStyle(.tertiary)
+
+            ForEach(hops, id: \.hop) { hop in
+                HStack(spacing: 4) {
+                    Text("\(hop.hop)")
+                        .frame(width: 14, alignment: .trailing)
+                        .foregroundStyle(.tertiary)
+                    Text(hop.host)
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                        .lineLimit(1)
+                        .truncationMode(.middle)
+                    Text(String(format: "%.0f%%", hop.lossPct))
+                        .frame(width: 34, alignment: .trailing)
+                        .foregroundStyle(lossColor(hop.lossPct))
+                    Text(msText(hop.lastMs))
+                        .frame(width: 38, alignment: .trailing)
+                        .foregroundStyle(.secondary)
+                    Text(msText(hop.avgMs))
+                        .frame(width: 38, alignment: .trailing)
+                        .foregroundStyle(.secondary)
+                }
+                .font(.system(size: 9, design: .monospaced))
+            }
+        }
+    }
+
+    private func startTrace() {
+        let target = host.trimmingCharacters(in: .whitespaces)
+        guard !target.isEmpty else { return }
+        running = true
+        hops = []
+        Task { await start(target) }
+        scheduleTimer()
+    }
+
+    private func stopTrace() {
+        guard running || pollTimer != nil else { return }
+        pollTimer?.invalidate()
+        pollTimer = nil
+        running = false
+        Task { await stop() }
+    }
+
+    private func scheduleTimer() {
+        pollTimer?.invalidate()
+        let timer = Timer.scheduledTimer(withTimeInterval: 1.0, repeats: true) { _ in
+            Task { @MainActor in
+                let snap = await poll()
+                hops = snap.hops
+                running = snap.running
+            }
+        }
+        pollTimer = timer
+    }
+
+    private func lossColor(_ pct: Double) -> Color {
+        if pct <= 0 { return .green }
+        if pct < 20 { return .orange }
+        return .red
+    }
+
+    private func msText(_ ms: Double?) -> String {
+        guard let ms else { return "—" }
+        return String(format: "%.0f", ms)
     }
 }
 

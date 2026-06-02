@@ -154,6 +154,44 @@ final class HelperServer: @unchecked Sendable {
             )
             sendResponse(response, on: connection)
 
+        case "kill":
+            guard let pid = request.pid else {
+                sendError("Missing PID", on: connection)
+                return
+            }
+            let result = daemon.killProcess(pid, force: request.force ?? false)
+            let response = HelperResponse(
+                type: "killResult",
+                token: TOTP.generate(),
+                data: nil,
+                message: result.message,
+                success: result.ok
+            )
+            sendResponse(response, on: connection)
+
+        case "traceroute":
+            switch request.action {
+            case "start":
+                if let host = request.host {
+                    daemon.startTraceroute(host: host)
+                }
+            case "stop":
+                daemon.stopTraceroute()
+            default:
+                break // "poll" or nil — just return the current snapshot
+            }
+            let snap = daemon.tracerouteSnapshot()
+            let response = HelperResponse(
+                type: "traceroute",
+                token: TOTP.generate(),
+                data: nil,
+                message: nil,
+                success: nil,
+                hops: snap.hops,
+                running: snap.running
+            )
+            sendResponse(response, on: connection)
+
         default:
             sendError("Unknown request type", on: connection)
         }

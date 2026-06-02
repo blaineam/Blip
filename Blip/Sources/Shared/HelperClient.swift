@@ -112,6 +112,114 @@ final class HelperClient: @unchecked Sendable {
         return response.data
     }
 
+    // MARK: - Kill Process (Feature A)
+
+    /// Ask the helper to terminate a process. Returns success + a status message.
+    /// Returns a failure tuple (rather than throwing) if the helper is unreachable.
+    func killProcess(pid: pid_t, force: Bool) async -> (ok: Bool, message: String) {
+        await withCheckedContinuation { (continuation: CheckedContinuation<(ok: Bool, message: String), Never>) in
+            queue.async { [self] in
+                var request = HelperRequest(type: "kill", token: TOTP.generate())
+                request.pid = pid
+                request.force = force
+                guard let response = self.sendRequestSync(request) else {
+                    continuation.resume(returning: (false, "Helper unavailable"))
+                    return
+                }
+                continuation.resume(returning: (response.success ?? false,
+                                                response.message ?? "Unknown result"))
+            }
+        }
+    }
+
+    // MARK: - Traceroute / MTR (Feature B)
+
+    /// Start a continuous traceroute session against `host`.
+    func startTraceroute(host: String) async {
+        _ = await sendTraceroute(action: "start", host: host)
+    }
+
+    /// Stop the active traceroute session.
+    func stopTraceroute() async {
+        _ = await sendTraceroute(action: "stop", host: nil)
+    }
+
+    /// Fetch the current traceroute hops + running flag.
+    func tracerouteHops() async -> (hops: [HelperTraceHop], running: Bool) {
+        await sendTraceroute(action: "poll", host: nil)
+    }
+
+    private func sendTraceroute(action: String, host: String?) async -> (hops: [HelperTraceHop], running: Bool) {
+        await withCheckedContinuation { (continuation: CheckedContinuation<(hops: [HelperTraceHop], running: Bool), Never>) in
+            queue.async { [self] in
+                var request = HelperRequest(type: "traceroute", token: TOTP.generate())
+                request.action = action
+                request.host = host
+                guard let response = self.sendRequestSync(request) else {
+                    continuation.resume(returning: ([], false))
+                    return
+                }
+                continuation.resume(returning: (response.hops ?? [], response.running ?? false))
+            }
+        }
+    }
+
+    /// Generic synchronous request/response over the framed TCP channel.
+    /// Mirrors `fetchSnapshotSync` but works for any request type and returns
+    /// the full decoded (TOTP-validated) response. Runs on `queue`.
+    private func sendRequestSync(_ request: HelperRequest) -> HelperResponse? {
+        if helperPort == nil {
+            helperPort = readPortFile()
+        }
+        guard let port = helperPort else { return nil }
+
+        let sock = socket(AF_INET, SOCK_STREAM, 0)
+        guard sock >= 0 else { return nil }
+        defer { close(sock) }
+
+        var tv = timeval(tv_sec: 3, tv_usec: 0)
+        setsockopt(sock, SOL_SOCKET, SO_SNDTIMEO, &tv, socklen_t(MemoryLayout<timeval>.size))
+        setsockopt(sock, SOL_SOCKET, SO_RCVTIMEO, &tv, socklen_t(MemoryLayout<timeval>.size))
+
+        var addr = sockaddr_in()
+        addr.sin_family = sa_family_t(AF_INET)
+        addr.sin_port = port.bigEndian
+        addr.sin_addr.s_addr = inet_addr("127.0.0.1")
+
+        let connectResult = withUnsafePointer(to: &addr) { ptr in
+            ptr.withMemoryRebound(to: sockaddr.self, capacity: 1) { sockPtr in
+                connect(sock, sockPtr, socklen_t(MemoryLayout<sockaddr_in>.size))
+            }
+        }
+        guard connectResult == 0 else { helperPort = nil; return nil }
+
+        guard let frame = try? MessageFraming.encode(request) else { return nil }
+        let sent = frame.withUnsafeBytes { ptr in
+            send(sock, ptr.baseAddress!, ptr.count, 0)
+        }
+        guard sent == frame.count else { return nil }
+
+        var headerBuf = [UInt8](repeating: 0, count: 4)
+        let headerRead = recv(sock, &headerBuf, 4, MSG_WAITALL)
+        guard headerRead == 4 else { return nil }
+
+        let length = MessageFraming.decodeLength(from: Data(headerBuf))
+        guard let length, length > 0, length < 1_048_576 else { return nil }
+
+        var bodyBuf = [UInt8](repeating: 0, count: Int(length))
+        let bodyRead = recv(sock, &bodyBuf, Int(length), MSG_WAITALL)
+        guard bodyRead == Int(length) else { return nil }
+
+        let bodyData = Data(bodyBuf)
+        guard let response = try? JSONDecoder().decode(HelperResponse.self, from: bodyData),
+              response.type != "error",
+              let token = response.token,
+              TOTP.validate(token) else {
+            return nil
+        }
+        return response
+    }
+
     private func readPortFile() -> UInt16? {
         guard let contents = try? String(contentsOf: HelperConstants.portFileURL, encoding: .utf8),
               let port = UInt16(contents.trimmingCharacters(in: .whitespacesAndNewlines)),

@@ -30,15 +30,45 @@ enum HelperConstants {
 // MARK: - IPC Message Types
 
 struct HelperRequest: Codable, Sendable {
-    var type: String // "poll"
+    var type: String // "poll", "kill", "traceroute"
     var token: String // TOTP token
+
+    // Feature A — Kill process (optional for back-compat with old JSON)
+    var pid: Int32? = nil // target PID for "kill"
+    var force: Bool? = nil // SIGKILL when true, SIGTERM otherwise
+
+    // Feature B — Traceroute / MTR (optional for back-compat)
+    var action: String? = nil // "start", "stop", "poll" for "traceroute"
+    var host: String? = nil // target host/IP for "traceroute" start
 }
 
 struct HelperResponse: Codable, Sendable {
-    var type: String // "snapshot" or "error"
+    var type: String // "snapshot", "killResult", "traceroute", or "error"
     var token: String? // TOTP token for response validation
     var data: HelperSnapshot?
-    var message: String? // error message
+    var message: String? // error message / status message
+
+    // Feature A — Kill process result
+    var success: Bool? = nil // true if the kill succeeded
+
+    // Feature B — Traceroute / MTR result
+    var hops: [HelperTraceHop]? = nil // current per-hop stats
+    var running: Bool? = nil // whether a traceroute session is active
+}
+
+// MARK: - Traceroute / MTR
+
+/// Per-hop statistics for a continuous (MTR-style) traceroute session.
+struct HelperTraceHop: Codable, Sendable {
+    var hop: Int
+    var host: String
+    var sent: Int
+    var recv: Int
+    var lossPct: Double
+    var lastMs: Double?
+    var avgMs: Double?
+    var bestMs: Double?
+    var worstMs: Double?
 }
 
 // MARK: - Helper Snapshot (privileged data the sandbox blocks)

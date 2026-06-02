@@ -29,6 +29,10 @@ final class HelperDaemon: @unchecked Sendable {
 
     private var cachedModelName: String?
 
+    // Traceroute / MTR session state (Feature B)
+    private let traceLock = NSLock()
+    private var traceSession: TraceSession?
+
     init() {
         iconCache.countLimit = 15
         iconCache.totalCostLimit = 2 * 1024 * 1024
@@ -549,5 +553,207 @@ final class HelperDaemon: @unchecked Sendable {
         }
         guard result == 0 else { return 0 }
         return rusage.ri_phys_footprint
+    }
+
+    // MARK: - Kill Process (Feature A)
+
+    /// Send a termination signal to a process. The helper runs as the logged-in
+    /// user, so it can only kill user-owned processes — system processes fail
+    /// with EPERM, which we surface gracefully rather than escalating.
+    func killProcess(_ pid: pid_t, force: Bool) -> (ok: Bool, message: String) {
+        guard pid > 1 else { return (false, "Invalid PID") }
+        let signal = force ? SIGKILL : SIGTERM
+        let result = kill(pid, signal)
+        if result == 0 {
+            return (true, force ? "Force killed" : "Terminated")
+        }
+        switch errno {
+        case EPERM: return (false, "Permission denied (system process)")
+        case ESRCH: return (false, "Process no longer running")
+        default:    return (false, "Failed (errno \(errno))")
+        }
+    }
+
+    // MARK: - Traceroute / MTR (Feature B)
+
+    /// Start (or restart) a continuous traceroute session targeting `host`.
+    func startTraceroute(host: String) {
+        traceLock.lock()
+        defer { traceLock.unlock() }
+        // Restart if the target changed; otherwise leave the running session intact.
+        if let existing = traceSession, existing.host == host, existing.isRunning {
+            return
+        }
+        traceSession?.stop()
+        let session = TraceSession(host: host)
+        traceSession = session
+        session.start()
+    }
+
+    /// Stop any active traceroute session.
+    func stopTraceroute() {
+        traceLock.lock()
+        defer { traceLock.unlock() }
+        traceSession?.stop()
+        traceSession = nil
+    }
+
+    /// Snapshot the current hops + running state of the traceroute session.
+    func tracerouteSnapshot() -> (hops: [HelperTraceHop], running: Bool) {
+        traceLock.lock()
+        let session = traceSession
+        traceLock.unlock()
+        guard let session else { return ([], false) }
+        return (session.snapshot(), session.isRunning)
+    }
+}
+
+// MARK: - TraceSession
+
+/// Runs `/usr/sbin/traceroute` repeatedly against a host, accumulating
+/// MTR-style per-hop statistics (sent/received/loss/last/avg/best/worst).
+private final class TraceSession: @unchecked Sendable {
+    let host: String
+
+    private let lock = NSLock()
+    private var hops: [Int: HopStat] = [:]
+    private var thread: Thread?
+    private var stopFlag = false
+
+    /// Mutable accumulator for a single hop.
+    private struct HopStat {
+        var host: String = "*"
+        var sent: Int = 0
+        var recv: Int = 0
+        var last: Double?
+        var best: Double?
+        var worst: Double?
+        var total: Double = 0
+    }
+
+    /// Validates that a host is a plausible hostname or IP. We never shell-
+    /// interpolate it (Process takes an argument array), but we still reject
+    /// anything with whitespace or shell metacharacters as defense-in-depth.
+    static func isValidHost(_ host: String) -> Bool {
+        guard !host.isEmpty, host.count <= 253 else { return false }
+        let allowed = CharacterSet(charactersIn:
+            "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789.-:")
+        return host.unicodeScalars.allSatisfy { allowed.contains($0) }
+    }
+
+    init(host: String) {
+        self.host = host
+    }
+
+    var isRunning: Bool {
+        lock.lock(); defer { lock.unlock() }
+        return !stopFlag && thread != nil
+    }
+
+    func start() {
+        guard Self.isValidHost(host) else { return }
+        let t = Thread { [weak self] in self?.runLoop() }
+        t.stackSize = 512 * 1024
+        lock.lock(); thread = t; stopFlag = false; lock.unlock()
+        t.start()
+    }
+
+    func stop() {
+        lock.lock(); stopFlag = true; thread = nil; lock.unlock()
+    }
+
+    func snapshot() -> [HelperTraceHop] {
+        lock.lock(); defer { lock.unlock() }
+        return hops.keys.sorted().map { num in
+            let s = hops[num]!
+            let loss = s.sent > 0 ? Double(s.sent - s.recv) / Double(s.sent) * 100 : 0
+            let avg = s.recv > 0 ? s.total / Double(s.recv) : nil
+            return HelperTraceHop(
+                hop: num, host: s.host, sent: s.sent, recv: s.recv,
+                lossPct: loss, lastMs: s.last, avgMs: avg,
+                bestMs: s.best, worstMs: s.worst
+            )
+        }
+    }
+
+    private func shouldStop() -> Bool {
+        lock.lock(); defer { lock.unlock() }
+        return stopFlag
+    }
+
+    private func runLoop() {
+        while !shouldStop() {
+            runOnePass()
+            // Brief pause between full traceroute passes.
+            for _ in 0..<10 {
+                if shouldStop() { return }
+                Thread.sleep(forTimeInterval: 0.1)
+            }
+        }
+    }
+
+    /// Runs one full traceroute and folds the results into the accumulators.
+    private func runOnePass() {
+        let process = Foundation.Process()
+        process.executableURL = URL(fileURLWithPath: "/usr/sbin/traceroute")
+        // -n no DNS, -w 1 1s wait, -q 1 one probe/hop, -m 30 max hops.
+        process.arguments = ["-n", "-w", "1", "-q", "1", "-m", "30", host]
+        let pipe = Pipe()
+        process.standardOutput = pipe
+        process.standardError = FileHandle.nullDevice
+        do {
+            try process.run()
+        } catch {
+            return
+        }
+
+        // Read line-by-line so we can bail promptly when asked to stop.
+        let handle = pipe.fileHandleForReading
+        let data = handle.readDataToEndOfFile()
+        process.waitUntilExit()
+        guard !shouldStop() else { return }
+
+        let output = String(data: data, encoding: .utf8) ?? ""
+        for line in output.components(separatedBy: "\n") {
+            parseHopLine(line)
+        }
+    }
+
+    /// Parses a traceroute hop line of the form:
+    ///   " 1  192.168.1.1  1.234 ms"   or   " 5  * "
+    private func parseHopLine(_ rawLine: String) {
+        let line = rawLine.trimmingCharacters(in: .whitespaces)
+        guard !line.isEmpty else { return }
+        let tokens = line.split(whereSeparator: { $0 == " " || $0 == "\t" }).map(String.init)
+        guard let first = tokens.first, let hopNum = Int(first) else { return }
+
+        // Find the responding host (first token that looks like an IP) and the rtt.
+        var hostStr = "*"
+        var rtt: Double?
+        var i = 1
+        while i < tokens.count {
+            let tok = tokens[i]
+            if tok == "ms", i > 1, let ms = Double(tokens[i - 1]) {
+                rtt = ms
+            } else if tok != "*" && tok != "ms" && Double(tok) == nil {
+                // Non-numeric, non-marker token → treat as the hop host/IP.
+                if hostStr == "*" { hostStr = tok }
+            }
+            i += 1
+        }
+
+        lock.lock()
+        defer { lock.unlock() }
+        var stat = hops[hopNum] ?? HopStat()
+        if hostStr != "*" { stat.host = hostStr }
+        stat.sent += 1
+        if let rtt {
+            stat.recv += 1
+            stat.last = rtt
+            stat.total += rtt
+            stat.best = stat.best.map { min($0, rtt) } ?? rtt
+            stat.worst = stat.worst.map { max($0, rtt) } ?? rtt
+        }
+        hops[hopNum] = stat
     }
 }

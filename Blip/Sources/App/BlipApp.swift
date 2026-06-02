@@ -217,13 +217,15 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             CPUDetailPanel(
                 stats: monitor.snapshot.cpu,
                 history: monitor.cpuHistory.values,
-                topProcesses: monitor.snapshot.topProcessesByCPU
+                topProcesses: monitor.snapshot.topProcessesByCPU,
+                onKill: { pid, force in await self.monitor.killProcess(pid: pid, force: force) }
             )
         case .memory:
             MemoryDetailPanel(
                 stats: monitor.snapshot.memory,
                 history: monitor.memoryHistory.values,
-                topProcesses: monitor.snapshot.topProcessesByMemory
+                topProcesses: monitor.snapshot.topProcessesByMemory,
+                onKill: { pid, force in await self.monitor.killProcess(pid: pid, force: force) }
             )
         case .disk:
             #if APPSTORE
@@ -244,7 +246,10 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             NetworkDetailPanel(
                 stats: monitor.snapshot.network,
                 downloadHistory: monitor.netDownHistory.values,
-                uploadHistory: monitor.netUpHistory.values
+                uploadHistory: monitor.netUpHistory.values,
+                traceStart: { host in await self.monitor.startTraceroute(host: host) },
+                traceStop: { await self.monitor.stopTraceroute() },
+                tracePoll: { await self.monitor.tracerouteHops() }
             )
         case .gpu:
             GPUDetailPanel(
