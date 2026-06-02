@@ -103,6 +103,14 @@ struct VolumeInfo: Identifiable, Sendable {
     }
 }
 
+/// Result of a sequential disk speed benchmark. Speeds are in MB/s (1 MB = 1_000_000 bytes).
+struct DiskSpeedResult: Sendable {
+    let writeMBps: Double
+    let readMBps: Double
+    let randomReadIOPS: Double?
+    let timestamp: Date
+}
+
 // MARK: - GPU
 
 struct GPUStats: Sendable {

@@ -7,6 +7,9 @@ struct DiskDetailPanel: View {
     let writeHistory: [Double]
     var hasIOData: Bool = true
 
+    @StateObject private var speedTester = DiskSpeedTester()
+    @State private var speedTestExpanded = false
+
     var body: some View {
         VStack(alignment: .leading, spacing: 10) {
             // Header
@@ -137,6 +140,8 @@ struct DiskDetailPanel: View {
                     driveHealthSection(drive)
                 }
             }
+            Divider()
+            speedTestSection
         }
         .padding(12)
         .frame(width: 260)
@@ -191,6 +196,95 @@ struct DiskDetailPanel: View {
                         healthCell(cells[i + 1].0, cells[i + 1].1)
                     } else {
                         Spacer().frame(maxWidth: .infinity)
+    // MARK: - Speed Test
+
+    private var speedTestSection: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            Button {
+                withAnimation(.easeInOut(duration: 0.15)) { speedTestExpanded.toggle() }
+            } label: {
+                HStack(spacing: 4) {
+                    Image(systemName: "gauge.with.dots.needle.67percent")
+                        .font(.system(size: 10))
+                        .foregroundStyle(.orange)
+                    Text("Speed Test")
+                        .font(.system(size: 11, weight: .medium))
+                    Spacer()
+                    if let r = speedTester.lastResult, !speedTestExpanded {
+                        Text(String(format: "%.0f / %.0f MB/s", r.readMBps, r.writeMBps))
+                            .font(.system(size: 10, design: .monospaced))
+                            .foregroundStyle(.secondary)
+                    }
+                    Image(systemName: speedTestExpanded ? "chevron.down" : "chevron.right")
+                        .font(.system(size: 9))
+                        .foregroundStyle(.secondary)
+                }
+            }
+            .buttonStyle(.plain)
+
+            if speedTestExpanded {
+                speedTestBody
+            }
+        }
+    }
+
+    private var speedTestBody: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            // Location + size picker
+            HStack {
+                Text("Testing: \(speedTester.locationLabel)")
+                    .font(.system(size: 10))
+                    .foregroundStyle(.secondary)
+                Spacer()
+                Picker("", selection: $speedTester.size) {
+                    ForEach(DiskBenchmark.Size.allCases) { size in
+                        Text(size.label).tag(size)
+                    }
+                }
+                .labelsHidden()
+                .controlSize(.mini)
+                .frame(width: 90)
+                .disabled(speedTester.isRunning)
+            }
+
+            // Run / Cancel button + progress
+            if speedTester.isRunning {
+                VStack(alignment: .leading, spacing: 4) {
+                    HStack(spacing: 6) {
+                        ProgressView(value: speedTester.progress)
+                            .progressViewStyle(.linear)
+                        Button("Cancel") { speedTester.cancel() }
+                            .controlSize(.mini)
+                    }
+                    Text(phaseLabel(speedTester.phase))
+                        .font(.system(size: 10))
+                        .foregroundStyle(.secondary)
+                }
+            } else {
+                Button {
+                    speedTester.start()
+                } label: {
+                    Text("Run Test")
+                        .font(.system(size: 11))
+                        .frame(maxWidth: .infinity)
+                }
+                .controlSize(.small)
+            }
+
+            // Last result
+            if let r = speedTester.lastResult {
+                HStack(spacing: 0) {
+                    speedStat(title: "Read", value: r.readMBps, color: .green)
+                    speedStat(title: "Write", value: r.writeMBps, color: .blue)
+                }
+                if let iops = r.randomReadIOPS {
+                    HStack(spacing: 2) {
+                        Text("Random read")
+                            .font(.system(size: 10))
+                            .foregroundStyle(.secondary)
+                        Spacer()
+                        Text(String(format: "%.0f IOPS", iops))
+                            .font(.system(size: 11, design: .monospaced))
                     }
                 }
             }
@@ -230,6 +324,32 @@ struct DiskDetailPanel: View {
                 .foregroundStyle(.secondary)
             Text(value)
                 .font(.system(size: 10, design: .monospaced))
+            // History sparkline
+            if speedTester.history.count > 1 {
+                speedHistoryChart
+            }
+
+            // Auto-run toggle
+            Toggle(isOn: $speedTester.autoRun) {
+                Text("Auto-run every \(speedTester.intervalMinutes) min")
+                    .font(.system(size: 10))
+                    .foregroundStyle(.secondary)
+            }
+            .toggleStyle(.switch)
+            .controlSize(.mini)
+        }
+    }
+
+    private func speedStat(title: String, value: Double, color: Color) -> some View {
+        VStack(alignment: .leading, spacing: 2) {
+            HStack(spacing: 2) {
+                Circle().fill(color).frame(width: 5, height: 5)
+                Text(title)
+                    .font(.system(size: 10))
+                    .foregroundStyle(.secondary)
+            }
+            Text(String(format: "%.0f MB/s", value))
+                .font(.system(size: 11, design: .monospaced))
         }
         .frame(maxWidth: .infinity, alignment: .leading)
     }
@@ -238,6 +358,46 @@ struct DiskDetailPanel: View {
         if life < 10 { return .red }
         if life < 25 { return .orange }
         return .green
+    private var speedHistoryChart: some View {
+        VStack(alignment: .leading, spacing: 4) {
+            Text("History")
+                .font(.system(size: 10))
+                .foregroundStyle(.secondary)
+            Chart {
+                ForEach(Array(speedTester.history.enumerated()), id: \.offset) { i, r in
+                    LineMark(x: .value("T", i), y: .value("Speed", r.readMBps), series: .value("Type", "Read"))
+                        .foregroundStyle(.green)
+                        .lineStyle(StrokeStyle(lineWidth: 1.5))
+                    LineMark(x: .value("T", i), y: .value("Speed", r.writeMBps), series: .value("Type", "Write"))
+                        .foregroundStyle(.blue)
+                        .lineStyle(StrokeStyle(lineWidth: 1.5))
+                }
+            }
+            .chartLegend(.hidden)
+            .chartXAxis(.hidden)
+            .chartYAxis {
+                AxisMarks(position: .trailing) { value in
+                    AxisValueLabel {
+                        if let v = value.as(Double.self) {
+                            Text(String(format: "%.0f", v))
+                                .font(.system(size: 7))
+                        }
+                    }
+                    AxisGridLine(stroke: StrokeStyle(lineWidth: 0.5, dash: [2]))
+                        .foregroundStyle(.quaternary)
+                }
+            }
+            .frame(height: 50)
+        }
+    }
+
+    private func phaseLabel(_ phase: DiskBenchmark.Phase) -> String {
+        switch phase {
+        case .idle: return ""
+        case .writing: return "Writing…"
+        case .reading: return "Reading…"
+        case .randomRead: return "Random read…"
+        }
     }
 
     private var ioChart: some View {
