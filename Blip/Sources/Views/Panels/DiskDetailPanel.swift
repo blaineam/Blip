@@ -129,9 +129,115 @@ struct DiskDetailPanel: View {
                     Divider()
                 }
             }
+
+            // Drive health (S.M.A.R.T.)
+            if !stats.drives.isEmpty {
+                Divider()
+                ForEach(stats.drives) { drive in
+                    driveHealthSection(drive)
+                }
+            }
         }
         .padding(12)
         .frame(width: 260)
+    }
+
+    @ViewBuilder
+    private func driveHealthSection(_ drive: DriveHealth) -> some View {
+        VStack(alignment: .leading, spacing: 6) {
+            HStack(spacing: 4) {
+                Image(systemName: drive.isInternal ? "internaldrive.fill" : "externaldrive.fill")
+                    .font(.system(size: 10))
+                    .foregroundStyle(.secondary)
+                Text(drive.name)
+                    .font(.system(size: 11, weight: .medium))
+                    .lineLimit(1)
+                Spacer()
+                Text(drive.medium)
+                    .font(.system(size: 9))
+                    .foregroundStyle(.secondary)
+            }
+
+            // Life remaining (the headline metric)
+            if let life = drive.lifeRemaining {
+                VStack(alignment: .leading, spacing: 3) {
+                    HStack {
+                        Text("Life Remaining")
+                            .font(.system(size: 10))
+                            .foregroundStyle(.secondary)
+                        Spacer()
+                        Text("\(life)%")
+                            .font(.system(size: 11, weight: .semibold, design: .monospaced))
+                            .foregroundStyle(lifeColor(life))
+                    }
+                    GeometryReader { geo in
+                        ZStack(alignment: .leading) {
+                            RoundedRectangle(cornerRadius: 3).fill(Color.green.opacity(0.1))
+                            RoundedRectangle(cornerRadius: 3)
+                                .fill(lifeColor(life))
+                                .frame(width: geo.size.width * min(Double(life) / 100, 1))
+                        }
+                    }
+                    .frame(height: 8)
+                }
+            }
+
+            // Detail grid
+            let cells = healthCells(drive)
+            ForEach(Array(stride(from: 0, to: cells.count, by: 2)), id: \.self) { i in
+                HStack(spacing: 0) {
+                    healthCell(cells[i].0, cells[i].1)
+                    if i + 1 < cells.count {
+                        healthCell(cells[i + 1].0, cells[i + 1].1)
+                    } else {
+                        Spacer().frame(maxWidth: .infinity)
+                    }
+                }
+            }
+
+            if !drive.isHealthy {
+                HStack(spacing: 3) {
+                    Image(systemName: "exclamationmark.triangle.fill")
+                        .font(.system(size: 9))
+                        .foregroundStyle(.red)
+                    Text("S.M.A.R.T. warning")
+                        .font(.system(size: 10))
+                        .foregroundStyle(.red)
+                }
+            }
+        }
+        .padding(.vertical, 2)
+    }
+
+    /// Builds the (label, value) pairs that are available for this drive.
+    private func healthCells(_ drive: DriveHealth) -> [(String, String)] {
+        var cells: [(String, String)] = []
+        if let used = drive.percentageUsed { cells.append(("Used", "\(used)%")) }
+        if let spare = drive.availableSpare { cells.append(("Spare", "\(spare)%")) }
+        if let temp = drive.temperatureCelsius { cells.append(("Temp", "\(temp)°C")) }
+        if let written = drive.bytesWritten { cells.append(("Written", Fmt.totalBytes(written))) }
+        if let read = drive.bytesRead { cells.append(("Read", Fmt.totalBytes(read))) }
+        if let hours = drive.powerOnHours { cells.append(("Power On", "\(hours) h")) }
+        if let cycles = drive.powerCycles { cells.append(("Cycles", "\(cycles)")) }
+        if let unsafe = drive.unsafeShutdowns { cells.append(("Unsafe Off", "\(unsafe)")) }
+        return cells
+    }
+
+    private func healthCell(_ label: String, _ value: String) -> some View {
+        VStack(alignment: .leading, spacing: 1) {
+            Text(label)
+                .font(.system(size: 9))
+                .foregroundStyle(.secondary)
+            Text(value)
+                .font(.system(size: 10, design: .monospaced))
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
+    }
+
+    private func lifeColor(_ life: Int) -> Color {
+        if life < 10 { return .red }
+        if life < 25 { return .orange }
+        return .green
     }
 
     private var ioChart: some View {

@@ -25,8 +25,8 @@ Existing system monitors are either bloated, expensive, or missing key features.
 |----------|----------|-------------|
 | **CPU** | Usage bar + percentage | Per-core bars, user/system/idle split, load averages (1m/5m/15m), P-core and E-core counts, top processes with accurate delta-based CPU and app icons |
 | **Memory** | Usage bar + percentage | Total memory, active/wired/compressed/app breakdown, swap usage, memory pressure (factors in swap), top processes with accurate `phys_footprint` memory and app icons |
-| **Disk** | Usage bar + percentage | All mounted volumes with space used/free, real-time read/write speeds, total data read/written since boot, I/O history chart with Y-axis labels |
-| **Network** | Connectivity dot | Upload/download speeds, total bytes up/down since boot, WAN and router ping latency (configurable target), bandwidth history chart with Y-axis labels, all active interfaces (Wi-Fi + Ethernet), IPv4/IPv6, LAN IP, router IP, MAC address, WAN IP reveal, VPN detection (Tailscale, WireGuard), click-to-copy addresses |
+| **Disk** | Usage bar + percentage | All mounted volumes with space used/free, real-time read/write speeds, total data read/written since boot, I/O history chart with Y-axis labels, **S.M.A.R.T. drive health** — SSD life remaining, available spare, drive temperature, lifetime bytes written/read, power-on hours, power cycles, unsafe shutdowns (NVMe health log, internal + NVMe enclosures) |
+| **Network** | Connectivity dot | Upload/download speeds, accurate session totals up/down (64-bit, wrap-corrected), WAN and router ping latency (configurable target), bandwidth history chart with Y-axis labels, all active interfaces (Wi-Fi + Ethernet), IPv4/IPv6, LAN IP, router IP, MAC address, WAN IP reveal, VPN detection (Tailscale, WireGuard), click-to-copy addresses |
 | **GPU** | — | Apple Silicon GPU utilization, renderer name, GPU core count, historical usage chart |
 | **Battery** | — | Charge %, health %, cycle count, temperature, time remaining, charging status |
 | **Fans** | — | RPM per fan with min/max range bars, CPU and GPU temperatures |

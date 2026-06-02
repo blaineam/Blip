@@ -7,8 +7,14 @@ final class NetworkMonitor: @unchecked Sendable {
     private let pathMonitor = NWPathMonitor()
     private let monitorQueue = DispatchQueue(label: "com.blainemiller.Blip.network", qos: .utility)
     private var _isConnected = false
-    private var previousBytesIn: UInt64 = 0
-    private var previousBytesOut: UInt64 = 0
+    // Per-interface last-seen 32-bit byte counters (kernel exposes only u_int32_t
+    // counters that wrap every 4 GiB), plus 64-bit running totals we accumulate from
+    // wrap-aware deltas. This is robust across macOS versions, unlike parsing the
+    // routing-socket if_data64 struct whose layout shifts between releases.
+    private var perIfLastIn: [String: UInt64] = [:]
+    private var perIfLastOut: [String: UInt64] = [:]
+    private var accumulatedIn: UInt64 = 0
+    private var accumulatedOut: UInt64 = 0
     private var previousTimestamp: Date?
     private var lastPing: Double?
     private var lastRouterPing: Double?
@@ -37,14 +43,16 @@ final class NetworkMonitor: @unchecked Sendable {
         guard getifaddrs(&ifaddr) == 0, let firstAddr = ifaddr else { return stats }
         defer { freeifaddrs(ifaddr) }
 
-        var totalBytesIn: UInt64 = 0
-        var totalBytesOut: UInt64 = 0
         var activeMacInterfaces = Set<String>()
         // Collect per-interface data for multi-interface display
         var ifIPv4: [String: String] = [:]
         var ifIPv6: [String: String] = [:]
         var ifMAC: [String: String] = [:]
         var ifHasIP: Set<String> = []
+        // Current 32-bit byte counters per physical interface (en*), used to derive
+        // wrap-aware deltas below. Loopback and VPN tunnels are intentionally excluded.
+        var curIn: [String: UInt64] = [:]
+        var curOut: [String: UInt64] = [:]
 
         var current = firstAddr
         while true {
@@ -113,20 +121,11 @@ final class NetworkMonitor: @unchecked Sendable {
                         }
                     }
 
-                    // Also collect byte counters
+                    // Capture this interface's 32-bit byte counters for delta tracking.
                     if let networkData = interface.ifa_data {
                         let ifData = networkData.assumingMemoryBound(to: if_data.self).pointee
-                        totalBytesIn += UInt64(ifData.ifi_ibytes)
-                        totalBytesOut += UInt64(ifData.ifi_obytes)
-                    }
-                }
-
-                // Loopback counters
-                if family == UInt8(AF_LINK) && name.hasPrefix("lo") {
-                    if let networkData = interface.ifa_data {
-                        let ifData = networkData.assumingMemoryBound(to: if_data.self).pointee
-                        totalBytesIn += UInt64(ifData.ifi_ibytes)
-                        totalBytesOut += UInt64(ifData.ifi_obytes)
+                        curIn[name] = UInt64(ifData.ifi_ibytes)
+                        curOut[name] = UInt64(ifData.ifi_obytes)
                     }
                 }
             }
@@ -135,9 +134,33 @@ final class NetworkMonitor: @unchecked Sendable {
             current = next
         }
 
-        // Expose cumulative totals since boot
-        stats.totalBytesDownloaded = totalBytesIn
-        stats.totalBytesUploaded = totalBytesOut
+        // Accumulate wrap-aware deltas into 64-bit running totals. The kernel only
+        // exposes 32-bit byte counters (via getifaddrs or the routing socket) that
+        // wrap every 4 GiB, so reporting them raw made totals a tiny fraction of
+        // reality once an interface had moved >4 GiB since boot. By summing positive
+        // per-interface deltas each poll we get accurate totals for all traffic seen
+        // while Blip is running, independent of macOS struct-layout changes.
+        let wrap: UInt64 = 1 << 32
+        var deltaIn: UInt64 = 0
+        var deltaOut: UInt64 = 0
+        for (ifName, cur) in curIn {
+            if let last = perIfLastIn[ifName] {
+                deltaIn += cur >= last ? (cur - last) : (wrap - last + cur)
+            }
+            perIfLastIn[ifName] = cur
+        }
+        for (ifName, cur) in curOut {
+            if let last = perIfLastOut[ifName] {
+                deltaOut += cur >= last ? (cur - last) : (wrap - last + cur)
+            }
+            perIfLastOut[ifName] = cur
+        }
+        accumulatedIn &+= deltaIn
+        accumulatedOut &+= deltaOut
+
+        // Expose cumulative totals for traffic seen since Blip started.
+        stats.totalBytesDownloaded = accumulatedIn
+        stats.totalBytesUploaded = accumulatedOut
 
         // Build interface list for all active en* interfaces with IPs
         stats.interfaces = ifHasIP.sorted().map { ifName in
@@ -159,21 +182,16 @@ final class NetworkMonitor: @unchecked Sendable {
         }
         stats.routerIP = cachedGateway ?? "—"
 
-        // Calculate speed from delta
+        // Calculate speed from this poll's delta. Skip the first poll (no baseline yet)
+        // so a freshly seeded interface doesn't register a spurious spike.
         let now = Date()
         if let prev = previousTimestamp {
             let interval = now.timeIntervalSince(prev)
             if interval > 0 {
-                stats.downloadSpeed = totalBytesIn > previousBytesIn
-                    ? UInt64(Double(totalBytesIn - previousBytesIn) / interval)
-                    : 0
-                stats.uploadSpeed = totalBytesOut > previousBytesOut
-                    ? UInt64(Double(totalBytesOut - previousBytesOut) / interval)
-                    : 0
+                stats.downloadSpeed = UInt64(Double(deltaIn) / interval)
+                stats.uploadSpeed = UInt64(Double(deltaOut) / interval)
             }
         }
-        previousBytesIn = totalBytesIn
-        previousBytesOut = totalBytesOut
         previousTimestamp = now
 
         // Measure pings every 5th poll (~10 seconds) to avoid spamming

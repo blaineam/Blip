@@ -148,6 +148,30 @@ final class SystemMonitor: ObservableObject {
                 disk.smartStatus = h.smartStatus
             }
 
+            // Per-drive S.M.A.R.T. health (NVMe health log via the helper)
+            if disk.drives.isEmpty, let helperDrives = h.drives, !helperDrives.isEmpty {
+                disk.drives = helperDrives.map {
+                    DriveHealth(
+                        name: $0.name,
+                        bsdName: $0.bsdName,
+                        isInternal: $0.isInternal,
+                        medium: $0.medium,
+                        smartStatus: $0.smartStatus,
+                        percentageUsed: $0.percentageUsed,
+                        availableSpare: $0.availableSpare,
+                        availableSpareThreshold: $0.availableSpareThreshold,
+                        temperatureCelsius: $0.temperatureCelsius,
+                        bytesWritten: $0.bytesWritten,
+                        bytesRead: $0.bytesRead,
+                        powerOnHours: $0.powerOnHours,
+                        powerCycles: $0.powerCycles,
+                        unsafeShutdowns: $0.unsafeShutdowns,
+                        mediaErrors: $0.mediaErrors,
+                        criticalWarning: $0.criticalWarning
+                    )
+                }
+            }
+
             // Battery health: use helper if in-process returned defaults
             if battery.health == 0 { battery.health = h.batteryHealth ?? 0 }
             if battery.cycleCount == 0 { battery.cycleCount = h.batteryCycleCount ?? 0 }

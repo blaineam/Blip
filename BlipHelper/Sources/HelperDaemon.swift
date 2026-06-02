@@ -21,6 +21,10 @@ final class HelperDaemon: @unchecked Sendable {
 
     private var cachedSmartStatus: String?
 
+    // Drive health (S.M.A.R.T.) changes slowly; refresh on an interval instead of every poll.
+    private var cachedDrives: [HelperDriveHealth] = []
+    private var drivePollCount = 0
+
     private let iconCache = NSCache<NSNumber, NSData>()
 
     private var cachedModelName: String?
@@ -39,6 +43,12 @@ final class HelperDaemon: @unchecked Sendable {
         let battery = readBatteryHealth()
         let procs = readProcesses()
 
+        // S.M.A.R.T. drive health — refresh every ~30 polls (~60s); seed on first poll.
+        if cachedDrives.isEmpty || drivePollCount % 30 == 0 {
+            cachedDrives = readDriveHealth()
+        }
+        drivePollCount += 1
+
         return HelperSnapshot(
             fans: fans,
             cpuTemperature: temps.cpu,
@@ -49,6 +59,7 @@ final class HelperDaemon: @unchecked Sendable {
             diskTotalBytesRead: diskIO.totalRead,
             diskTotalBytesWritten: diskIO.totalWrite,
             smartStatus: readSmartStatus(),
+            drives: cachedDrives,
             batteryHealth: battery.health,
             batteryCycleCount: battery.cycleCount,
             batteryCondition: battery.condition,
@@ -224,6 +235,156 @@ final class HelperDaemon: @unchecked Sendable {
             }
         } catch {}
         return ""
+    }
+
+    // MARK: - Drive Health (S.M.A.R.T. via IOKit user clients)
+
+    // CFUUIDs identifying the IOKit plug-in and NVMe SMART interface. Computed (not
+    // stored) so they stay concurrency-safe; CFUUIDGetConstantUUIDWithBytes returns a
+    // cached singleton, so this is cheap.
+    // kIOCFPlugInInterfaceID — not exposed to Swift as a macro.
+    private static var plugInInterfaceID: CFUUID {
+        CFUUIDGetConstantUUIDWithBytes(nil,
+            0xC2, 0x44, 0xE8, 0x58, 0x10, 0x9C, 0x11, 0xD4, 0x91, 0xD4, 0x00, 0x50, 0xE4, 0xC6, 0x42, 0x6F)
+    }
+    // kIONVMeSMARTUserClientTypeID
+    private static var nvmeSMARTTypeID: CFUUID {
+        CFUUIDGetConstantUUIDWithBytes(nil,
+            0xAA, 0x0F, 0xA6, 0xF9, 0xC2, 0xD6, 0x45, 0x7F, 0xB1, 0x0B, 0x59, 0xA1, 0x32, 0x53, 0x29, 0x2F)
+    }
+    // kIONVMeSMARTInterfaceID
+    private static var nvmeSMARTInterfaceID: CFUUID {
+        CFUUIDGetConstantUUIDWithBytes(nil,
+            0xCC, 0xD1, 0xDB, 0x19, 0xFD, 0x9A, 0x4D, 0xAF, 0xBF, 0x95, 0x12, 0x45, 0x4B, 0x23, 0x0A, 0xB6)
+    }
+
+    /// Enumerates physical block-storage devices and reads S.M.A.R.T. health for any
+    /// that expose the NVMe SMART user client (internal Apple SSD and most NVMe
+    /// enclosures). Works unprivileged — Apple publishes the user client in the
+    /// IORegistry, so no root/admin is required.
+    private func readDriveHealth() -> [HelperDriveHealth] {
+        var drives: [HelperDriveHealth] = []
+        var iterator: io_iterator_t = 0
+        guard IOServiceGetMatchingServices(kIOMainPortDefault,
+                                           IOServiceMatching("IOBlockStorageDevice"),
+                                           &iterator) == KERN_SUCCESS else { return drives }
+        defer { IOObjectRelease(iterator) }
+
+        var entry = IOIteratorNext(iterator)
+        while entry != 0 {
+            defer { IOObjectRelease(entry); entry = IOIteratorNext(iterator) }
+
+            var props: Unmanaged<CFMutableDictionary>?
+            guard IORegistryEntryCreateCFProperties(entry, &props, kCFAllocatorDefault, 0) == KERN_SUCCESS,
+                  let dict = props?.takeRetainedValue() as? [String: Any] else { continue }
+
+            let deviceChars = dict["Device Characteristics"] as? [String: Any]
+            let protocolChars = dict["Protocol Characteristics"] as? [String: Any]
+
+            let name = (deviceChars?["Product Name"] as? String)?
+                .trimmingCharacters(in: .whitespaces) ?? "Drive"
+            let medium = deviceChars?["Medium Type"] as? String ?? ""
+            let location = protocolChars?["Physical Interconnect Location"] as? String ?? ""
+            let interconnect = protocolChars?["Physical Interconnect"] as? String ?? ""
+            let bsdName = dict["BSD Name"] as? String ?? ""
+            let isInternal = location.localizedCaseInsensitiveContains("internal")
+
+            // Skip synthesized/virtual disk images.
+            if interconnect.localizedCaseInsensitiveContains("Virtual") { continue }
+
+            let nvmeCapable = (dict["NVMe SMART Capable"] as? Bool) ?? false
+            guard nvmeCapable else { continue }   // NVMe path only (covers internal + NVMe enclosures)
+
+            var health = HelperDriveHealth(
+                name: name.isEmpty ? "Drive" : name,
+                bsdName: bsdName,
+                isInternal: isInternal,
+                medium: interconnect.isEmpty ? (medium.isEmpty ? "NVMe" : medium) : interconnect,
+                smartStatus: ""
+            )
+
+            if let log = readNVMeSMARTLog(service: entry) {
+                health.percentageUsed = Int(log.percentUsed)
+                health.availableSpare = Int(log.availableSpare)
+                health.availableSpareThreshold = Int(log.spareThreshold)
+                health.temperatureCelsius = Int(log.temperatureKelvin) - 273
+                health.dataUnitsWritten = log.dataUnitsWritten
+                health.dataUnitsRead = log.dataUnitsRead
+                health.powerOnHours = log.powerOnHours
+                health.powerCycles = log.powerCycles
+                health.unsafeShutdowns = log.unsafeShutdowns
+                health.mediaErrors = log.mediaErrors
+                health.criticalWarning = Int(log.criticalWarning)
+                health.smartStatus = log.criticalWarning == 0 ? "Verified" : "Failing"
+            }
+
+            drives.append(health)
+        }
+        return drives
+    }
+
+    /// Parsed fields from the NVMe SMART/Health Information log (log page 0x02).
+    private struct NVMeSMARTLog {
+        var criticalWarning: UInt8
+        var temperatureKelvin: UInt16
+        var availableSpare: UInt8
+        var spareThreshold: UInt8
+        var percentUsed: UInt8
+        var dataUnitsRead: UInt64
+        var dataUnitsWritten: UInt64
+        var powerCycles: UInt64
+        var powerOnHours: UInt64
+        var unsafeShutdowns: UInt64
+        var mediaErrors: UInt64
+    }
+
+    /// Reads the 512-byte NVMe SMART/Health log via the IONVMeSMARTUserClient plug-in.
+    /// The interface vtable is `IUNKNOWN_C_GUTS` + `UInt16 version`/`revision` +
+    /// `SMARTReadData(self, buffer)`, so SMARTReadData sits at vtable byte offset 40.
+    private func readNVMeSMARTLog(service: io_service_t) -> NVMeSMARTLog? {
+        var plugin: UnsafeMutablePointer<UnsafeMutablePointer<IOCFPlugInInterface>?>?
+        var score: Int32 = 0
+        guard IOCreatePlugInInterfaceForService(service, Self.nvmeSMARTTypeID,
+                                                Self.plugInInterfaceID, &plugin, &score) == KERN_SUCCESS,
+              let plugin, let pluginVtbl = plugin.pointee?.pointee else { return nil }
+        defer { _ = IODestroyPlugInInterface(plugin) }
+
+        var ifaceRaw: LPVOID?
+        let hr = pluginVtbl.QueryInterface(plugin, CFUUIDGetUUIDBytes(Self.nvmeSMARTInterfaceID), &ifaceRaw)
+        guard hr == S_OK, let ifaceRaw else { return nil }
+
+        // ifaceRaw -> pointer to (pointer to vtable). Pull function pointers by raw offset
+        // since the IONVMeSMARTInterface struct isn't bridged into Swift.
+        let ifacePtr = ifaceRaw.assumingMemoryBound(to: UnsafeMutableRawPointer?.self)
+        guard let vtable = ifacePtr.pointee else { return nil }
+
+        typealias ReadFn = @convention(c) (UnsafeMutableRawPointer?, UnsafeMutableRawPointer?) -> IOReturn
+        typealias ReleaseFn = @convention(c) (UnsafeMutableRawPointer?) -> UInt32
+        let ptrSize = MemoryLayout<UnsafeRawPointer>.size
+        let readData = vtable.load(fromByteOffset: 5 * ptrSize, as: ReadFn.self)   // SMARTReadData
+        let release = vtable.load(fromByteOffset: 3 * ptrSize, as: ReleaseFn.self) // IUnknown::Release
+        defer { _ = release(ifaceRaw) }
+
+        var buffer = [UInt8](repeating: 0, count: 512)
+        let result = buffer.withUnsafeMutableBytes { readData(ifaceRaw, $0.baseAddress) }
+        guard result == kIOReturnSuccess else { return nil }
+
+        return buffer.withUnsafeBytes { raw -> NVMeSMARTLog in
+            func u64(_ off: Int) -> UInt64 { raw.loadUnaligned(fromByteOffset: off, as: UInt64.self) }
+            return NVMeSMARTLog(
+                criticalWarning: raw[0],
+                temperatureKelvin: raw.loadUnaligned(fromByteOffset: 1, as: UInt16.self),
+                availableSpare: raw[3],
+                spareThreshold: raw[4],
+                percentUsed: raw[5],
+                dataUnitsRead: u64(32),
+                dataUnitsWritten: u64(48),
+                powerCycles: u64(112),
+                powerOnHours: u64(128),
+                unsafeShutdowns: u64(144),
+                mediaErrors: u64(160)
+            )
+        }
     }
 
     // MARK: - Battery Health (via IOKit registry)

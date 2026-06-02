@@ -1,5 +1,13 @@
 # Changelog
 
+## v1.4.8
+
+### Features
+- **S.M.A.R.T. drive health monitoring** — the Disk detail panel now shows physical-drive health read from the NVMe SMART/Health log: **SSD life remaining %** (with a colored bar), percentage used, available spare, drive temperature, lifetime data written/read, power-on hours, power cycles, and unsafe shutdowns, plus a warning badge if the drive reports a S.M.A.R.T. critical condition. Read unprivileged via the `IONVMeSMARTUserClient` plug-in (`HelperDaemon.readDriveHealth`), so it works for the internal Apple SSD and external NVMe enclosures without root. Refreshed once a minute. Plumbed through `HelperSnapshot.drives` → `DiskStats.drives` → `DiskDetailPanel`
+
+### Fixes
+- **Network totals now accurate** — cumulative upload/download totals were reading the kernel's 32-bit `if_data` byte counters (`ifi_ibytes`/`ifi_obytes`), which wrap every 4 GiB, so totals collapsed to a tiny fraction of real usage once an interface had moved more than 4 GiB since boot. `NetworkMonitor` now accumulates wrap-aware per-interface deltas into 64-bit running totals, giving correct totals for all traffic seen while Blip is running. Loopback is no longer counted toward network totals. (The routing-socket `if_data64` struct was evaluated but its layout shifts between macOS releases and doesn't carry the 64-bit byte counts reliably, so delta-accumulation is used as the version-independent approach.)
+
 ## v1.4.7
 
 ### Icon

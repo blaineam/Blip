@@ -59,6 +59,10 @@ struct HelperSnapshot: Codable, Sendable {
     var diskTotalBytesWritten: UInt64
     var smartStatus: String
 
+    // Per-drive S.M.A.R.T. / health (NVMe health log via IONVMeSMARTUserClient).
+    // Optional for IPC resilience if an older helper build is still running.
+    var drives: [HelperDriveHealth]?
+
     // Battery health details (basic charge/state available, health needs IOKit registry)
     var batteryHealth: Double?
     var batteryCycleCount: Int?
@@ -73,6 +77,46 @@ struct HelperSnapshot: Codable, Sendable {
     var macModelName: String?
 
     var timestamp: Date
+}
+
+/// S.M.A.R.T. / health data for a single physical drive.
+/// NVMe fields come from the NVMe SMART/Health Information log (log page 0x02).
+struct HelperDriveHealth: Codable, Sendable {
+    var name: String          // product name, e.g. "APPLE SSD AP4096Z"
+    var bsdName: String       // e.g. "disk0"
+    var isInternal: Bool
+    var medium: String        // "NVMe", "ATA", etc.
+    var smartStatus: String   // "Verified", "Failing", or "" if unknown
+
+    // NVMe SMART/Health log fields (nil when not applicable/available)
+    var percentageUsed: Int?          // 0…100+; life remaining ≈ 100 − this
+    var availableSpare: Int?          // percent
+    var availableSpareThreshold: Int? // percent
+    var temperatureCelsius: Int?
+    var dataUnitsWritten: UInt64?     // NVMe units; bytes ≈ units × 512000
+    var dataUnitsRead: UInt64?
+    var powerOnHours: UInt64?
+    var powerCycles: UInt64?
+    var unsafeShutdowns: UInt64?
+    var mediaErrors: UInt64?
+    var criticalWarning: Int?         // bitfield; 0 = healthy
+
+    /// Estimated remaining endurance as a percentage (100 = new), or nil if unknown.
+    var lifeRemaining: Int? {
+        guard let used = percentageUsed else { return nil }
+        return max(0, 100 - used)
+    }
+
+    /// Bytes written over the drive's lifetime, derived from NVMe data units.
+    var bytesWritten: UInt64? {
+        guard let u = dataUnitsWritten else { return nil }
+        return u &* 512_000
+    }
+
+    var bytesRead: UInt64? {
+        guard let u = dataUnitsRead else { return nil }
+        return u &* 512_000
+    }
 }
 
 struct HelperFan: Codable, Sendable {

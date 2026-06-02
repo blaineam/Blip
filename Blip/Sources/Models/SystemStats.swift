@@ -52,11 +52,41 @@ struct DiskStats: Sendable {
     var totalBytesRead: UInt64 = 0
     var totalBytesWritten: UInt64 = 0
     var smartStatus: String = ""
+    var drives: [DriveHealth] = []
 
     var primaryUsagePercent: Double {
         guard let primary = volumes.first else { return 0 }
         return primary.usagePercent
     }
+}
+
+/// S.M.A.R.T. / health for a physical drive (sourced from the helper's NVMe health log).
+struct DriveHealth: Identifiable, Sendable {
+    var id: String { bsdName.isEmpty ? name : bsdName }
+    let name: String
+    let bsdName: String
+    let isInternal: Bool
+    let medium: String
+    let smartStatus: String
+    let percentageUsed: Int?
+    let availableSpare: Int?
+    let availableSpareThreshold: Int?
+    let temperatureCelsius: Int?
+    let bytesWritten: UInt64?
+    let bytesRead: UInt64?
+    let powerOnHours: UInt64?
+    let powerCycles: UInt64?
+    let unsafeShutdowns: UInt64?
+    let mediaErrors: UInt64?
+    let criticalWarning: Int?
+
+    /// Estimated remaining endurance (100 = new), or nil if unknown.
+    var lifeRemaining: Int? {
+        guard let used = percentageUsed else { return nil }
+        return max(0, 100 - used)
+    }
+
+    var isHealthy: Bool { (criticalWarning ?? 0) == 0 }
 }
 
 struct VolumeInfo: Identifiable, Sendable {
