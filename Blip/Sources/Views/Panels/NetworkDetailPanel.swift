@@ -958,6 +958,9 @@ struct TracerouteMapView: View {
     @State private var geoHops: [GeoHop] = []
     @State private var revealCount = 0
     @State private var camera: MapCameraPosition = .automatic
+    /// Whether the camera has been framed for the current route. We frame once (gently)
+    /// and then leave the camera alone so the map doesn't lurch in/out on every update.
+    @State private var framed = false
 
     private var revealed: [GeoHop] { Array(geoHops.prefix(revealCount)) }
     private var hopsKey: String { hops.map { "\($0.hop):\($0.host)" }.joined(separator: ",") }
@@ -1006,23 +1009,52 @@ struct TracerouteMapView: View {
                 result.append(GeoHop(id: hop.hop, ip: hop.host, coordinate: g.coord, label: g.label))
             }
         }
-        if result != geoHops { geoHops = result }
+        if result == geoHops { return }   // nothing changed — don't re-animate
+
+        // Is this the same route just getting longer, or a brand-new run? Only reset the
+        // framing/reveal for a new run; an extension keeps the camera and revealed hops.
+        let isExtension = !geoHops.isEmpty && result.count >= geoHops.count
+            && Array(result.prefix(geoHops.count)) == geoHops
+        geoHops = result
+        if !isExtension {
+            framed = false
+            revealCount = 0
+        }
         await revealRoute()
     }
 
-    /// Reveal hops one at a time so the route visibly travels across the map. Runs in
-    /// the view's `.task`, so it cancels automatically when the panel/section goes away.
+    /// Frame the whole route ONCE (a single gentle move), then reveal the hops/line
+    /// progressively while the camera stays put — no disorienting zoom on every update.
     private func revealRoute() async {
-        revealCount = min(1, geoHops.count)
-        camera = .automatic
-        while revealCount < geoHops.count {
-            try? await Task.sleep(nanoseconds: 600_000_000)
-            if Task.isCancelled { return }
-            withAnimation(.easeInOut(duration: 0.5)) {
-                revealCount += 1
-                camera = .automatic
+        guard !geoHops.isEmpty else { return }
+        if !framed {
+            framed = true
+            withAnimation(.easeInOut(duration: 0.7)) {
+                camera = .region(Self.region(for: geoHops))
             }
         }
+        if revealCount < 1 { revealCount = 1 }
+        while revealCount < geoHops.count {
+            try? await Task.sleep(nanoseconds: 450_000_000)
+            if Task.isCancelled { return }
+            withAnimation(.easeInOut(duration: 0.4)) { revealCount += 1 }   // camera untouched
+        }
+    }
+
+    /// A region that comfortably contains all hops (with generous padding so later hops
+    /// usually stay in view without re-framing).
+    private static func region(for hops: [GeoHop]) -> MKCoordinateRegion {
+        let lats = hops.map(\.coordinate.latitude)
+        let lons = hops.map(\.coordinate.longitude)
+        guard let minLat = lats.min(), let maxLat = lats.max(),
+              let minLon = lons.min(), let maxLon = lons.max() else {
+            return MKCoordinateRegion(.world)
+        }
+        let center = CLLocationCoordinate2D(latitude: (minLat + maxLat) / 2,
+                                            longitude: (minLon + maxLon) / 2)
+        let span = MKCoordinateSpan(latitudeDelta: max(2, (maxLat - minLat) * 1.6),
+                                    longitudeDelta: max(2, (maxLon - minLon) * 1.6))
+        return MKCoordinateRegion(center: center, span: span)
     }
 }
 
