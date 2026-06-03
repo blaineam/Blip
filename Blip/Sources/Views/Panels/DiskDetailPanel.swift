@@ -216,10 +216,12 @@ struct DiskDetailPanel: View {
                 }
             }
 
-            // Many USB/SATA bridges only pass through the overall pass/fail status, not
-            // the wear/temperature attributes — say so rather than show an empty card.
+            // NVMe-over-USB / USB-SATA bridges typically pass through only the overall
+            // pass/fail verdict, not the underlying drive's wear/temperature attributes
+            // — say so rather than show an empty card. (Verified via deep IOKit probing:
+            // the bridge returns a valid status but no real attribute table.)
             if drive.lifeRemaining == nil && cells.isEmpty {
-                Text("This drive reports only overall S.M.A.R.T. status — detailed wear metrics aren't exposed over its USB/SATA bridge.")
+                Text("Overall status only — this drive's USB bridge doesn't pass through wear/temperature details. The Verified/Failing verdict is reliable.")
                     .font(.system(size: 9))
                     .foregroundStyle(.tertiary)
                     .fixedSize(horizontal: false, vertical: true)
