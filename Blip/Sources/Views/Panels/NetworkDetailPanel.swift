@@ -1023,14 +1023,20 @@ struct TracerouteMapView: View {
         if Task.isCancelled { return }
         guard built != geoHops else { return }
 
-        // A brand-new run (not an extension of the current route) re-arms the one-time frame.
-        let isExtension = !geoHops.isEmpty && built.count >= geoHops.count
-            && Array(built.prefix(geoHops.count)) == geoHops
-        if !isExtension { didFrame = false }
-        geoHops = built
+        if built.isEmpty {
+            // The route was cleared (a new traceroute is starting) — re-arm the one-time
+            // framing for the next route. This is the ONLY thing that re-enables framing.
+            geoHops = []
+            didFrame = false
+            return
+        }
 
-        if !didFrame, !built.isEmpty {
-            camera = .region(Self.region(for: built))   // set before the Map appears → framed, no 0,0
+        geoHops = built
+        if !didFrame {
+            // Frame exactly once, before the map is revealed. After this the camera is
+            // never touched again — the user pans/zooms and stays fully in control, even
+            // as the live traceroute keeps refining hops.
+            camera = .region(Self.region(for: built))
             didFrame = true
         }
     }
