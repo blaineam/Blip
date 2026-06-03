@@ -61,6 +61,14 @@ targets:
         GENERATE_INFOPLIST_FILE: NO
         COMBINE_HIDPI_IMAGES: YES
         SWIFT_ACTIVE_COMPILATION_CONDITIONS: APPSTORE
+      configs:
+        # App Store archives use automatic signing authenticated by the ASC API
+        # key (see Scripts/asc-upload.sh) so xcodebuild can create the team's
+        # development cert + provisioning profile headlessly. Override the global
+        # base CODE_SIGN_IDENTITY "-" (ad-hoc) — automatic dev signing needs
+        # "Apple Development"; the export step re-signs for distribution.
+        Release:
+          CODE_SIGN_IDENTITY: "Apple Development"
     frameworks:
       - sdk: IOKit.framework
 
