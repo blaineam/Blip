@@ -4,5 +4,9 @@
 <dict>
     <key>com.apple.security.app-sandbox</key>
     <false/>
+    <!-- Allow loading third-party IOKit plug-ins (e.g. SATSMARTLib.plugin for external
+         USB/SATA drive S.M.A.R.T.) under the hardened runtime's library validation. -->
+    <key>com.apple.security.cs.disable-library-validation</key>
+    <true/>
 </dict>
 </plist>
