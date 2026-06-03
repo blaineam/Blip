@@ -1035,21 +1035,46 @@ struct TracerouteMapView: View {
         }
     }
 
-    /// A region that comfortably contains all hops, zoomed out with generous padding.
+    /// A region centered on the bulk of the hops, zoomed out. Uses a circular mean for
+    /// longitude (so a route crossing the antimeridian doesn't average into the Atlantic)
+    /// and drops far outliers — e.g. an anycast destination like 1.1.1.1 that geolocates
+    /// to the wrong continent — so they can't drag the frame into the ocean off Africa.
     private static func region(for hops: [GeoHop]) -> MKCoordinateRegion {
-        let lats = hops.map(\.coordinate.latitude)
-        let lons = hops.map(\.coordinate.longitude)
-        guard let minLat = lats.min(), let maxLat = lats.max(),
-              let minLon = lons.min(), let maxLon = lons.max() else {
-            return MKCoordinateRegion(.world)
+        guard !hops.isEmpty else { return MKCoordinateRegion(.world) }
+        let initial = meanCenter(hops)
+        var core = hops.filter {
+            abs($0.coordinate.latitude - initial.latitude) <= 45
+                && abs(lonDiff($0.coordinate.longitude, initial.longitude)) <= 60
         }
-        let center = CLLocationCoordinate2D(latitude: (minLat + maxLat) / 2,
-                                            longitude: (minLon + maxLon) / 2)
-        // Generous padding + a sizable minimum span so it reads as "zoomed out" even
-        // when the located hops cluster in one region.
-        let span = MKCoordinateSpan(latitudeDelta: max(8, (maxLat - minLat) * 1.7),
-                                    longitudeDelta: max(8, (maxLon - minLon) * 1.7))
+        if core.isEmpty { core = hops }
+
+        let center = meanCenter(core)
+        let lats = core.map(\.coordinate.latitude)
+        let latSpread = (lats.max() ?? center.latitude) - (lats.min() ?? center.latitude)
+        let lonSpread = (core.map { abs(lonDiff($0.coordinate.longitude, center.longitude)) }.max() ?? 0) * 2
+        let span = MKCoordinateSpan(
+            latitudeDelta: min(120, max(8, latSpread * 1.6)),
+            longitudeDelta: min(160, max(8, lonSpread * 1.6))
+        )
         return MKCoordinateRegion(center: center, span: span)
+    }
+
+    /// Mean coordinate with a circular mean for longitude (antimeridian-safe).
+    private static func meanCenter(_ hops: [GeoHop]) -> CLLocationCoordinate2D {
+        let lat = hops.map(\.coordinate.latitude).reduce(0, +) / Double(hops.count)
+        let lonRad = hops.map { $0.coordinate.longitude * .pi / 180 }
+        let x = lonRad.map(cos).reduce(0, +)
+        let y = lonRad.map(sin).reduce(0, +)
+        let lon = (abs(x) < 1e-9 && abs(y) < 1e-9) ? 0 : atan2(y, x) * 180 / .pi
+        return CLLocationCoordinate2D(latitude: lat, longitude: lon)
+    }
+
+    /// Smallest signed longitude difference (−180…180), wrapping the antimeridian.
+    private static func lonDiff(_ a: Double, _ b: Double) -> Double {
+        var d = (a - b).truncatingRemainder(dividingBy: 360)
+        if d > 180 { d -= 360 }
+        if d < -180 { d += 360 }
+        return d
     }
 }
 
