@@ -1,5 +1,16 @@
 # Changelog
 
+## v1.5.0
+
+### Features
+- **Kill processes from the menu bar** — hover any row in the CPU/Memory top-process lists to reveal a kill control (two-click confirm; ⌥ for force/SIGKILL). In the sandboxed App Store build the request is routed through the helper over the TOTP-authenticated IPC channel; the direct build signals locally. The helper runs as you, so user-owned processes can be terminated and system/root processes fail gracefully with a clear message
+- **Live Traceroute / MTR in the Network panel** — a new expandable section runs a continuous `traceroute` and accumulates MTR-style per-hop stats (sent/received, loss %, last/avg/best/worst latency), refreshing ~1×/sec with color-coded loss. Runs in the unsandboxed helper (with a local fallback in the direct build); the target host is validated and passed as an argument vector, never shell-interpolated
+- **Network speed test (multi-gigabit)** — an expandable "Speed Test" section in the Network panel measures download/upload throughput using several concurrent `URLSession` transfers against Cloudflare's free speed endpoints (no bundled binaries). Shows live Mbps/Gbps during the run, a result history sparkline, and an optional "auto-run every N minutes" interval mode
+- **Disk speed test** — an expandable "Speed Test" section in the Disk panel benchmarks sequential write/read MB/s (plus random-read IOPS) using uncached POSIX I/O (`F_NOCACHE`) so results reflect the device, not the page cache. Includes a size picker, a result history sparkline, and an optional interval mode. Tests the boot volume (external-volume testing via security-scoped bookmarks is a future improvement)
+
+### Notes
+- All four features ship in **both** the free direct-download build and the App Store build — Blip stays fully open-source and free; the App Store copy is a way to support development.
+
 ## v1.4.8
 
 ### Features
