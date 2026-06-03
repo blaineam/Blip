@@ -32,6 +32,9 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     private var settingsWindow: NSWindow?
     private var dismissWorkItem: DispatchWorkItem?
     private var cancellables = Set<AnyCancellable>()
+    /// When true, the detail panel stops refreshing — used while the pointer is over
+    /// the process list so rows don't reshuffle and the two-click kill state survives.
+    private var processListFrozen = false
 
     func applicationDidFinishLaunching(_ notification: Notification) {
         setupStatusItem()
@@ -201,14 +204,16 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
                 stats: monitor.snapshot.cpu,
                 history: monitor.cpuHistory.values,
                 topProcesses: monitor.snapshot.topProcessesByCPU,
-                onKill: { pid, force in await self.monitor.killProcess(pid: pid, force: force) }
+                onKill: { pid, force in await self.monitor.killProcess(pid: pid, force: force) },
+                onProcessHover: { [weak self] hovering in self?.processListFrozen = hovering }
             )
         case .memory:
             MemoryDetailPanel(
                 stats: monitor.snapshot.memory,
                 history: monitor.memoryHistory.values,
                 topProcesses: monitor.snapshot.topProcessesByMemory,
-                onKill: { pid, force in await self.monitor.killProcess(pid: pid, force: force) }
+                onKill: { pid, force in await self.monitor.killProcess(pid: pid, force: force) },
+                onProcessHover: { [weak self] hovering in self?.processListFrozen = hovering }
             )
         case .disk:
             #if APPSTORE
@@ -292,7 +297,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             .receive(on: RunLoop.main)
             .sink { [weak self] _ in
                 guard let self, let section = self.currentSection,
-                      let panel = self.detailPanel, panel.isVisible else { return }
+                      let panel = self.detailPanel, panel.isVisible,
+                      !self.processListFrozen else { return }
                 self.refreshDetailContent(for: section)
             }
             .store(in: &cancellables)

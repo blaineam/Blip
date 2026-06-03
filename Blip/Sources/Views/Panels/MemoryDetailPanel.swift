@@ -6,6 +6,10 @@ struct MemoryDetailPanel: View {
     let topProcesses: [ProcessInfo]
     /// Optional kill handler forwarded to each ProcessRow (Feature A).
     var onKill: ((pid_t, Bool) async -> (ok: Bool, message: String))? = nil
+    /// Called with true while the pointer is over the process list so the app can
+    /// freeze refreshes (stops reshuffling + preserves the two-click kill state).
+    var onProcessHover: ((Bool) -> Void)? = nil
+    @State private var processHovering = false
 
     var body: some View {
         VStack(alignment: .leading, spacing: 10) {
@@ -98,16 +102,32 @@ struct MemoryDetailPanel: View {
             // Top processes
             if !topProcesses.isEmpty {
                 Divider()
-                Text("Top Processes")
-                    .font(.system(size: 10))
-                    .foregroundStyle(.secondary)
-                ForEach(topProcesses) { proc in
-                    ProcessRow(process: proc, mode: .memory, onKill: onKill)
+                HStack(spacing: 4) {
+                    Text("Top Processes")
+                        .font(.system(size: 10))
+                        .foregroundStyle(.secondary)
+                    if processHovering {
+                        Label("paused", systemImage: "pause.fill")
+                            .font(.system(size: 8))
+                            .labelStyle(.titleAndIcon)
+                            .foregroundStyle(.tertiary)
+                    }
+                    Spacer()
+                }
+                VStack(spacing: 0) {
+                    ForEach(topProcesses) { proc in
+                        ProcessRow(process: proc, mode: .memory, onKill: onKill)
+                    }
+                }
+                .onHover { h in
+                    processHovering = h
+                    onProcessHover?(h)
                 }
             }
         }
         .padding(12)
         .frame(width: 260)
+        .onDisappear { onProcessHover?(false) }
     }
 
     private func memoryRow(_ label: String, value: UInt64, color: Color) -> some View {
