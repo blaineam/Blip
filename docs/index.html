@@ -426,6 +426,98 @@
         .dp-fan-fill { height: 100%; border-radius: 3px; background: var(--accent-teal); }
         .dp-fan-range { display: flex; justify-content: space-between; font-size: 8px; color: var(--demo-muted-medium); }
 
+        /* ── v1.5.0 feature demos ── */
+
+        /* Kill control on process rows */
+        .dp-proc { position: relative; }
+        .dp-proc-kill {
+            width: 14px; height: 14px; flex-shrink: 0;
+            display: flex; align-items: center; justify-content: center;
+            opacity: 0; transition: opacity 0.15s;
+            cursor: pointer; margin-left: 2px;
+        }
+        .dp-proc:hover .dp-proc-kill { opacity: 1; }
+        .dp-proc-kill svg { width: 11px; height: 11px; color: var(--text-secondary); }
+        .dp-proc-kill.confirming { opacity: 1; }
+        .dp-proc-kill.confirming svg { color: var(--accent-red); }
+        .dp-proc-kill .kill-spinner {
+            width: 9px; height: 9px; border-radius: 50%;
+            border: 1.5px solid var(--demo-overlay-strong);
+            border-top-color: var(--accent-red);
+            animation: killspin 0.6s linear infinite;
+        }
+        @keyframes killspin { to { transform: rotate(360deg); } }
+        .dp-proc-terminating { font-size: 9px; color: var(--accent-red); margin-left: auto; }
+
+        /* Expandable section (traceroute, speed tests) */
+        .dp-expand-header {
+            display: flex; align-items: center; gap: 5px;
+            cursor: pointer; padding: 2px 0; user-select: none;
+        }
+        .dp-expand-chevron { font-size: 9px; color: var(--text-secondary); width: 9px; flex-shrink: 0; transition: transform 0.2s; }
+        .dp-expand-icon { width: 11px; height: 11px; flex-shrink: 0; }
+        .dp-expand-title { font-size: 11px; font-weight: 500; }
+        .dp-expand-right { margin-left: auto; display: flex; align-items: center; gap: 4px; }
+        .dp-expand-summary { font-size: 10px; font-family: 'SF Mono','Menlo',monospace; color: var(--text-secondary); }
+        .dp-run-dot { width: 5px; height: 5px; border-radius: 50%; background: var(--accent); box-shadow: 0 0 5px var(--accent); }
+        .dp-expand-body { overflow: hidden; max-height: 0; transition: max-height 0.3s ease; }
+        .dp-expand-body.open { max-height: 320px; }
+
+        /* Traceroute hop table */
+        .dp-trace-controls { display: flex; align-items: center; gap: 6px; margin: 6px 0; }
+        .dp-trace-field {
+            flex: 1; background: var(--demo-overlay-light); border: 1px solid var(--demo-overlay-border);
+            border-radius: 5px; padding: 2px 6px;
+            font-size: 10px; font-family: 'SF Mono','Menlo',monospace; color: var(--text);
+        }
+        .dp-trace-btn {
+            font-size: 10px; font-weight: 500; padding: 2px 9px; border-radius: 5px;
+            background: rgba(10,132,255,0.18); color: var(--accent-blue);
+            cursor: pointer; border: none;
+        }
+        .dp-trace-btn.stop { background: rgba(255,69,58,0.18); color: var(--accent-red); }
+        .dp-hop-head, .dp-hop-row { display: flex; align-items: center; gap: 4px; }
+        .dp-hop-head { font-size: 8px; font-weight: 500; color: var(--demo-muted-text); margin-bottom: 1px; }
+        .dp-hop-row { font-size: 9px; font-family: 'SF Mono','Menlo',monospace; padding: 0.5px 0; }
+        .dp-hop-num { width: 14px; text-align: right; color: var(--demo-muted-text); flex-shrink: 0; }
+        .dp-hop-host { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+        .dp-hop-loss { width: 30px; text-align: right; flex-shrink: 0; }
+        .dp-hop-ms { width: 30px; text-align: right; color: var(--text-secondary); flex-shrink: 0; }
+        .dp-hop-row.appear { animation: hopIn 0.35s ease; }
+        @keyframes hopIn { from { opacity: 0; transform: translateY(-3px); } to { opacity: 1; transform: translateY(0); } }
+        .dp-hop-probe { font-size: 9px; color: var(--text-secondary); padding: 2px 0; }
+
+        /* Speed test */
+        .dp-st-server { display: flex; align-items: center; gap: 4px; margin: 4px 0; font-size: 10px; color: var(--text-secondary); }
+        .dp-st-server-pill {
+            display: inline-flex; align-items: center; gap: 3px;
+            background: var(--demo-overlay-light); border: 1px solid var(--demo-overlay-border);
+            border-radius: 5px; padding: 1px 6px; font-size: 9px; cursor: pointer; color: var(--text);
+        }
+        .dp-st-run {
+            display: inline-flex; align-items: center; gap: 4px;
+            font-size: 10px; font-weight: 500; color: var(--accent-blue); cursor: pointer;
+            margin: 4px 0;
+        }
+        .dp-st-run svg { width: 8px; height: 8px; }
+        .dp-st-run.cancel { color: var(--accent-red); }
+        .dp-st-phase { display: flex; align-items: center; margin: 4px 0; }
+        .dp-st-phase-label { font-size: 10px; }
+        .dp-st-phase-val { margin-left: auto; font-size: 11px; font-weight: 600; font-family: 'SF Mono','Menlo',monospace; }
+        .dp-st-progress { width: 100%; height: 4px; background: var(--demo-overlay-light); border-radius: 2px; overflow: hidden; margin: 3px 0; }
+        .dp-st-progress-fill { height: 100%; border-radius: 2px; transition: width 0.2s; }
+        .dp-st-result-col { display: flex; gap: 0; margin: 4px 0; }
+        .dp-st-result { flex: 1; }
+        .dp-st-result-label { display: flex; align-items: center; gap: 3px; font-size: 10px; color: var(--text-secondary); }
+        .dp-st-result-dot { width: 5px; height: 5px; border-radius: 50%; }
+        .dp-st-result-val { font-size: 11px; font-family: 'SF Mono','Menlo',monospace; }
+        .dp-st-iops { display: flex; align-items: center; margin: 3px 0; }
+        .dp-st-iops-label { font-size: 10px; color: var(--text-secondary); }
+        .dp-st-iops-val { margin-left: auto; font-size: 11px; font-family: 'SF Mono','Menlo',monospace; }
+        .dp-st-spark-label { font-size: 9px; color: var(--text-secondary); margin: 4px 0 2px; }
+        .dp-st-spark { height: 40px; background: var(--demo-overlay-subtle); border-radius: 4px; overflow: hidden; }
+        .dp-st-spark svg { width: 100%; height: 100%; }
+
         /* Style showcase */
         .style-showcase {
             position: absolute; top: 0; left: 0; right: 0; bottom: 0;
@@ -695,11 +787,11 @@
                 </div>
                 <div class="dp-divider"></div>
                 <div class="dp-section-title">Top Processes</div>
-                <div class="dp-proc"><div class="dp-proc-icon" style="background:rgba(0,122,255,0.15)"><svg viewBox="0 0 16 16"><circle cx="8" cy="8" r="6" fill="#007AFF"/><path d="M8 3L5 11h2l.5-1.5h1L9 11h2L8 3zm0 3.5l.5 2h-1l.5-2z" fill="#fff" font-size="6"/></svg></div><div class="dp-proc-name">Safari</div><div class="dp-proc-val">8.2%</div></div>
-                <div class="dp-proc"><div class="dp-proc-icon" style="background:var(--demo-overlay)"><svg viewBox="0 0 16 16" fill="#8e8e93" opacity="0.6"><circle cx="8" cy="8" r="6"/></svg></div><div class="dp-proc-name">WindowServer</div><div class="dp-proc-val">5.4%</div></div>
-                <div class="dp-proc"><div class="dp-proc-icon" style="background:rgba(75,0,130,0.2)"><svg viewBox="0 0 16 16"><circle cx="8" cy="8" r="6" fill="#4A154B"/><path d="M6 5h1v2h2V5h1v6h-1V9H7v2H6V5z" fill="#fff"/></svg></div><div class="dp-proc-name">Slack</div><div class="dp-proc-val">4.1%</div></div>
-                <div class="dp-proc"><div class="dp-proc-icon" style="background:rgba(30,215,96,0.15)"><svg viewBox="0 0 16 16"><circle cx="8" cy="8" r="6" fill="#1DB954"/><circle cx="8" cy="8" r="3" fill="none" stroke="#fff" stroke-width="1.2"/></svg></div><div class="dp-proc-name">Spotify</div><div class="dp-proc-val">2.4%</div></div>
-                <div class="dp-proc"><div class="dp-proc-icon" style="background:rgba(0,122,255,0.12)"><svg viewBox="0 0 16 16"><circle cx="8" cy="8" r="6" fill="#007AFF"/><rect x="5" y="5.5" width="6" height="4" rx="0.5" fill="#fff" opacity="0.9"/></svg></div><div class="dp-proc-name">Mail</div><div class="dp-proc-val">1.1%</div></div>
+                <div class="dp-proc" data-killable><div class="dp-proc-icon" style="background:rgba(0,122,255,0.15)"><svg viewBox="0 0 16 16"><circle cx="8" cy="8" r="6" fill="#007AFF"/><path d="M8 3L5 11h2l.5-1.5h1L9 11h2L8 3zm0 3.5l.5 2h-1l.5-2z" fill="#fff" font-size="6"/></svg></div><div class="dp-proc-name">Safari</div><div class="dp-proc-val">8.2%</div></div>
+                <div class="dp-proc" data-killable><div class="dp-proc-icon" style="background:var(--demo-overlay)"><svg viewBox="0 0 16 16" fill="#8e8e93" opacity="0.6"><circle cx="8" cy="8" r="6"/></svg></div><div class="dp-proc-name">WindowServer</div><div class="dp-proc-val">5.4%</div></div>
+                <div class="dp-proc" data-killable><div class="dp-proc-icon" style="background:rgba(75,0,130,0.2)"><svg viewBox="0 0 16 16"><circle cx="8" cy="8" r="6" fill="#4A154B"/><path d="M6 5h1v2h2V5h1v6h-1V9H7v2H6V5z" fill="#fff"/></svg></div><div class="dp-proc-name">Slack</div><div class="dp-proc-val">4.1%</div></div>
+                <div class="dp-proc" data-killable><div class="dp-proc-icon" style="background:rgba(30,215,96,0.15)"><svg viewBox="0 0 16 16"><circle cx="8" cy="8" r="6" fill="#1DB954"/><circle cx="8" cy="8" r="3" fill="none" stroke="#fff" stroke-width="1.2"/></svg></div><div class="dp-proc-name">Spotify</div><div class="dp-proc-val">2.4%</div></div>
+                <div class="dp-proc" data-killable><div class="dp-proc-icon" style="background:rgba(0,122,255,0.12)"><svg viewBox="0 0 16 16"><circle cx="8" cy="8" r="6" fill="#007AFF"/><rect x="5" y="5.5" width="6" height="4" rx="0.5" fill="#fff" opacity="0.9"/></svg></div><div class="dp-proc-name">Mail</div><div class="dp-proc-val">1.1%</div></div>
             </div>
 
             <!-- Memory Detail -->
@@ -736,11 +828,11 @@
                 </div>
                 <div class="dp-divider"></div>
                 <div class="dp-section-title">Top Processes</div>
-                <div class="dp-proc"><div class="dp-proc-icon" style="background:rgba(0,122,255,0.15)"><svg viewBox="0 0 16 16"><circle cx="8" cy="8" r="6" fill="#007AFF"/><path d="M8 3L5 11h2l.5-1.5h1L9 11h2L8 3zm0 3.5l.5 2h-1l.5-2z" fill="#fff"/></svg></div><div class="dp-proc-name">Safari</div><div class="dp-proc-val">1.4 GB</div></div>
-                <div class="dp-proc"><div class="dp-proc-icon" style="background:rgba(75,0,130,0.2)"><svg viewBox="0 0 16 16"><circle cx="8" cy="8" r="6" fill="#4A154B"/><path d="M6 5h1v2h2V5h1v6h-1V9H7v2H6V5z" fill="#fff"/></svg></div><div class="dp-proc-name">Slack</div><div class="dp-proc-val">890 MB</div></div>
-                <div class="dp-proc"><div class="dp-proc-icon" style="background:rgba(30,215,96,0.15)"><svg viewBox="0 0 16 16"><circle cx="8" cy="8" r="6" fill="#1DB954"/><circle cx="8" cy="8" r="3" fill="none" stroke="#fff" stroke-width="1.2"/></svg></div><div class="dp-proc-name">Spotify</div><div class="dp-proc-val">620 MB</div></div>
-                <div class="dp-proc"><div class="dp-proc-icon" style="background:rgba(0,122,255,0.12)"><svg viewBox="0 0 16 16"><circle cx="8" cy="8" r="6" fill="#007AFF"/><rect x="5" y="5.5" width="6" height="4" rx="0.5" fill="#fff" opacity="0.9"/></svg></div><div class="dp-proc-name">Mail</div><div class="dp-proc-val">340 MB</div></div>
-                <div class="dp-proc"><div class="dp-proc-icon" style="background:rgba(0,122,255,0.12)"><svg viewBox="0 0 16 16"><rect x="3" y="3" width="10" height="10" rx="2" fill="#339CEC"/><circle cx="8" cy="7" r="2" fill="#fff"/><path d="M5 11c0-1.5 1.3-2.5 3-2.5s3 1 3 2.5" fill="#fff"/></svg></div><div class="dp-proc-name">Finder</div><div class="dp-proc-val">210 MB</div></div>
+                <div class="dp-proc" data-killable><div class="dp-proc-icon" style="background:rgba(0,122,255,0.15)"><svg viewBox="0 0 16 16"><circle cx="8" cy="8" r="6" fill="#007AFF"/><path d="M8 3L5 11h2l.5-1.5h1L9 11h2L8 3zm0 3.5l.5 2h-1l.5-2z" fill="#fff"/></svg></div><div class="dp-proc-name">Safari</div><div class="dp-proc-val">1.4 GB</div></div>
+                <div class="dp-proc" data-killable><div class="dp-proc-icon" style="background:rgba(75,0,130,0.2)"><svg viewBox="0 0 16 16"><circle cx="8" cy="8" r="6" fill="#4A154B"/><path d="M6 5h1v2h2V5h1v6h-1V9H7v2H6V5z" fill="#fff"/></svg></div><div class="dp-proc-name">Slack</div><div class="dp-proc-val">890 MB</div></div>
+                <div class="dp-proc" data-killable><div class="dp-proc-icon" style="background:rgba(30,215,96,0.15)"><svg viewBox="0 0 16 16"><circle cx="8" cy="8" r="6" fill="#1DB954"/><circle cx="8" cy="8" r="3" fill="none" stroke="#fff" stroke-width="1.2"/></svg></div><div class="dp-proc-name">Spotify</div><div class="dp-proc-val">620 MB</div></div>
+                <div class="dp-proc" data-killable><div class="dp-proc-icon" style="background:rgba(0,122,255,0.12)"><svg viewBox="0 0 16 16"><circle cx="8" cy="8" r="6" fill="#007AFF"/><rect x="5" y="5.5" width="6" height="4" rx="0.5" fill="#fff" opacity="0.9"/></svg></div><div class="dp-proc-name">Mail</div><div class="dp-proc-val">340 MB</div></div>
+                <div class="dp-proc" data-killable><div class="dp-proc-icon" style="background:rgba(0,122,255,0.12)"><svg viewBox="0 0 16 16"><rect x="3" y="3" width="10" height="10" rx="2" fill="#339CEC"/><circle cx="8" cy="7" r="2" fill="#fff"/><path d="M5 11c0-1.5 1.3-2.5 3-2.5s3 1 3 2.5" fill="#fff"/></svg></div><div class="dp-proc-name">Finder</div><div class="dp-proc-val">210 MB</div></div>
             </div>
 
             <!-- Disk Detail -->
@@ -792,6 +884,38 @@
                 </div>
                 <div class="dp-vol-bar"><div class="dp-vol-fill" style="width:65%"></div></div>
                 <div class="dp-vol-info"><span>2.59 TB used</span><span>1.41 TB free</span></div>
+
+                <div class="dp-divider"></div>
+                <!-- Disk Speed Test (v1.5.0) -->
+                <div class="dp-expand-header" id="disk-st-header">
+                    <svg class="dp-expand-icon" viewBox="0 0 24 24" fill="var(--accent-orange)"><path d="M12 4a8 8 0 0 0-8 8 8 8 0 0 0 1.5 4.66.9.9 0 0 0 .73.38h11.54a.9.9 0 0 0 .73-.38A8 8 0 0 0 20 12a8 8 0 0 0-8-8zm0 2.2a.8.8 0 0 1 .8.8.8.8 0 0 1-.8.8.8.8 0 0 1-.8-.8.8.8 0 0 1 .8-.8zm4 1.6 .9.9-2.6 2.6a1.8 1.8 0 1 1-1.1-1.1zM6.5 8.7a.8.8 0 1 1 0 1.6.8.8 0 0 1 0-1.6zm11 0a.8.8 0 1 1 0 1.6.8.8 0 0 1 0-1.6zM5.5 12.5a.8.8 0 1 1 0 1.6.8.8 0 0 1 0-1.6z"/></svg>
+                    <span class="dp-expand-title">Speed Test</span>
+                    <span class="dp-expand-right">
+                        <span class="dp-expand-summary" id="disk-st-summary"></span>
+                        <span class="dp-expand-chevron" id="disk-st-chevron" style="font-size:9px">&#8250;</span>
+                    </span>
+                </div>
+                <div class="dp-expand-body" id="disk-st-body">
+                    <div style="padding-top:6px">
+                        <div style="font-size:10px;color:var(--text-secondary);margin-bottom:4px">Testing: Macintosh HD &middot; 1 GB</div>
+                        <div class="dp-st-run" id="disk-st-run"><svg viewBox="0 0 16 16" fill="currentColor"><path d="M4 3l9 5-9 5z"/></svg> Run Test</div>
+                        <div id="disk-st-running" style="display:none">
+                            <div class="dp-st-phase"><span class="dp-st-phase-label" id="disk-st-phase" style="color:var(--accent-blue)">Writing&hellip;</span></div>
+                            <div class="dp-st-progress"><div class="dp-st-progress-fill" id="disk-st-progress" style="width:0%;background:var(--accent-orange)"></div></div>
+                        </div>
+                        <div id="disk-st-result" style="display:none">
+                            <div class="dp-st-result-col">
+                                <div class="dp-st-result"><div class="dp-st-result-label"><span class="dp-st-result-dot" style="background:var(--accent)"></span>Read</div><div class="dp-st-result-val" id="disk-st-read">2841 MB/s</div></div>
+                                <div class="dp-st-result"><div class="dp-st-result-label"><span class="dp-st-result-dot" style="background:var(--accent-blue)"></span>Write</div><div class="dp-st-result-val" id="disk-st-write">2530 MB/s</div></div>
+                            </div>
+                            <div class="dp-st-iops"><span class="dp-st-iops-label">Random read</span><span class="dp-st-iops-val" id="disk-st-iops">182400 IOPS</span></div>
+                        </div>
+                        <div id="disk-st-spark-wrap" style="display:none">
+                            <div class="dp-st-spark-label">History</div>
+                            <div class="dp-st-spark"><svg viewBox="0 0 200 40" preserveAspectRatio="none"><path id="disk-st-spark-r" fill="none" stroke="var(--accent)" stroke-width="1.5" d=""/><path id="disk-st-spark-w" fill="none" stroke="var(--accent-blue)" stroke-width="1.5" d=""/></svg></div>
+                        </div>
+                    </div>
+                </div>
             </div>
 
             <!-- Network Detail -->
@@ -841,6 +965,68 @@
                 </div>
                 <div class="dp-row"><span class="dp-row-label">Router</span><span class="dp-row-value">192.168.1.1 <span style="cursor:pointer;opacity:0.3;font-size:9px">&#9112;</span></span></div>
                 <div class="dp-row"><span class="dp-row-label">WAN IP</span><span id="wan-ip-btn" class="dp-row-value" style="color:var(--accent-blue);cursor:pointer;font-size:10px">Tap to reveal</span></div>
+
+                <div class="dp-divider"></div>
+                <!-- Traceroute / MTR (v1.5.0) -->
+                <div class="dp-expand-header" id="trace-header">
+                    <span class="dp-expand-chevron" id="trace-chevron">&#8250;</span>
+                    <svg class="dp-expand-icon" viewBox="0 0 24 24" fill="none" stroke="var(--accent-purple)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="5" cy="6" r="2"/><circle cx="19" cy="18" r="2"/><path d="M5 8c0 4 3 5 7 5s7 1 7 5" /></svg>
+                    <span class="dp-expand-title">Traceroute / MTR</span>
+                    <span class="dp-expand-right"><span class="dp-run-dot" id="trace-run-dot" style="display:none"></span></span>
+                </div>
+                <div class="dp-expand-body" id="trace-body">
+                    <div style="padding-top:6px">
+                        <div class="dp-trace-controls">
+                            <input class="dp-trace-field" id="trace-host" value="1.1.1.1" readonly>
+                            <button class="dp-trace-btn" id="trace-btn">Start</button>
+                        </div>
+                        <div id="trace-probe" class="dp-hop-probe" style="display:none">Probing&hellip;</div>
+                        <div id="trace-table" style="display:none">
+                            <div class="dp-hop-head">
+                                <span class="dp-hop-num">#</span>
+                                <span class="dp-hop-host">Host</span>
+                                <span class="dp-hop-loss">Loss</span>
+                                <span class="dp-hop-ms">Last</span>
+                                <span class="dp-hop-ms">Avg</span>
+                            </div>
+                            <div id="trace-hops"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="dp-divider"></div>
+                <!-- Network Speed Test (v1.5.0) -->
+                <div class="dp-expand-header" id="net-st-header">
+                    <span class="dp-expand-chevron" id="net-st-chevron">&#8250;</span>
+                    <svg class="dp-expand-icon" viewBox="0 0 24 24" fill="var(--accent-purple)"><path d="M12 4a8 8 0 0 0-8 8 8 8 0 0 0 1.5 4.66.9.9 0 0 0 .73.38h11.54a.9.9 0 0 0 .73-.38A8 8 0 0 0 20 12a8 8 0 0 0-8-8zm0 2.2a.8.8 0 0 1 .8.8.8.8 0 0 1-.8.8.8.8 0 0 1-.8-.8.8.8 0 0 1 .8-.8zm4 1.6 .9.9-2.6 2.6a1.8 1.8 0 1 1-1.1-1.1zM6.5 8.7a.8.8 0 1 1 0 1.6.8.8 0 0 1 0-1.6zm11 0a.8.8 0 1 1 0 1.6.8.8 0 0 1 0-1.6zM5.5 12.5a.8.8 0 1 1 0 1.6.8.8 0 0 1 0-1.6z"/></svg>
+                    <span class="dp-expand-title">Speed Test</span>
+                    <span class="dp-expand-right"><span class="dp-expand-summary" id="net-st-summary"></span></span>
+                </div>
+                <div class="dp-expand-body" id="net-st-body">
+                    <div style="padding-top:6px">
+                        <div class="dp-st-server">
+                            Server:
+                            <span class="dp-st-server-pill" id="net-st-server">
+                                <span style="width:5px;height:5px;border-radius:50%;background:var(--accent-orange);display:inline-block"></span>
+                                <span id="net-st-server-name">Cloudflare</span>
+                            </span>
+                        </div>
+                        <div class="dp-st-run" id="net-st-run"><svg viewBox="0 0 16 16" fill="currentColor"><path d="M4 3l9 5-9 5z"/></svg> Run Test</div>
+                        <div id="net-st-running" style="display:none">
+                            <div class="dp-st-phase"><span class="dp-st-phase-label" id="net-st-phase" style="color:var(--accent)">Download&hellip;</span><span class="dp-st-phase-val" id="net-st-live">0.0 Mbps</span></div>
+                        </div>
+                        <div id="net-st-result" style="display:none">
+                            <div class="dp-st-result-col">
+                                <div class="dp-st-result"><div class="dp-st-result-label"><span style="color:var(--accent)">&#8595;</span>Download</div><div class="dp-st-result-val" id="net-st-down">942 Mbps</div></div>
+                                <div class="dp-st-result"><div class="dp-st-result-label"><span style="color:var(--accent-blue)">&#8593;</span>Upload</div><div class="dp-st-result-val" id="net-st-up">38 Mbps</div></div>
+                            </div>
+                        </div>
+                        <div id="net-st-spark-wrap" style="display:none">
+                            <div class="dp-st-spark-label">Recent (download)</div>
+                            <div class="dp-st-spark"><svg viewBox="0 0 200 40" preserveAspectRatio="none"><path id="net-st-spark" fill="none" stroke="var(--accent)" stroke-width="1.5" d=""/></svg></div>
+                        </div>
+                    </div>
+                </div>
             </div>
 
             <!-- GPU Detail -->
@@ -957,12 +1143,17 @@
             <div class="feature-card">
                 <div class="feature-icon" style="background:rgba(255,159,10,0.15)">&#128190;</div>
                 <h3>Disk</h3>
-                <p>Space used and available for all mounted volumes. Real-time read/write speeds via IOKit with total data read/written since boot. Full S.M.A.R.T. drive health &mdash; SSD life remaining, drive temperature, lifetime bytes written, power-on hours and more. Built-in disk speed test (uncached sequential + random IOPS) with optional interval testing, plus an I/O chart with Y-axis labels.</p>
+                <p>Space used and available for all mounted volumes. Real-time read/write speeds via IOKit with total data read/written since boot. Full S.M.A.R.T. drive health &mdash; SSD life remaining, drive temperature, lifetime bytes written, power-on hours and more. <strong>New in v1.5.0:</strong> a built-in disk speed test with live Writing&hellip;/Reading&hellip; phases, sequential write/read MB/s, random-read IOPS, history sparkline, and optional interval testing &mdash; plus an I/O chart with Y-axis labels.</p>
             </div>
             <div class="feature-card">
                 <div class="feature-icon" style="background:rgba(100,210,255,0.15)">&#127760;</div>
                 <h3>Network</h3>
-                <p>Upload/download speeds with accurate 64-bit session totals, all active interfaces, WAN and router ping, IPv4/IPv6, MAC address, WAN IP reveal, VPN detection. Live Traceroute / MTR with per-hop loss &amp; latency, plus a multi-gigabit speed test (with optional interval testing). Bandwidth chart with Y-axis labels.</p>
+                <p>Upload/download speeds with accurate 64-bit session totals, all active interfaces, WAN and router ping, IPv4/IPv6, MAC address, WAN IP reveal, VPN detection. <strong>New in v1.5.0:</strong> live Traceroute / MTR with per-hop loss &amp; latency that fills in hop-by-hop, and a multi-gigabit speed test you can point at Cloudflare or your own self-hosted OpenSpeedTest server on the LAN. Bandwidth chart with Y-axis labels.</p>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon" style="background:rgba(255,69,58,0.15)">&#9211;</div>
+                <h3>Processes</h3>
+                <p>Top CPU and memory consumers with real app icons, accurate delta-based CPU and phys_footprint memory. <strong>New in v1.5.0:</strong> hover any process to reveal a quit control &mdash; one click arms it, a second click terminates the process right from the panel.</p>
             </div>
             <div class="feature-card">
                 <div class="feature-icon" style="background:rgba(191,90,242,0.15)">&#127918;</div>
@@ -1198,7 +1389,10 @@
             highlightRow(name);
             showPanel(name);
         }});
-        timeline.push({ delay: 5000, fn: () => {} });
+        // Network and Disk get extra dwell so their live speed-test / traceroute
+        // demos have time to play out.
+        const dwell = (name === 'network') ? 9000 : (name === 'disk') ? 6500 : 5000;
+        timeline.push({ delay: dwell, fn: () => {} });
     });
 
     // Phase 3: Close popover, cycle styles on the actual menu bar
@@ -1604,6 +1798,314 @@
             scheduleHidePanel();
         });
     });
+
+    // ═══════════════════ v1.5.0 feature demos ═══════════════════
+
+    function fmtThroughput(mbps) {
+        if (mbps >= 1000) return (mbps / 1000).toFixed(2) + ' Gbps';
+        if (mbps >= 100) return mbps.toFixed(0) + ' Mbps';
+        return mbps.toFixed(1) + ' Mbps';
+    }
+
+    // ── 1. Kill process (CPU + Memory panels) ──
+    // Hover reveals an xmark.circle; first click arms (turns red, "click again"),
+    // second click spins then shows "Terminating…".
+    document.querySelectorAll('.dp-proc[data-killable]').forEach(proc => {
+        const kill = document.createElement('span');
+        kill.className = 'dp-proc-kill';
+        kill.innerHTML = '<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.3"><circle cx="8" cy="8" r="6.5"/><path d="M5.5 5.5l5 5M10.5 5.5l-5 5" stroke-linecap="round"/></svg>';
+        kill.title = 'Quit ' + (proc.querySelector('.dp-proc-name')?.textContent || '');
+        let confirming = false, confirmTimer = null;
+        const armed = '<svg viewBox="0 0 16 16" fill="currentColor"><circle cx="8" cy="8" r="6.5"/><path d="M5.5 5.5l5 5M10.5 5.5l-5 5" stroke="#fff" stroke-width="1.3" stroke-linecap="round" fill="none"/></svg>';
+        const idle = kill.innerHTML;
+        function disarm() { confirming = false; kill.classList.remove('confirming'); kill.innerHTML = idle; }
+        kill.addEventListener('click', (e) => {
+            e.stopPropagation();
+            if (kill.classList.contains('done')) return;
+            if (!confirming) {
+                confirming = true;
+                kill.classList.add('confirming');
+                kill.innerHTML = armed;
+                if (confirmTimer) clearTimeout(confirmTimer);
+                confirmTimer = setTimeout(disarm, 3000);
+            } else {
+                if (confirmTimer) clearTimeout(confirmTimer);
+                confirming = false;
+                kill.classList.add('done');
+                kill.innerHTML = '<span class="kill-spinner"></span>';
+                const term = document.createElement('span');
+                term.className = 'dp-proc-terminating';
+                term.textContent = 'Terminating…';
+                const valEl = proc.querySelector('.dp-proc-val');
+                if (valEl) valEl.style.display = 'none';
+                proc.insertBefore(term, kill);
+                setTimeout(() => {
+                    // Reset after a beat so the demo can be repeated.
+                    term.remove();
+                    if (valEl) valEl.style.display = '';
+                    kill.classList.remove('confirming', 'done');
+                    kill.innerHTML = idle;
+                }, 1800);
+            }
+        });
+        proc.appendChild(kill);
+    });
+
+    // ── Generic expand/collapse wiring ──
+    function wireExpand(headerId, bodyId, chevronIds, onOpen) {
+        const header = document.getElementById(headerId);
+        const body = document.getElementById(bodyId);
+        if (!header || !body) return null;
+        const chevrons = chevronIds.map(id => document.getElementById(id)).filter(Boolean);
+        let open = false;
+        function setOpen(v) {
+            open = v;
+            body.classList.toggle('open', open);
+            chevrons.forEach(c => c.style.transform = open ? 'rotate(90deg)' : 'none');
+            if (open && onOpen) onOpen();
+        }
+        header.addEventListener('click', () => setOpen(!open));
+        return { setOpen, isOpen: () => open };
+    }
+
+    // ── 2. Traceroute / MTR ──
+    const tracePool = [
+        { host: '_gateway (192.168.1.1)', baseLoss: 0, base: 1 },
+        { host: '96.120.14.1', baseLoss: 0, base: 9 },
+        { host: 'be-301-rur.dnvtco.co.comcast.net', baseLoss: 0, base: 12 },
+        { host: 'be-36011-cs01.1601milehigh.co.ibone', baseLoss: 0, base: 14 },
+        { host: 'be-2211-pe11.910fifteenth.co.ibone', baseLoss: 8, base: 16 },
+        { host: '50.208.235.30', baseLoss: 0, base: 18 },
+        { host: '172.69.68.2', baseLoss: 24, base: 22 },
+        { host: 'one.one.one.one (1.1.1.1)', baseLoss: 0, base: 11 },
+    ];
+    let traceRunning = false, traceTimer = null, traceIdx = 0;
+    const traceHopsEl = document.getElementById('trace-hops');
+    const traceBtn = document.getElementById('trace-btn');
+    const traceProbe = document.getElementById('trace-probe');
+    const traceTable = document.getElementById('trace-table');
+    const traceRunDot = document.getElementById('trace-run-dot');
+    let traceHopStats = [];
+
+    function lossColor(p) { return p <= 0 ? 'var(--accent)' : (p < 20 ? 'var(--accent-orange)' : 'var(--accent-red)'); }
+
+    function renderTraceHops() {
+        if (!traceHopsEl) return;
+        traceHopsEl.innerHTML = traceHopStats.map((h, i) => {
+            return '<div class="dp-hop-row' + (h.fresh ? ' appear' : '') + '">' +
+                '<span class="dp-hop-num">' + (i + 1) + '</span>' +
+                '<span class="dp-hop-host">' + h.host + '</span>' +
+                '<span class="dp-hop-loss" style="color:' + lossColor(h.loss) + '">' + h.loss.toFixed(0) + '%</span>' +
+                '<span class="dp-hop-ms">' + h.last.toFixed(0) + '</span>' +
+                '<span class="dp-hop-ms">' + h.avg.toFixed(0) + '</span>' +
+                '</div>';
+        }).join('');
+        traceHopStats.forEach(h => h.fresh = false);
+    }
+
+    function startTrace() {
+        if (traceRunning) { stopTrace(); return; }
+        traceRunning = true; traceIdx = 0; traceHopStats = [];
+        if (traceBtn) { traceBtn.textContent = 'Stop'; traceBtn.classList.add('stop'); }
+        if (traceRunDot) traceRunDot.style.display = '';
+        if (traceProbe) traceProbe.style.display = '';
+        if (traceTable) traceTable.style.display = 'none';
+        if (traceHopsEl) traceHopsEl.innerHTML = '';
+        traceTimer = setInterval(traceTick, 850);
+    }
+
+    function traceTick() {
+        // Phase 1: discover hops one-by-one. Phase 2: keep refreshing latency/loss (MTR-style).
+        if (traceIdx < tracePool.length) {
+            const p = tracePool[traceIdx];
+            const last = p.base + Math.random() * 6;
+            traceHopStats.push({ host: p.host, loss: p.baseLoss, last, avg: last, best: last, worst: last, n: 1, fresh: true, baseLoss: p.baseLoss, base: p.base });
+            traceIdx++;
+            if (traceProbe) traceProbe.style.display = 'none';
+            if (traceTable) traceTable.style.display = '';
+        } else {
+            // MTR refresh — jitter latency and loss across all hops.
+            traceHopStats.forEach(h => {
+                const last = h.base + Math.random() * 8;
+                h.last = last;
+                h.n++;
+                h.avg = h.avg + (last - h.avg) / Math.min(h.n, 10);
+                h.loss = Math.max(0, Math.min(40, h.baseLoss + (Math.random() * 6 - 3)));
+            });
+        }
+        renderTraceHops();
+    }
+
+    function stopTrace() {
+        traceRunning = false;
+        if (traceTimer) { clearInterval(traceTimer); traceTimer = null; }
+        if (traceBtn) { traceBtn.textContent = 'Start'; traceBtn.classList.remove('stop'); }
+        if (traceRunDot) traceRunDot.style.display = 'none';
+        if (traceProbe) traceProbe.style.display = 'none';
+    }
+
+    const traceExpand = wireExpand('trace-header', 'trace-body', ['trace-chevron'], null);
+    if (traceBtn) traceBtn.addEventListener('click', (e) => { e.stopPropagation(); startTrace(); });
+
+    // ── 3. Network speed test ──
+    const netSpark = [];
+    let netRunning = false;
+    const netServers = ['Cloudflare', 'OpenSpeedTest (LAN)'];
+    let netServerIdx = 0;
+    const netSrvPill = document.getElementById('net-st-server');
+    const netSrvName = document.getElementById('net-st-server-name');
+    if (netSrvPill) netSrvPill.addEventListener('click', (e) => {
+        e.stopPropagation();
+        netServerIdx = (netServerIdx + 1) % netServers.length;
+        if (netSrvName) netSrvName.textContent = netServers[netServerIdx];
+    });
+
+    function rampTo(setter, target, durationMs, jitter, done) {
+        const start = performance.now();
+        function frame(now) {
+            const t = Math.min(1, (now - start) / durationMs);
+            // ease-out
+            const eased = 1 - Math.pow(1 - t, 2);
+            const noise = (Math.random() * 2 - 1) * jitter * (1 - t * 0.7);
+            setter(Math.max(0, target * eased + noise));
+            if (t < 1) requestAnimationFrame(frame);
+            else { setter(target); if (done) done(); }
+        }
+        requestAnimationFrame(frame);
+    }
+
+    function buildSparkPath(arr, max) {
+        if (arr.length < 2) return '';
+        const w = 200, h = 40, step = w / (arr.length - 1);
+        return arr.map((v, i) => (i ? 'L' : 'M') + (i * step).toFixed(1) + ',' + (h - (v / max) * (h - 4) - 2).toFixed(1)).join(' ');
+    }
+
+    function runNetTest() {
+        if (netRunning) return;
+        netRunning = true;
+        const run = document.getElementById('net-st-run');
+        const running = document.getElementById('net-st-running');
+        const result = document.getElementById('net-st-result');
+        const phase = document.getElementById('net-st-phase');
+        const live = document.getElementById('net-st-live');
+        if (run) run.style.display = 'none';
+        if (running) running.style.display = '';
+        if (result) result.style.display = 'none';
+        // On LAN OpenSpeedTest, multi-gig. On Cloudflare, ~gigabit.
+        const lan = netServerIdx === 1;
+        const downTarget = lan ? 2350 + Math.random() * 400 : 880 + Math.random() * 120;
+        const upTarget = lan ? 2300 + Math.random() * 300 : 34 + Math.random() * 10;
+        if (phase) { phase.textContent = 'Download…'; phase.style.color = 'var(--accent)'; }
+        rampTo(v => { if (live) live.textContent = fmtThroughput(v); }, downTarget, 2200, downTarget * 0.12, () => {
+            if (phase) { phase.textContent = 'Upload…'; phase.style.color = 'var(--accent-blue)'; }
+            rampTo(v => { if (live) live.textContent = fmtThroughput(v); }, upTarget, 1800, upTarget * 0.12, () => {
+                if (running) running.style.display = 'none';
+                const dEl = document.getElementById('net-st-down');
+                const uEl = document.getElementById('net-st-up');
+                if (dEl) dEl.textContent = fmtThroughput(downTarget);
+                if (uEl) uEl.textContent = fmtThroughput(upTarget);
+                if (result) result.style.display = '';
+                const sum = document.getElementById('net-st-summary');
+                if (sum) sum.textContent = fmtThroughput(downTarget);
+                netSpark.push(downTarget);
+                if (netSpark.length > 12) netSpark.shift();
+                if (netSpark.length > 1) {
+                    const wrap = document.getElementById('net-st-spark-wrap');
+                    const path = document.getElementById('net-st-spark');
+                    if (wrap) wrap.style.display = '';
+                    if (path) path.setAttribute('d', buildSparkPath(netSpark, Math.max.apply(null, netSpark) * 1.15));
+                }
+                netRunning = false;
+            });
+        });
+    }
+
+    const netExpand = wireExpand('net-st-header', 'net-st-body', ['net-st-chevron'], null);
+    const netRunBtn = document.getElementById('net-st-run');
+    if (netRunBtn) netRunBtn.addEventListener('click', (e) => { e.stopPropagation(); runNetTest(); });
+
+    // ── 4. Disk speed test ──
+    const diskSparkR = [], diskSparkW = [];
+    let diskRunning = false;
+    function runDiskTest() {
+        if (diskRunning) return;
+        diskRunning = true;
+        const run = document.getElementById('disk-st-run');
+        const running = document.getElementById('disk-st-running');
+        const result = document.getElementById('disk-st-result');
+        const phase = document.getElementById('disk-st-phase');
+        const prog = document.getElementById('disk-st-progress');
+        if (run) run.style.display = 'none';
+        if (running) running.style.display = '';
+        if (result) result.style.display = 'none';
+        const writeTarget = 2400 + Math.random() * 400;
+        const readTarget = 2750 + Math.random() * 450;
+        const iops = 165000 + Math.random() * 40000;
+        // Writing… (0-45%), Reading… (45-85%), Random read… (85-100%)
+        function phaseRamp(label, color, from, to, dur, next) {
+            if (phase) { phase.textContent = label; phase.style.color = color; }
+            const start = performance.now();
+            function frame(now) {
+                const t = Math.min(1, (now - start) / dur);
+                if (prog) prog.style.width = (from + (to - from) * t) + '%';
+                if (t < 1) requestAnimationFrame(frame); else next();
+            }
+            requestAnimationFrame(frame);
+        }
+        phaseRamp('Writing…', 'var(--accent-blue)', 0, 45, 1400, () => {
+            phaseRamp('Reading…', 'var(--accent)', 45, 85, 1300, () => {
+                phaseRamp('Random read…', 'var(--accent-orange)', 85, 100, 900, () => {
+                    if (running) running.style.display = 'none';
+                    const rEl = document.getElementById('disk-st-read');
+                    const wEl = document.getElementById('disk-st-write');
+                    const iEl = document.getElementById('disk-st-iops');
+                    if (rEl) rEl.textContent = readTarget.toFixed(0) + ' MB/s';
+                    if (wEl) wEl.textContent = writeTarget.toFixed(0) + ' MB/s';
+                    if (iEl) iEl.textContent = iops.toLocaleString('en-US', {maximumFractionDigits:0}) + ' IOPS';
+                    if (result) result.style.display = '';
+                    const sum = document.getElementById('disk-st-summary');
+                    if (sum) sum.textContent = readTarget.toFixed(0) + ' / ' + writeTarget.toFixed(0) + ' MB/s';
+                    diskSparkR.push(readTarget); diskSparkW.push(writeTarget);
+                    if (diskSparkR.length > 12) { diskSparkR.shift(); diskSparkW.shift(); }
+                    if (diskSparkR.length > 1) {
+                        const wrap = document.getElementById('disk-st-spark-wrap');
+                        if (wrap) wrap.style.display = '';
+                        const max = Math.max.apply(null, diskSparkR.concat(diskSparkW)) * 1.15;
+                        const rp = document.getElementById('disk-st-spark-r');
+                        const wp = document.getElementById('disk-st-spark-w');
+                        if (rp) rp.setAttribute('d', buildSparkPath(diskSparkR, max));
+                        if (wp) wp.setAttribute('d', buildSparkPath(diskSparkW, max));
+                    }
+                    if (prog) prog.style.width = '0%';
+                    diskRunning = false;
+                });
+            });
+        });
+    }
+    const diskExpand = wireExpand('disk-st-header', 'disk-st-body', ['disk-st-chevron'], null);
+    const diskRunBtn = document.getElementById('disk-st-run');
+    if (diskRunBtn) diskRunBtn.addEventListener('click', (e) => { e.stopPropagation(); runDiskTest(); });
+
+    // ── Auto-play: when the timeline lands on network/disk panels, demo the features ──
+    // Hook into showPanel so the feature sections auto-expand and auto-run during
+    // the auto-play tour (and stay interactive when the user takes over).
+    let autoFeatureTimers = [];
+    function clearAutoFeatureTimers() { autoFeatureTimers.forEach(t => clearTimeout(t)); autoFeatureTimers = []; }
+    const _origShowPanel = showPanel;
+    showPanel = function(name) {
+        _origShowPanel(name);
+        if (interactive) return; // don't hijack manual exploration
+        clearAutoFeatureTimers();
+        // Collapse everything when leaving.
+        if (name !== 'network') { if (traceExpand) traceExpand.setOpen(false); if (netExpand) netExpand.setOpen(false); stopTrace(); }
+        if (name !== 'disk') { if (diskExpand) diskExpand.setOpen(false); }
+        if (name === 'network') {
+            autoFeatureTimers.push(setTimeout(() => { if (traceExpand) traceExpand.setOpen(true); startTrace(); }, 500));
+            autoFeatureTimers.push(setTimeout(() => { if (netExpand) netExpand.setOpen(true); runNetTest(); }, 2200));
+        } else if (name === 'disk') {
+            autoFeatureTimers.push(setTimeout(() => { if (diskExpand) diskExpand.setOpen(true); runDiskTest(); }, 500));
+        }
+    };
 })();
 </script>
 

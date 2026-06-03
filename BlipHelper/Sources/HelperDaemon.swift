@@ -309,6 +309,16 @@ final class HelperDaemon: @unchecked Sendable {
         CFUUIDGetConstantUUIDWithBytes(nil,
             0xCC, 0xD1, 0xDB, 0x19, 0xFD, 0x9A, 0x4D, 0xAF, 0xBF, 0x95, 0x12, 0x45, 0x4B, 0x23, 0x0A, 0xB6)
     }
+    // kIOATASMARTUserClientTypeID
+    private static var ataSMARTTypeID: CFUUID {
+        CFUUIDGetConstantUUIDWithBytes(nil,
+            0x24, 0x51, 0x4B, 0x7A, 0x28, 0x04, 0x11, 0xD6, 0x8A, 0x02, 0x00, 0x30, 0x65, 0x70, 0x48, 0x66)
+    }
+    // kIOATASMARTInterfaceID
+    private static var ataSMARTInterfaceID: CFUUID {
+        CFUUIDGetConstantUUIDWithBytes(nil,
+            0x08, 0xAB, 0xE2, 0x1C, 0x20, 0xD4, 0x11, 0xD6, 0x8D, 0xF6, 0x00, 0x03, 0x93, 0x5A, 0x76, 0xB2)
+    }
 
     /// Enumerates physical block-storage devices and reads S.M.A.R.T. health for any
     /// that expose the NVMe SMART user client (internal Apple SSD and most NVMe
@@ -343,34 +353,47 @@ final class HelperDaemon: @unchecked Sendable {
 
             // Skip synthesized/virtual disk images.
             if interconnect.localizedCaseInsensitiveContains("Virtual") { continue }
+            let displayName = name.isEmpty ? "Drive" : name
 
-            let nvmeCapable = (dict["NVMe SMART Capable"] as? Bool) ?? false
-            guard nvmeCapable else { continue }   // NVMe path only (covers internal + NVMe enclosures)
-
-            var health = HelperDriveHealth(
-                name: name.isEmpty ? "Drive" : name,
-                bsdName: bsdName,
-                isInternal: isInternal,
-                medium: interconnect.isEmpty ? (medium.isEmpty ? "NVMe" : medium) : interconnect,
-                smartStatus: ""
-            )
-
-            if let log = readNVMeSMARTLog(service: entry) {
-                health.percentageUsed = Int(log.percentUsed)
-                health.availableSpare = Int(log.availableSpare)
-                health.availableSpareThreshold = Int(log.spareThreshold)
-                health.temperatureCelsius = Int(log.temperatureKelvin) - 273
-                health.dataUnitsWritten = log.dataUnitsWritten
-                health.dataUnitsRead = log.dataUnitsRead
-                health.powerOnHours = log.powerOnHours
-                health.powerCycles = log.powerCycles
-                health.unsafeShutdowns = log.unsafeShutdowns
-                health.mediaErrors = log.mediaErrors
-                health.criticalWarning = Int(log.criticalWarning)
-                health.smartStatus = log.criticalWarning == 0 ? "Verified" : "Failing"
+            if (dict["NVMe SMART Capable"] as? Bool) ?? false {
+                var health = HelperDriveHealth(
+                    name: displayName,
+                    bsdName: bsdName,
+                    isInternal: isInternal,
+                    medium: interconnect.isEmpty ? (medium.isEmpty ? "NVMe" : medium) : interconnect,
+                    smartStatus: ""
+                )
+                if let log = readNVMeSMARTLog(service: entry) {
+                    health.percentageUsed = Int(log.percentUsed)
+                    health.availableSpare = Int(log.availableSpare)
+                    health.availableSpareThreshold = Int(log.spareThreshold)
+                    health.temperatureCelsius = Int(log.temperatureKelvin) - 273
+                    health.dataUnitsWritten = log.dataUnitsWritten
+                    health.dataUnitsRead = log.dataUnitsRead
+                    health.powerOnHours = log.powerOnHours
+                    health.powerCycles = log.powerCycles
+                    health.unsafeShutdowns = log.unsafeShutdowns
+                    health.mediaErrors = log.mediaErrors
+                    health.criticalWarning = Int(log.criticalWarning)
+                    health.smartStatus = log.criticalWarning == 0 ? "Verified" : "Failing"
+                }
+                drives.append(health)
+            } else if (dict["SMART Capable"] as? Bool) ?? false {
+                // External SATA/USB drives — ATA/SAT path.
+                guard let ata = readATASMART(service: entry) else { continue }
+                var health = HelperDriveHealth(
+                    name: displayName,
+                    bsdName: bsdName,
+                    isInternal: isInternal,
+                    medium: interconnect.isEmpty ? (medium.isEmpty ? "SATA" : medium) : interconnect,
+                    smartStatus: ata.status
+                )
+                health.percentageUsed = ata.life.map { max(0, 100 - $0) }
+                health.temperatureCelsius = ata.tempC
+                health.powerOnHours = ata.powerOnHours
+                health.criticalWarning = ata.status == "Failing" ? 1 : 0
+                drives.append(health)
             }
-
-            drives.append(health)
         }
         return drives
     }
@@ -437,6 +460,64 @@ final class HelperDaemon: @unchecked Sendable {
                 mediaErrors: u64(160)
             )
         }
+    }
+
+    /// Reads ATA/SAT S.M.A.R.T. for external SATA/USB drives. Overall pass/fail is
+    /// reliable; life%/temperature/power-on hours are best-effort (USB bridges vary).
+    private func readATASMART(service: io_service_t)
+        -> (status: String, life: Int?, tempC: Int?, powerOnHours: UInt64?)? {
+        var plugin: UnsafeMutablePointer<UnsafeMutablePointer<IOCFPlugInInterface>?>?
+        var score: Int32 = 0
+        guard IOCreatePlugInInterfaceForService(service, Self.ataSMARTTypeID,
+                                                Self.plugInInterfaceID, &plugin, &score) == KERN_SUCCESS,
+              let plugin, let pluginVtbl = plugin.pointee?.pointee else { return nil }
+        defer { _ = IODestroyPlugInInterface(plugin) }
+
+        var ifaceRaw: LPVOID?
+        let hr = pluginVtbl.QueryInterface(plugin, CFUUIDGetUUIDBytes(Self.ataSMARTInterfaceID), &ifaceRaw)
+        guard hr == S_OK, let ifaceRaw else { return nil }
+        let ifacePtr = ifaceRaw.assumingMemoryBound(to: UnsafeMutableRawPointer?.self)
+        guard let vtable = ifacePtr.pointee else { return nil }
+        let ptr = MemoryLayout<UnsafeRawPointer>.size
+
+        typealias EnableFn = @convention(c) (UnsafeMutableRawPointer?, DarwinBoolean) -> IOReturn
+        typealias StatusFn = @convention(c) (UnsafeMutableRawPointer?, UnsafeMutablePointer<DarwinBoolean>?) -> IOReturn
+        typealias ReadFn = @convention(c) (UnsafeMutableRawPointer?, UnsafeMutableRawPointer?) -> IOReturn
+        typealias ReleaseFn = @convention(c) (UnsafeMutableRawPointer?) -> UInt32
+        let enableFn = vtable.load(fromByteOffset: 5 * ptr, as: EnableFn.self)
+        let statusFn = vtable.load(fromByteOffset: 7 * ptr, as: StatusFn.self)
+        let readFn = vtable.load(fromByteOffset: 9 * ptr, as: ReadFn.self)
+        let release = vtable.load(fromByteOffset: 3 * ptr, as: ReleaseFn.self)
+        defer { _ = release(ifaceRaw) }
+
+        _ = enableFn(ifaceRaw, DarwinBoolean(true))
+
+        var exceeded = DarwinBoolean(false)
+        guard statusFn(ifaceRaw, &exceeded) == kIOReturnSuccess else { return nil }
+        let smartStatus = exceeded.boolValue ? "Failing" : "Verified"
+
+        var life: Int?
+        var tempC: Int?
+        var poh: UInt64?
+        var buffer = [UInt8](repeating: 0, count: 512)
+        if buffer.withUnsafeMutableBytes({ readFn(ifaceRaw, $0.baseAddress) }) == kIOReturnSuccess {
+            let lifeIDs: Set<UInt8> = [231, 233, 202, 169, 177, 173]
+            for i in 0..<30 {
+                let off = 2 + i * 12
+                guard off + 11 < buffer.count else { break }
+                let id = buffer[off]
+                guard id != 0, id != 0xFF else { continue }
+                let current = Int(buffer[off + 3])
+                if lifeIDs.contains(id), current >= 1, current <= 100, life == nil { life = current }
+                if id == 194, current > 0, current < 120 { tempC = current }
+                if id == 9 {
+                    var h: UInt64 = 0
+                    for b in 0..<6 { h |= UInt64(buffer[off + 5 + b]) << (8 * b) }
+                    if h > 0, h < 1_000_000 { poh = h }
+                }
+            }
+        }
+        return (smartStatus, life, tempC, poh)
     }
 
     // MARK: - Battery Health (via IOKit registry)

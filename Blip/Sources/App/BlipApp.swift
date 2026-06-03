@@ -20,6 +20,10 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     private var statusItem: NSStatusItem!
     private var popover: NSPopover!
     private let monitor = SystemMonitor()
+    // Persistent test engines so results/history survive a detail panel being
+    // dismissed and reopened, and so interval runs continue while panels are closed.
+    private let netSpeedTester = SpeedTester()
+    private let diskSpeedTester = DiskSpeedTester()
     private var hostingView: NSHostingView<StatusItemView>?
     private var eventMonitor: Any?
     private var detailPanel: NSPanel?
@@ -143,29 +147,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             return
         }
 
-        // Match the popover's corner radius (rounded to feel like the main panel)
         let cornerRadius: CGFloat = 20
-
-        let contentView = detailContent(for: section)
-        let wrappedView = AnyView(
-            contentView
-                .background(
-                    VisualEffectView(material: .popover, blendingMode: .behindWindow, cornerRadius: cornerRadius)
-                )
-                .clipShape(RoundedRectangle(cornerRadius: cornerRadius))
-                .overlay(
-                    RoundedRectangle(cornerRadius: cornerRadius)
-                        .stroke(Color.primary.opacity(0.08), lineWidth: 0.5)
-                )
-                .onHover { [weak self] hovering in
-                    if hovering {
-                        self?.dismissWorkItem?.cancel()
-                        self?.dismissWorkItem = nil
-                    } else {
-                        self?.handleSectionHover(nil)
-                    }
-                }
-        )
+        let wrappedView = makeWrappedView(for: section)
 
         // Reuse existing hosting view to prevent memory growth
         if let existing = detailHostingView {
@@ -233,13 +216,15 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
                 stats: monitor.snapshot.disk,
                 readHistory: monitor.diskReadHistory.values,
                 writeHistory: monitor.diskWriteHistory.values,
-                hasIOData: monitor.helperClient.isConnected
+                hasIOData: monitor.helperClient.isConnected,
+                speedTester: diskSpeedTester
             )
             #else
             DiskDetailPanel(
                 stats: monitor.snapshot.disk,
                 readHistory: monitor.diskReadHistory.values,
-                writeHistory: monitor.diskWriteHistory.values
+                writeHistory: monitor.diskWriteHistory.values,
+                speedTester: diskSpeedTester
             )
             #endif
         case .network:
@@ -247,6 +232,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
                 stats: monitor.snapshot.network,
                 downloadHistory: monitor.netDownHistory.values,
                 uploadHistory: monitor.netUpHistory.values,
+                speedTester: netSpeedTester,
                 traceStart: { host in await self.monitor.startTraceroute(host: host) },
                 traceStop: { await self.monitor.stopTraceroute() },
                 tracePoll: { await self.monitor.tracerouteHops() }
@@ -314,32 +300,47 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
 
     private func refreshDetailContent(for section: PopoverSection) {
         guard detailPanel != nil else { return }
-
-        let cornerRadius: CGFloat = 20
-        let contentView = detailContent(for: section)
-        let wrappedView = AnyView(
-            contentView
-                .background(
-                    VisualEffectView(material: .popover, blendingMode: .behindWindow, cornerRadius: cornerRadius)
-                )
-                .clipShape(RoundedRectangle(cornerRadius: cornerRadius))
-                .overlay(
-                    RoundedRectangle(cornerRadius: cornerRadius)
-                        .stroke(Color.primary.opacity(0.08), lineWidth: 0.5)
-                )
-                .onHover { [weak self] hovering in
-                    if hovering {
-                        self?.dismissWorkItem?.cancel()
-                        self?.dismissWorkItem = nil
-                    } else {
-                        self?.handleSectionHover(nil)
-                    }
-                }
-        )
-
         if let existing = detailHostingView {
-            existing.rootView = wrappedView
+            existing.rootView = makeWrappedView(for: section)
         }
+    }
+
+    /// The most a detail panel may grow — capped to the visible height of the screen
+    /// it appears on (minus a margin) so it always fits regardless of display size /
+    /// scaling. Content taller than this scrolls.
+    private var panelMaxHeight: CGFloat {
+        let screen = popover.contentViewController?.view.window?.screen
+            ?? detailPanel?.screen ?? NSScreen.main
+        let h = screen?.visibleFrame.height ?? 800
+        return max(220, h - 24)
+    }
+
+    /// Builds the styled, scrollable, hover-tracking wrapper around a detail panel.
+    private func makeWrappedView(for section: PopoverSection) -> AnyView {
+        let cornerRadius: CGFloat = 20
+        return AnyView(
+            ScrollView(.vertical, showsIndicators: true) {
+                detailContent(for: section)
+            }
+            .frame(width: 260)
+            .frame(maxHeight: panelMaxHeight)
+            .background(
+                VisualEffectView(material: .popover, blendingMode: .behindWindow, cornerRadius: cornerRadius)
+            )
+            .clipShape(RoundedRectangle(cornerRadius: cornerRadius))
+            .overlay(
+                RoundedRectangle(cornerRadius: cornerRadius)
+                    .stroke(Color.primary.opacity(0.08), lineWidth: 0.5)
+            )
+            .onHover { [weak self] hovering in
+                if hovering {
+                    self?.dismissWorkItem?.cancel()
+                    self?.dismissWorkItem = nil
+                } else {
+                    self?.handleSectionHover(nil)
+                }
+            }
+        )
     }
 
     // MARK: - Event Monitor

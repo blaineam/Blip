@@ -73,9 +73,10 @@ final class SpeedTester: ObservableObject {
     private let phaseDuration: TimeInterval = 9
     /// Short warm-up window discarded from the measurement (seconds).
     private let warmup: TimeInterval = 1.5
-    /// Bytes requested per download chunk (100 MB) — large enough to keep a
-    /// fast link busy without finishing too quickly.
-    private let downloadChunkBytes = 100_000_000
+    /// Bytes requested per download chunk (50 MB). Cloudflare's `__down` rejects
+    /// requests of 100 MB or more (HTTP 403), so stay below that; the runner
+    /// relaunches transfers continuously, which keeps even multi-gig links saturated.
+    private let downloadChunkBytes = 50_000_000
     /// Bytes posted per upload chunk (25 MB in-memory body).
     private let uploadChunkBytes = 25_000_000
     private let maxHistory = 10
@@ -103,6 +104,34 @@ final class SpeedTester: ObservableObject {
         runTask = nil
         if isRunning { phase = .idle }
         liveMbps = 0
+    }
+
+    // MARK: - Automated interval runs
+
+    /// When true, an interval test runs every `intervalMinutes`. Lives on the tester
+    /// (not the view) so it keeps running while the panel is closed.
+    @Published var autoRun = false { didSet { autoRun ? startAutoTimer() : stopAutoTimer() } }
+    @Published var intervalMinutes = 15 { didSet { if autoRun { startAutoTimer() } } }
+    /// Set by the UI from network conditions. When true the *automated* run is skipped
+    /// (metered / expensive / constrained network). A manual `start()` is never blocked.
+    var autoRunBlocked = false
+    private var autoTimer: Timer?
+
+    private func startAutoTimer() {
+        stopAutoTimer()
+        let interval = TimeInterval(max(1, intervalMinutes) * 60)
+        autoTimer = Timer.scheduledTimer(withTimeInterval: interval, repeats: true) { [weak self] t in
+            guard let self else { t.invalidate(); return }
+            Task { @MainActor in
+                guard !self.autoRunBlocked, !self.isRunning else { return }
+                self.start()
+            }
+        }
+    }
+
+    private func stopAutoTimer() {
+        autoTimer?.invalidate()
+        autoTimer = nil
     }
 
     private func run() async {
@@ -334,10 +363,14 @@ final class NetworkMonitor: @unchecked Sendable {
     private var totalsPollCount = 0
     #endif
     var pingTarget: String = "1.1.1.1"
+    private var _isExpensive = false
+    private var _isConstrained = false
 
     init() {
         pathMonitor.pathUpdateHandler = { [weak self] path in
             self?._isConnected = path.status == .satisfied
+            self?._isExpensive = path.isExpensive
+            self?._isConstrained = path.isConstrained
         }
         pathMonitor.start(queue: monitorQueue)
     }
@@ -349,6 +382,8 @@ final class NetworkMonitor: @unchecked Sendable {
     func read() -> NetworkStats {
         var stats = NetworkStats()
         stats.isConnected = _isConnected
+        stats.isExpensive = _isExpensive
+        stats.isConstrained = _isConstrained
 
         // Get interface addresses
         var ifaddr: UnsafeMutablePointer<ifaddrs>?

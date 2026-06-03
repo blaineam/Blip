@@ -150,6 +150,10 @@ struct NetworkStats: Sendable {
     var totalBytesDownloaded: UInt64 = 0
     var totalBytesUploaded: UInt64 = 0
     var interfaces: [InterfaceInfo] = []
+    /// Network is metered/expensive (e.g. cellular or a personal hotspot).
+    var isExpensive: Bool = false
+    /// Network is in Low Data Mode / otherwise constrained.
+    var isConstrained: Bool = false
 }
 
 // MARK: - Battery

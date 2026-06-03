@@ -6,9 +6,10 @@ struct DiskDetailPanel: View {
     let readHistory: [Double]
     let writeHistory: [Double]
     var hasIOData: Bool = true
-
-    @StateObject private var speedTester = DiskSpeedTester()
-    @State private var speedTestExpanded = false
+    /// Persistent tester injected by the app so results/history survive the panel
+    /// being dismissed and reopened.
+    @ObservedObject var speedTester: DiskSpeedTester
+    @AppStorage("diskSpeedExpanded") private var speedTestExpanded = false
 
     var body: some View {
         VStack(alignment: .leading, spacing: 10) {
@@ -341,97 +342,88 @@ struct DiskDetailPanel: View {
     private var speedTestBody: some View {
         VStack(alignment: .leading, spacing: 8) {
             // Target location + change/reset
-            HStack(spacing: 4) {
+            HStack(spacing: 5) {
                 Image(systemName: speedTester.locationLabel == "Boot volume" ? "internaldrive" : "externaldrive")
-                    .font(.system(size: 9))
-                    .foregroundStyle(.secondary)
-                Text(speedTester.locationLabel)
                     .font(.system(size: 10))
                     .foregroundStyle(.secondary)
+                Text(speedTester.locationLabel)
+                    .font(.system(size: 11, weight: .medium))
                     .lineLimit(1)
                     .truncationMode(.middle)
                 Spacer()
-                Button("Change…") { speedTester.chooseLocation() }
-                    .controlSize(.mini)
-                    .disabled(speedTester.isRunning)
                 if speedTester.locationLabel != "Boot volume" {
-                    Button {
-                        speedTester.useBootVolume()
-                    } label: {
+                    Button { speedTester.useBootVolume() } label: {
                         Image(systemName: "arrow.uturn.backward")
                     }
+                    .buttonStyle(.borderless)
                     .controlSize(.mini)
                     .disabled(speedTester.isRunning)
                     .help("Back to boot volume")
                 }
+                Button("Change…") { speedTester.chooseLocation() }
+                    .controlSize(.mini)
+                    .disabled(speedTester.isRunning)
             }
 
             if let err = speedTester.lastError {
-                HStack(spacing: 3) {
-                    Image(systemName: "exclamationmark.triangle.fill")
-                        .font(.system(size: 9))
-                        .foregroundStyle(.orange)
-                    Text(err)
-                        .font(.system(size: 10))
-                        .foregroundStyle(.secondary)
-                }
+                Label(err, systemImage: "exclamationmark.triangle.fill")
+                    .font(.system(size: 10))
+                    .foregroundStyle(.orange)
             }
 
-            // Size picker
-            HStack {
-                Text("Size")
-                    .font(.system(size: 10))
-                    .foregroundStyle(.secondary)
-                Spacer()
+            // Size picker + Run/Cancel on one tidy row
+            HStack(spacing: 6) {
                 Picker("", selection: $speedTester.size) {
                     ForEach(DiskBenchmark.Size.allCases) { size in
                         Text(size.label).tag(size)
                     }
                 }
                 .labelsHidden()
-                .controlSize(.mini)
-                .frame(width: 90)
+                .controlSize(.small)
+                .fixedSize()
                 .disabled(speedTester.isRunning)
+                Spacer()
+                if speedTester.isRunning {
+                    Button("Cancel") { speedTester.cancel() }
+                        .controlSize(.small)
+                        .tint(.red)
+                } else {
+                    Button { speedTester.start() } label: {
+                        HStack(spacing: 3) {
+                            Image(systemName: "play.fill").font(.system(size: 8))
+                            Text("Run").font(.system(size: 10, weight: .medium))
+                        }
+                    }
+                    .controlSize(.small)
+                    .buttonStyle(.borderedProminent)
+                }
             }
 
-            // Run / Cancel button + progress
             if speedTester.isRunning {
-                VStack(alignment: .leading, spacing: 4) {
-                    HStack(spacing: 6) {
-                        ProgressView(value: speedTester.progress)
-                            .progressViewStyle(.linear)
-                        Button("Cancel") { speedTester.cancel() }
-                            .controlSize(.mini)
-                    }
+                VStack(alignment: .leading, spacing: 3) {
+                    ProgressView(value: speedTester.progress).progressViewStyle(.linear)
                     Text(phaseLabel(speedTester.phase))
-                        .font(.system(size: 10))
+                        .font(.system(size: 9))
                         .foregroundStyle(.secondary)
                 }
-            } else {
-                Button {
-                    speedTester.start()
-                } label: {
-                    Text("Run Test")
-                        .font(.system(size: 11))
-                        .frame(maxWidth: .infinity)
-                }
-                .controlSize(.small)
             }
 
-            // Last result
+            // Last result — read / write / random IOPS in one row
             if let r = speedTester.lastResult {
                 HStack(spacing: 0) {
                     speedStat(title: "Read", value: r.readMBps, color: .green)
                     speedStat(title: "Write", value: r.writeMBps, color: .blue)
-                }
-                if let iops = r.randomReadIOPS {
-                    HStack(spacing: 2) {
-                        Text("Random read")
-                            .font(.system(size: 10))
-                            .foregroundStyle(.secondary)
-                        Spacer()
-                        Text(String(format: "%.0f IOPS", iops))
-                            .font(.system(size: 11, design: .monospaced))
+                    if let iops = r.randomReadIOPS {
+                        VStack(alignment: .leading, spacing: 2) {
+                            HStack(spacing: 2) {
+                                Circle().fill(.orange).frame(width: 5, height: 5)
+                                Text("Rand").font(.system(size: 10)).foregroundStyle(.secondary)
+                            }
+                            Text(iops >= 1000 ? String(format: "%.0fK IOPS", iops / 1000)
+                                              : String(format: "%.0f IOPS", iops))
+                                .font(.system(size: 11, design: .monospaced))
+                        }
+                        .frame(maxWidth: .infinity, alignment: .leading)
                     }
                 }
             }
@@ -441,15 +433,43 @@ struct DiskDetailPanel: View {
                 speedHistoryChart
             }
 
-            // Auto-run toggle
+            // Auto-run
             Toggle(isOn: $speedTester.autoRun) {
-                Text("Auto-run every \(speedTester.intervalMinutes) min")
+                Text("Auto-run on interval")
                     .font(.system(size: 10))
                     .foregroundStyle(.secondary)
             }
             .toggleStyle(.switch)
             .controlSize(.mini)
+            if speedTester.autoRun {
+                Picker("", selection: $speedTester.intervalMinutes) {
+                    ForEach([5, 15, 30, 60], id: \.self) { m in
+                        Text("every \(m) min").tag(m)
+                    }
+                }
+                .labelsHidden()
+                .pickerStyle(.menu)
+                .controlSize(.small)
+                .font(.system(size: 10))
+                if !speedTester.autoRunAllowedNow {
+                    Text("Paused — drive health is low. Manual runs still work.")
+                        .font(.system(size: 9))
+                        .foregroundStyle(.orange)
+                }
+            }
         }
+        .onAppear { speedTester.targetHealthRemaining = testedDriveHealth }
+        .onChange(of: speedTester.locationLabel) { _, _ in speedTester.targetHealthRemaining = testedDriveHealth }
+        .onChange(of: stats.drives.count) { _, _ in speedTester.targetHealthRemaining = testedDriveHealth }
+    }
+
+    /// Health % of the drive being benchmarked: the internal SSD for the boot volume,
+    /// or unknown (nil → no guard) for a user-chosen external folder.
+    private var testedDriveHealth: Int? {
+        if speedTester.locationLabel == "Boot volume" {
+            return stats.drives.first(where: { $0.isInternal })?.lifeRemaining
+        }
+        return nil
     }
 
     private func speedStat(title: String, value: Double, color: Color) -> some View {

@@ -5,6 +5,9 @@ struct NetworkDetailPanel: View {
     let stats: NetworkStats
     let downloadHistory: [Double]
     let uploadHistory: [Double]
+    /// Persistent tester injected by the app so speed-test results survive the panel
+    /// being dismissed and reopened.
+    @ObservedObject var speedTester: SpeedTester
 
     // Feature B — Traceroute / MTR handlers (optional for back-compat).
     var traceStart: ((String) async -> Void)? = nil
@@ -218,7 +221,7 @@ struct NetworkDetailPanel: View {
 
             // Speed Test (self-contained block — see SpeedTestSection below)
             Divider()
-            SpeedTestSection()
+            SpeedTestSection(tester: speedTester, isExpensiveNetwork: stats.isExpensive || stats.isConstrained)
         }
         .padding(12)
         .frame(width: 260)
@@ -400,7 +403,7 @@ private struct TracerouteSection: View {
     let stop: () async -> Void
     let poll: () async -> (hops: [HelperTraceHop], running: Bool)
 
-    @State private var expanded = false
+    @AppStorage("traceExpanded") private var expanded = false
     // Target is configured in Settings (hover panels can't take keyboard focus, so an
     // inline text field couldn't be typed into). Falls back to the ping target/router.
     @AppStorage("tracerouteTarget") private var tracerouteTarget: String = ""
@@ -469,9 +472,23 @@ private struct TracerouteSection: View {
                 }
             }
         }
+        .onAppear { restoreFromSession() }
         .onDisappear {
-            // Don't leave a session or timer running when the panel closes.
-            stopTrace()
+            // Keep the traceroute session itself running; only pause the UI poll timer
+            // so the user can reopen the panel later and see live values again.
+            pollTimer?.invalidate()
+            pollTimer = nil
+        }
+    }
+
+    /// Re-sync the running state and hops from the persistent traceroute session when
+    /// the panel reappears, resuming the poll timer if a session is still active.
+    private func restoreFromSession() {
+        Task {
+            let snap = await poll()
+            running = snap.running
+            hops = snap.hops
+            if snap.running { scheduleTimer() }
         }
     }
 
@@ -561,11 +578,13 @@ private struct TracerouteSection: View {
 ///
 /// Fully self-contained so it merges cleanly alongside other panel additions.
 struct SpeedTestSection: View {
-    @StateObject private var tester = SpeedTester()
-    @State private var expanded = false
-    @State private var autoRun = false
-    @State private var intervalMinutes = 15
-    @State private var autoTimer: Timer?
+    /// Injected so results/history persist across panel dismiss/reopen.
+    @ObservedObject var tester: SpeedTester
+    /// True when the current network is metered (expensive/constrained); blocks
+    /// only the automated interval run, never a manual one.
+    var isExpensiveNetwork: Bool = false
+
+    @AppStorage("netSpeedExpanded") private var expanded = false
 
     // Server selection (persisted): Cloudflare by default, or a self-hosted
     // OpenSpeedTest server on the LAN.
@@ -619,7 +638,16 @@ struct SpeedTestSection: View {
                 content
             }
         }
-        .onDisappear { stopAutoTimer() }
+        .onAppear { syncTester() }
+        .onChange(of: useOpenSpeedTest) { _, _ in syncTester() }
+        .onChange(of: openSpeedTestURL) { _, _ in syncTester() }
+        .onChange(of: isExpensiveNetwork) { _, _ in tester.autoRunBlocked = isExpensiveNetwork }
+    }
+
+    /// Keep the persistent tester's server + metered-network guard in sync with the UI.
+    private func syncTester() {
+        tester.server = selectedServer
+        tester.autoRunBlocked = isExpensiveNetwork
     }
 
     @ViewBuilder
@@ -693,30 +721,36 @@ struct SpeedTestSection: View {
             }
         }
 
-        // Sparkline of recent download results
+        // Sparkline of recent up/down results
         if tester.history.count > 1 {
             sparkline
         }
 
         // Auto-run controls
-        Toggle(isOn: Binding(get: { autoRun }, set: { setAutoRun($0) })) {
-            Text("Auto-run every")
+        Toggle(isOn: $tester.autoRun) {
+            Text("Auto-run on interval")
                 .font(.system(size: 10))
                 .foregroundStyle(.secondary)
         }
         .toggleStyle(.switch)
         .controlSize(.mini)
 
-        if autoRun {
-            Picker("", selection: Binding(get: { intervalMinutes }, set: { setInterval($0) })) {
+        if tester.autoRun {
+            Picker("", selection: $tester.intervalMinutes) {
                 ForEach(intervalOptions, id: \.self) { m in
-                    Text("\(m) min").tag(m)
+                    Text("every \(m) min").tag(m)
                 }
             }
             .labelsHidden()
             .pickerStyle(.menu)
             .controlSize(.small)
             .font(.system(size: 10))
+
+            if isExpensiveNetwork {
+                Text("Paused — this network is metered. Manual runs still work.")
+                    .font(.system(size: 9))
+                    .foregroundStyle(.orange)
+            }
         }
     }
 
@@ -772,18 +806,20 @@ struct SpeedTestSection: View {
 
     private var sparkline: some View {
         VStack(alignment: .leading, spacing: 2) {
-            Text("Recent (download)")
-                .font(.system(size: 9))
-                .foregroundStyle(.secondary)
+            HStack(spacing: 10) {
+                legendDot(.green, "Down")
+                legendDot(.blue, "Up")
+            }
             Chart {
                 ForEach(Array(tester.history.enumerated()), id: \.element.id) { i, r in
-                    LineMark(x: .value("N", i), y: .value("Mbps", r.downMbps))
+                    LineMark(x: .value("N", i), y: .value("Mbps", r.downMbps), series: .value("Dir", "Down"))
                         .foregroundStyle(.green)
                         .lineStyle(StrokeStyle(lineWidth: 1.5))
                         .interpolationMethod(.monotone)
-                    PointMark(x: .value("N", i), y: .value("Mbps", r.downMbps))
-                        .foregroundStyle(.green)
-                        .symbolSize(8)
+                    LineMark(x: .value("N", i), y: .value("Mbps", r.upMbps), series: .value("Dir", "Up"))
+                        .foregroundStyle(.blue)
+                        .lineStyle(StrokeStyle(lineWidth: 1.5))
+                        .interpolationMethod(.monotone)
                 }
             }
             .chartLegend(.hidden)
@@ -804,35 +840,10 @@ struct SpeedTestSection: View {
         }
     }
 
-    // MARK: Auto-run timer
-
-    private func setAutoRun(_ on: Bool) {
-        autoRun = on
-        if on {
-            startAutoTimer()
-        } else {
-            stopAutoTimer()
+    private func legendDot(_ color: Color, _ label: String) -> some View {
+        HStack(spacing: 3) {
+            Circle().fill(color).frame(width: 5, height: 5)
+            Text(label).font(.system(size: 9)).foregroundStyle(.secondary)
         }
-    }
-
-    private func setInterval(_ minutes: Int) {
-        intervalMinutes = minutes
-        if autoRun { startAutoTimer() }
-    }
-
-    private func startAutoTimer() {
-        stopAutoTimer()
-        if !tester.isRunning { runTest() }
-        let timer = Timer.scheduledTimer(withTimeInterval: TimeInterval(intervalMinutes * 60), repeats: true) { _ in
-            Task { @MainActor in
-                if !tester.isRunning { runTest() }
-            }
-        }
-        autoTimer = timer
-    }
-
-    private func stopAutoTimer() {
-        autoTimer?.invalidate()
-        autoTimer = nil
     }
 }

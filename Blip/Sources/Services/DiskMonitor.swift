@@ -187,6 +187,16 @@ final class DiskMonitor: @unchecked Sendable {
         CFUUIDGetConstantUUIDWithBytes(nil,
             0xCC, 0xD1, 0xDB, 0x19, 0xFD, 0x9A, 0x4D, 0xAF, 0xBF, 0x95, 0x12, 0x45, 0x4B, 0x23, 0x0A, 0xB6)
     }
+    // kIOATASMARTUserClientTypeID (also surfaced as SATSMARTLib.plugin for USB bridges)
+    private static var ataSMARTTypeID: CFUUID {
+        CFUUIDGetConstantUUIDWithBytes(nil,
+            0x24, 0x51, 0x4B, 0x7A, 0x28, 0x04, 0x11, 0xD6, 0x8A, 0x02, 0x00, 0x30, 0x65, 0x70, 0x48, 0x66)
+    }
+    // kIOATASMARTInterfaceID
+    private static var ataSMARTInterfaceID: CFUUID {
+        CFUUIDGetConstantUUIDWithBytes(nil,
+            0x08, 0xAB, 0xE2, 0x1C, 0x20, 0xD4, 0x11, 0xD6, 0x8D, 0xF6, 0x00, 0x03, 0x93, 0x5A, 0x76, 0xB2)
+    }
 
     /// Reads NVMe S.M.A.R.T. health for all NVMe-SMART-capable block storage devices
     /// (internal Apple SSD + NVMe enclosures). Unprivileged — Apple publishes the user
@@ -218,28 +228,52 @@ final class DiskMonitor: @unchecked Sendable {
             let isInternal = location.localizedCaseInsensitiveContains("internal")
 
             if interconnect.localizedCaseInsensitiveContains("Virtual") { continue }
-            guard (dict["NVMe SMART Capable"] as? Bool) ?? false else { continue }
+            let displayName = name.isEmpty ? "Drive" : name
 
-            guard let log = readNVMeSMARTLog(service: entry) else { continue }
-            let pctUsed = Int(log.percentUsed)
-            drives.append(DriveHealth(
-                name: name.isEmpty ? "Drive" : name,
-                bsdName: bsdName,
-                isInternal: isInternal,
-                medium: interconnect.isEmpty ? (medium.isEmpty ? "NVMe" : medium) : interconnect,
-                smartStatus: log.criticalWarning == 0 ? "Verified" : "Failing",
-                percentageUsed: pctUsed,
-                availableSpare: Int(log.availableSpare),
-                availableSpareThreshold: Int(log.spareThreshold),
-                temperatureCelsius: Int(log.temperatureKelvin) - 273,
-                bytesWritten: log.dataUnitsWritten &* 512_000,
-                bytesRead: log.dataUnitsRead &* 512_000,
-                powerOnHours: log.powerOnHours,
-                powerCycles: log.powerCycles,
-                unsafeShutdowns: log.unsafeShutdowns,
-                mediaErrors: log.mediaErrors,
-                criticalWarning: Int(log.criticalWarning)
-            ))
+            if (dict["NVMe SMART Capable"] as? Bool) ?? false {
+                // NVMe path — full health log (internal SSD + NVMe enclosures).
+                guard let log = readNVMeSMARTLog(service: entry) else { continue }
+                drives.append(DriveHealth(
+                    name: displayName,
+                    bsdName: bsdName,
+                    isInternal: isInternal,
+                    medium: interconnect.isEmpty ? (medium.isEmpty ? "NVMe" : medium) : interconnect,
+                    smartStatus: log.criticalWarning == 0 ? "Verified" : "Failing",
+                    percentageUsed: Int(log.percentUsed),
+                    availableSpare: Int(log.availableSpare),
+                    availableSpareThreshold: Int(log.spareThreshold),
+                    temperatureCelsius: Int(log.temperatureKelvin) - 273,
+                    bytesWritten: log.dataUnitsWritten &* 512_000,
+                    bytesRead: log.dataUnitsRead &* 512_000,
+                    powerOnHours: log.powerOnHours,
+                    powerCycles: log.powerCycles,
+                    unsafeShutdowns: log.unsafeShutdowns,
+                    mediaErrors: log.mediaErrors,
+                    criticalWarning: Int(log.criticalWarning)
+                ))
+            } else if (dict["SMART Capable"] as? Bool) ?? false {
+                // ATA/SAT path — external SATA/USB SSDs. Overall pass/fail is reliable;
+                // life%/temp/hours are best-effort (USB bridges vary in what they expose).
+                guard let ata = readATASMART(service: entry) else { continue }
+                drives.append(DriveHealth(
+                    name: displayName,
+                    bsdName: bsdName,
+                    isInternal: isInternal,
+                    medium: interconnect.isEmpty ? (medium.isEmpty ? "SATA" : medium) : interconnect,
+                    smartStatus: ata.status,
+                    percentageUsed: ata.life.map { max(0, 100 - $0) },
+                    availableSpare: nil,
+                    availableSpareThreshold: nil,
+                    temperatureCelsius: ata.tempC,
+                    bytesWritten: nil,
+                    bytesRead: nil,
+                    powerOnHours: ata.powerOnHours,
+                    powerCycles: nil,
+                    unsafeShutdowns: nil,
+                    mediaErrors: nil,
+                    criticalWarning: ata.status == "Failing" ? 1 : 0
+                ))
+            }
         }
         return drives
     }
@@ -303,6 +337,76 @@ final class DiskMonitor: @unchecked Sendable {
                 mediaErrors: u64(160)
             )
         }
+    }
+
+    /// Reads ATA/SAT S.M.A.R.T. for external SATA/USB drives via the ATA SMART user
+    /// client. The overall pass/fail status is reliable; life%/temperature/power-on
+    /// hours are best-effort (parsed from the attribute table only when it looks valid,
+    /// since USB bridges differ in what — and how — they report).
+    private static func readATASMART(service: io_service_t)
+        -> (status: String, life: Int?, tempC: Int?, powerOnHours: UInt64?)? {
+        var plugin: UnsafeMutablePointer<UnsafeMutablePointer<IOCFPlugInInterface>?>?
+        var score: Int32 = 0
+        guard IOCreatePlugInInterfaceForService(service, ataSMARTTypeID,
+                                                plugInInterfaceID, &plugin, &score) == KERN_SUCCESS,
+              let plugin, let pluginVtbl = plugin.pointee?.pointee else { return nil }
+        defer { _ = IODestroyPlugInInterface(plugin) }
+
+        var ifaceRaw: LPVOID?
+        let hr = pluginVtbl.QueryInterface(plugin, CFUUIDGetUUIDBytes(ataSMARTInterfaceID), &ifaceRaw)
+        guard hr == S_OK, let ifaceRaw else { return nil }
+        let ifacePtr = ifaceRaw.assumingMemoryBound(to: UnsafeMutableRawPointer?.self)
+        guard let vtable = ifacePtr.pointee else { return nil }
+        let ptr = MemoryLayout<UnsafeRawPointer>.size
+
+        // Vtable: IUNKNOWN(0-3) + version/revision(4) + EnableDisable(5) + EnableAutosave(6)
+        //       + ReturnStatus(7) + ExecuteOffline(8) + ReadData(9)
+        typealias EnableFn = @convention(c) (UnsafeMutableRawPointer?, DarwinBoolean) -> IOReturn
+        typealias StatusFn = @convention(c) (UnsafeMutableRawPointer?, UnsafeMutablePointer<DarwinBoolean>?) -> IOReturn
+        typealias ReadFn = @convention(c) (UnsafeMutableRawPointer?, UnsafeMutableRawPointer?) -> IOReturn
+        typealias ReleaseFn = @convention(c) (UnsafeMutableRawPointer?) -> UInt32
+        let enableFn = vtable.load(fromByteOffset: 5 * ptr, as: EnableFn.self)
+        let statusFn = vtable.load(fromByteOffset: 7 * ptr, as: StatusFn.self)
+        let readFn = vtable.load(fromByteOffset: 9 * ptr, as: ReadFn.self)
+        let release = vtable.load(fromByteOffset: 3 * ptr, as: ReleaseFn.self)
+        defer { _ = release(ifaceRaw) }
+
+        _ = enableFn(ifaceRaw, DarwinBoolean(true))
+
+        var exceeded = DarwinBoolean(false)
+        let statusOK = statusFn(ifaceRaw, &exceeded) == kIOReturnSuccess
+        guard statusOK else { return nil }
+        let smartStatus = exceeded.boolValue ? "Failing" : "Verified"
+
+        var life: Int?
+        var tempC: Int?
+        var poh: UInt64?
+        var buffer = [UInt8](repeating: 0, count: 512)
+        if buffer.withUnsafeMutableBytes({ readFn(ifaceRaw, $0.baseAddress) }) == kIOReturnSuccess {
+            // Attribute table at offset 2, 12 bytes/entry. Only trust entries with a
+            // plausible structure (known ID + sane normalized value) — bridges that
+            // return non-standard blobs simply yield nil for these.
+            let lifeIDs: Set<UInt8> = [231, 233, 202, 169, 177, 173]
+            for i in 0..<30 {
+                let off = 2 + i * 12
+                guard off + 11 < buffer.count else { break }
+                let id = buffer[off]
+                guard id != 0, id != 0xFF else { continue }
+                let current = Int(buffer[off + 3])
+                if lifeIDs.contains(id), current >= 1, current <= 100, life == nil {
+                    life = current
+                }
+                if id == 194 {  // temperature — normalized current value is °C on most SSDs
+                    if current > 0, current < 120 { tempC = current }
+                }
+                if id == 9 {    // power-on hours (raw, 6 bytes LE)
+                    var h: UInt64 = 0
+                    for b in 0..<6 { h |= UInt64(buffer[off + 5 + b]) << (8 * b) }
+                    if h > 0, h < 1_000_000 { poh = h }
+                }
+            }
+        }
+        return (smartStatus, life, tempC, poh)
     }
     #endif
 }
@@ -613,6 +717,17 @@ final class DiskSpeedTester: ObservableObject {
         progress = 0
     }
 
+    /// Health % of the drive being tested (set by the UI). Below 30% the *automated*
+    /// interval run is skipped to avoid stressing a worn drive. A manual run is never
+    /// blocked. nil = unknown (allow).
+    var targetHealthRemaining: Int?
+
+    /// Whether an automated run is currently permitted by the health guard.
+    var autoRunAllowedNow: Bool {
+        guard let h = targetHealthRemaining else { return true }
+        return h >= 30
+    }
+
     private func startTimer() {
         stopTimer()
         let interval = TimeInterval(max(1, intervalMinutes) * 60)
@@ -621,7 +736,7 @@ final class DiskSpeedTester: ObservableObject {
             // the tester is gone, otherwise hop to the main actor to run.
             guard self != nil else { t.invalidate(); return }
             Task { @MainActor in
-                guard let self, !self.isRunning else { return }
+                guard let self, !self.isRunning, self.autoRunAllowedNow else { return }
                 self.start()
             }
         }
