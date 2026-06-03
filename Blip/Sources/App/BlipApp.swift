@@ -31,6 +31,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
     private var currentSection: PopoverSection?
     private var settingsWindow: NSWindow?
     private var tracerouteWindow: NSWindow?
+    private var screenshotWindow: NSWindow?
     private var dismissWorkItem: DispatchWorkItem?
     private var cancellables = Set<AnyCancellable>()
     /// When true, the detail panel stops refreshing — used while the pointer is over
@@ -38,12 +39,56 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
     private var processListFrozen = false
 
     func applicationDidFinishLaunching(_ notification: Notification) {
+        // Screenshot automation: inject fictional demo data and render the
+        // requested scene as a standalone card window for capture — no menu-bar
+        // item, no real monitoring, no helper.
+        if BlipScreenshotMode.isActive {
+            monitor.loadDemoData()
+            setupScreenshotWindow()
+            return
+        }
         setupStatusItem()
         setupPopover()
         setupDetailPanel()
         setupEventMonitor()
         setupLiveRefresh()
         monitor.start()
+    }
+
+    /// Renders the requested scene (overview popover or a section detail panel)
+    /// as a borderless card on a transparent window, sized to fit, for screenshots.
+    private func setupScreenshotWindow() {
+        let cornerRadius: CGFloat = 20
+        let inner: AnyView
+        if let section = BlipScreenshotMode.section {
+            inner = AnyView(detailContent(for: section).frame(width: 260))
+        } else {
+            inner = AnyView(PopoverView(monitor: monitor, onHoverSection: nil, onOpenSettings: nil).frame(width: 260))
+        }
+        let card = inner
+            .background(Color(white: 0.13))
+            .clipShape(RoundedRectangle(cornerRadius: cornerRadius))
+            .overlay(
+                RoundedRectangle(cornerRadius: cornerRadius)
+                    .stroke(Color.white.opacity(0.10), lineWidth: 0.5)
+            )
+            .padding(2)
+            .preferredColorScheme(.dark)
+
+        let hosting = NSHostingView(rootView: card)
+        let size = hosting.fittingSize
+        let window = NSWindow(contentRect: NSRect(origin: .zero, size: size),
+                              styleMask: [.borderless], backing: .buffered, defer: false)
+        window.isOpaque = false
+        window.backgroundColor = .clear
+        window.hasShadow = false
+        window.level = .normal
+        hosting.frame = NSRect(origin: .zero, size: size)
+        window.contentView = hosting
+        window.center()
+        window.makeKeyAndOrderFront(nil)
+        NSApp.activate(ignoringOtherApps: true)
+        screenshotWindow = window
     }
 
     func applicationWillTerminate(_ notification: Notification) {
