@@ -140,6 +140,8 @@ struct DiskDetailPanel: View {
                     driveHealthSection(drive)
                 }
             }
+
+            // Speed test (self-contained block — see speedTestSection below)
             Divider()
             speedTestSection
         }
@@ -196,7 +198,115 @@ struct DiskDetailPanel: View {
                         healthCell(cells[i + 1].0, cells[i + 1].1)
                     } else {
                         Spacer().frame(maxWidth: .infinity)
-    // MARK: - Speed Test
+                    }
+                }
+            }
+
+            if !drive.isHealthy {
+                HStack(spacing: 3) {
+                    Image(systemName: "exclamationmark.triangle.fill")
+                        .font(.system(size: 9))
+                        .foregroundStyle(.red)
+                    Text("S.M.A.R.T. warning")
+                        .font(.system(size: 10))
+                        .foregroundStyle(.red)
+                }
+            }
+        }
+        .padding(.vertical, 2)
+    }
+
+    /// Builds the (label, value) pairs that are available for this drive.
+    private func healthCells(_ drive: DriveHealth) -> [(String, String)] {
+        var cells: [(String, String)] = []
+        if let used = drive.percentageUsed { cells.append(("Used", "\(used)%")) }
+        if let spare = drive.availableSpare { cells.append(("Spare", "\(spare)%")) }
+        if let temp = drive.temperatureCelsius { cells.append(("Temp", "\(temp)°C")) }
+        if let written = drive.bytesWritten { cells.append(("Written", Fmt.totalBytes(written))) }
+        if let read = drive.bytesRead { cells.append(("Read", Fmt.totalBytes(read))) }
+        if let hours = drive.powerOnHours { cells.append(("Power On", "\(hours) h")) }
+        if let cycles = drive.powerCycles { cells.append(("Cycles", "\(cycles)")) }
+        if let unsafe = drive.unsafeShutdowns { cells.append(("Unsafe Off", "\(unsafe)")) }
+        return cells
+    }
+
+    private func healthCell(_ label: String, _ value: String) -> some View {
+        VStack(alignment: .leading, spacing: 1) {
+            Text(label)
+                .font(.system(size: 9))
+                .foregroundStyle(.secondary)
+            Text(value)
+                .font(.system(size: 10, design: .monospaced))
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
+    }
+
+    private func lifeColor(_ life: Int) -> Color {
+        if life < 10 { return .red }
+        if life < 25 { return .orange }
+        return .green
+    }
+
+    private var ioChart: some View {
+        VStack(alignment: .leading, spacing: 4) {
+            Text("Read / Write over time")
+                .font(.system(size: 10))
+                .foregroundStyle(.secondary)
+
+            Chart {
+                ForEach(Array(readHistory.enumerated()), id: \.offset) { i, val in
+                    AreaMark(x: .value("T", i), yStart: .value("Baseline", 0), yEnd: .value("Speed", val), series: .value("Type", "Read"))
+                        .foregroundStyle(.green.opacity(0.15))
+                        .interpolationMethod(.monotone)
+                    LineMark(x: .value("T", i), y: .value("Speed", val), series: .value("Type", "Read"))
+                        .foregroundStyle(.green)
+                        .lineStyle(StrokeStyle(lineWidth: 1.5))
+                        .interpolationMethod(.monotone)
+                }
+                ForEach(Array(writeHistory.enumerated()), id: \.offset) { i, val in
+                    AreaMark(x: .value("T", i), yStart: .value("Baseline", 0), yEnd: .value("Speed", val), series: .value("Type", "Write"))
+                        .foregroundStyle(.blue.opacity(0.12))
+                        .interpolationMethod(.monotone)
+                    LineMark(x: .value("T", i), y: .value("Speed", val), series: .value("Type", "Write"))
+                        .foregroundStyle(.blue)
+                        .lineStyle(StrokeStyle(lineWidth: 1.5))
+                        .interpolationMethod(.monotone)
+                }
+            }
+            .chartLegend(.hidden)
+            .chartXAxis(.hidden)
+            .chartYAxis {
+                AxisMarks(position: .trailing) { value in
+                    AxisValueLabel {
+                        if let v = value.as(Double.self) {
+                            Text(Fmt.chartSpeed(v))
+                                .font(.system(size: 7))
+                        }
+                    }
+                    AxisGridLine(stroke: StrokeStyle(lineWidth: 0.5, dash: [2]))
+                        .foregroundStyle(.quaternary)
+                }
+            }
+            .frame(height: 80)
+
+            HStack(spacing: 12) {
+                HStack(spacing: 3) {
+                    Circle().fill(.green).frame(width: 5, height: 5)
+                    Text("Read").font(.system(size: 9)).foregroundStyle(.secondary)
+                }
+                HStack(spacing: 3) {
+                    Circle().fill(.blue).frame(width: 5, height: 5)
+                    Text("Write").font(.system(size: 9)).foregroundStyle(.secondary)
+                }
+            }
+        }
+    }
+
+    private func volumeColor(_ percent: Double) -> Color {
+        if percent > 90 { return .red }
+        if percent > 75 { return .orange }
+        return .orange.opacity(0.8)
+    }
 
     private var speedTestSection: some View {
         VStack(alignment: .leading, spacing: 8) {
@@ -289,41 +399,6 @@ struct DiskDetailPanel: View {
                 }
             }
 
-            if !drive.isHealthy {
-                HStack(spacing: 3) {
-                    Image(systemName: "exclamationmark.triangle.fill")
-                        .font(.system(size: 9))
-                        .foregroundStyle(.red)
-                    Text("S.M.A.R.T. warning")
-                        .font(.system(size: 10))
-                        .foregroundStyle(.red)
-                }
-            }
-        }
-        .padding(.vertical, 2)
-    }
-
-    /// Builds the (label, value) pairs that are available for this drive.
-    private func healthCells(_ drive: DriveHealth) -> [(String, String)] {
-        var cells: [(String, String)] = []
-        if let used = drive.percentageUsed { cells.append(("Used", "\(used)%")) }
-        if let spare = drive.availableSpare { cells.append(("Spare", "\(spare)%")) }
-        if let temp = drive.temperatureCelsius { cells.append(("Temp", "\(temp)°C")) }
-        if let written = drive.bytesWritten { cells.append(("Written", Fmt.totalBytes(written))) }
-        if let read = drive.bytesRead { cells.append(("Read", Fmt.totalBytes(read))) }
-        if let hours = drive.powerOnHours { cells.append(("Power On", "\(hours) h")) }
-        if let cycles = drive.powerCycles { cells.append(("Cycles", "\(cycles)")) }
-        if let unsafe = drive.unsafeShutdowns { cells.append(("Unsafe Off", "\(unsafe)")) }
-        return cells
-    }
-
-    private func healthCell(_ label: String, _ value: String) -> some View {
-        VStack(alignment: .leading, spacing: 1) {
-            Text(label)
-                .font(.system(size: 9))
-                .foregroundStyle(.secondary)
-            Text(value)
-                .font(.system(size: 10, design: .monospaced))
             // History sparkline
             if speedTester.history.count > 1 {
                 speedHistoryChart
@@ -354,10 +429,6 @@ struct DiskDetailPanel: View {
         .frame(maxWidth: .infinity, alignment: .leading)
     }
 
-    private func lifeColor(_ life: Int) -> Color {
-        if life < 10 { return .red }
-        if life < 25 { return .orange }
-        return .green
     private var speedHistoryChart: some View {
         VStack(alignment: .leading, spacing: 4) {
             Text("History")
@@ -398,66 +469,5 @@ struct DiskDetailPanel: View {
         case .reading: return "Reading…"
         case .randomRead: return "Random read…"
         }
-    }
-
-    private var ioChart: some View {
-        VStack(alignment: .leading, spacing: 4) {
-            Text("Read / Write over time")
-                .font(.system(size: 10))
-                .foregroundStyle(.secondary)
-
-            Chart {
-                ForEach(Array(readHistory.enumerated()), id: \.offset) { i, val in
-                    AreaMark(x: .value("T", i), yStart: .value("Baseline", 0), yEnd: .value("Speed", val), series: .value("Type", "Read"))
-                        .foregroundStyle(.green.opacity(0.15))
-                        .interpolationMethod(.monotone)
-                    LineMark(x: .value("T", i), y: .value("Speed", val), series: .value("Type", "Read"))
-                        .foregroundStyle(.green)
-                        .lineStyle(StrokeStyle(lineWidth: 1.5))
-                        .interpolationMethod(.monotone)
-                }
-                ForEach(Array(writeHistory.enumerated()), id: \.offset) { i, val in
-                    AreaMark(x: .value("T", i), yStart: .value("Baseline", 0), yEnd: .value("Speed", val), series: .value("Type", "Write"))
-                        .foregroundStyle(.blue.opacity(0.12))
-                        .interpolationMethod(.monotone)
-                    LineMark(x: .value("T", i), y: .value("Speed", val), series: .value("Type", "Write"))
-                        .foregroundStyle(.blue)
-                        .lineStyle(StrokeStyle(lineWidth: 1.5))
-                        .interpolationMethod(.monotone)
-                }
-            }
-            .chartLegend(.hidden)
-            .chartXAxis(.hidden)
-            .chartYAxis {
-                AxisMarks(position: .trailing) { value in
-                    AxisValueLabel {
-                        if let v = value.as(Double.self) {
-                            Text(Fmt.chartSpeed(v))
-                                .font(.system(size: 7))
-                        }
-                    }
-                    AxisGridLine(stroke: StrokeStyle(lineWidth: 0.5, dash: [2]))
-                        .foregroundStyle(.quaternary)
-                }
-            }
-            .frame(height: 80)
-
-            HStack(spacing: 12) {
-                HStack(spacing: 3) {
-                    Circle().fill(.green).frame(width: 5, height: 5)
-                    Text("Read").font(.system(size: 9)).foregroundStyle(.secondary)
-                }
-                HStack(spacing: 3) {
-                    Circle().fill(.blue).frame(width: 5, height: 5)
-                    Text("Write").font(.system(size: 9)).foregroundStyle(.secondary)
-                }
-            }
-        }
-    }
-
-    private func volumeColor(_ percent: Double) -> Color {
-        if percent > 90 { return .red }
-        if percent > 75 { return .orange }
-        return .orange.opacity(0.8)
     }
 }
