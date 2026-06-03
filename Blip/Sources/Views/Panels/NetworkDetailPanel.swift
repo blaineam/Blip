@@ -727,13 +727,10 @@ struct SpeedTestSection: View {
         }
 
         // Auto-run controls
-        Toggle(isOn: $tester.autoRun) {
-            Text("Auto-run on interval")
-                .font(.system(size: 10))
-                .foregroundStyle(.secondary)
-        }
-        .toggleStyle(.switch)
-        .controlSize(.mini)
+        Toggle("Auto-run on interval", isOn: $tester.autoRun)
+            .toggleStyle(.switch)
+            .controlSize(.small)
+            .font(.system(size: 10))
 
         if tester.autoRun {
             Picker("", selection: $tester.intervalMinutes) {

@@ -177,11 +177,13 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         // Position snug to the left of the popover (1px gap)
         let popoverFrame = popoverWindow.frame
 
-        // Size to fit content exactly — no extra padding that creates black corners
+        // Size to fit content exactly. Width is pinned to the content width (260) so a
+        // scroll bar can never widen the panel or shift the content; height comes from
+        // the fitting size, which the ScrollIfNeeded modifier caps at the screen height.
         hostingView.layoutSubtreeIfNeeded()
         let fittingSize = hostingView.fittingSize
-        let panelWidth = fittingSize.width
-        let panelHeight = fittingSize.height
+        let panelWidth: CGFloat = 260
+        let panelHeight = min(fittingSize.height, panelMaxHeight)
         let panelX = popoverFrame.minX - panelWidth - 1
         let panelY = popoverFrame.maxY - panelHeight
 
@@ -194,6 +196,9 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     private func hideDetailPanel() {
         detailPanel?.orderOut(nil)
         currentSection = nil
+        // Collapse the Traceroute/MTR disclosure on dismiss (the session keeps running
+        // underneath and its values are restored when the user re-expands it).
+        UserDefaults.standard.set(false, forKey: "traceExpanded")
     }
 
     @ViewBuilder
@@ -321,31 +326,30 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         return max(220, h - 24)
     }
 
-    /// Builds the styled, scrollable, hover-tracking wrapper around a detail panel.
+    /// Builds the styled, scroll-when-needed, hover-tracking wrapper around a panel.
     private func makeWrappedView(for section: PopoverSection) -> AnyView {
         let cornerRadius: CGFloat = 20
         return AnyView(
-            ScrollView(.vertical, showsIndicators: true) {
-                detailContent(for: section)
-            }
-            .frame(width: 260)
-            .frame(maxHeight: panelMaxHeight)
-            .background(
-                VisualEffectView(material: .popover, blendingMode: .behindWindow, cornerRadius: cornerRadius)
-            )
-            .clipShape(RoundedRectangle(cornerRadius: cornerRadius))
-            .overlay(
-                RoundedRectangle(cornerRadius: cornerRadius)
-                    .stroke(Color.primary.opacity(0.08), lineWidth: 0.5)
-            )
-            .onHover { [weak self] hovering in
-                if hovering {
-                    self?.dismissWorkItem?.cancel()
-                    self?.dismissWorkItem = nil
-                } else {
-                    self?.handleSectionHover(nil)
+            detailContent(for: section)
+                .frame(width: 260)
+                .modifier(ScrollIfNeeded(maxHeight: panelMaxHeight))
+                .frame(width: 260)
+                .background(
+                    VisualEffectView(material: .popover, blendingMode: .behindWindow, cornerRadius: cornerRadius)
+                )
+                .clipShape(RoundedRectangle(cornerRadius: cornerRadius))
+                .overlay(
+                    RoundedRectangle(cornerRadius: cornerRadius)
+                        .stroke(Color.primary.opacity(0.08), lineWidth: 0.5)
+                )
+                .onHover { [weak self] hovering in
+                    if hovering {
+                        self?.dismissWorkItem?.cancel()
+                        self?.dismissWorkItem = nil
+                    } else {
+                        self?.handleSectionHover(nil)
+                    }
                 }
-            }
         )
     }
 
@@ -357,6 +361,42 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         ) { [weak self] _ in
             self?.closeAll()
         }
+    }
+}
+
+// MARK: - Scroll-if-needed
+
+private struct ContentHeightKey: PreferenceKey {
+    static let defaultValue: CGFloat = 0
+    static func reduce(value: inout CGFloat, nextValue: () -> CGFloat) {
+        value = max(value, nextValue())
+    }
+}
+
+/// Wraps content in a vertical ScrollView **only when** its natural height exceeds
+/// `maxHeight`; otherwise renders it at its natural height. This keeps short panels
+/// un-scrolled (and correctly sized) while letting tall ones scroll, without the
+/// content ever being clipped or shifted by an always-on scroll view.
+struct ScrollIfNeeded: ViewModifier {
+    let maxHeight: CGFloat
+    @State private var contentHeight: CGFloat = 0
+
+    func body(content: Content) -> some View {
+        let measured = content.background(
+            GeometryReader { geo in
+                Color.clear.preference(key: ContentHeightKey.self, value: geo.size.height)
+            }
+        )
+        Group {
+            if contentHeight > maxHeight + 0.5 {
+                ScrollView(.vertical) { measured }
+                    .frame(height: maxHeight)
+                    .scrollIndicators(.visible)
+            } else {
+                measured
+            }
+        }
+        .onPreferenceChange(ContentHeightKey.self) { contentHeight = $0 }
     }
 }
 

@@ -434,13 +434,10 @@ struct DiskDetailPanel: View {
             }
 
             // Auto-run
-            Toggle(isOn: $speedTester.autoRun) {
-                Text("Auto-run on interval")
-                    .font(.system(size: 10))
-                    .foregroundStyle(.secondary)
-            }
-            .toggleStyle(.switch)
-            .controlSize(.mini)
+            Toggle("Auto-run on interval", isOn: $speedTester.autoRun)
+                .toggleStyle(.switch)
+                .controlSize(.small)
+                .font(.system(size: 10))
             if speedTester.autoRun {
                 Picker("", selection: $speedTester.intervalMinutes) {
                     ForEach([5, 15, 30, 60], id: \.self) { m in
