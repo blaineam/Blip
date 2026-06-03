@@ -13,6 +13,7 @@ final class DiskMonitor: @unchecked Sendable {
     private var cachedSmartStatus: String?
     private var cachedDrives: [DriveHealth] = []
     private var driveReadCount = 0
+    private var lastVolumeCount = -1
     #endif
 
     func read() -> DiskStats {
@@ -69,12 +70,15 @@ final class DiskMonitor: @unchecked Sendable {
             stats.smartStatus = smart
         }
 
-        // Per-drive S.M.A.R.T. health (NVMe health log via IONVMeSMARTUserClient).
-        // Read in-process here because the direct build is unsandboxed and has no
-        // helper; refreshed ~once a minute (this method runs every ~10s).
-        if cachedDrives.isEmpty || driveReadCount % 6 == 0 {
+        // Per-drive S.M.A.R.T. health (NVMe + ATA/SAT). Read in-process here because
+        // the direct build is unsandboxed and has no helper. Refreshed ~once a minute,
+        // but also immediately whenever a drive is attached/detached (volume set
+        // changes) so a freshly plugged-in USB SSD shows its health right away.
+        let volumeCount = stats.volumes.count
+        if cachedDrives.isEmpty || driveReadCount % 6 == 0 || volumeCount != lastVolumeCount {
             cachedDrives = Self.readDriveHealth()
         }
+        lastVolumeCount = volumeCount
         driveReadCount += 1
         stats.drives = cachedDrives
         #endif

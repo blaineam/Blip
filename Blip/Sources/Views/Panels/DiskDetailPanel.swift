@@ -163,10 +163,20 @@ struct DiskDetailPanel: View {
                 Text(drive.name)
                     .font(.system(size: 11, weight: .medium))
                     .lineLimit(1)
-                Spacer()
                 Text(drive.medium)
                     .font(.system(size: 9))
-                    .foregroundStyle(.secondary)
+                    .foregroundStyle(.tertiary)
+                Spacer()
+                if !drive.smartStatus.isEmpty {
+                    HStack(spacing: 3) {
+                        Circle()
+                            .fill(drive.isHealthy ? Color.green : Color.red)
+                            .frame(width: 5, height: 5)
+                        Text(drive.smartStatus)
+                            .font(.system(size: 9, weight: .medium))
+                            .foregroundStyle(drive.isHealthy ? Color.secondary : Color.red)
+                    }
+                }
             }
 
             // Life remaining (the headline metric)
@@ -204,6 +214,15 @@ struct DiskDetailPanel: View {
                         Spacer().frame(maxWidth: .infinity)
                     }
                 }
+            }
+
+            // Many USB/SATA bridges only pass through the overall pass/fail status, not
+            // the wear/temperature attributes — say so rather than show an empty card.
+            if drive.lifeRemaining == nil && cells.isEmpty {
+                Text("This drive reports only overall S.M.A.R.T. status — detailed wear metrics aren't exposed over its USB/SATA bridge.")
+                    .font(.system(size: 9))
+                    .foregroundStyle(.tertiary)
+                    .fixedSize(horizontal: false, vertical: true)
             }
 
             if !drive.isHealthy {
