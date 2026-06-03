@@ -762,7 +762,7 @@ struct SpeedTestSection: View {
         }
 
         // Sparkline of recent up/down results
-        if tester.history.count > 1 {
+        if !tester.history.isEmpty {
             sparkline
         }
 
@@ -855,6 +855,14 @@ struct SpeedTestSection: View {
                         .foregroundStyle(.blue)
                         .lineStyle(StrokeStyle(lineWidth: 1.5))
                         .interpolationMethod(.monotone)
+                    // Point marks make individual results visible — including the very
+                    // first one, where a single-sample line would otherwise draw nothing.
+                    PointMark(x: .value("N", i), y: .value("Mbps", r.downMbps))
+                        .foregroundStyle(.green)
+                        .symbolSize(18)
+                    PointMark(x: .value("N", i), y: .value("Mbps", r.upMbps))
+                        .foregroundStyle(.blue)
+                        .symbolSize(18)
                 }
             }
             .chartLegend(.hidden)

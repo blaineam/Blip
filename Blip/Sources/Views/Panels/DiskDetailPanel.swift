@@ -453,7 +453,7 @@ struct DiskDetailPanel: View {
             }
 
             // History sparkline
-            if speedTester.history.count > 1 {
+            if !speedTester.history.isEmpty {
                 speedHistoryChart
             }
 
@@ -522,6 +522,13 @@ struct DiskDetailPanel: View {
                     LineMark(x: .value("T", i), y: .value("Speed", r.writeMBps), series: .value("Type", "Write"))
                         .foregroundStyle(.blue)
                         .lineStyle(StrokeStyle(lineWidth: 1.5))
+                    // Visible point for each run, including the first single sample.
+                    PointMark(x: .value("T", i), y: .value("Speed", r.readMBps))
+                        .foregroundStyle(.green)
+                        .symbolSize(18)
+                    PointMark(x: .value("T", i), y: .value("Speed", r.writeMBps))
+                        .foregroundStyle(.blue)
+                        .symbolSize(18)
                 }
             }
             .chartLegend(.hidden)
