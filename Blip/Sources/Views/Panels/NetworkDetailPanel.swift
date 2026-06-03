@@ -956,23 +956,21 @@ struct TracerouteMapView: View {
     var height: CGFloat = 170
 
     @State private var geoHops: [GeoHop] = []
-    @State private var revealCount = 0
     @State private var camera: MapCameraPosition = .automatic
-    /// Whether the camera has been framed for the current route. We frame once (gently)
-    /// and then leave the camera alone so the map doesn't lurch in/out on every update.
-    @State private var framed = false
+    /// Last region we framed to — we only re-frame when it changes meaningfully, so the
+    /// camera settles on the route instead of lurching or sitting at (0,0).
+    @State private var lastRegion: MKCoordinateRegion?
 
-    private var revealed: [GeoHop] { Array(geoHops.prefix(revealCount)) }
     private var hopsKey: String { hops.map { "\($0.hop):\($0.host)" }.joined(separator: ",") }
 
     var body: some View {
         ZStack(alignment: .bottomLeading) {
             Map(position: $camera, interactionModes: [.pan, .zoom]) {
-                if revealed.count > 1 {
-                    MapPolyline(coordinates: revealed.map { $0.coordinate })
+                if geoHops.count > 1 {
+                    MapPolyline(coordinates: geoHops.map { $0.coordinate })
                         .stroke(.purple, style: StrokeStyle(lineWidth: 2, lineCap: .round, lineJoin: .round))
                 }
-                ForEach(revealed) { h in
+                ForEach(geoHops) { h in
                     Annotation(h.label, coordinate: h.coordinate) {
                         ZStack {
                             Circle().fill(.purple).frame(width: 14, height: 14)
@@ -980,6 +978,7 @@ struct TracerouteMapView: View {
                             Text("\(h.id)").font(.system(size: 8, weight: .bold)).foregroundStyle(.white)
                         }
                     }
+                    .annotationTitles(.hidden)
                 }
             }
             .mapStyle(.standard(elevation: .flat))
@@ -991,7 +990,7 @@ struct TracerouteMapView: View {
                     .font(.system(size: 9))
                     .foregroundStyle(.secondary)
                     .padding(6)
-            } else if let last = revealed.last {
+            } else if let last = geoHops.last {
                 Text("\(last.label)")
                     .font(.system(size: 9, weight: .medium))
                     .padding(.horizontal, 5).padding(.vertical, 2)
@@ -1002,47 +1001,47 @@ struct TracerouteMapView: View {
         .task(id: hopsKey) { await geolocate() }
     }
 
+    /// Geolocate hops one at a time, updating the map as each resolves. Because each hop
+    /// is committed immediately, partial progress survives the `.task` being cancelled
+    /// when the live traceroute discovers another hop — so the camera frames the real
+    /// route instead of being stuck at the default world view (0,0).
     private func geolocate() async {
-        var result: [GeoHop] = []
+        var built: [GeoHop] = []
+        // Drop a stale set if the route fundamentally changed (new run).
+        if !hopsKey.isEmpty, geoHops.isEmpty { lastRegion = nil }
+
         for hop in hops where hop.host != "*" {
-            if let g = await GeoIPLookup.shared.locate(hop.host) {
-                result.append(GeoHop(id: hop.hop, ip: hop.host, coordinate: g.coord, label: g.label))
-            }
-        }
-        if result == geoHops { return }   // nothing changed — don't re-animate
-
-        // Is this the same route just getting longer, or a brand-new run? Only reset the
-        // framing/reveal for a new run; an extension keeps the camera and revealed hops.
-        let isExtension = !geoHops.isEmpty && result.count >= geoHops.count
-            && Array(result.prefix(geoHops.count)) == geoHops
-        geoHops = result
-        if !isExtension {
-            framed = false
-            revealCount = 0
-        }
-        await revealRoute()
-    }
-
-    /// Frame the whole route ONCE (a single gentle move), then reveal the hops/line
-    /// progressively while the camera stays put — no disorienting zoom on every update.
-    private func revealRoute() async {
-        guard !geoHops.isEmpty else { return }
-        if !framed {
-            framed = true
-            withAnimation(.easeInOut(duration: 0.7)) {
-                camera = .region(Self.region(for: geoHops))
-            }
-        }
-        if revealCount < 1 { revealCount = 1 }
-        while revealCount < geoHops.count {
-            try? await Task.sleep(nanoseconds: 450_000_000)
+            guard let g = await GeoIPLookup.shared.locate(hop.host) else { continue }
+            // Skip null-island / invalid coordinates so they can't drag the map to 0,0.
+            if abs(g.coord.latitude) < 0.01 && abs(g.coord.longitude) < 0.01 { continue }
+            built.append(GeoHop(id: hop.hop, ip: hop.host, coordinate: g.coord, label: g.label))
+            geoHops = built
+            frameIfNeeded()
             if Task.isCancelled { return }
-            withAnimation(.easeInOut(duration: 0.4)) { revealCount += 1 }   // camera untouched
         }
+        if built != geoHops { geoHops = built; frameIfNeeded() }
     }
 
-    /// A region that comfortably contains all hops (with generous padding so later hops
-    /// usually stay in view without re-framing).
+    /// Frame the located hops, but only re-animate the camera when the fitting region
+    /// changes meaningfully — so it settles on the route and doesn't lurch.
+    private func frameIfNeeded() {
+        guard !geoHops.isEmpty else { return }
+        let region = Self.region(for: geoHops)
+        guard shouldReframe(to: region) else { return }
+        lastRegion = region
+        withAnimation(.easeInOut(duration: 0.7)) { camera = .region(region) }
+    }
+
+    private func shouldReframe(to r: MKCoordinateRegion) -> Bool {
+        guard let last = lastRegion else { return true }
+        let dCenter = abs(last.center.latitude - r.center.latitude)
+            + abs(last.center.longitude - r.center.longitude)
+        let dSpan = abs(last.span.latitudeDelta - r.span.latitudeDelta)
+            + abs(last.span.longitudeDelta - r.span.longitudeDelta)
+        return dCenter > 1.5 || dSpan > 1.5    // ignore small adjustments
+    }
+
+    /// A region that comfortably contains all hops, with generous padding.
     private static func region(for hops: [GeoHop]) -> MKCoordinateRegion {
         let lats = hops.map(\.coordinate.latitude)
         let lons = hops.map(\.coordinate.longitude)
