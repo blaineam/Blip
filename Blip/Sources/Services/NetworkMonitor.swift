@@ -110,7 +110,16 @@ final class SpeedTester: ObservableObject {
 
     /// When true, an interval test runs every `intervalMinutes`. Lives on the tester
     /// (not the view) so it keeps running while the panel is closed.
-    @Published var autoRun = false { didSet { autoRun ? startAutoTimer() : stopAutoTimer() } }
+    @Published var autoRun = false {
+        didSet {
+            if autoRun {
+                startAutoTimer()
+                if !autoRunBlocked, !isRunning { start() }   // run once now for instant feedback
+            } else {
+                stopAutoTimer()
+            }
+        }
+    }
     @Published var intervalMinutes = 15 { didSet { if autoRun { startAutoTimer() } } }
     /// Set by the UI from network conditions. When true the *automated* run is skipped
     /// (metered / expensive / constrained network). A manual `start()` is never blocked.
@@ -120,13 +129,16 @@ final class SpeedTester: ObservableObject {
     private func startAutoTimer() {
         stopAutoTimer()
         let interval = TimeInterval(max(1, intervalMinutes) * 60)
-        autoTimer = Timer.scheduledTimer(withTimeInterval: interval, repeats: true) { [weak self] t in
+        // Use .common run-loop mode so the timer also fires while menus/popovers are open.
+        let timer = Timer(timeInterval: interval, repeats: true) { [weak self] t in
             guard let self else { t.invalidate(); return }
             Task { @MainActor in
                 guard !self.autoRunBlocked, !self.isRunning else { return }
                 self.start()
             }
         }
+        RunLoop.main.add(timer, forMode: .common)
+        autoTimer = timer
     }
 
     private func stopAutoTimer() {

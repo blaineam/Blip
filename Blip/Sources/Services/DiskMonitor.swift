@@ -581,7 +581,14 @@ final class DiskSpeedTester: ObservableObject {
     @Published var size: DiskBenchmark.Size = .medium
 
     @Published var autoRun = false {
-        didSet { autoRun ? startTimer() : stopTimer() }
+        didSet {
+            if autoRun {
+                startTimer()
+                if autoRunAllowedNow, !isRunning { start() }   // run once now for instant feedback
+            } else {
+                stopTimer()
+            }
+        }
     }
     /// Auto-run interval in minutes.
     @Published var intervalMinutes = 5 {
@@ -745,15 +752,16 @@ final class DiskSpeedTester: ObservableObject {
     private func startTimer() {
         stopTimer()
         let interval = TimeInterval(max(1, intervalMinutes) * 60)
-        timer = Timer.scheduledTimer(withTimeInterval: interval, repeats: true) { [weak self] t in
-            // `Timer` isn't Sendable; invalidate on this (run-loop) thread when
-            // the tester is gone, otherwise hop to the main actor to run.
-            guard self != nil else { t.invalidate(); return }
+        // Use .common run-loop mode so it also fires while menus/popovers are open.
+        let t = Timer(timeInterval: interval, repeats: true) { [weak self] timer in
+            guard self != nil else { timer.invalidate(); return }
             Task { @MainActor in
                 guard let self, !self.isRunning, self.autoRunAllowedNow else { return }
                 self.start()
             }
         }
+        RunLoop.main.add(t, forMode: .common)
+        timer = t
     }
 
     private func stopTimer() {

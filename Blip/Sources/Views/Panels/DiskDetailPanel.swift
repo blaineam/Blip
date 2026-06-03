@@ -461,7 +461,7 @@ struct DiskDetailPanel: View {
             BlipToggle(title: "Auto-run on interval", isOn: $diskAutoRunPref) { v in speedTester.autoRun = v }
             if diskAutoRunPref {
                 Picker("", selection: $diskIntervalPref) {
-                    ForEach([5, 15, 30, 60], id: \.self) { m in
+                    ForEach([1, 5, 15, 30, 60], id: \.self) { m in
                         Text("every \(m) min").tag(m)
                     }
                 }

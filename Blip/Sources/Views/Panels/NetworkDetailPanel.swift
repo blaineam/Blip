@@ -629,7 +629,7 @@ struct SpeedTestSection: View {
     @AppStorage("speedTestUseOpenSpeedTest") private var useOpenSpeedTest = false
     @AppStorage("speedTestOpenSpeedTestURL") private var openSpeedTestURL = ""
 
-    private let intervalOptions = [5, 15, 30, 60]
+    private let intervalOptions = [1, 5, 15, 30, 60]
 
     /// The configured target server.
     private var selectedServer: SpeedTestServer {
