@@ -93,6 +93,10 @@ struct HelperSnapshot: Codable, Sendable {
     // Optional for IPC resilience if an older helper build is still running.
     var drives: [HelperDriveHealth]?
 
+    // Since-boot network totals from netstat (the sandboxed app can't spawn it).
+    var networkTotalDownloaded: UInt64?
+    var networkTotalUploaded: UInt64?
+
     // Battery health details (basic charge/state available, health needs IOKit registry)
     var batteryHealth: Double?
     var batteryCycleCount: Int?

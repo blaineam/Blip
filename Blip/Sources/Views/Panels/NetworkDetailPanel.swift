@@ -401,10 +401,17 @@ private struct TracerouteSection: View {
     let poll: () async -> (hops: [HelperTraceHop], running: Bool)
 
     @State private var expanded = false
-    @State private var host: String = ""
+    // Target is configured in Settings (hover panels can't take keyboard focus, so an
+    // inline text field couldn't be typed into). Falls back to the ping target/router.
+    @AppStorage("tracerouteTarget") private var tracerouteTarget: String = ""
     @State private var running = false
     @State private var hops: [HelperTraceHop] = []
     @State private var pollTimer: Timer?
+
+    private var effectiveHost: String {
+        let t = tracerouteTarget.trimmingCharacters(in: .whitespaces)
+        return t.isEmpty ? defaultHost : t
+    }
 
     var body: some View {
         VStack(alignment: .leading, spacing: 6) {
@@ -431,12 +438,17 @@ private struct TracerouteSection: View {
             .buttonStyle(.plain)
 
             if expanded {
-                // Host field + controls
+                // Target (set in Settings → Network) + controls
                 HStack(spacing: 6) {
-                    TextField("host or IP", text: $host)
-                        .textFieldStyle(.roundedBorder)
+                    Image(systemName: "target")
+                        .font(.system(size: 9))
+                        .foregroundStyle(.secondary)
+                    Text(effectiveHost.isEmpty ? "Set target in Settings" : effectiveHost)
                         .font(.system(size: 10, design: .monospaced))
-                        .disabled(running)
+                        .foregroundStyle(effectiveHost.isEmpty ? Color.secondary : Color.primary)
+                        .lineLimit(1)
+                        .truncationMode(.middle)
+                    Spacer()
                     if running {
                         Button("Stop") { stopTrace() }
                             .controlSize(.small)
@@ -444,7 +456,7 @@ private struct TracerouteSection: View {
                     } else {
                         Button("Start") { startTrace() }
                             .controlSize(.small)
-                            .disabled(host.trimmingCharacters(in: .whitespaces).isEmpty)
+                            .disabled(effectiveHost.isEmpty)
                     }
                 }
 
@@ -456,9 +468,6 @@ private struct TracerouteSection: View {
                         .foregroundStyle(.secondary)
                 }
             }
-        }
-        .onAppear {
-            if host.isEmpty { host = defaultHost }
         }
         .onDisappear {
             // Don't leave a session or timer running when the panel closes.
@@ -504,7 +513,7 @@ private struct TracerouteSection: View {
     }
 
     private func startTrace() {
-        let target = host.trimmingCharacters(in: .whitespaces)
+        let target = effectiveHost.trimmingCharacters(in: .whitespaces)
         guard !target.isEmpty else { return }
         running = true
         hops = []
@@ -631,12 +640,12 @@ struct SpeedTestSection: View {
             Spacer()
         }
 
-        if useOpenSpeedTest {
-            TextField("http://192.168.1.50:3000", text: $openSpeedTestURL)
-                .textFieldStyle(.roundedBorder)
-                .font(.system(size: 10, design: .monospaced))
-                .controlSize(.small)
-                .disableAutocorrection(true)
+        if useOpenSpeedTest && selectedServer.openSpeedTestBase != nil {
+            Text(openSpeedTestURL)
+                .font(.system(size: 9, design: .monospaced))
+                .foregroundStyle(.secondary)
+                .lineLimit(1)
+                .truncationMode(.middle)
         }
 
         // Run / Cancel control
@@ -665,7 +674,7 @@ struct SpeedTestSection: View {
                 .buttonStyle(.plain)
                 .disabled(needsServerURL)
                 if needsServerURL {
-                    Text("Enter server URL")
+                    Text("Set server URL in Settings")
                         .font(.system(size: 9))
                         .foregroundStyle(.tertiary)
                 }

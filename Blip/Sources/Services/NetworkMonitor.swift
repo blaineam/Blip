@@ -89,16 +89,6 @@ final class SpeedTester: ObservableObject {
         return true
     }
 
-    private lazy var session: URLSession = {
-        let config = URLSessionConfiguration.ephemeral
-        config.requestCachePolicy = .reloadIgnoringLocalAndRemoteCacheData
-        config.timeoutIntervalForRequest = 15
-        config.timeoutIntervalForResource = 30
-        config.httpMaximumConnectionsPerHost = 12
-        config.urlCache = nil
-        return URLSession(configuration: config)
-    }()
-
     func start() {
         guard runTask == nil else { return }
         liveMbps = 0
@@ -144,112 +134,57 @@ final class SpeedTester: ObservableObject {
 
     private enum Direction { case download, upload }
 
+    /// Resolves the endpoint for a direction from the configured server. Built on
+    /// the main actor (reads `server`); the returned value is Sendable so the
+    /// background transfer runner can mint fresh URLs without actor hops.
+    private func endpoint(for direction: Direction) -> SpeedEndpoint {
+        if let base = server.openSpeedTestBase {
+            return direction == .download ? .openSpeedTestDown(base: base) : .openSpeedTestUp(base: base)
+        }
+        return direction == .download ? .cloudflareDown(bytes: downloadChunkBytes) : .cloudflareUp
+    }
+
     /// Runs `parallelism` concurrent transfers for `phaseDuration` seconds and
-    /// returns the measured throughput in Mbps (warm-up window excluded).
+    /// returns the measured throughput in Mbps (warm-up window excluded). Bytes are
+    /// counted at the chunk level via a `URLSession` delegate (not per-byte), which
+    /// is what makes multi-gigabit links measurable.
     private func measure(direction: Direction) async throws -> Double {
-        let counter = ByteCounter()
+        let runner = ThroughputRunner(
+            endpoint: endpoint(for: direction),
+            uploadBody: direction == .upload ? Data(count: uploadChunkBytes) : nil
+        )
+        defer { runner.stop() }
+
         let start = Date()
         let warmupEnd = start.addingTimeInterval(warmup)
         let deadline = start.addingTimeInterval(phaseDuration)
+        runner.start(parallelism: parallelism, deadline: deadline)
 
-        try await withThrowingTaskGroup(of: Void.self) { group in
-            // Concurrent transfer workers.
-            for _ in 0..<parallelism {
-                group.addTask { [weak self] in
-                    guard let self else { return }
-                    while Date() < deadline {
-                        try Task.checkCancellation()
-                        switch direction {
-                        case .download:
-                            try await self.streamDownload(into: counter, until: deadline, warmupEnd: warmupEnd)
-                        case .upload:
-                            try await self.streamUpload(into: counter, until: deadline, warmupEnd: warmupEnd)
-                        }
-                    }
+        // Sample throughput each tick; capture the byte count at warm-up end so the
+        // reported number excludes TCP slow-start.
+        var bytesAtWarmup: Int?
+        while Date() < deadline {
+            try Task.checkCancellation()
+            try await Task.sleep(nanoseconds: 200_000_000)
+            let now = Date()
+            if bytesAtWarmup == nil, now >= warmupEnd { bytesAtWarmup = runner.bytes }
+            if let baseline = bytesAtWarmup {
+                let elapsed = now.timeIntervalSince(warmupEnd)
+                if elapsed > 0 {
+                    liveMbps = Double(runner.bytes - baseline) * 8 / elapsed / 1_000_000
                 }
             }
-
-            // Live progress reporter.
-            group.addTask { [weak self] in
-                guard let self else { return }
-                while Date() < deadline {
-                    try Task.checkCancellation()
-                    try await Task.sleep(nanoseconds: 250_000_000)
-                    let elapsed = Date().timeIntervalSince(warmupEnd)
-                    if elapsed > 0 {
-                        let mbps = await counter.mbps(over: elapsed)
-                        await MainActor.run { self.liveMbps = mbps }
-                    }
-                }
-            }
-
-            try await group.waitForAll()
         }
 
-        let measuredSeconds = deadline.timeIntervalSince(warmupEnd)
-        guard measuredSeconds > 0 else { return 0 }
-        let total = await counter.total
-        guard total > 0 else {
-            throw URLError(.cannotConnectToHost)
-        }
-        return Double(total) * 8 / measuredSeconds / 1_000_000
-    }
+        let baseline = bytesAtWarmup ?? 0
+        let measuredBytes = max(0, runner.bytes - baseline)
+        let measuredSeconds = max(0.001, deadline.timeIntervalSince(warmupEnd))
+        runner.stop()
 
-    /// Download URL for the configured server. OpenSpeedTest serves a large random
-    /// payload from `/downloading`; the `r` cache-buster matches its web client.
-    private func downloadURL() -> URL? {
-        if let base = server.openSpeedTestBase {
-            return URL(string: "\(base)/downloading?r=\(Int.random(in: 0...Int.max))")
+        if measuredBytes == 0 {
+            throw runner.lastError ?? URLError(.cannotConnectToHost)
         }
-        return URL(string: "https://speed.cloudflare.com/__down?bytes=\(downloadChunkBytes)")
-    }
-
-    /// Upload URL for the configured server. OpenSpeedTest accepts a POST body at `/upload`.
-    private func uploadURL() -> URL? {
-        if let base = server.openSpeedTestBase {
-            return URL(string: "\(base)/upload?r=\(Int.random(in: 0...Int.max))")
-        }
-        return URL(string: "https://speed.cloudflare.com/__up")
-    }
-
-    private func streamDownload(into counter: ByteCounter, until deadline: Date, warmupEnd: Date) async throws {
-        guard let url = downloadURL() else {
-            throw URLError(.badURL)
-        }
-        var request = URLRequest(url: url)
-        request.cachePolicy = .reloadIgnoringLocalAndRemoteCacheData
-        let (bytes, response) = try await session.bytes(for: request)
-        if let http = response as? HTTPURLResponse, http.statusCode >= 400 {
-            throw URLError(.badServerResponse)
-        }
-        var batch = 0
-        for try await _ in bytes {
-            batch += 1
-            // Accrue in batches to limit actor hops on multi-gig links.
-            if batch >= 16384 {
-                if Date() >= warmupEnd { await counter.add(batch) }
-                batch = 0
-                if Date() >= deadline { break }
-                try Task.checkCancellation()
-            }
-        }
-        if Date() >= warmupEnd { await counter.add(batch) }
-    }
-
-    private func streamUpload(into counter: ByteCounter, until deadline: Date, warmupEnd: Date) async throws {
-        guard let url = uploadURL() else {
-            throw URLError(.badURL)
-        }
-        var request = URLRequest(url: url)
-        request.httpMethod = "POST"
-        request.setValue("application/octet-stream", forHTTPHeaderField: "Content-Type")
-        let body = Data(count: uploadChunkBytes)
-        let (_, response) = try await session.upload(for: request, from: body)
-        if let http = response as? HTTPURLResponse, http.statusCode >= 400 {
-            throw URLError(.badServerResponse)
-        }
-        // The whole body is uploaded by the time this returns.
-        if Date() >= warmupEnd { await counter.add(uploadChunkBytes) }
+        return Double(measuredBytes) * 8 / measuredSeconds / 1_000_000
     }
 
     private static func message(for error: Error) -> String {
@@ -267,13 +202,112 @@ final class SpeedTester: ObservableObject {
     }
 }
 
-/// Thread-safe byte accumulator for the concurrent transfer workers.
-private actor ByteCounter {
-    private(set) var total: Int = 0
-    func add(_ n: Int) { total += n }
-    func mbps(over seconds: TimeInterval) -> Double {
-        guard seconds > 0 else { return 0 }
-        return Double(total) * 8 / seconds / 1_000_000
+/// A resolved speed-test endpoint. Sendable so the background runner can mint a
+/// fresh URL per request without touching the main actor.
+private enum SpeedEndpoint: Sendable {
+    case cloudflareDown(bytes: Int)
+    case cloudflareUp
+    case openSpeedTestDown(base: String)
+    case openSpeedTestUp(base: String)
+
+    func makeURL() -> URL? {
+        switch self {
+        case .cloudflareDown(let bytes):
+            return URL(string: "https://speed.cloudflare.com/__down?bytes=\(bytes)")
+        case .cloudflareUp:
+            return URL(string: "https://speed.cloudflare.com/__up")
+        case .openSpeedTestDown(let base):
+            return URL(string: "\(base)/downloading?r=\(Int.random(in: 0...Int.max))")
+        case .openSpeedTestUp(let base):
+            return URL(string: "\(base)/upload?r=\(Int.random(in: 0...Int.max))")
+        }
+    }
+}
+
+/// Drives the actual byte transfers for one direction. Counts bytes at the chunk
+/// level via `URLSessionDataDelegate` (download) / `didSendBodyData` (upload) and
+/// keeps `parallelism` transfers in flight, relaunching each as it finishes, until
+/// the deadline. Lock-protected so the main-actor sampler can read `bytes` safely.
+private final class ThroughputRunner: NSObject, URLSessionDataDelegate, @unchecked Sendable {
+    private let endpoint: SpeedEndpoint
+    private let uploadBody: Data?
+    private let lock = NSLock()
+    private var _bytes = 0
+    private var _lastError: Error?
+    private var stopped = false
+    private var invalidated = false
+    private var deadline = Date.distantPast
+
+    init(endpoint: SpeedEndpoint, uploadBody: Data?) {
+        self.endpoint = endpoint
+        self.uploadBody = uploadBody
+        super.init()
+    }
+
+    private lazy var session: URLSession = {
+        let config = URLSessionConfiguration.ephemeral
+        config.requestCachePolicy = .reloadIgnoringLocalAndRemoteCacheData
+        config.timeoutIntervalForRequest = 20
+        config.timeoutIntervalForResource = 120
+        config.httpMaximumConnectionsPerHost = 24
+        config.urlCache = nil
+        return URLSession(configuration: config, delegate: self, delegateQueue: nil)
+    }()
+
+    var bytes: Int { lock.lock(); defer { lock.unlock() }; return _bytes }
+    var lastError: Error? { lock.lock(); defer { lock.unlock() }; return _lastError }
+
+    func start(parallelism: Int, deadline: Date) {
+        lock.lock(); self.deadline = deadline; stopped = false; lock.unlock()
+        for _ in 0..<parallelism { launch() }
+    }
+
+    func stop() {
+        lock.lock()
+        stopped = true
+        let alreadyInvalidated = invalidated
+        invalidated = true
+        lock.unlock()
+        if !alreadyInvalidated { session.invalidateAndCancel() }
+    }
+
+    private func launch() {
+        lock.lock()
+        let go = !stopped && Date() < deadline
+        lock.unlock()
+        guard go, let url = endpoint.makeURL() else { return }
+
+        var request = URLRequest(url: url)
+        request.cachePolicy = .reloadIgnoringLocalAndRemoteCacheData
+        let task: URLSessionTask
+        if let body = uploadBody {
+            request.httpMethod = "POST"
+            request.setValue("application/octet-stream", forHTTPHeaderField: "Content-Type")
+            task = session.uploadTask(with: request, from: body)
+        } else {
+            task = session.dataTask(with: request)
+        }
+        task.resume()
+    }
+
+    // Download: count each delivered chunk (delegate streams, no full buffering).
+    func urlSession(_ session: URLSession, dataTask: URLSessionDataTask, didReceive data: Data) {
+        lock.lock(); _bytes += data.count; lock.unlock()
+    }
+
+    // Upload: count body bytes as they are sent.
+    func urlSession(_ session: URLSession, task: URLSessionTask,
+                    didSendBodyData bytesSent: Int64, totalBytesSent: Int64,
+                    totalBytesExpectedToSend: Int64) {
+        lock.lock(); _bytes += Int(bytesSent); lock.unlock()
+    }
+
+    // When a transfer finishes (or errors), relaunch another until the deadline.
+    func urlSession(_ session: URLSession, task: URLSessionTask, didCompleteWithError error: Error?) {
+        if let error = error, (error as? URLError)?.code != .cancelled {
+            lock.lock(); _lastError = error; lock.unlock()
+        }
+        launch()
     }
 }
 
@@ -295,6 +329,10 @@ final class NetworkMonitor: @unchecked Sendable {
     private var pingCount = 0
     private var cachedGateway: String?
     private var gatewayPollCount = 0
+    #if !APPSTORE
+    private var cachedTotals: (down: UInt64, up: UInt64)?
+    private var totalsPollCount = 0
+    #endif
     var pingTarget: String = "1.1.1.1"
 
     init() {
@@ -432,9 +470,28 @@ final class NetworkMonitor: @unchecked Sendable {
         accumulatedIn &+= deltaIn
         accumulatedOut &+= deltaOut
 
-        // Expose cumulative totals for traffic seen since Blip started.
+        // Cumulative totals. Prefer the kernel's true 64-bit since-boot counters
+        // (what Activity Monitor shows) via netstat; the wrap-aware session
+        // accumulation is the fallback when the subprocess isn't available.
+        #if APPSTORE
+        // Sandboxed: netstat can't be spawned here — the helper supplies since-boot
+        // totals (see SystemMonitor merge). Until then, show the session accumulation.
         stats.totalBytesDownloaded = accumulatedIn
         stats.totalBytesUploaded = accumulatedOut
+        #else
+        // netstat is a subprocess — refresh totals every ~5th poll (~10s) and cache.
+        totalsPollCount += 1
+        if cachedTotals == nil || totalsPollCount % 5 == 1 {
+            cachedTotals = Self.readSinceBootTotals()
+        }
+        if let totals = cachedTotals {
+            stats.totalBytesDownloaded = totals.down
+            stats.totalBytesUploaded = totals.up
+        } else {
+            stats.totalBytesDownloaded = accumulatedIn
+            stats.totalBytesUploaded = accumulatedOut
+        }
+        #endif
 
         // Build interface list for all active en* interfaces with IPs
         stats.interfaces = ifHasIP.sorted().map { ifName in
@@ -481,6 +538,50 @@ final class NetworkMonitor: @unchecked Sendable {
 
         return stats
     }
+
+    #if !APPSTORE
+    /// Sums since-boot RX/TX bytes for physical interfaces by parsing `netstat -ib`.
+    /// netstat reports the kernel's true 64-bit counters (the same numbers Activity
+    /// Monitor shows); the routing-socket `if_data64` struct is unreliable to parse on
+    /// recent macOS, and `getifaddrs` exposes only 32-bit counters that wrap at 4 GiB.
+    static func readSinceBootTotals() -> (down: UInt64, up: UInt64)? {
+        let task = Foundation.Process()
+        let pipe = Pipe()
+        task.executableURL = URL(fileURLWithPath: "/usr/sbin/netstat")
+        task.arguments = ["-ib"]
+        task.standardOutput = pipe
+        task.standardError = FileHandle.nullDevice
+        do {
+            try task.run()
+            let data = pipe.fileHandleForReading.readDataToEndOfFile()
+            task.waitUntilExit()
+            guard let output = String(data: data, encoding: .utf8) else { return nil }
+            return Self.parseNetstatTotals(output)
+        } catch {
+            return nil
+        }
+    }
+
+    /// Parses `netstat -ib` output, summing Ibytes/Obytes across the `<Link#…>` rows
+    /// of physical `en*` interfaces (one Link row per interface avoids double-counting
+    /// the per-address rows).
+    static func parseNetstatTotals(_ output: String) -> (down: UInt64, up: UInt64) {
+        var down: UInt64 = 0
+        var up: UInt64 = 0
+        for line in output.components(separatedBy: "\n") {
+            let cols = line.split(separator: " ", omittingEmptySubsequences: true).map(String.init)
+            // Name Mtu Network Address Ipkts Ierrs Ibytes Opkts Oerrs Obytes [Coll]
+            guard cols.count >= 10,
+                  cols[0].hasPrefix("en"),
+                  cols[2].hasPrefix("<Link"),
+                  let ib = UInt64(cols[6]),
+                  let ob = UInt64(cols[9]) else { continue }
+            down += ib
+            up += ob
+        }
+        return (down, up)
+    }
+    #endif
 
     /// Reads the default gateway IP via sysctl routing table (no subprocess needed).
     /// Falls back to netstat if the sysctl approach fails.

@@ -167,7 +167,7 @@ final class SystemMonitor: ObservableObject {
 
         let cpu = await cpuRead
         let memory = await memRead
-        let network = await netRead
+        var network = await netRead
         #if APPSTORE
         var gpu = gpuRead
         var battery = await battRead
@@ -217,6 +217,14 @@ final class SystemMonitor: ObservableObject {
             }
             if disk.smartStatus.isEmpty && !h.smartStatus.isEmpty {
                 disk.smartStatus = h.smartStatus
+            }
+
+            // Since-boot network totals from the helper (sandboxed app can't run netstat)
+            if let down = h.networkTotalDownloaded, down > 0 {
+                network.totalBytesDownloaded = down
+            }
+            if let up = h.networkTotalUploaded, up > 0 {
+                network.totalBytesUploaded = up
             }
 
             // Per-drive S.M.A.R.T. health (NVMe health log via the helper)

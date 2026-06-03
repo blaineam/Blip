@@ -12,6 +12,8 @@ struct SettingsView: View {
     @AppStorage("menuBarLayout") private var menuBarLayout: String = "horizontal"
     @AppStorage("launchAtLogin") private var launchAtLogin = false
     @AppStorage("pingTarget") private var pingTarget: String = "1.1.1.1"
+    @AppStorage("tracerouteTarget") private var tracerouteTarget: String = ""
+    @AppStorage("speedTestOpenSpeedTestURL") private var openSpeedTestURL: String = ""
     @AppStorage("colorizeUtilization") private var colorizeUtilization = true
 
     var helperClient: HelperClient?
@@ -92,6 +94,33 @@ struct SettingsView: View {
                         .font(.system(size: 12, design: .monospaced))
                         .lineLimit(1)
                         .truncationMode(.tail)
+                }
+                HStack {
+                    Text("Traceroute Target")
+                    Spacer()
+                    TextField("defaults to ping target", text: $tracerouteTarget)
+                        .textFieldStyle(.roundedBorder)
+                        .frame(width: 180)
+                        .font(.system(size: 12, design: .monospaced))
+                        .lineLimit(1)
+                        .truncationMode(.tail)
+                        .disableAutocorrection(true)
+                }
+                VStack(alignment: .leading, spacing: 4) {
+                    HStack {
+                        Text("OpenSpeedTest Server")
+                        Spacer()
+                        TextField("http://192.168.1.50:3000", text: $openSpeedTestURL)
+                            .textFieldStyle(.roundedBorder)
+                            .frame(width: 180)
+                            .font(.system(size: 12, design: .monospaced))
+                            .lineLimit(1)
+                            .truncationMode(.tail)
+                            .disableAutocorrection(true)
+                    }
+                    Text("Used by the Network → Speed Test panel when “OpenSpeedTest (LAN)” is selected.")
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
                 }
             }
 

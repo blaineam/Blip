@@ -340,9 +340,46 @@ struct DiskDetailPanel: View {
 
     private var speedTestBody: some View {
         VStack(alignment: .leading, spacing: 8) {
-            // Location + size picker
+            // Target location + change/reset
+            HStack(spacing: 4) {
+                Image(systemName: speedTester.locationLabel == "Boot volume" ? "internaldrive" : "externaldrive")
+                    .font(.system(size: 9))
+                    .foregroundStyle(.secondary)
+                Text(speedTester.locationLabel)
+                    .font(.system(size: 10))
+                    .foregroundStyle(.secondary)
+                    .lineLimit(1)
+                    .truncationMode(.middle)
+                Spacer()
+                Button("Change…") { speedTester.chooseLocation() }
+                    .controlSize(.mini)
+                    .disabled(speedTester.isRunning)
+                if speedTester.locationLabel != "Boot volume" {
+                    Button {
+                        speedTester.useBootVolume()
+                    } label: {
+                        Image(systemName: "arrow.uturn.backward")
+                    }
+                    .controlSize(.mini)
+                    .disabled(speedTester.isRunning)
+                    .help("Back to boot volume")
+                }
+            }
+
+            if let err = speedTester.lastError {
+                HStack(spacing: 3) {
+                    Image(systemName: "exclamationmark.triangle.fill")
+                        .font(.system(size: 9))
+                        .foregroundStyle(.orange)
+                    Text(err)
+                        .font(.system(size: 10))
+                        .foregroundStyle(.secondary)
+                }
+            }
+
+            // Size picker
             HStack {
-                Text("Testing: \(speedTester.locationLabel)")
+                Text("Size")
                     .font(.system(size: 10))
                     .foregroundStyle(.secondary)
                 Spacer()

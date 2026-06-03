@@ -1,5 +1,6 @@
 import Foundation
 import SwiftUI
+import AppKit
 #if !APPSTORE
 import IOKit
 #endif
@@ -10,6 +11,8 @@ final class DiskMonitor: @unchecked Sendable {
     private var previousWriteBytes: UInt64 = 0
     private var previousTimestamp: Date?
     private var cachedSmartStatus: String?
+    private var cachedDrives: [DriveHealth] = []
+    private var driveReadCount = 0
     #endif
 
     func read() -> DiskStats {
@@ -65,6 +68,15 @@ final class DiskMonitor: @unchecked Sendable {
             cachedSmartStatus = smart
             stats.smartStatus = smart
         }
+
+        // Per-drive S.M.A.R.T. health (NVMe health log via IONVMeSMARTUserClient).
+        // Read in-process here because the direct build is unsandboxed and has no
+        // helper; refreshed ~once a minute (this method runs every ~10s).
+        if cachedDrives.isEmpty || driveReadCount % 6 == 0 {
+            cachedDrives = Self.readDriveHealth()
+        }
+        driveReadCount += 1
+        stats.drives = cachedDrives
         #endif
 
         return stats
@@ -159,6 +171,139 @@ final class DiskMonitor: @unchecked Sendable {
         previousWriteBytes = totalWrite
         previousTimestamp = now
     }
+
+    // MARK: - Drive Health (S.M.A.R.T. via IONVMeSMARTUserClient)
+
+    // CFUUIDs (computed for concurrency-safety; CFUUIDGetConstantUUIDWithBytes is cached).
+    private static var plugInInterfaceID: CFUUID {
+        CFUUIDGetConstantUUIDWithBytes(nil,
+            0xC2, 0x44, 0xE8, 0x58, 0x10, 0x9C, 0x11, 0xD4, 0x91, 0xD4, 0x00, 0x50, 0xE4, 0xC6, 0x42, 0x6F)
+    }
+    private static var nvmeSMARTTypeID: CFUUID {
+        CFUUIDGetConstantUUIDWithBytes(nil,
+            0xAA, 0x0F, 0xA6, 0xF9, 0xC2, 0xD6, 0x45, 0x7F, 0xB1, 0x0B, 0x59, 0xA1, 0x32, 0x53, 0x29, 0x2F)
+    }
+    private static var nvmeSMARTInterfaceID: CFUUID {
+        CFUUIDGetConstantUUIDWithBytes(nil,
+            0xCC, 0xD1, 0xDB, 0x19, 0xFD, 0x9A, 0x4D, 0xAF, 0xBF, 0x95, 0x12, 0x45, 0x4B, 0x23, 0x0A, 0xB6)
+    }
+
+    /// Reads NVMe S.M.A.R.T. health for all NVMe-SMART-capable block storage devices
+    /// (internal Apple SSD + NVMe enclosures). Unprivileged — Apple publishes the user
+    /// client in the IORegistry, so no root is required.
+    static func readDriveHealth() -> [DriveHealth] {
+        var drives: [DriveHealth] = []
+        var iterator: io_iterator_t = 0
+        guard IOServiceGetMatchingServices(kIOMainPortDefault,
+                                           IOServiceMatching("IOBlockStorageDevice"),
+                                           &iterator) == KERN_SUCCESS else { return drives }
+        defer { IOObjectRelease(iterator) }
+
+        var entry = IOIteratorNext(iterator)
+        while entry != 0 {
+            defer { IOObjectRelease(entry); entry = IOIteratorNext(iterator) }
+
+            var props: Unmanaged<CFMutableDictionary>?
+            guard IORegistryEntryCreateCFProperties(entry, &props, kCFAllocatorDefault, 0) == KERN_SUCCESS,
+                  let dict = props?.takeRetainedValue() as? [String: Any] else { continue }
+
+            let deviceChars = dict["Device Characteristics"] as? [String: Any]
+            let protocolChars = dict["Protocol Characteristics"] as? [String: Any]
+
+            let name = (deviceChars?["Product Name"] as? String)?.trimmingCharacters(in: .whitespaces) ?? "Drive"
+            let medium = deviceChars?["Medium Type"] as? String ?? ""
+            let location = protocolChars?["Physical Interconnect Location"] as? String ?? ""
+            let interconnect = protocolChars?["Physical Interconnect"] as? String ?? ""
+            let bsdName = dict["BSD Name"] as? String ?? ""
+            let isInternal = location.localizedCaseInsensitiveContains("internal")
+
+            if interconnect.localizedCaseInsensitiveContains("Virtual") { continue }
+            guard (dict["NVMe SMART Capable"] as? Bool) ?? false else { continue }
+
+            guard let log = readNVMeSMARTLog(service: entry) else { continue }
+            let pctUsed = Int(log.percentUsed)
+            drives.append(DriveHealth(
+                name: name.isEmpty ? "Drive" : name,
+                bsdName: bsdName,
+                isInternal: isInternal,
+                medium: interconnect.isEmpty ? (medium.isEmpty ? "NVMe" : medium) : interconnect,
+                smartStatus: log.criticalWarning == 0 ? "Verified" : "Failing",
+                percentageUsed: pctUsed,
+                availableSpare: Int(log.availableSpare),
+                availableSpareThreshold: Int(log.spareThreshold),
+                temperatureCelsius: Int(log.temperatureKelvin) - 273,
+                bytesWritten: log.dataUnitsWritten &* 512_000,
+                bytesRead: log.dataUnitsRead &* 512_000,
+                powerOnHours: log.powerOnHours,
+                powerCycles: log.powerCycles,
+                unsafeShutdowns: log.unsafeShutdowns,
+                mediaErrors: log.mediaErrors,
+                criticalWarning: Int(log.criticalWarning)
+            ))
+        }
+        return drives
+    }
+
+    private struct NVMeSMARTLog {
+        var criticalWarning: UInt8
+        var temperatureKelvin: UInt16
+        var availableSpare: UInt8
+        var spareThreshold: UInt8
+        var percentUsed: UInt8
+        var dataUnitsRead: UInt64
+        var dataUnitsWritten: UInt64
+        var powerCycles: UInt64
+        var powerOnHours: UInt64
+        var unsafeShutdowns: UInt64
+        var mediaErrors: UInt64
+    }
+
+    /// Reads the 512-byte NVMe SMART/Health log via the IONVMeSMARTUserClient plug-in.
+    /// `SMARTReadData` sits at vtable byte offset 40 (IUNKNOWN_C_GUTS + UInt16
+    /// version/revision); `Release` at offset 24.
+    private static func readNVMeSMARTLog(service: io_service_t) -> NVMeSMARTLog? {
+        var plugin: UnsafeMutablePointer<UnsafeMutablePointer<IOCFPlugInInterface>?>?
+        var score: Int32 = 0
+        guard IOCreatePlugInInterfaceForService(service, nvmeSMARTTypeID,
+                                                plugInInterfaceID, &plugin, &score) == KERN_SUCCESS,
+              let plugin, let pluginVtbl = plugin.pointee?.pointee else { return nil }
+        defer { _ = IODestroyPlugInInterface(plugin) }
+
+        var ifaceRaw: LPVOID?
+        let hr = pluginVtbl.QueryInterface(plugin, CFUUIDGetUUIDBytes(nvmeSMARTInterfaceID), &ifaceRaw)
+        guard hr == S_OK, let ifaceRaw else { return nil }
+
+        let ifacePtr = ifaceRaw.assumingMemoryBound(to: UnsafeMutableRawPointer?.self)
+        guard let vtable = ifacePtr.pointee else { return nil }
+
+        typealias ReadFn = @convention(c) (UnsafeMutableRawPointer?, UnsafeMutableRawPointer?) -> IOReturn
+        typealias ReleaseFn = @convention(c) (UnsafeMutableRawPointer?) -> UInt32
+        let ptrSize = MemoryLayout<UnsafeRawPointer>.size
+        let readData = vtable.load(fromByteOffset: 5 * ptrSize, as: ReadFn.self)
+        let release = vtable.load(fromByteOffset: 3 * ptrSize, as: ReleaseFn.self)
+        defer { _ = release(ifaceRaw) }
+
+        var buffer = [UInt8](repeating: 0, count: 512)
+        let result = buffer.withUnsafeMutableBytes { readData(ifaceRaw, $0.baseAddress) }
+        guard result == kIOReturnSuccess else { return nil }
+
+        return buffer.withUnsafeBytes { raw -> NVMeSMARTLog in
+            func u64(_ off: Int) -> UInt64 { raw.loadUnaligned(fromByteOffset: off, as: UInt64.self) }
+            return NVMeSMARTLog(
+                criticalWarning: raw[0],
+                temperatureKelvin: raw.loadUnaligned(fromByteOffset: 1, as: UInt16.self),
+                availableSpare: raw[3],
+                spareThreshold: raw[4],
+                percentUsed: raw[5],
+                dataUnitsRead: u64(32),
+                dataUnitsWritten: u64(48),
+                powerCycles: u64(112),
+                powerOnHours: u64(128),
+                unsafeShutdowns: u64(144),
+                mediaErrors: u64(160)
+            )
+        }
+    }
     #endif
 }
 
@@ -206,10 +351,13 @@ enum DiskBenchmark {
     /// `isCancelled` is polled between blocks so the run can be aborted.
     static func run(
         size: Size,
+        directory: URL? = nil,
         progress: @Sendable (Phase, Double) -> Void,
         isCancelled: @Sendable () -> Bool
     ) throws -> DiskSpeedResult {
-        let tmpDir = FileManager.default.temporaryDirectory
+        // Write into the chosen directory (a user-selected volume) or the app's temp
+        // dir (the boot volume) by default.
+        let tmpDir = directory ?? FileManager.default.temporaryDirectory
         let fileURL = tmpDir.appendingPathComponent("blip-speedtest-\(UUID().uuidString).bin")
         let path = fileURL.path
 
@@ -332,15 +480,90 @@ final class DiskSpeedTester: ObservableObject {
         didSet { if autoRun { startTimer() } }
     }
 
-    /// Location label shown in the UI (the volume hosting the container temp dir).
-    let locationLabel = "Boot volume"
+    /// Location label shown in the UI ("Boot volume", or the chosen folder name).
+    @Published private(set) var locationLabel = "Boot volume"
+    /// Set when the last run couldn't write to the chosen location.
+    @Published private(set) var lastError: String?
 
     private static let maxHistory = 10
+    private static let bookmarkKey = "diskSpeedTestBookmark"
     private var task: Task<Void, Never>?
     private var timer: Timer?
 
+    init() { restoreLocationLabel() }
+
+    private var bookmarkData: Data? {
+        get { UserDefaults.standard.data(forKey: Self.bookmarkKey) }
+        set { UserDefaults.standard.set(newValue, forKey: Self.bookmarkKey) }
+    }
+
     func toggle() {
         isRunning ? cancel() : start()
+    }
+
+    /// Prompts the user to pick a folder on the volume to benchmark, persisting a
+    /// (security-scoped) bookmark so the choice survives relaunch and works sandboxed.
+    func chooseLocation() {
+        let panel = NSOpenPanel()
+        panel.canChooseDirectories = true
+        panel.canChooseFiles = false
+        panel.allowsMultipleSelection = false
+        panel.prompt = "Choose"
+        panel.message = "Pick a writable folder on the drive you want to benchmark."
+        // This is an accessory (menu-bar) app — bring it forward so the panel takes focus.
+        NSApp.activate(ignoringOtherApps: true)
+        panel.level = .modalPanel
+        guard panel.runModal() == .OK, let url = panel.url else { return }
+        do {
+            #if APPSTORE
+            let data = try url.bookmarkData(options: [.withSecurityScope],
+                                            includingResourceValuesForKeys: nil, relativeTo: nil)
+            #else
+            let data = try url.bookmarkData(options: [], includingResourceValuesForKeys: nil, relativeTo: nil)
+            #endif
+            bookmarkData = data
+            locationLabel = url.lastPathComponent
+            lastError = nil
+        } catch {
+            lastError = "Couldn't save that location"
+        }
+    }
+
+    /// Reverts to benchmarking the boot volume (the app's temp dir).
+    func useBootVolume() {
+        bookmarkData = nil
+        locationLabel = "Boot volume"
+        lastError = nil
+    }
+
+    private func restoreLocationLabel() {
+        guard let data = bookmarkData else { return }
+        var stale = false
+        #if APPSTORE
+        let opts: URL.BookmarkResolutionOptions = [.withSecurityScope]
+        #else
+        let opts: URL.BookmarkResolutionOptions = []
+        #endif
+        if let url = try? URL(resolvingBookmarkData: data, options: opts, relativeTo: nil, bookmarkDataIsStale: &stale) {
+            locationLabel = url.lastPathComponent
+        }
+    }
+
+    /// Resolves the chosen directory and begins security-scoped access (caller must
+    /// balance with `stopAccessingSecurityScopedResource`). Returns nil for boot volume.
+    private func resolveTargetDirectory() -> (url: URL, scoped: Bool)? {
+        guard let data = bookmarkData else { return nil }
+        var stale = false
+        #if APPSTORE
+        let opts: URL.BookmarkResolutionOptions = [.withSecurityScope]
+        #else
+        let opts: URL.BookmarkResolutionOptions = []
+        #endif
+        guard let url = try? URL(resolvingBookmarkData: data, options: opts, relativeTo: nil, bookmarkDataIsStale: &stale) else {
+            return nil
+        }
+        let scoped = url.startAccessingSecurityScopedResource()
+        return (url, scoped)
     }
 
     func start() {
@@ -348,7 +571,10 @@ final class DiskSpeedTester: ObservableObject {
         isRunning = true
         phase = .writing
         progress = 0
+        lastError = nil
         let size = self.size
+        let target = resolveTargetDirectory()
+        let dirURL = target?.url
 
         task = Task.detached(priority: .utility) {
             let cancelledFlag: @Sendable () -> Bool = { Task.isCancelled }
@@ -358,8 +584,10 @@ final class DiskSpeedTester: ObservableObject {
                     self?.progress = frac
                 }
             }
-            let result = try? DiskBenchmark.run(size: size, progress: progressHandler, isCancelled: cancelledFlag)
+            let result = try? DiskBenchmark.run(size: size, directory: dirURL,
+                                                progress: progressHandler, isCancelled: cancelledFlag)
             await MainActor.run { [weak self] in
+                if let target, target.scoped { target.url.stopAccessingSecurityScopedResource() }
                 guard let self else { return }
                 if let result {
                     self.lastResult = result
@@ -367,6 +595,8 @@ final class DiskSpeedTester: ObservableObject {
                     if self.history.count > Self.maxHistory {
                         self.history.removeFirst(self.history.count - Self.maxHistory)
                     }
+                } else if !Task.isCancelled, dirURL != nil {
+                    self.lastError = "Couldn't write to that location"
                 }
                 self.isRunning = false
                 self.phase = .idle

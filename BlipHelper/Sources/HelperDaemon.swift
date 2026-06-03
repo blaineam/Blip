@@ -25,6 +25,10 @@ final class HelperDaemon: @unchecked Sendable {
     private var cachedDrives: [HelperDriveHealth] = []
     private var drivePollCount = 0
 
+    // Network totals come from a netstat subprocess; cache and refresh every ~5 polls.
+    private var cachedNetTotals: (down: UInt64, up: UInt64)?
+    private var netPollCount = 0
+
     private let iconCache = NSCache<NSNumber, NSData>()
 
     private var cachedModelName: String?
@@ -53,6 +57,12 @@ final class HelperDaemon: @unchecked Sendable {
         }
         drivePollCount += 1
 
+        netPollCount += 1
+        if cachedNetTotals == nil || netPollCount % 5 == 1 {
+            cachedNetTotals = readNetworkTotals()
+        }
+        let netTotals = cachedNetTotals
+
         return HelperSnapshot(
             fans: fans,
             cpuTemperature: temps.cpu,
@@ -64,6 +74,8 @@ final class HelperDaemon: @unchecked Sendable {
             diskTotalBytesWritten: diskIO.totalWrite,
             smartStatus: readSmartStatus(),
             drives: cachedDrives,
+            networkTotalDownloaded: netTotals?.down,
+            networkTotalUploaded: netTotals?.up,
             batteryHealth: battery.health,
             batteryCycleCount: battery.cycleCount,
             batteryCondition: battery.condition,
@@ -239,6 +251,41 @@ final class HelperDaemon: @unchecked Sendable {
             }
         } catch {}
         return ""
+    }
+
+    // MARK: - Network Totals (since-boot, via netstat)
+
+    /// Sums since-boot RX/TX bytes for physical `en*` interfaces from `netstat -ib`.
+    /// These are the kernel's true 64-bit counters (what Activity Monitor shows); the
+    /// sandboxed app can't spawn netstat, so the helper provides them.
+    private func readNetworkTotals() -> (down: UInt64, up: UInt64)? {
+        let task = Foundation.Process()
+        let pipe = Pipe()
+        task.executableURL = URL(fileURLWithPath: "/usr/sbin/netstat")
+        task.arguments = ["-ib"]
+        task.standardOutput = pipe
+        task.standardError = FileHandle.nullDevice
+        do {
+            try task.run()
+            let data = pipe.fileHandleForReading.readDataToEndOfFile()
+            task.waitUntilExit()
+            guard let output = String(data: data, encoding: .utf8) else { return nil }
+            var down: UInt64 = 0
+            var up: UInt64 = 0
+            for line in output.components(separatedBy: "\n") {
+                let cols = line.split(separator: " ", omittingEmptySubsequences: true).map(String.init)
+                guard cols.count >= 10,
+                      cols[0].hasPrefix("en"),
+                      cols[2].hasPrefix("<Link"),
+                      let ib = UInt64(cols[6]),
+                      let ob = UInt64(cols[9]) else { continue }
+                down += ib
+                up += ob
+            }
+            return (down, up)
+        } catch {
+            return nil
+        }
     }
 
     // MARK: - Drive Health (S.M.A.R.T. via IOKit user clients)
