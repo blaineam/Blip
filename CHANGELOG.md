@@ -9,6 +9,7 @@
 - **Disk speed test** — an expandable "Speed Test" section in the Disk panel benchmarks sequential write/read MB/s (plus random-read IOPS) using uncached POSIX I/O (`F_NOCACHE`) so results reflect the device, not the page cache. **Benchmark any volume** — "Change…" prompts for a folder on an external drive (persisted via a security-scoped bookmark) or stick with the boot volume. Includes a size picker, a result history sparkline, and an optional interval mode
 
 ### Fixes
+- **Helper update prompt** — the helper now reports its version in each snapshot, and Settings → Blip Helper shows an amber "Update available" status with an update link when the connected helper is older than the app (or predates version reporting). Prevents silent version skew where an old helper can't service newer commands
 - **Drive S.M.A.R.T. health now shows in the direct build** — NVMe health (SSD life remaining, temperature, TBW, power-on hours, …) is read in-process for the unsandboxed build instead of only via the helper, so the direct download shows it without a helper installed
 - **Network totals match Activity Monitor** — cumulative up/down now report the kernel's true since-boot 64-bit counters (via `netstat -ib`, cached) instead of session-only accumulation, fixing figures that read orders of magnitude low. The sandboxed build gets them from the helper
 

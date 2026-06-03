@@ -110,6 +110,11 @@ struct HelperSnapshot: Codable, Sendable {
     // System info (system_profiler subprocess blocked in sandbox)
     var macModelName: String?
 
+    // Helper bundle version (CFBundleShortVersionString) so the app can detect when
+    // an installed helper is older than the app and prompt for an update. Optional:
+    // nil means a pre-versioning helper, which the app should treat as outdated.
+    var helperVersion: String?
+
     var timestamp: Date
 }
 

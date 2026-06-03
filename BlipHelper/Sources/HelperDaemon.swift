@@ -83,6 +83,7 @@ final class HelperDaemon: @unchecked Sendable {
             topProcessesByCPU: procs.byCPU,
             topProcessesByMemory: procs.byMemory,
             macModelName: fetchModelName(),
+            helperVersion: Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String,
             timestamp: Date()
         )
     }

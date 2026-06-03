@@ -23,6 +23,8 @@ struct SettingsView: View {
     @State private var customColor: Color = .blue
     @State private var helperConnected = false
     @State private var helperInstalled = false
+    @State private var helperVersion: String?
+    @State private var helperOutdated = false
 
     enum ColorMode: String, CaseIterable {
         case category = "Category Colors"
@@ -130,17 +132,24 @@ struct SettingsView: View {
                     LabeledContent("Status") {
                         HStack(spacing: 4) {
                             Circle()
-                                .fill(helperConnected ? Color.green : Color.secondary.opacity(0.4))
+                                .fill(helperOutdated ? Color.orange
+                                      : (helperConnected ? Color.green : Color.secondary.opacity(0.4)))
                                 .frame(width: 7, height: 7)
-                            Text(helperConnected ? "Connected" : helperInstalled ? "Not Running" : "Not Installed")
+                            Text(helperStatusText)
                                 .foregroundStyle(.secondary)
                         }
                     }
                     if !helperConnected {
-                        Text("Install Blip Helper for fan speeds, temperatures, GPU utilization, disk I/O, battery health, and process monitoring.")
+                        Text("Install Blip Helper for fan speeds, temperatures, GPU utilization, disk I/O, battery health, S.M.A.R.T. drive health, and process monitoring.")
                             .font(.caption)
                             .foregroundStyle(.secondary)
                         Link("Download Blip Helper", destination: URL(string: "https://github.com/blaineam/blip/releases/latest")!)
+                            .font(.caption)
+                    } else if helperOutdated {
+                        Text("An update to Blip Helper is available (this app is v\(appVersion)). Update it to get the latest features and fixes.")
+                            .font(.caption)
+                            .foregroundStyle(.orange)
+                        Link("Update Blip Helper", destination: URL(string: "https://github.com/blaineam/blip/releases/latest")!)
                             .font(.caption)
                     }
                 }
@@ -339,10 +348,33 @@ struct SettingsView: View {
         }
     }
 
+    private var appVersion: String {
+        Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "1.0.0"
+    }
+
+    private var helperStatusText: String {
+        if helperConnected {
+            let v = helperVersion.map { " · v\($0)" } ?? ""
+            return helperOutdated ? "Update available\(v)" : "Connected\(v)"
+        }
+        return helperInstalled ? "Not Running" : "Not Installed"
+    }
+
+    /// The connected helper is outdated if it reports no version (a pre-versioning
+    /// build) or a version older than this app, compared numerically (1.4.7 < 1.5.0).
+    private func computeHelperOutdated(installedVersion: String?, connected: Bool) -> Bool {
+        guard connected else { return false }
+        guard let installedVersion, !installedVersion.isEmpty else { return true }
+        return installedVersion.compare(appVersion, options: .numeric) == .orderedAscending
+    }
+
     private func refreshHelperStatus() {
         guard let helperClient else { return }
         helperConnected = helperClient.isConnected
         helperInstalled = helperClient.isHelperInstalled
+        let version = helperClient.latestSnapshot?.helperVersion
+        helperVersion = version
+        helperOutdated = computeHelperOutdated(installedVersion: version, connected: helperClient.isConnected)
     }
 
     private func applyColorMode(_ mode: ColorMode) {
