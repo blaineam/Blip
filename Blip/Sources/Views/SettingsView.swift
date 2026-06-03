@@ -101,7 +101,7 @@ struct SettingsView: View {
                 HStack {
                     Text("Traceroute Target")
                     Spacer()
-                    TextField("defaults to ping target", text: $tracerouteTarget)
+                    TextField(pingTarget.isEmpty ? "1.1.1.1" : pingTarget, text: $tracerouteTarget)
                         .textFieldStyle(.roundedBorder)
                         .frame(width: 180)
                         .font(.system(size: 12, design: .monospaced))
