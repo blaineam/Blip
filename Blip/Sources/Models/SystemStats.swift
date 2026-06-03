@@ -216,6 +216,95 @@ enum ThermalLevel: String, Sendable {
     case critical = "Critical"
 }
 
+// MARK: - Optimization Recommendations
+
+/// A dismissable suggestion to improve the Mac's performance, health, or longevity.
+struct Recommendation: Identifiable, Sendable, Equatable {
+    enum Severity: Int, Sendable { case info = 0, warning = 1, critical = 2 }
+    let id: String        // stable across polls so dismissal sticks
+    let severity: Severity
+    let icon: String      // SF Symbol
+    let title: String
+    let detail: String
+}
+
+/// Pure rules engine that turns a snapshot into actionable recommendations. Each rule
+/// has a stable id so the UI can remember dismissals.
+enum RecommendationsEngine {
+    static func analyze(_ s: SystemSnapshot) -> [Recommendation] {
+        var recs: [Recommendation] = []
+
+        // Runaway CPU process
+        if let p = s.topProcessesByCPU.first, p.cpu > 85 {
+            recs.append(.init(id: "cpu-hog", severity: .warning, icon: "cpu",
+                title: "\(p.name) is using \(Int(p.cpu))% CPU",
+                detail: "Quitting or restarting it would cut heat, fan noise, and battery drain."))
+        }
+
+        // Memory pressure / swap
+        if s.memory.pressureLevel >= 2 {
+            recs.append(.init(id: "mem-pressure", severity: .critical, icon: "memorychip",
+                title: "Memory pressure is high",
+                detail: "Close some apps or browser tabs — heavy swapping wears the SSD and slows things down."))
+        } else if s.memory.swapUsed > 3_000_000_000 {
+            recs.append(.init(id: "mem-swap", severity: .warning, icon: "memorychip",
+                title: "\(Fmtish.gb(s.memory.swapUsed)) of swap in use",
+                detail: "Frequent swapping adds SSD writes. Closing memory-hungry apps helps."))
+        }
+
+        // Thermals
+        if s.system.thermalLevel == .critical || s.system.thermalLevel == .serious {
+            recs.append(.init(id: "thermal", severity: s.system.thermalLevel == .critical ? .critical : .warning,
+                icon: "thermometer.high",
+                title: "Your Mac is running hot (\(s.system.thermalLevel.rawValue))",
+                detail: "Reduce load, improve airflow, or move off soft surfaces to avoid throttling."))
+        }
+
+        // Disk nearly full
+        if let root = s.disk.volumes.first(where: { $0.mountPoint == "/" }), root.usagePercent > 90 {
+            recs.append(.init(id: "disk-full", severity: .warning, icon: "internaldrive",
+                title: "Startup disk is \(Int(root.usagePercent))% full",
+                detail: "Free up space — a nearly-full SSD slows down and has less room for wear-leveling."))
+        }
+
+        // Drive S.M.A.R.T. / endurance
+        for d in s.disk.drives {
+            if !d.isHealthy {
+                recs.append(.init(id: "smart-\(d.id)", severity: .critical, icon: "exclamationmark.triangle",
+                    title: "\(d.name) reports a S.M.A.R.T. warning",
+                    detail: "Back up this drive now — it may be failing."))
+            } else if let life = d.lifeRemaining, life < 20 {
+                recs.append(.init(id: "ssd-life-\(d.id)", severity: .warning, icon: "internaldrive",
+                    title: "\(d.name) is at \(life)% life remaining",
+                    detail: "The SSD is wearing out — keep backups and plan a replacement."))
+            }
+        }
+
+        // Battery health
+        if s.battery.isPresent {
+            if s.battery.health > 0 && s.battery.health < 80 {
+                recs.append(.init(id: "batt-health", severity: .info, icon: "battery.25",
+                    title: "Battery health is \(Int(s.battery.health))%",
+                    detail: "Capacity has dropped — a battery service would restore runtime."))
+            }
+            if s.battery.condition.localizedCaseInsensitiveContains("service") {
+                recs.append(.init(id: "batt-service", severity: .warning, icon: "battery.25",
+                    title: "Battery needs service",
+                    detail: "macOS flagged the battery condition — consider a replacement."))
+            }
+        }
+
+        return recs.sorted { $0.severity.rawValue > $1.severity.rawValue }
+    }
+}
+
+/// Tiny local byte formatter (avoids depending on the view-layer Fmt here).
+enum Fmtish {
+    static func gb(_ bytes: UInt64) -> String {
+        String(format: "%.1f GB", Double(bytes) / 1_000_000_000)
+    }
+}
+
 // MARK: - Aggregate
 
 struct SystemSnapshot: Sendable {

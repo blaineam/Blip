@@ -15,6 +15,12 @@ struct PopoverView: View {
 
     var body: some View {
         VStack(spacing: 0) {
+            // Optimization recommendations (dismissable)
+            if let rec = monitor.recommendations.first {
+                recommendationBanner(rec)
+                Divider().padding(.vertical, 2)
+            }
+
             overviewRow(.cpu)
             overviewRow(.memory)
             overviewRow(.disk)
@@ -212,6 +218,63 @@ struct PopoverView: View {
         .cornerRadius(4)
         .onHover { hovering in
             onHoverSection?(hovering ? section : nil)
+        }
+    }
+
+    // MARK: - Recommendation banner
+
+    @ViewBuilder
+    private func recommendationBanner(_ rec: Recommendation) -> some View {
+        HStack(alignment: .top, spacing: 7) {
+            Image(systemName: rec.icon)
+                .font(.system(size: 12))
+                .foregroundStyle(recColor(rec.severity))
+                .frame(width: 16)
+            VStack(alignment: .leading, spacing: 1) {
+                HStack(spacing: 4) {
+                    Text("Suggestion")
+                        .font(.system(size: 8, weight: .bold))
+                        .foregroundStyle(recColor(rec.severity))
+                        .textCase(.uppercase)
+                    if monitor.recommendations.count > 1 {
+                        Text("· +\(monitor.recommendations.count - 1) more")
+                            .font(.system(size: 8))
+                            .foregroundStyle(.tertiary)
+                    }
+                }
+                Text(rec.title)
+                    .font(.system(size: 11, weight: .semibold))
+                    .fixedSize(horizontal: false, vertical: true)
+                Text(rec.detail)
+                    .font(.system(size: 9))
+                    .foregroundStyle(.secondary)
+                    .fixedSize(horizontal: false, vertical: true)
+            }
+            Spacer(minLength: 2)
+            Button {
+                monitor.dismissRecommendation(rec.id)
+            } label: {
+                Image(systemName: "xmark")
+                    .font(.system(size: 9, weight: .bold))
+                    .foregroundStyle(.secondary)
+            }
+            .buttonStyle(.plain)
+            .help("Dismiss")
+        }
+        .padding(8)
+        .background(
+            RoundedRectangle(cornerRadius: 8)
+                .fill(recColor(rec.severity).opacity(0.12))
+        )
+        .padding(.horizontal, 6)
+        .padding(.top, 6)
+    }
+
+    private func recColor(_ s: Recommendation.Severity) -> Color {
+        switch s {
+        case .info: return .blue
+        case .warning: return .orange
+        case .critical: return .red
         }
     }
 

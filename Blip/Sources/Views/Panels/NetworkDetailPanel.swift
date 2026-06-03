@@ -1,5 +1,6 @@
 import SwiftUI
 import Charts
+import MapKit
 
 struct NetworkDetailPanel: View {
     let stats: NetworkStats
@@ -410,6 +411,7 @@ private struct TracerouteSection: View {
     @State private var running = false
     @State private var hops: [HelperTraceHop] = []
     @State private var pollTimer: Timer?
+    @AppStorage("traceMapShown") private var showMap = false
 
     private var effectiveHost: String {
         let t = tracerouteTarget.trimmingCharacters(in: .whitespaces)
@@ -465,6 +467,28 @@ private struct TracerouteSection: View {
 
                 if !hops.isEmpty {
                     hopTable
+
+                    // Map disclosure — plots the hops by geolocation.
+                    Button {
+                        withAnimation(.easeInOut(duration: 0.15)) { showMap.toggle() }
+                    } label: {
+                        HStack(spacing: 4) {
+                            Image(systemName: showMap ? "chevron.down" : "chevron.right")
+                                .font(.system(size: 8))
+                            Image(systemName: "map")
+                                .font(.system(size: 9))
+                                .foregroundStyle(.purple)
+                            Text("Map")
+                                .font(.system(size: 10, weight: .medium))
+                            Spacer()
+                        }
+                        .contentShape(Rectangle())
+                    }
+                    .buttonStyle(.plain)
+
+                    if showMap {
+                        TracerouteMapView(hops: hops)
+                    }
                 } else if running {
                     Text("Probing…")
                         .font(.system(size: 9))
@@ -841,6 +865,144 @@ struct SpeedTestSection: View {
         HStack(spacing: 3) {
             Circle().fill(color).frame(width: 5, height: 5)
             Text(label).font(.system(size: 9)).foregroundStyle(.secondary)
+        }
+    }
+}
+
+// MARK: - Traceroute Geolocation Map
+
+/// A geolocated hop for the map.
+struct GeoHop: Identifiable, Equatable {
+    let id: Int               // hop number
+    let ip: String
+    let coordinate: CLLocationCoordinate2D
+    let label: String         // "City, Country" (or the IP)
+
+    static func == (a: GeoHop, b: GeoHop) -> Bool {
+        a.id == b.id && a.ip == b.ip &&
+        a.coordinate.latitude == b.coordinate.latitude &&
+        a.coordinate.longitude == b.coordinate.longitude
+    }
+}
+
+/// Caches reverse-IP geolocation lookups (ipwho.is, free HTTPS, no key). Works in the
+/// App Store sandbox — only outbound URLSession, no helper required.
+actor GeoIPLookup {
+    static let shared = GeoIPLookup()
+    private var cache: [String: CLLocationCoordinate2D?] = [:]
+    private var labels: [String: String] = [:]
+
+    func locate(_ ip: String) async -> (coord: CLLocationCoordinate2D, label: String)? {
+        if let cached = cache[ip] {
+            guard let c = cached else { return nil }
+            return (c, labels[ip] ?? ip)
+        }
+        guard Self.isPublicIPv4(ip), let url = URL(string: "https://ipwho.is/\(ip)") else {
+            cache[ip] = .some(nil); return nil
+        }
+        struct Resp: Decodable { let success: Bool?; let latitude: Double?; let longitude: Double?; let city: String?; let country: String? }
+        do {
+            let (data, _) = try await URLSession.shared.data(from: url)
+            let r = try JSONDecoder().decode(Resp.self, from: data)
+            if r.success == true, let lat = r.latitude, let lon = r.longitude {
+                let coord = CLLocationCoordinate2D(latitude: lat, longitude: lon)
+                let label = [r.city, r.country].compactMap { $0 }.filter { !$0.isEmpty }.joined(separator: ", ")
+                cache[ip] = .some(coord)
+                labels[ip] = label.isEmpty ? ip : label
+                return (coord, labels[ip]!)
+            }
+        } catch {}
+        cache[ip] = .some(nil)
+        return nil
+    }
+
+    /// Skip private / reserved / non-routable addresses (no public geolocation).
+    static func isPublicIPv4(_ ip: String) -> Bool {
+        let parts = ip.split(separator: ".").compactMap { Int($0) }
+        guard parts.count == 4 else { return false }
+        let (a, b) = (parts[0], parts[1])
+        if a == 10 || a == 127 || a == 0 { return false }
+        if a == 172, (16...31).contains(b) { return false }
+        if a == 192, b == 168 { return false }
+        if a == 169, b == 254 { return false }
+        if a == 100, (64...127).contains(b) { return false }     // CGNAT
+        if a >= 224 { return false }                              // multicast/reserved
+        return true
+    }
+}
+
+/// Shows the located traceroute hops on a map, revealing them one-by-one with the
+/// route line so the user can watch the path travel.
+struct TracerouteMapView: View {
+    let hops: [HelperTraceHop]
+
+    @State private var geoHops: [GeoHop] = []
+    @State private var revealCount = 0
+    @State private var camera: MapCameraPosition = .automatic
+
+    private var revealed: [GeoHop] { Array(geoHops.prefix(revealCount)) }
+    private var hopsKey: String { hops.map { "\($0.hop):\($0.host)" }.joined(separator: ",") }
+
+    var body: some View {
+        ZStack(alignment: .bottomLeading) {
+            Map(position: $camera, interactionModes: [.pan, .zoom]) {
+                if revealed.count > 1 {
+                    MapPolyline(coordinates: revealed.map { $0.coordinate })
+                        .stroke(.purple, style: StrokeStyle(lineWidth: 2, lineCap: .round, lineJoin: .round))
+                }
+                ForEach(revealed) { h in
+                    Annotation(h.label, coordinate: h.coordinate) {
+                        ZStack {
+                            Circle().fill(.purple).frame(width: 14, height: 14)
+                            Circle().stroke(.white, lineWidth: 1.5).frame(width: 14, height: 14)
+                            Text("\(h.id)").font(.system(size: 8, weight: .bold)).foregroundStyle(.white)
+                        }
+                    }
+                }
+            }
+            .mapStyle(.standard(elevation: .flat))
+            .frame(height: 170)
+            .clipShape(RoundedRectangle(cornerRadius: 8))
+
+            if geoHops.isEmpty {
+                Text("Locating hops…")
+                    .font(.system(size: 9))
+                    .foregroundStyle(.secondary)
+                    .padding(6)
+            } else if let last = revealed.last {
+                Text("\(last.label)")
+                    .font(.system(size: 9, weight: .medium))
+                    .padding(.horizontal, 5).padding(.vertical, 2)
+                    .background(.thinMaterial, in: Capsule())
+                    .padding(6)
+            }
+        }
+        .task(id: hopsKey) { await geolocate() }
+    }
+
+    private func geolocate() async {
+        var result: [GeoHop] = []
+        for hop in hops where hop.host != "*" {
+            if let g = await GeoIPLookup.shared.locate(hop.host) {
+                result.append(GeoHop(id: hop.hop, ip: hop.host, coordinate: g.coord, label: g.label))
+            }
+        }
+        if result != geoHops { geoHops = result }
+        await revealRoute()
+    }
+
+    /// Reveal hops one at a time so the route visibly travels across the map. Runs in
+    /// the view's `.task`, so it cancels automatically when the panel/section goes away.
+    private func revealRoute() async {
+        revealCount = min(1, geoHops.count)
+        camera = .automatic
+        while revealCount < geoHops.count {
+            try? await Task.sleep(nanoseconds: 600_000_000)
+            if Task.isCancelled { return }
+            withAnimation(.easeInOut(duration: 0.5)) {
+                revealCount += 1
+                camera = .automatic
+            }
         }
     }
 }

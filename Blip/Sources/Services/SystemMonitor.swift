@@ -19,6 +19,28 @@ final class SystemMonitor: ObservableObject {
     @Published var diskWriteHistory = HistoryBuffer<Double>(capacity: 60, defaultValue: 0)
     @Published var netDownHistory = HistoryBuffer<Double>(capacity: 60, defaultValue: 0)
     @Published var netUpHistory = HistoryBuffer<Double>(capacity: 60, defaultValue: 0)
+    /// Active optimization recommendations (highest severity first, dismissed ones excluded).
+    @Published var recommendations: [Recommendation] = []
+
+    /// Dismissed recommendation ids → when dismissed; they re-surface after 24h.
+    private var dismissedRecs: [String: Date] = {
+        if let dict = UserDefaults.standard.dictionary(forKey: "dismissedRecs") as? [String: Double] {
+            return dict.mapValues { Date(timeIntervalSince1970: $0) }
+        }
+        return [:]
+    }()
+
+    /// Dismiss a recommendation for 24h.
+    func dismissRecommendation(_ id: String) {
+        dismissedRecs[id] = Date()
+        UserDefaults.standard.set(dismissedRecs.mapValues { $0.timeIntervalSince1970 }, forKey: "dismissedRecs")
+        recommendations = RecommendationsEngine.analyze(snapshot).filter { !isDismissed($0.id) }
+    }
+
+    private func isDismissed(_ id: String) -> Bool {
+        guard let when = dismissedRecs[id] else { return false }
+        return Date().timeIntervalSince(when) < 86_400
+    }
 
     private let cpuMonitor = CPUMonitor()
     private let memoryMonitor = MemoryMonitor()
@@ -279,6 +301,7 @@ final class SystemMonitor: ObservableObject {
         newSnapshot.timestamp = Date()
 
         snapshot = newSnapshot
+        recommendations = RecommendationsEngine.analyze(newSnapshot).filter { !isDismissed($0.id) }
         cpuHistory.append(cpu.totalUsage)
         memoryHistory.append(memory.usagePercent)
         gpuHistory.append(gpu.utilization)
