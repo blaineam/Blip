@@ -14,6 +14,7 @@ struct NetworkDetailPanel: View {
     var traceStart: ((String) async -> Void)? = nil
     var traceStop: (() async -> Void)? = nil
     var tracePoll: (() async -> (hops: [HelperTraceHop], running: Bool))? = nil
+    var onOpenTracerouteWindow: (() -> Void)? = nil
 
     @State private var wanIP: String? = nil
     @State private var showWAN = false
@@ -216,7 +217,8 @@ struct NetworkDetailPanel: View {
                     defaultHost: tracerouteDefaultHost,
                     start: traceStart,
                     stop: traceStop,
-                    poll: tracePoll
+                    poll: tracePoll,
+                    onOpenWindow: onOpenTracerouteWindow
                 )
             }
 
@@ -403,6 +405,7 @@ private struct TracerouteSection: View {
     let start: (String) async -> Void
     let stop: () async -> Void
     let poll: () async -> (hops: [HelperTraceHop], running: Bool)
+    var onOpenWindow: (() -> Void)? = nil
 
     @AppStorage("traceExpanded") private var expanded = false
     // Target is configured in Settings (hover panels can't take keyboard focus, so an
@@ -436,6 +439,13 @@ private struct TracerouteSection: View {
                     Spacer()
                     if running {
                         Circle().fill(.green).frame(width: 5, height: 5)
+                    }
+                    if onOpenWindow != nil {
+                        Image(systemName: "macwindow")
+                            .font(.system(size: 10))
+                            .foregroundStyle(.secondary)
+                            .onTapGesture { onOpenWindow?() }
+                            .help("Open in a window")
                     }
                 }
                 .contentShape(Rectangle())
@@ -609,6 +619,10 @@ struct SpeedTestSection: View {
     var isExpensiveNetwork: Bool = false
 
     @AppStorage("netSpeedExpanded") private var expanded = false
+    // Auto-run is persisted here (UI source of truth) and pushed to the tester so the
+    // switch always reflects the real state after the panel is dismissed/reopened.
+    @AppStorage("netSpeedAutoRun") private var autoRunPref = false
+    @AppStorage("netSpeedInterval") private var intervalPref = 15
 
     // Server selection (persisted): Cloudflare by default, or a self-hosted
     // OpenSpeedTest server on the LAN.
@@ -672,6 +686,8 @@ struct SpeedTestSection: View {
     private func syncTester() {
         tester.server = selectedServer
         tester.autoRunBlocked = isExpensiveNetwork
+        if tester.autoRun != autoRunPref { tester.autoRun = autoRunPref }
+        if tester.intervalMinutes != intervalPref { tester.intervalMinutes = intervalPref }
     }
 
     @ViewBuilder
@@ -751,13 +767,14 @@ struct SpeedTestSection: View {
         }
 
         // Auto-run controls
-        Toggle("Auto-run on interval", isOn: $tester.autoRun)
+        Toggle("Auto-run on interval", isOn: $autoRunPref)
             .toggleStyle(.switch)
             .controlSize(.small)
             .font(.system(size: 10))
+            .onChange(of: autoRunPref) { _, v in tester.autoRun = v }
 
-        if tester.autoRun {
-            Picker("", selection: $tester.intervalMinutes) {
+        if autoRunPref {
+            Picker("", selection: $intervalPref) {
                 ForEach(intervalOptions, id: \.self) { m in
                     Text("every \(m) min").tag(m)
                 }
@@ -766,6 +783,7 @@ struct SpeedTestSection: View {
             .pickerStyle(.menu)
             .controlSize(.small)
             .font(.system(size: 10))
+            .onChange(of: intervalPref) { _, v in tester.intervalMinutes = v }
 
             if isExpensiveNetwork {
                 Text("Paused — this network is metered. Manual runs still work.")
@@ -935,6 +953,7 @@ actor GeoIPLookup {
 /// route line so the user can watch the path travel.
 struct TracerouteMapView: View {
     let hops: [HelperTraceHop]
+    var height: CGFloat = 170
 
     @State private var geoHops: [GeoHop] = []
     @State private var revealCount = 0
@@ -961,7 +980,7 @@ struct TracerouteMapView: View {
                 }
             }
             .mapStyle(.standard(elevation: .flat))
-            .frame(height: 170)
+            .frame(height: height)
             .clipShape(RoundedRectangle(cornerRadius: 8))
 
             if geoHops.isEmpty {
@@ -1002,6 +1021,131 @@ struct TracerouteMapView: View {
             withAnimation(.easeInOut(duration: 0.5)) {
                 revealCount += 1
                 camera = .automatic
+            }
+        }
+    }
+}
+
+// MARK: - Traceroute Window (opens like Settings; shows a Dock icon)
+
+/// A full-window traceroute monitor with a large animated map and a scrollable hop
+/// table. Because this is a real key window (unlike the hover panel) the target field
+/// is editable here.
+struct TracerouteWindowView: View {
+    let start: (String) async -> Void
+    let stop: () async -> Void
+    let poll: () async -> (hops: [HelperTraceHop], running: Bool)
+
+    @AppStorage("tracerouteTarget") private var tracerouteTarget = ""
+    @State private var host = ""
+    @State private var running = false
+    @State private var hops: [HelperTraceHop] = []
+    @State private var pollTimer: Timer?
+
+    var body: some View {
+        VStack(spacing: 10) {
+            HStack(spacing: 8) {
+                Image(systemName: "point.topleft.down.to.point.bottomright.curvepath")
+                    .foregroundStyle(.purple)
+                Text("Traceroute / MTR").font(.headline)
+                Spacer()
+                TextField("host or IP", text: $host)
+                    .textFieldStyle(.roundedBorder)
+                    .frame(width: 200)
+                    .disableAutocorrection(true)
+                    .onSubmit { if !running { startTrace() } }
+                if running {
+                    Button("Stop") { stopTrace() }.tint(.red)
+                } else {
+                    Button("Start") { startTrace() }
+                        .disabled(host.trimmingCharacters(in: .whitespaces).isEmpty)
+                }
+            }
+
+            TracerouteMapView(hops: hops, height: 300)
+
+            if !hops.isEmpty {
+                hopTable
+            } else {
+                Spacer()
+                Text(running ? "Probing…" : "Enter a host and press Start.")
+                    .font(.system(size: 12))
+                    .foregroundStyle(.secondary)
+                Spacer()
+            }
+        }
+        .padding(14)
+        .frame(minWidth: 480, minHeight: 520)
+        .onAppear {
+            if host.isEmpty { host = tracerouteTarget.isEmpty ? "1.1.1.1" : tracerouteTarget }
+            Task {
+                let snap = await poll()
+                running = snap.running
+                hops = snap.hops
+                if snap.running { schedulePoll() }
+            }
+        }
+        .onDisappear { pollTimer?.invalidate(); pollTimer = nil }
+    }
+
+    private var hopTable: some View {
+        ScrollView {
+            VStack(alignment: .leading, spacing: 2) {
+                HStack(spacing: 8) {
+                    Text("#").frame(width: 22, alignment: .trailing)
+                    Text("Host").frame(maxWidth: .infinity, alignment: .leading)
+                    Text("Loss").frame(width: 48, alignment: .trailing)
+                    Text("Last").frame(width: 56, alignment: .trailing)
+                    Text("Avg").frame(width: 56, alignment: .trailing)
+                    Text("Best").frame(width: 56, alignment: .trailing)
+                    Text("Worst").frame(width: 56, alignment: .trailing)
+                }
+                .font(.system(size: 9, weight: .semibold))
+                .foregroundStyle(.secondary)
+                Divider()
+                ForEach(hops, id: \.hop) { hop in
+                    HStack(spacing: 8) {
+                        Text("\(hop.hop)").frame(width: 22, alignment: .trailing).foregroundStyle(.tertiary)
+                        Text(hop.host).frame(maxWidth: .infinity, alignment: .leading).lineLimit(1).truncationMode(.middle)
+                        Text(String(format: "%.0f%%", hop.lossPct)).frame(width: 48, alignment: .trailing)
+                            .foregroundStyle(hop.lossPct <= 0 ? .green : (hop.lossPct < 20 ? .orange : .red))
+                        Text(ms(hop.lastMs)).frame(width: 56, alignment: .trailing).foregroundStyle(.secondary)
+                        Text(ms(hop.avgMs)).frame(width: 56, alignment: .trailing).foregroundStyle(.secondary)
+                        Text(ms(hop.bestMs)).frame(width: 56, alignment: .trailing).foregroundStyle(.secondary)
+                        Text(ms(hop.worstMs)).frame(width: 56, alignment: .trailing).foregroundStyle(.secondary)
+                    }
+                    .font(.system(size: 10, design: .monospaced))
+                }
+            }
+        }
+        .frame(maxHeight: 160)
+    }
+
+    private func ms(_ v: Double?) -> String { v.map { String(format: "%.0f", $0) } ?? "—" }
+
+    private func startTrace() {
+        let target = host.trimmingCharacters(in: .whitespaces)
+        guard !target.isEmpty else { return }
+        tracerouteTarget = target
+        running = true
+        hops = []
+        Task { await start(target) }
+        schedulePoll()
+    }
+
+    private func stopTrace() {
+        pollTimer?.invalidate(); pollTimer = nil
+        running = false
+        Task { await stop() }
+    }
+
+    private func schedulePoll() {
+        pollTimer?.invalidate()
+        pollTimer = Timer.scheduledTimer(withTimeInterval: 1.0, repeats: true) { _ in
+            Task { @MainActor in
+                let snap = await poll()
+                hops = snap.hops
+                running = snap.running
             }
         }
     }

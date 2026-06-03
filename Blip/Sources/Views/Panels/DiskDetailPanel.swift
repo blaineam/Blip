@@ -10,6 +10,9 @@ struct DiskDetailPanel: View {
     /// being dismissed and reopened.
     @ObservedObject var speedTester: DiskSpeedTester
     @AppStorage("diskSpeedExpanded") private var speedTestExpanded = false
+    // Auto-run persisted here so the switch reflects state after dismiss/reopen.
+    @AppStorage("diskSpeedAutoRun") private var diskAutoRunPref = false
+    @AppStorage("diskSpeedInterval") private var diskIntervalPref = 5
 
     var body: some View {
         VStack(alignment: .leading, spacing: 10) {
@@ -434,12 +437,13 @@ struct DiskDetailPanel: View {
             }
 
             // Auto-run
-            Toggle("Auto-run on interval", isOn: $speedTester.autoRun)
+            Toggle("Auto-run on interval", isOn: $diskAutoRunPref)
                 .toggleStyle(.switch)
                 .controlSize(.small)
                 .font(.system(size: 10))
-            if speedTester.autoRun {
-                Picker("", selection: $speedTester.intervalMinutes) {
+                .onChange(of: diskAutoRunPref) { _, v in speedTester.autoRun = v }
+            if diskAutoRunPref {
+                Picker("", selection: $diskIntervalPref) {
                     ForEach([5, 15, 30, 60], id: \.self) { m in
                         Text("every \(m) min").tag(m)
                     }
@@ -448,6 +452,7 @@ struct DiskDetailPanel: View {
                 .pickerStyle(.menu)
                 .controlSize(.small)
                 .font(.system(size: 10))
+                .onChange(of: diskIntervalPref) { _, v in speedTester.intervalMinutes = v }
                 if !speedTester.autoRunAllowedNow {
                     Text("Paused — drive health is low. Manual runs still work.")
                         .font(.system(size: 9))
@@ -455,7 +460,11 @@ struct DiskDetailPanel: View {
                 }
             }
         }
-        .onAppear { speedTester.targetHealthRemaining = testedDriveHealth }
+        .onAppear {
+            speedTester.targetHealthRemaining = testedDriveHealth
+            if speedTester.autoRun != diskAutoRunPref { speedTester.autoRun = diskAutoRunPref }
+            if speedTester.intervalMinutes != diskIntervalPref { speedTester.intervalMinutes = diskIntervalPref }
+        }
         .onChange(of: speedTester.locationLabel) { _, _ in speedTester.targetHealthRemaining = testedDriveHealth }
         .onChange(of: stats.drives.count) { _, _ in speedTester.targetHealthRemaining = testedDriveHealth }
     }

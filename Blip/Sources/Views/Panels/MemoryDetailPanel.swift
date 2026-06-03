@@ -9,6 +9,8 @@ struct MemoryDetailPanel: View {
     /// Called with true while the pointer is over the process list so the app can
     /// freeze refreshes (stops reshuffling + preserves the two-click kill state).
     var onProcessHover: ((Bool) -> Void)? = nil
+    /// Persistent armed-PID for the two-click kill confirm.
+    var armedPID: Binding<pid_t?> = .constant(nil)
     @State private var processHovering = false
 
     var body: some View {
@@ -116,7 +118,7 @@ struct MemoryDetailPanel: View {
                 }
                 VStack(spacing: 0) {
                     ForEach(topProcesses) { proc in
-                        ProcessRow(process: proc, mode: .memory, onKill: onKill)
+                        ProcessRow(process: proc, mode: .memory, onKill: onKill, armedPID: armedPID)
                     }
                 }
                 .onHover { h in

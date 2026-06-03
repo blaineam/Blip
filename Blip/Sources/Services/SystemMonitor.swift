@@ -21,6 +21,9 @@ final class SystemMonitor: ObservableObject {
     @Published var netUpHistory = HistoryBuffer<Double>(capacity: 60, defaultValue: 0)
     /// Active optimization recommendations (highest severity first, dismissed ones excluded).
     @Published var recommendations: [Recommendation] = []
+    /// PID currently "armed" for kill (first click). Lives here, not in the row view,
+    /// so it survives the 2s detail-panel rebuild and the two-click confirm completes.
+    @Published var pendingKillPID: pid_t?
 
     /// Dismissed recommendation ids → when dismissed; they re-surface after 24h.
     private var dismissedRecs: [String: Date] = {

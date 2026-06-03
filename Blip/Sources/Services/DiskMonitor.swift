@@ -688,8 +688,16 @@ final class DiskSpeedTester: ObservableObject {
                     self?.progress = frac
                 }
             }
-            let result = try? DiskBenchmark.run(size: size, directory: dirURL,
-                                                progress: progressHandler, isCancelled: cancelledFlag)
+            var result: DiskSpeedResult?
+            var failure: String?
+            do {
+                result = try DiskBenchmark.run(size: size, directory: dirURL,
+                                               progress: progressHandler, isCancelled: cancelledFlag)
+            } catch is DiskBenchmark.CancelledError {
+                result = nil
+            } catch {
+                failure = (error as NSError).localizedDescription
+            }
             await MainActor.run { [weak self] in
                 if let target, target.scoped { target.url.stopAccessingSecurityScopedResource() }
                 guard let self else { return }
@@ -699,8 +707,10 @@ final class DiskSpeedTester: ObservableObject {
                     if self.history.count > Self.maxHistory {
                         self.history.removeFirst(self.history.count - Self.maxHistory)
                     }
-                } else if !Task.isCancelled, dirURL != nil {
-                    self.lastError = "Couldn't write to that location"
+                } else if let failure {
+                    // Surface the real reason (e.g. permissions, no space) so external-drive
+                    // problems are diagnosable rather than a generic message.
+                    self.lastError = failure
                 }
                 self.isRunning = false
                 self.phase = .idle

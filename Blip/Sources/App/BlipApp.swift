@@ -16,7 +16,7 @@ struct BlipApp: App {
 // MARK: - App Delegate
 
 @MainActor
-final class AppDelegate: NSObject, NSApplicationDelegate {
+final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
     private var statusItem: NSStatusItem!
     private var popover: NSPopover!
     private let monitor = SystemMonitor()
@@ -30,6 +30,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     private var detailHostingView: NSHostingView<AnyView>?
     private var currentSection: PopoverSection?
     private var settingsWindow: NSWindow?
+    private var tracerouteWindow: NSWindow?
     private var dismissWorkItem: DispatchWorkItem?
     private var cancellables = Set<AnyCancellable>()
     /// When true, the detail panel stops refreshing — used while the pointer is over
@@ -193,9 +194,17 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         panel.orderFront(nil)
     }
 
+    /// Freeze the panel while the pointer is over the process list (so rows don't
+    /// reshuffle and the kill-confirm survives); clear any armed kill when leaving.
+    private func setProcessHover(_ hovering: Bool) {
+        processListFrozen = hovering
+        if !hovering { monitor.pendingKillPID = nil }
+    }
+
     private func hideDetailPanel() {
         detailPanel?.orderOut(nil)
         currentSection = nil
+        monitor.pendingKillPID = nil
         // Collapse the Traceroute/MTR disclosure on dismiss (the session keeps running
         // underneath and its values are restored when the user re-expands it).
         UserDefaults.standard.set(false, forKey: "traceExpanded")
@@ -210,7 +219,9 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
                 history: monitor.cpuHistory.values,
                 topProcesses: monitor.snapshot.topProcessesByCPU,
                 onKill: { pid, force in await self.monitor.killProcess(pid: pid, force: force) },
-                onProcessHover: { [weak self] hovering in self?.processListFrozen = hovering }
+                onProcessHover: { [weak self] hovering in self?.setProcessHover(hovering) },
+                armedPID: Binding(get: { self.monitor.pendingKillPID },
+                                  set: { self.monitor.pendingKillPID = $0 })
             )
         case .memory:
             MemoryDetailPanel(
@@ -218,7 +229,9 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
                 history: monitor.memoryHistory.values,
                 topProcesses: monitor.snapshot.topProcessesByMemory,
                 onKill: { pid, force in await self.monitor.killProcess(pid: pid, force: force) },
-                onProcessHover: { [weak self] hovering in self?.processListFrozen = hovering }
+                onProcessHover: { [weak self] hovering in self?.setProcessHover(hovering) },
+                armedPID: Binding(get: { self.monitor.pendingKillPID },
+                                  set: { self.monitor.pendingKillPID = $0 })
             )
         case .disk:
             #if APPSTORE
@@ -245,7 +258,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
                 speedTester: netSpeedTester,
                 traceStart: { host in await self.monitor.startTraceroute(host: host) },
                 traceStop: { await self.monitor.stopTraceroute() },
-                tracePoll: { await self.monitor.tracerouteHops() }
+                tracePoll: { await self.monitor.tracerouteHops() },
+                onOpenTracerouteWindow: { [weak self] in self?.openTracerouteWindow() }
             )
         case .gpu:
             GPUDetailPanel(
@@ -285,14 +299,67 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
 
         let window = NSWindow(contentViewController: hostingController)
         window.title = "Blip Settings"
-        window.styleMask = [.titled, .closable]
+        window.styleMask = [.titled, .closable, .resizable, .miniaturizable]
         window.center()
         window.setFrameAutosaveName("BlipSettings")
         window.isReleasedWhenClosed = false
+        window.delegate = self
         settingsWindow = window
 
         window.makeKeyAndOrderFront(nil)
+        showDockIconForWindows()
         NSApp.activate(ignoringOtherApps: true)
+    }
+
+    // MARK: - Traceroute Window
+
+    func openTracerouteWindow() {
+        closeAll()
+        if let existing = tracerouteWindow, existing.isVisible {
+            existing.makeKeyAndOrderFront(nil)
+            NSApp.activate(ignoringOtherApps: true)
+            return
+        }
+
+        let view = TracerouteWindowView(
+            start: { host in await self.monitor.startTraceroute(host: host) },
+            stop: { await self.monitor.stopTraceroute() },
+            poll: { await self.monitor.tracerouteHops() }
+        )
+        let hostingController = NSHostingController(rootView: view)
+        let window = NSWindow(contentViewController: hostingController)
+        window.title = "Traceroute Map"
+        window.styleMask = [.titled, .closable, .resizable, .miniaturizable]
+        window.setContentSize(NSSize(width: 560, height: 620))
+        window.center()
+        window.setFrameAutosaveName("BlipTraceroute")
+        window.isReleasedWhenClosed = false
+        window.delegate = self
+        tracerouteWindow = window
+
+        window.makeKeyAndOrderFront(nil)
+        showDockIconForWindows()
+        NSApp.activate(ignoringOtherApps: true)
+    }
+
+    // MARK: - Dock icon (only while a real window is open)
+
+    /// Shows the app in the Dock when any Blip window is visible — the menu-bar
+    /// popover/panels don't count, matching the "windows show a Dock icon" behavior.
+    private func showDockIconForWindows() {
+        NSApp.setActivationPolicy(.regular)
+    }
+
+    private func updateActivationPolicyForOpenWindows() {
+        let anyVisible = [settingsWindow, tracerouteWindow].contains { $0?.isVisible == true }
+        NSApp.setActivationPolicy(anyVisible ? .regular : .accessory)
+    }
+
+    func windowWillClose(_ notification: Notification) {
+        // After this window closes, drop the Dock icon if no Blip windows remain.
+        DispatchQueue.main.async { [weak self] in
+            self?.updateActivationPolicyForOpenWindows()
+        }
     }
 
     // MARK: - Live Refresh

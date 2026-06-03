@@ -7,6 +7,9 @@ struct ProcessRow: View {
     /// Optional kill handler. When provided, a quit control appears on hover.
     /// Returns the result message (nil = success, non-nil = error to surface).
     var onKill: ((pid_t, Bool) async -> (ok: Bool, message: String))? = nil
+    /// The PID armed for confirm, stored persistently by the app so the two-click
+    /// confirm survives the detail panel rebuilding every 2 seconds.
+    var armedPID: Binding<pid_t?> = .constant(nil)
 
     enum Mode {
         case cpu
@@ -14,9 +17,10 @@ struct ProcessRow: View {
     }
 
     @State private var hovering = false
-    @State private var confirming = false
     @State private var killing = false
     @State private var errorMessage: String?
+
+    private var confirming: Bool { armedPID.wrappedValue == process.id }
 
     var body: some View {
         HStack(spacing: 6) {
@@ -73,7 +77,6 @@ struct ProcessRow: View {
         .contentShape(Rectangle())
         .onHover { h in
             hovering = h
-            if !h { confirming = false }
         }
     }
 
@@ -88,11 +91,9 @@ struct ProcessRow: View {
                 if confirming {
                     performKill()
                 } else {
-                    // First click arms the confirm; a brief window then disarms.
-                    confirming = true
-                    DispatchQueue.main.asyncAfter(deadline: .now() + 3) {
-                        confirming = false
-                    }
+                    // First click arms this PID (persisted in the app, cleared when the
+                    // pointer leaves the process list).
+                    armedPID.wrappedValue = process.id
                 }
             } label: {
                 Image(systemName: confirming ? "xmark.circle.fill" : "xmark.circle")
@@ -106,11 +107,12 @@ struct ProcessRow: View {
 
     private func performKill() {
         guard let onKill else { return }
-        confirming = false
+        let pid = process.id
+        armedPID.wrappedValue = nil
         killing = true
         errorMessage = nil
         Task {
-            let result = await onKill(process.id, false)
+            let result = await onKill(pid, false)
             await MainActor.run {
                 killing = false
                 if !result.ok {

@@ -52,7 +52,8 @@ struct SettingsView: View {
                 }
                 .tag(2)
         }
-        .frame(width: 440, height: 320)
+        .frame(minWidth: 440, idealWidth: 460, maxWidth: .infinity,
+               minHeight: 320, idealHeight: 360, maxHeight: .infinity)
         .onAppear {
             if colorOverride == "MENU_BAR" {
                 selectedMode = .monochrome
