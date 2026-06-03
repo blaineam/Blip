@@ -178,11 +178,24 @@ final class SpeedTester: ObservableObject {
     /// Resolves the endpoint for a direction from the configured server. Built on
     /// the main actor (reads `server`); the returned value is Sendable so the
     /// background transfer runner can mint fresh URLs without actor hops.
-    private func endpoint(for direction: Direction) -> SpeedEndpoint {
+    /// Ordered endpoints to try for a direction. The runner advances to the next entry
+    /// only when the current one returns an HTTP error (e.g. Cloudflare 429/403), so a
+    /// throttled primary transparently falls back to an alternate CDN.
+    private func endpoints(for direction: Direction) -> [SpeedEndpoint] {
         if let base = server.openSpeedTestBase {
-            return direction == .download ? .openSpeedTestDown(base: base) : .openSpeedTestUp(base: base)
+            return [direction == .download ? .openSpeedTestDown(base: base) : .openSpeedTestUp(base: base)]
         }
-        return direction == .download ? .cloudflareDown(bytes: downloadChunkBytes) : .cloudflareUp
+        if direction == .upload {
+            return [.cloudflareUp]
+        }
+        // Cloudflare first (most accurate, geo-routed); fall back to large static files
+        // on other CDNs if it rate-limits. These keep the test working when the egress
+        // IP is throttled, at the cost of some geographic accuracy.
+        return [
+            .cloudflareDown(bytes: downloadChunkBytes),
+            .staticFile(url: "https://proof.ovh.net/files/100Mb.dat"),
+            .staticFile(url: "https://speed.hetzner.de/100MB.bin"),
+        ]
     }
 
     /// Runs `parallelism` concurrent transfers for `phaseDuration` seconds and
@@ -191,7 +204,7 @@ final class SpeedTester: ObservableObject {
     /// is what makes multi-gigabit links measurable.
     private func measure(direction: Direction) async throws -> Double {
         let runner = ThroughputRunner(
-            endpoint: endpoint(for: direction),
+            endpoints: endpoints(for: direction),
             uploadBody: direction == .upload ? Data(count: uploadChunkBytes) : nil
         )
         defer { runner.stop() }
@@ -223,12 +236,23 @@ final class SpeedTester: ObservableObject {
         runner.stop()
 
         if measuredBytes == 0 {
+            if runner.httpError != 0 { throw SpeedTestHTTPError(status: runner.httpError) }
             throw runner.lastError ?? URLError(.cannotConnectToHost)
         }
         return Double(measuredBytes) * 8 / measuredSeconds / 1_000_000
     }
 
     private static func message(for error: Error) -> String {
+        if let httpError = error as? SpeedTestHTTPError {
+            switch httpError.status {
+            case 429:
+                return "Server busy (rate-limited). Wait a moment, or pick an OpenSpeedTest LAN server in Settings."
+            case 403:
+                return "Server rejected the request (403). Try an OpenSpeedTest LAN server in Settings."
+            default:
+                return "Server error (HTTP \(httpError.status)). Try again, or use an OpenSpeedTest server."
+            }
+        }
         if let urlError = error as? URLError {
             switch urlError.code {
             case .notConnectedToInternet, .cannotConnectToHost, .networkConnectionLost:
@@ -243,6 +267,10 @@ final class SpeedTester: ObservableObject {
     }
 }
 
+/// Raised when the speed-test server returns an HTTP error status (e.g. 429/403),
+/// so the UI can show a precise, actionable message instead of a generic failure.
+private struct SpeedTestHTTPError: Error { let status: Int }
+
 /// A resolved speed-test endpoint. Sendable so the background runner can mint a
 /// fresh URL per request without touching the main actor.
 private enum SpeedEndpoint: Sendable {
@@ -250,6 +278,9 @@ private enum SpeedEndpoint: Sendable {
     case cloudflareUp
     case openSpeedTestDown(base: String)
     case openSpeedTestUp(base: String)
+    /// A plain large static file on a third-party CDN, used as a download fallback when
+    /// Cloudflare rate-limits (429) or rejects (403). Cache-busted per request.
+    case staticFile(url: String)
 
     func makeURL() -> URL? {
         switch self {
@@ -261,6 +292,9 @@ private enum SpeedEndpoint: Sendable {
             return URL(string: "\(base)/downloading?r=\(Int.random(in: 0...Int.max))")
         case .openSpeedTestUp(let base):
             return URL(string: "\(base)/upload?r=\(Int.random(in: 0...Int.max))")
+        case .staticFile(let url):
+            let sep = url.contains("?") ? "&" : "?"
+            return URL(string: "\(url)\(sep)nocache=\(Int.random(in: 0...Int.max))")
         }
     }
 }
@@ -270,17 +304,20 @@ private enum SpeedEndpoint: Sendable {
 /// keeps `parallelism` transfers in flight, relaunching each as it finishes, until
 /// the deadline. Lock-protected so the main-actor sampler can read `bytes` safely.
 private final class ThroughputRunner: NSObject, URLSessionDataDelegate, @unchecked Sendable {
-    private let endpoint: SpeedEndpoint
+    private let endpoints: [SpeedEndpoint]
     private let uploadBody: Data?
     private let lock = NSLock()
     private var _bytes = 0
     private var _lastError: Error?
+    private var _httpError = 0
+    /// Index into `endpoints`; advances when the current endpoint returns an HTTP error.
+    private var _endpointIndex = 0
     private var stopped = false
     private var invalidated = false
     private var deadline = Date.distantPast
 
-    init(endpoint: SpeedEndpoint, uploadBody: Data?) {
-        self.endpoint = endpoint
+    init(endpoints: [SpeedEndpoint], uploadBody: Data?) {
+        self.endpoints = endpoints.isEmpty ? [.cloudflareUp] : endpoints
         self.uploadBody = uploadBody
         super.init()
     }
@@ -297,6 +334,9 @@ private final class ThroughputRunner: NSObject, URLSessionDataDelegate, @uncheck
 
     var bytes: Int { lock.lock(); defer { lock.unlock() }; return _bytes }
     var lastError: Error? { lock.lock(); defer { lock.unlock() }; return _lastError }
+    /// Non-zero once the server returned an HTTP error status (e.g. 429 rate-limited,
+    /// 403 rejected). Surfaced so `measure()` can report a precise, actionable message.
+    var httpError: Int { lock.lock(); defer { lock.unlock() }; return _httpError }
 
     func start(parallelism: Int, deadline: Date) {
         lock.lock(); self.deadline = deadline; stopped = false; lock.unlock()
@@ -314,9 +354,12 @@ private final class ThroughputRunner: NSObject, URLSessionDataDelegate, @uncheck
 
     private func launch() {
         lock.lock()
-        let go = !stopped && Date() < deadline
+        // Stop relaunching once every endpoint has been exhausted with HTTP errors —
+        // hammering a rate-limited server only deepens the throttle. Fail fast instead.
+        let go = !stopped && _httpError == 0 && Date() < deadline
+        let index = _endpointIndex
         lock.unlock()
-        guard go, let url = endpoint.makeURL() else { return }
+        guard go, index < endpoints.count, let url = endpoints[index].makeURL() else { return }
 
         var request = URLRequest(url: url)
         request.cachePolicy = .reloadIgnoringLocalAndRemoteCacheData
@@ -328,7 +371,35 @@ private final class ThroughputRunner: NSObject, URLSessionDataDelegate, @uncheck
         } else {
             task = session.dataTask(with: request)
         }
+        // Stamp the endpoint index so an HTTP error only advances the fallback once per
+        // endpoint (concurrent failures on the same source don't skip past good ones).
+        task.taskDescription = String(index)
         task.resume()
+    }
+
+    // Reject error responses up front so their tiny error-page bodies are never counted
+    // as throughput (which silently produced a near-zero "successful" result). A status
+    // >= 400 (e.g. 429 rate-limited, 403 rejected) cancels the transfer and is recorded.
+    func urlSession(_ session: URLSession, dataTask: URLSessionDataTask,
+                    didReceive response: URLResponse,
+                    completionHandler: @escaping (URLSession.ResponseDisposition) -> Void) {
+        if let http = response as? HTTPURLResponse, http.statusCode >= 400 {
+            let taskIndex = Int(dataTask.taskDescription ?? "") ?? 0
+            lock.lock()
+            // Only the failure on the currently-active endpoint advances the fallback,
+            // so concurrent errors on the same source advance the index just once.
+            if taskIndex == _endpointIndex {
+                if _endpointIndex + 1 < endpoints.count {
+                    _endpointIndex += 1                       // fall back to the next CDN
+                } else if _httpError == 0 {
+                    _httpError = http.statusCode               // all sources exhausted
+                }
+            }
+            lock.unlock()
+            completionHandler(.cancel)
+        } else {
+            completionHandler(.allow)
+        }
     }
 
     // Download: count each delivered chunk (delegate streams, no full buffering).
@@ -346,7 +417,16 @@ private final class ThroughputRunner: NSObject, URLSessionDataDelegate, @uncheck
     // When a transfer finishes (or errors), relaunch another until the deadline.
     func urlSession(_ session: URLSession, task: URLSessionTask, didCompleteWithError error: Error?) {
         if let error = error, (error as? URLError)?.code != .cancelled {
-            lock.lock(); _lastError = error; lock.unlock()
+            let taskIndex = Int(task.taskDescription ?? "") ?? 0
+            lock.lock()
+            _lastError = error
+            // A connection-level failure (e.g. host unreachable, DNS, timeout) before any
+            // bytes have arrived means this endpoint is unusable — fall back like an HTTP
+            // error so a dead CDN never traps the whole test on a single source.
+            if _bytes == 0, taskIndex == _endpointIndex, _endpointIndex + 1 < endpoints.count {
+                _endpointIndex += 1
+            }
+            lock.unlock()
         }
         launch()
     }
