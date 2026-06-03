@@ -210,8 +210,9 @@ struct NetworkDetailPanel: View {
                 }
             }
 
-            // Feature B — Traceroute / MTR (self-contained section)
-            if let traceStart, let traceStop, let tracePoll {
+            // Feature B — Traceroute / MTR (self-contained section).
+            // Helper-only — hidden in screenshots so they show only base features.
+            if !BlipScreenshotMode.isActive, let traceStart, let traceStop, let tracePoll {
                 Divider()
                 TracerouteSection(
                     defaultHost: tracerouteDefaultHost,

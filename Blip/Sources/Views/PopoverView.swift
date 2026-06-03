@@ -25,7 +25,11 @@ struct PopoverView: View {
                 overviewRow(.gpu)
             }
             #else
-            overviewRow(.gpu)
+            // GPU utilization is helper-only; hide it in screenshots so they
+            // represent the base (no-helper) experience honestly.
+            if !BlipScreenshotMode.isActive {
+                overviewRow(.gpu)
+            }
             #endif
             overviewRow(.thermal)
 

@@ -60,30 +60,15 @@ extension SystemSnapshot {
         s.memory.swapTotal = 2 * 1_073_741_824
         s.memory.pressureLevel = 0
 
-        // GPU.
-        s.gpu.name = "Apple M3 Pro GPU"
-        s.gpu.utilization = 26
-        s.gpu.temperature = 46
-        s.gpu.coreCount = 18
+        // GPU — helper-only (utilization/temperature). Left empty; the App Store
+        // build hides the GPU row when the helper isn't connected.
+        s.gpu.name = "Apple GPU"
 
-        // Disk — healthy internal SSD, generic name (no serial).
+        // Disk — only volume usage is available without the helper. Disk I/O and
+        // S.M.A.R.T. drive health are helper-only, so they're left empty.
         s.disk.volumes = [
             VolumeInfo(name: "Macintosh HD", mountPoint: "/",
                        totalBytes: 1_000_000_000_000, freeBytes: 612_000_000_000)
-        ]
-        s.disk.readBytesPerSec = 84_000_000
-        s.disk.writeBytesPerSec = 23_000_000
-        s.disk.totalBytesRead = 18_400_000_000_000
-        s.disk.totalBytesWritten = 9_700_000_000_000
-        s.disk.smartStatus = "Verified"
-        s.disk.drives = [
-            DriveHealth(name: "APPLE SSD", bsdName: "disk0", isInternal: true,
-                        medium: "SSD", smartStatus: "Verified",
-                        percentageUsed: 6, availableSpare: 100, availableSpareThreshold: 10,
-                        temperatureCelsius: 39, bytesWritten: 9_700_000_000_000,
-                        bytesRead: 18_400_000_000_000, powerOnHours: 2_840,
-                        powerCycles: 612, unsafeShutdowns: 4, mediaErrors: 0,
-                        criticalWarning: 0)
         ]
 
         // Network — Wi-Fi, private LAN only (no public IP / MAC).
@@ -104,48 +89,17 @@ extension SystemSnapshot {
                           ipv6: "—", macAddress: "—", isActive: true)
         ]
 
-        // Battery — healthy laptop.
+        // Battery — only level / charging state are available without the helper.
+        // Health, cycle count, condition and temperature are helper-only.
         s.battery.isPresent = true
         s.battery.level = 84
         s.battery.isCharging = false
-        s.battery.cycleCount = 148
-        s.battery.health = 93
-        s.battery.condition = "Normal"
-        s.battery.temperature = 31
         s.battery.timeRemaining = 372
         s.battery.powerSource = "Battery"
 
-        // Fans + temps.
-        s.fans.fans = [
-            FanInfo(id: 0, name: "Left Fan", currentRPM: 1_820, minRPM: 0, maxRPM: 5_400),
-            FanInfo(id: 1, name: "Right Fan", currentRPM: 1_760, minRPM: 0, maxRPM: 5_400)
-        ]
-        s.fans.cpuTemperature = 48
-        s.fans.gpuTemperature = 46
+        // Fans + SMC temperatures are helper-only — left empty.
 
-        // Processes — generic system/first-party names only (no personal apps).
-        let cpuProcs: [(pid_t, String, Double, UInt64)] = [
-            (1, "kernel_task", 14.2, 1_400_000_000),
-            (312, "WindowServer", 9.6, 820_000_000),
-            (884, "Safari", 7.1, 1_900_000_000),
-            (902, "Music", 3.4, 540_000_000),
-            (455, "Spotlight", 2.2, 260_000_000),
-            (77, "Finder", 1.1, 180_000_000)
-        ]
-        s.topProcessesByCPU = cpuProcs.map {
-            ProcessInfo(id: $0.0, name: $0.1, cpu: $0.2, memory: $0.3, icon: nil)
-        }
-        let memProcs: [(pid_t, String, Double, UInt64)] = [
-            (884, "Safari", 7.1, 1_900_000_000),
-            (1, "kernel_task", 14.2, 1_400_000_000),
-            (312, "WindowServer", 9.6, 820_000_000),
-            (902, "Music", 3.4, 540_000_000),
-            (455, "Spotlight", 2.2, 260_000_000),
-            (77, "Finder", 1.1, 180_000_000)
-        ]
-        s.topProcessesByMemory = memProcs.map {
-            ProcessInfo(id: $0.0, name: $0.1, cpu: $0.2, memory: $0.3, icon: nil)
-        }
+        // Process monitoring is helper-only — top-process lists left empty.
 
         // System info.
         s.system.uptime = 3 * 86_400 + 5 * 3_600 + 12 * 60
