@@ -94,16 +94,16 @@ final class SystemMonitor: ObservableObject {
     // /usr/sbin/traceroute, and the unsandboxed direct build uses the same
     // path for consistency (falling back to a local run only if no helper).
 
+    // The direct (unsandboxed) build always runs traceroute in-process — it's
+    // self-sufficient and avoids depending on a possibly-stale or not-running helper.
+    // Only the sandboxed App Store build routes through the helper.
+
     /// Start a continuous traceroute session against `host`.
     func startTraceroute(host: String) async {
         #if APPSTORE
         await helperClient.startTraceroute(host: host)
         #else
-        if helperClient.isHelperInstalled {
-            await helperClient.startTraceroute(host: host)
-        } else {
-            localTrace.start(host: host)
-        }
+        localTrace.start(host: host)
         #endif
     }
 
@@ -112,11 +112,7 @@ final class SystemMonitor: ObservableObject {
         #if APPSTORE
         await helperClient.stopTraceroute()
         #else
-        if helperClient.isHelperInstalled {
-            await helperClient.stopTraceroute()
-        } else {
-            localTrace.stop()
-        }
+        localTrace.stop()
         #endif
     }
 
@@ -125,11 +121,7 @@ final class SystemMonitor: ObservableObject {
         #if APPSTORE
         return await helperClient.tracerouteHops()
         #else
-        if helperClient.isHelperInstalled {
-            return await helperClient.tracerouteHops()
-        } else {
-            return localTrace.snapshot()
-        }
+        return localTrace.snapshot()
         #endif
     }
 
