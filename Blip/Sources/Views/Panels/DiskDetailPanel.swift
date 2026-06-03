@@ -458,11 +458,7 @@ struct DiskDetailPanel: View {
             }
 
             // Auto-run
-            Toggle("Auto-run on interval", isOn: $diskAutoRunPref)
-                .toggleStyle(.switch)
-                .controlSize(.small)
-                .font(.system(size: 10))
-                .onChange(of: diskAutoRunPref) { _, v in speedTester.autoRun = v }
+            BlipToggle(title: "Auto-run on interval", isOn: $diskAutoRunPref) { v in speedTester.autoRun = v }
             if diskAutoRunPref {
                 Picker("", selection: $diskIntervalPref) {
                     ForEach([5, 15, 30, 60], id: \.self) { m in

@@ -767,11 +767,7 @@ struct SpeedTestSection: View {
         }
 
         // Auto-run controls
-        Toggle("Auto-run on interval", isOn: $autoRunPref)
-            .toggleStyle(.switch)
-            .controlSize(.small)
-            .font(.system(size: 10))
-            .onChange(of: autoRunPref) { _, v in tester.autoRun = v }
+        BlipToggle(title: "Auto-run on interval", isOn: $autoRunPref) { v in tester.autoRun = v }
 
         if autoRunPref {
             Picker("", selection: $intervalPref) {
@@ -1179,5 +1175,44 @@ struct TracerouteWindowView: View {
                 running = snap.running
             }
         }
+    }
+}
+
+// MARK: - BlipToggle
+
+/// A pure-SwiftUI switch. SwiftUI's `.switch` toggle style is backed by an AppKit
+/// NSSwitch that can render its previous (stale) state when the hosting view is
+/// rebuilt — which the detail panels do every couple of seconds. Drawing the switch
+/// ourselves guarantees it always reflects the bound value.
+struct BlipToggle: View {
+    let title: String
+    @Binding var isOn: Bool
+    var onChange: ((Bool) -> Void)? = nil
+
+    var body: some View {
+        Button {
+            isOn.toggle()
+            onChange?(isOn)
+        } label: {
+            HStack(spacing: 6) {
+                Text(title)
+                    .font(.system(size: 10))
+                    .foregroundStyle(.secondary)
+                Spacer()
+                ZStack(alignment: isOn ? .trailing : .leading) {
+                    Capsule()
+                        .fill(isOn ? Color.green : Color.gray.opacity(0.35))
+                        .frame(width: 26, height: 15)
+                    Circle()
+                        .fill(.white)
+                        .frame(width: 12, height: 12)
+                        .padding(1.5)
+                        .shadow(color: .black.opacity(0.2), radius: 0.5, y: 0.5)
+                }
+                .animation(.easeInOut(duration: 0.15), value: isOn)
+            }
+            .contentShape(Rectangle())
+        }
+        .buttonStyle(.plain)
     }
 }
