@@ -16,12 +16,6 @@ struct PopoverView: View {
 
     var body: some View {
         VStack(spacing: 0) {
-            // Optimization recommendations (dismissable; can be turned off in Settings)
-            if showRecommendations, let rec = monitor.recommendations.first {
-                recommendationBanner(rec)
-                Divider().padding(.vertical, 2)
-            }
-
             overviewRow(.cpu)
             overviewRow(.memory)
             overviewRow(.disk)
@@ -108,6 +102,15 @@ struct PopoverView: View {
                 .padding(.horizontal, 8)
             }
             .padding(.bottom, 6)
+
+            // Optimization suggestion at the BOTTOM: the popover is anchored at the top
+            // and grows downward, so the banner's changing height never shifts the
+            // hover rows above it. (Toggle in Settings.)
+            if showRecommendations, let rec = monitor.recommendations.first {
+                Divider().padding(.vertical, 2)
+                recommendationBanner(rec)
+                    .padding(.bottom, 6)
+            }
         }
         .frame(width: 260)
         .background(
