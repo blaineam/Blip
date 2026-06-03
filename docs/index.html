@@ -46,7 +46,7 @@
       "license": "https://opensource.org/licenses/MIT",
       "url": "https://blip.wemiller.com/",
       "downloadUrl": "https://github.com/blaineam/blip/releases/latest",
-      "softwareVersion": "1.4.7",
+      "softwareVersion": "1.5.0",
       "processorRequirements": "Apple Silicon (ARM64)"
     }
     </script>
@@ -735,6 +735,18 @@
                         </div>
                     </div>
                 </div>
+
+                <!-- Optimization "Suggestion" banner (bottom of popover, like the real app) -->
+                <div class="pop-divider"></div>
+                <div class="pop-suggestion" style="display:flex;gap:7px;align-items:flex-start;margin:6px;padding:8px;border-radius:8px;background:color-mix(in srgb, var(--accent-orange) 12%, transparent);">
+                    <svg viewBox="0 0 24 24" fill="var(--accent-orange)" style="width:16px;height:16px;flex:none;margin-top:1px"><path d="M12 2a7 7 0 0 0-4 12.7V17a1 1 0 0 0 1 1h6a1 1 0 0 0 1-1v-2.3A7 7 0 0 0 12 2z"/><rect x="9" y="19" width="6" height="2" rx="1"/></svg>
+                    <div style="flex:1;min-width:0">
+                        <div style="font-size:8px;font-weight:700;letter-spacing:.04em;color:var(--accent-orange)">SUGGESTION <span style="color:var(--demo-muted-text);font-weight:400">&middot; +1 more</span></div>
+                        <div style="font-size:11px;font-weight:600;margin-top:1px">Safari is using 82% CPU</div>
+                        <div style="font-size:9px;color:var(--demo-muted-text);margin-top:1px">Quitting or reloading its busiest tab could free the processor and lower temps.</div>
+                    </div>
+                    <svg viewBox="0 0 16 16" fill="none" stroke="var(--demo-muted-text)" stroke-width="1.6" stroke-linecap="round" style="width:9px;height:9px;flex:none;margin-top:2px"><path d="M3 3l10 10M13 3L3 13"/></svg>
+                </div>
             </div>
 
             <!-- ── Detail Panels ── -->
@@ -1143,17 +1155,22 @@
             <div class="feature-card">
                 <div class="feature-icon" style="background:rgba(255,159,10,0.15)">&#128190;</div>
                 <h3>Disk</h3>
-                <p>Space used and available for all mounted volumes. Real-time read/write speeds via IOKit with total data read/written since boot. Full S.M.A.R.T. drive health &mdash; SSD life remaining, drive temperature, lifetime bytes written, power-on hours and more. <strong>New in v1.5.0:</strong> a built-in disk speed test with live Writing&hellip;/Reading&hellip; phases, sequential write/read MB/s, random-read IOPS, history sparkline, and optional interval testing &mdash; plus an I/O chart with Y-axis labels.</p>
+                <p>Space used and available for all mounted volumes. Real-time read/write speeds via IOKit with total data read/written since boot. Full S.M.A.R.T. drive health &mdash; SSD life remaining, drive temperature, lifetime bytes written, power-on hours and more, now including external USB/SATA SSDs. <strong>New in v1.5.0:</strong> a built-in disk speed test with live Writing&hellip;/Reading&hellip; phases, sequential write/read MB/s, random-read IOPS, history sparkline, and optional interval testing &mdash; benchmark the boot drive or any external volume &mdash; plus an I/O chart with Y-axis labels.</p>
             </div>
             <div class="feature-card">
                 <div class="feature-icon" style="background:rgba(100,210,255,0.15)">&#127760;</div>
                 <h3>Network</h3>
-                <p>Upload/download speeds with accurate 64-bit session totals, all active interfaces, WAN and router ping, IPv4/IPv6, MAC address, WAN IP reveal, VPN detection. <strong>New in v1.5.0:</strong> live Traceroute / MTR with per-hop loss &amp; latency that fills in hop-by-hop, and a multi-gigabit speed test you can point at Cloudflare or your own self-hosted OpenSpeedTest server on the LAN. Bandwidth chart with Y-axis labels.</p>
+                <p>Upload/download speeds with accurate 64-bit session totals, all active interfaces, WAN and router ping, IPv4/IPv6, MAC address, WAN IP reveal, VPN detection. <strong>New in v1.5.0:</strong> live Traceroute / MTR with per-hop loss &amp; latency that fills in hop-by-hop &mdash; with a geolocation map that plots the route across the world &mdash; and a multi-gigabit speed test you can point at Cloudflare or your own self-hosted OpenSpeedTest server on the LAN. Bandwidth chart with Y-axis labels.</p>
             </div>
             <div class="feature-card">
                 <div class="feature-icon" style="background:rgba(255,69,58,0.15)">&#9211;</div>
                 <h3>Processes</h3>
                 <p>Top CPU and memory consumers with real app icons, accurate delta-based CPU and phys_footprint memory. <strong>New in v1.5.0:</strong> hover any process to reveal a quit control &mdash; one click arms it, a second click terminates the process right from the panel.</p>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon" style="background:rgba(255,159,10,0.15)">&#128161;</div>
+                <h3>Optimization Advisor</h3>
+                <p><strong>New in v1.5.0:</strong> a dismissable &ldquo;Suggestion&rdquo; banner surfaces actionable advice to improve performance, health, and longevity &mdash; runaway-CPU apps, high memory pressure or heavy swap, thermal throttling, a nearly-full startup disk, S.M.A.R.T. warnings, low SSD life, and weak battery health. Highest-severity first; dismissed items stay hidden for 24 hours or until the condition worsens.</p>
             </div>
             <div class="feature-card">
                 <div class="feature-icon" style="background:rgba(191,90,242,0.15)">&#127918;</div>
