@@ -558,7 +558,28 @@ struct SpeedTestSection: View {
     @State private var intervalMinutes = 15
     @State private var autoTimer: Timer?
 
+    // Server selection (persisted): Cloudflare by default, or a self-hosted
+    // OpenSpeedTest server on the LAN.
+    @AppStorage("speedTestUseOpenSpeedTest") private var useOpenSpeedTest = false
+    @AppStorage("speedTestOpenSpeedTestURL") private var openSpeedTestURL = ""
+
     private let intervalOptions = [5, 15, 30, 60]
+
+    /// The configured target server.
+    private var selectedServer: SpeedTestServer {
+        useOpenSpeedTest ? .openSpeedTest(baseURL: openSpeedTestURL) : .cloudflare
+    }
+
+    /// True when a LAN server is selected but no usable URL has been entered.
+    private var needsServerURL: Bool {
+        useOpenSpeedTest && selectedServer.openSpeedTestBase == nil
+    }
+
+    /// Apply the chosen server and start a run.
+    private func runTest() {
+        tester.server = selectedServer
+        tester.start()
+    }
 
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
@@ -594,6 +615,30 @@ struct SpeedTestSection: View {
 
     @ViewBuilder
     private var content: some View {
+        // Server selector: Cloudflare or a self-hosted OpenSpeedTest server.
+        HStack(spacing: 4) {
+            Image(systemName: "server.rack")
+                .font(.system(size: 9))
+                .foregroundStyle(.secondary)
+            Picker("", selection: $useOpenSpeedTest) {
+                Text("Cloudflare").tag(false)
+                Text("OpenSpeedTest (LAN)").tag(true)
+            }
+            .labelsHidden()
+            .pickerStyle(.menu)
+            .controlSize(.small)
+            .font(.system(size: 10))
+            Spacer()
+        }
+
+        if useOpenSpeedTest {
+            TextField("http://192.168.1.50:3000", text: $openSpeedTestURL)
+                .textFieldStyle(.roundedBorder)
+                .font(.system(size: 10, design: .monospaced))
+                .controlSize(.small)
+                .disableAutocorrection(true)
+        }
+
         // Run / Cancel control
         HStack {
             if tester.isRunning {
@@ -609,15 +654,21 @@ struct SpeedTestSection: View {
                 ProgressView().controlSize(.small)
             } else {
                 Button {
-                    tester.start()
+                    runTest()
                 } label: {
                     HStack(spacing: 3) {
                         Image(systemName: "play.fill").font(.system(size: 8))
                         Text("Run Test").font(.system(size: 10, weight: .medium))
                     }
-                    .foregroundStyle(.blue)
+                    .foregroundStyle(needsServerURL ? Color.secondary : Color.blue)
                 }
                 .buttonStyle(.plain)
+                .disabled(needsServerURL)
+                if needsServerURL {
+                    Text("Enter server URL")
+                        .font(.system(size: 9))
+                        .foregroundStyle(.tertiary)
+                }
                 Spacer()
             }
         }
@@ -762,10 +813,10 @@ struct SpeedTestSection: View {
 
     private func startAutoTimer() {
         stopAutoTimer()
-        if !tester.isRunning { tester.start() }
+        if !tester.isRunning { runTest() }
         let timer = Timer.scheduledTimer(withTimeInterval: TimeInterval(intervalMinutes * 60), repeats: true) { _ in
             Task { @MainActor in
-                if !tester.isRunning { tester.start() }
+                if !tester.isRunning { runTest() }
             }
         }
         autoTimer = timer

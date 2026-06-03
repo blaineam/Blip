@@ -23,6 +23,35 @@ enum SpeedTestPhase: Sendable, Equatable {
     case failed(String)
 }
 
+/// Where the throughput test sends its traffic: Cloudflare's public endpoints
+/// (default) or a self-hosted OpenSpeedTest server on the LAN.
+enum SpeedTestServer: Equatable, Sendable {
+    case cloudflare
+    /// A self-hosted OpenSpeedTest server, e.g. "http://192.168.1.50:3000".
+    case openSpeedTest(baseURL: String)
+
+    /// Normalized base URL for an OpenSpeedTest server, or nil for Cloudflare /
+    /// an empty entry. Adds a default http:// scheme and trims a trailing slash.
+    var openSpeedTestBase: String? {
+        guard case let .openSpeedTest(raw) = self else { return nil }
+        var s = raw.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !s.isEmpty else { return nil }
+        let lower = s.lowercased()
+        if !lower.hasPrefix("http://") && !lower.hasPrefix("https://") {
+            s = "http://" + s
+        }
+        while s.hasSuffix("/") { s.removeLast() }
+        return s
+    }
+
+    var displayName: String {
+        switch self {
+        case .cloudflare: return "Cloudflare"
+        case .openSpeedTest: return "OpenSpeedTest (LAN)"
+        }
+    }
+}
+
 /// Drives a multi-gigabit throughput test against Cloudflare's free speed
 /// endpoints using several concurrent `URLSession` transfers. Fully async and
 /// cancelable; publishes live Mbps and a short history of results.
@@ -34,6 +63,9 @@ final class SpeedTester: ObservableObject {
     @Published private(set) var liveMbps: Double = 0       // current direction throughput while running
     @Published private(set) var lastResult: NetSpeedResult?
     @Published private(set) var history: [NetSpeedResult] = []
+
+    /// Target server. Set this before calling `start()`. Defaults to Cloudflare.
+    var server: SpeedTestServer = .cloudflare
 
     /// Number of concurrent transfers used to saturate fast links.
     private let parallelism = 6
@@ -163,8 +195,25 @@ final class SpeedTester: ObservableObject {
         return Double(total) * 8 / measuredSeconds / 1_000_000
     }
 
+    /// Download URL for the configured server. OpenSpeedTest serves a large random
+    /// payload from `/downloading`; the `r` cache-buster matches its web client.
+    private func downloadURL() -> URL? {
+        if let base = server.openSpeedTestBase {
+            return URL(string: "\(base)/downloading?r=\(Int.random(in: 0...Int.max))")
+        }
+        return URL(string: "https://speed.cloudflare.com/__down?bytes=\(downloadChunkBytes)")
+    }
+
+    /// Upload URL for the configured server. OpenSpeedTest accepts a POST body at `/upload`.
+    private func uploadURL() -> URL? {
+        if let base = server.openSpeedTestBase {
+            return URL(string: "\(base)/upload?r=\(Int.random(in: 0...Int.max))")
+        }
+        return URL(string: "https://speed.cloudflare.com/__up")
+    }
+
     private func streamDownload(into counter: ByteCounter, until deadline: Date, warmupEnd: Date) async throws {
-        guard let url = URL(string: "https://speed.cloudflare.com/__down?bytes=\(downloadChunkBytes)") else {
+        guard let url = downloadURL() else {
             throw URLError(.badURL)
         }
         var request = URLRequest(url: url)
@@ -188,7 +237,7 @@ final class SpeedTester: ObservableObject {
     }
 
     private func streamUpload(into counter: ByteCounter, until deadline: Date, warmupEnd: Date) async throws {
-        guard let url = URL(string: "https://speed.cloudflare.com/__up") else {
+        guard let url = uploadURL() else {
             throw URLError(.badURL)
         }
         var request = URLRequest(url: url)
