@@ -1,8 +1,8 @@
 cask "blip" do
-  version "1.4.4"
+  version "1.5.0"
   sha256 :no_check
 
-  url "https://github.com/blaineam/blip/releases/download/v#{version}/Blip.dmg"
+  url "https://github.com/blaineam/Blip/releases/download/v#{version}/Blip.dmg"
   name "Blip"
   desc "Featherlight macOS menu bar system monitor"
   homepage "https://blip.wemiller.com"
