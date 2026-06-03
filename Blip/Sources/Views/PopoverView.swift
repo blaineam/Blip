@@ -5,6 +5,7 @@ import SwiftUI
 struct PopoverView: View {
     @ObservedObject var monitor: SystemMonitor
     @AppStorage("accentColorOverride") private var colorOverride: String = ""
+    @AppStorage("showRecommendations") private var showRecommendations = true
     #if APPSTORE
     private var helperConnected: Bool { monitor.helperClient.isConnected }
     #endif
@@ -15,8 +16,8 @@ struct PopoverView: View {
 
     var body: some View {
         VStack(spacing: 0) {
-            // Optimization recommendations (dismissable)
-            if let rec = monitor.recommendations.first {
+            // Optimization recommendations (dismissable; can be turned off in Settings)
+            if showRecommendations, let rec = monitor.recommendations.first {
                 recommendationBanner(rec)
                 Divider().padding(.vertical, 2)
             }

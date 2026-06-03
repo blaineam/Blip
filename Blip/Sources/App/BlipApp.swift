@@ -294,7 +294,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
             return
         }
 
-        let settingsView = SettingsView(helperClient: monitor.helperClient)
+        let settingsView = SettingsView(helperClient: monitor.helperClient, monitor: monitor)
         let hostingController = NSHostingController(rootView: settingsView)
 
         let window = NSWindow(contentViewController: hostingController)

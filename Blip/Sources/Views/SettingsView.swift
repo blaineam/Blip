@@ -15,8 +15,11 @@ struct SettingsView: View {
     @AppStorage("tracerouteTarget") private var tracerouteTarget: String = ""
     @AppStorage("speedTestOpenSpeedTestURL") private var openSpeedTestURL: String = ""
     @AppStorage("colorizeUtilization") private var colorizeUtilization = true
+    @AppStorage("showRecommendations") private var showRecommendations = true
 
     var helperClient: HelperClient?
+    /// Used by the Recommendations "Reset" action; nil when Settings is opened without it.
+    var monitor: SystemMonitor?
 
     @State private var selectedTab: Int = 2
     @State private var selectedMode: ColorMode = .category
@@ -124,6 +127,20 @@ struct SettingsView: View {
                     Text("Used by the Network → Speed Test panel when “OpenSpeedTest (LAN)” is selected.")
                         .font(.caption)
                         .foregroundStyle(.secondary)
+                }
+            }
+
+            Section("Recommendations") {
+                Toggle("Show optimization suggestions", isOn: $showRecommendations)
+                Text("Dismissable tips at the top of the menu — high CPU, memory pressure, thermals, low disk, S.M.A.R.T. and battery health.")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+                if monitor != nil {
+                    HStack {
+                        Text("Dismissed suggestions")
+                        Spacer()
+                        Button("Reset") { monitor?.resetDismissedRecommendations() }
+                    }
                 }
             }
 

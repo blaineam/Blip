@@ -45,6 +45,13 @@ final class SystemMonitor: ObservableObject {
         return Date().timeIntervalSince(when) < 86_400
     }
 
+    /// Clear all dismissals so previously-hidden recommendations can resurface.
+    func resetDismissedRecommendations() {
+        dismissedRecs.removeAll()
+        UserDefaults.standard.removeObject(forKey: "dismissedRecs")
+        recommendations = RecommendationsEngine.analyze(snapshot).filter { !isDismissed($0.id) }
+    }
+
     private let cpuMonitor = CPUMonitor()
     private let memoryMonitor = MemoryMonitor()
     private let diskMonitor = DiskMonitor()
