@@ -953,40 +953,51 @@ struct TracerouteMapView: View {
 
     @State private var geoHops: [GeoHop] = []
     @State private var camera: MapCameraPosition = .automatic
-    /// Last region we framed to — we only re-frame when it changes meaningfully, so the
-    /// camera settles on the route instead of lurching or sitting at (0,0).
-    @State private var lastRegion: MKCoordinateRegion?
+    /// True once we've framed the route. We frame exactly once and then never move the
+    /// camera again, so the user can pan/zoom freely and it never lurches or hits (0,0).
+    @State private var didFrame = false
 
     private var hopsKey: String { hops.map { "\($0.hop):\($0.host)" }.joined(separator: ",") }
 
     var body: some View {
         ZStack(alignment: .bottomLeading) {
-            Map(position: $camera, interactionModes: [.pan, .zoom]) {
-                if geoHops.count > 1 {
-                    MapPolyline(coordinates: geoHops.map { $0.coordinate })
-                        .stroke(.purple, style: StrokeStyle(lineWidth: 2, lineCap: .round, lineJoin: .round))
-                }
-                ForEach(geoHops) { h in
-                    Annotation(h.label, coordinate: h.coordinate) {
-                        ZStack {
-                            Circle().fill(.purple).frame(width: 14, height: 14)
-                            Circle().stroke(.white, lineWidth: 1.5).frame(width: 14, height: 14)
-                            Text("\(h.id)").font(.system(size: 8, weight: .bold)).foregroundStyle(.white)
+            Group {
+                if didFrame {
+                    Map(position: $camera, interactionModes: [.pan, .zoom]) {
+                        if geoHops.count > 1 {
+                            MapPolyline(coordinates: geoHops.map { $0.coordinate })
+                                .stroke(.purple, style: StrokeStyle(lineWidth: 2, lineCap: .round, lineJoin: .round))
+                        }
+                        ForEach(geoHops) { h in
+                            Annotation(h.label, coordinate: h.coordinate) {
+                                ZStack {
+                                    Circle().fill(.purple).frame(width: 14, height: 14)
+                                    Circle().stroke(.white, lineWidth: 1.5).frame(width: 14, height: 14)
+                                    Text("\(h.id)").font(.system(size: 8, weight: .bold)).foregroundStyle(.white)
+                                }
+                            }
+                            .annotationTitles(.hidden)
                         }
                     }
-                    .annotationTitles(.hidden)
+                    .mapStyle(.standard(elevation: .flat))
+                } else {
+                    // Placeholder while locating — avoids showing the default world view (0,0).
+                    RoundedRectangle(cornerRadius: 8)
+                        .fill(Color.secondary.opacity(0.08))
+                        .overlay(
+                            VStack(spacing: 5) {
+                                ProgressView().controlSize(.small)
+                                Text("Locating hops on the map…")
+                                    .font(.system(size: 9))
+                                    .foregroundStyle(.secondary)
+                            }
+                        )
                 }
             }
-            .mapStyle(.standard(elevation: .flat))
             .frame(height: height)
             .clipShape(RoundedRectangle(cornerRadius: 8))
 
-            if geoHops.isEmpty {
-                Text("Locating hops…")
-                    .font(.system(size: 9))
-                    .foregroundStyle(.secondary)
-                    .padding(6)
-            } else if let last = geoHops.last {
+            if didFrame, let last = geoHops.last {
                 Text("\(last.label)")
                     .font(.system(size: 9, weight: .medium))
                     .padding(.horizontal, 5).padding(.vertical, 2)
@@ -997,47 +1008,34 @@ struct TracerouteMapView: View {
         .task(id: hopsKey) { await geolocate() }
     }
 
-    /// Geolocate hops one at a time, updating the map as each resolves. Because each hop
-    /// is committed immediately, partial progress survives the `.task` being cancelled
-    /// when the live traceroute discovers another hop — so the camera frames the real
-    /// route instead of being stuck at the default world view (0,0).
+    /// Geolocate the current hops, then frame the route **once** and leave the camera
+    /// alone. The map only appears after it's framed (so there's no (0,0) flash), and it
+    /// never re-zooms as the live traceroute refines — the user pans/zooms freely.
     private func geolocate() async {
         var built: [GeoHop] = []
-        // Drop a stale set if the route fundamentally changed (new run).
-        if !hopsKey.isEmpty, geoHops.isEmpty { lastRegion = nil }
-
         for hop in hops where hop.host != "*" {
+            if Task.isCancelled { return }
             guard let g = await GeoIPLookup.shared.locate(hop.host) else { continue }
             // Skip null-island / invalid coordinates so they can't drag the map to 0,0.
             if abs(g.coord.latitude) < 0.01 && abs(g.coord.longitude) < 0.01 { continue }
             built.append(GeoHop(id: hop.hop, ip: hop.host, coordinate: g.coord, label: g.label))
-            geoHops = built
-            frameIfNeeded()
-            if Task.isCancelled { return }
         }
-        if built != geoHops { geoHops = built; frameIfNeeded() }
+        if Task.isCancelled { return }
+        guard built != geoHops else { return }
+
+        // A brand-new run (not an extension of the current route) re-arms the one-time frame.
+        let isExtension = !geoHops.isEmpty && built.count >= geoHops.count
+            && Array(built.prefix(geoHops.count)) == geoHops
+        if !isExtension { didFrame = false }
+        geoHops = built
+
+        if !didFrame, !built.isEmpty {
+            camera = .region(Self.region(for: built))   // set before the Map appears → framed, no 0,0
+            didFrame = true
+        }
     }
 
-    /// Frame the located hops, but only re-animate the camera when the fitting region
-    /// changes meaningfully — so it settles on the route and doesn't lurch.
-    private func frameIfNeeded() {
-        guard !geoHops.isEmpty else { return }
-        let region = Self.region(for: geoHops)
-        guard shouldReframe(to: region) else { return }
-        lastRegion = region
-        withAnimation(.easeInOut(duration: 0.7)) { camera = .region(region) }
-    }
-
-    private func shouldReframe(to r: MKCoordinateRegion) -> Bool {
-        guard let last = lastRegion else { return true }
-        let dCenter = abs(last.center.latitude - r.center.latitude)
-            + abs(last.center.longitude - r.center.longitude)
-        let dSpan = abs(last.span.latitudeDelta - r.span.latitudeDelta)
-            + abs(last.span.longitudeDelta - r.span.longitudeDelta)
-        return dCenter > 1.5 || dSpan > 1.5    // ignore small adjustments
-    }
-
-    /// A region that comfortably contains all hops, with generous padding.
+    /// A region that comfortably contains all hops, zoomed out with generous padding.
     private static func region(for hops: [GeoHop]) -> MKCoordinateRegion {
         let lats = hops.map(\.coordinate.latitude)
         let lons = hops.map(\.coordinate.longitude)
@@ -1047,8 +1045,10 @@ struct TracerouteMapView: View {
         }
         let center = CLLocationCoordinate2D(latitude: (minLat + maxLat) / 2,
                                             longitude: (minLon + maxLon) / 2)
-        let span = MKCoordinateSpan(latitudeDelta: max(2, (maxLat - minLat) * 1.6),
-                                    longitudeDelta: max(2, (maxLon - minLon) * 1.6))
+        // Generous padding + a sizable minimum span so it reads as "zoomed out" even
+        // when the located hops cluster in one region.
+        let span = MKCoordinateSpan(latitudeDelta: max(8, (maxLat - minLat) * 1.7),
+                                    longitudeDelta: max(8, (maxLon - minLon) * 1.7))
         return MKCoordinateRegion(center: center, span: span)
     }
 }
