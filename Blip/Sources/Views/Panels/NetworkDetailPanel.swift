@@ -15,6 +15,8 @@ struct NetworkDetailPanel: View {
     var traceStop: (() async -> Void)? = nil
     var tracePoll: (() async -> (hops: [HelperTraceHop], running: Bool))? = nil
     var onOpenTracerouteWindow: (() -> Void)? = nil
+    /// Opens the public OpenSpeedTest web test in an embedded WebView window.
+    var onOpenWebSpeedTest: (() -> Void)? = nil
 
     @State private var wanIP: String? = nil
     @State private var showWAN = false
@@ -225,7 +227,9 @@ struct NetworkDetailPanel: View {
 
             // Speed Test (self-contained block — see SpeedTestSection below)
             Divider()
-            SpeedTestSection(tester: speedTester, isExpensiveNetwork: stats.isExpensive || stats.isConstrained)
+            SpeedTestSection(tester: speedTester,
+                             isExpensiveNetwork: stats.isExpensive || stats.isConstrained,
+                             onOpenWebTest: onOpenWebSpeedTest)
         }
         .padding(12)
         .frame(width: 260)
@@ -618,6 +622,8 @@ struct SpeedTestSection: View {
     /// True when the current network is metered (expensive/constrained); blocks
     /// only the automated interval run, never a manual one.
     var isExpensiveNetwork: Bool = false
+    /// Opens the public OpenSpeedTest web test (no self-host required).
+    var onOpenWebTest: (() -> Void)? = nil
 
     @AppStorage("netSpeedExpanded") private var expanded = false
     // Auto-run is persisted here (UI source of truth) and pushed to the tester so the
@@ -782,11 +788,29 @@ struct SpeedTestSection: View {
             }
         }
 
-        // Attribution + a path to run your own server.
+        // No self-hosted server? Offer the public OpenSpeedTest web test.
+        if needsServerURL, let openWeb = onOpenWebTest {
+            Button { openWeb() } label: {
+                HStack(spacing: 3) {
+                    Image(systemName: "safari").font(.system(size: 9))
+                    Text("Run the public web test (OpenSpeedTest)").font(.system(size: 10, weight: .medium))
+                }
+                .foregroundStyle(.blue)
+            }
+            .buttonStyle(.plain)
+        }
+
+        // Attribution + paths to the public test / your own server.
         HStack(spacing: 6) {
-            Link("Powered by OpenSpeedTest", destination: URL(string: "https://openspeedtest.com")!)
+            if !needsServerURL, let openWeb = onOpenWebTest {
+                Button { openWeb() } label: { Text("Public web test ↗") }
+                    .buttonStyle(.plain)
+                    .foregroundStyle(.blue)
+                Text("·").foregroundStyle(.tertiary)
+            }
+            Link("OpenSpeedTest", destination: URL(string: "https://openspeedtest.com")!)
             Text("·").foregroundStyle(.tertiary)
-            Link("Self-host a server", destination: URL(string: "https://openspeedtest.com/selfhosted-speedtest")!)
+            Link("Self-host", destination: URL(string: "https://openspeedtest.com/selfhosted-speedtest")!)
             Spacer()
         }
         .font(.system(size: 9))

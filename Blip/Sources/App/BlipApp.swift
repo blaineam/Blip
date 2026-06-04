@@ -31,6 +31,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
     private var currentSection: PopoverSection?
     private var settingsWindow: NSWindow?
     private var tracerouteWindow: NSWindow?
+    private var speedTestWindow: NSWindow?
     private var screenshotWindow: NSWindow?
     private var dismissWorkItem: DispatchWorkItem?
     private var cancellables = Set<AnyCancellable>()
@@ -333,7 +334,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
                 traceStart: { host in await self.monitor.startTraceroute(host: host) },
                 traceStop: { await self.monitor.stopTraceroute() },
                 tracePoll: { await self.monitor.tracerouteHops() },
-                onOpenTracerouteWindow: { [weak self] in self?.openTracerouteWindow() }
+                onOpenTracerouteWindow: { [weak self] in self?.openTracerouteWindow() },
+                onOpenWebSpeedTest: { [weak self] in self?.openSpeedTestWebTest() }
             )
         case .gpu:
             GPUDetailPanel(
@@ -416,6 +418,32 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
         NSApp.activate(ignoringOtherApps: true)
     }
 
+    // MARK: - OpenSpeedTest public web test window
+
+    func openSpeedTestWebTest() {
+        closeAll()
+        if let existing = speedTestWindow, existing.isVisible {
+            existing.makeKeyAndOrderFront(nil)
+            NSApp.activate(ignoringOtherApps: true)
+            return
+        }
+
+        let hostingController = NSHostingController(rootView: OpenSpeedTestWebView())
+        let window = NSWindow(contentViewController: hostingController)
+        window.title = "Speed Test — OpenSpeedTest"
+        window.styleMask = [.titled, .closable, .resizable, .miniaturizable]
+        window.setContentSize(NSSize(width: 820, height: 680))
+        window.center()
+        window.setFrameAutosaveName("BlipSpeedTestWeb")
+        window.isReleasedWhenClosed = false
+        window.delegate = self
+        speedTestWindow = window
+
+        window.makeKeyAndOrderFront(nil)
+        showDockIconForWindows()
+        NSApp.activate(ignoringOtherApps: true)
+    }
+
     // MARK: - Dock icon (only while a real window is open)
 
     /// Shows the app in the Dock when any Blip window is visible — the menu-bar
@@ -425,7 +453,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
     }
 
     private func updateActivationPolicyForOpenWindows() {
-        let anyVisible = [settingsWindow, tracerouteWindow].contains { $0?.isVisible == true }
+        let anyVisible = [settingsWindow, tracerouteWindow, speedTestWindow].contains { $0?.isVisible == true }
         NSApp.setActivationPolicy(anyVisible ? .regular : .accessory)
     }
 
