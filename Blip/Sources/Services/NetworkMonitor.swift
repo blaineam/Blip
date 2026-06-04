@@ -24,20 +24,16 @@ enum SpeedTestPhase: Sendable, Equatable {
     case failed(String)
 }
 
-/// Where the throughput test sends its traffic: Cloudflare's public endpoints
-/// (default) or a self-hosted OpenSpeedTest server on the LAN.
+/// Where the throughput test sends its traffic. Blip uses **OpenSpeedTest** servers
+/// exclusively — they're open-source and explicitly sanctioned for direct use, unlike
+/// reverse-engineered endpoints of public web tools. Point this at your own self-hosted
+/// OpenSpeedTest server (Docker), or any OpenSpeedTest-Server-compatible instance that
+/// exposes the `/downloading` and `/upload` endpoints.
 enum SpeedTestServer: Equatable, Sendable {
-    case cloudflare
-    /// OVH public test file (download only). An explicit user choice — never an
-    /// automatic fallback.
-    case ovh
-    /// Hetzner public test file (download only). Explicit user choice.
-    case hetzner
-    /// A self-hosted OpenSpeedTest server, e.g. "http://192.168.1.50:3000".
     case openSpeedTest(baseURL: String)
 
-    /// Normalized base URL for an OpenSpeedTest server, or nil for the public
-    /// servers / an empty entry. Adds a default http:// scheme and trims a trailing slash.
+    /// Normalized base URL, or nil for an empty entry. Adds a default http:// scheme and
+    /// trims a trailing slash.
     var openSpeedTestBase: String? {
         guard case let .openSpeedTest(raw) = self else { return nil }
         var s = raw.trimmingCharacters(in: .whitespacesAndNewlines)
@@ -50,23 +46,8 @@ enum SpeedTestServer: Equatable, Sendable {
         return s
     }
 
-    /// OVH / Hetzner expose only a static download file — no upload endpoint — so
-    /// the test measures download only for those.
-    var supportsUpload: Bool {
-        switch self {
-        case .cloudflare, .openSpeedTest: return true
-        case .ovh, .hetzner: return false
-        }
-    }
-
-    var displayName: String {
-        switch self {
-        case .cloudflare: return "Cloudflare"
-        case .ovh: return "OVH"
-        case .hetzner: return "Hetzner"
-        case .openSpeedTest: return "OpenSpeedTest (LAN)"
-        }
-    }
+    var supportsUpload: Bool { true }
+    var displayName: String { "OpenSpeedTest" }
 }
 
 /// Drives a multi-gigabit throughput test against Cloudflare's free speed
@@ -81,27 +62,21 @@ final class SpeedTester: ObservableObject {
     @Published private(set) var lastResult: NetSpeedResult?
     @Published private(set) var history: [NetSpeedResult] = []
 
-    /// Target server. Set this before calling `start()`. Defaults to Cloudflare.
-    var server: SpeedTestServer = .cloudflare
+    /// Target server. Set this before calling `start()` (from the configured
+    /// OpenSpeedTest URL).
+    var server: SpeedTestServer = .openSpeedTest(baseURL: "")
 
-    /// Number of concurrent transfers used to saturate fast links. Kept modest to be a
-    /// good citizen toward public test servers (fewer requests/second → less likely to
-    /// trip rate limits like Cloudflare's HTTP 429).
-    private let parallelism = 4
+    /// Number of concurrent transfers used to saturate fast links. Tests run against the
+    /// user's own OpenSpeedTest server, so we can saturate freely.
+    private let parallelism = 6
     /// Duration of each measured phase (seconds).
     private let phaseDuration: TimeInterval = 8
     /// Short warm-up window discarded from the measurement (seconds).
     private let warmup: TimeInterval = 1.5
-    /// Bytes requested per download chunk (50 MB). Cloudflare's `__down` rejects
-    /// requests of 100 MB or more (HTTP 403), so stay below that; the runner
-    /// relaunches transfers continuously, which keeps even multi-gig links saturated.
+    /// Bytes requested per download chunk (OpenSpeedTest streams a large response).
     private let downloadChunkBytes = 50_000_000
     /// Bytes posted per upload chunk (25 MB in-memory body).
     private let uploadChunkBytes = 25_000_000
-    /// Hard cap on the number of requests per phase, so a single test can't flood a
-    /// public server even on a very fast link (≈1 GB down / ≈0.6 GB up max).
-    private let maxDownloadRequests = 20
-    private let maxUploadRequests = 24
     private let maxHistory = 10
 
     private var runTask: Task<Void, Never>?
@@ -226,17 +201,8 @@ final class SpeedTester: ObservableObject {
     /// rate-limits), the test surfaces a clear message rather than silently
     /// routing the user's traffic to a host they didn't pick.
     private func endpoints(for direction: Direction) -> [SpeedEndpoint] {
-        switch server {
-        case .openSpeedTest:
-            let base = server.openSpeedTestBase ?? ""
-            return [direction == .download ? .openSpeedTestDown(base: base) : .openSpeedTestUp(base: base)]
-        case .cloudflare:
-            return [direction == .download ? .cloudflareDown(bytes: downloadChunkBytes) : .cloudflareUp]
-        case .ovh:
-            return [.staticFile(url: "https://proof.ovh.net/files/100Mb.dat")]
-        case .hetzner:
-            return [.staticFile(url: "https://speed.hetzner.de/100MB.bin")]
-        }
+        let base = server.openSpeedTestBase ?? ""
+        return [direction == .download ? .openSpeedTestDown(base: base) : .openSpeedTestUp(base: base)]
     }
 
     /// Runs `parallelism` concurrent transfers for `phaseDuration` seconds and
@@ -246,8 +212,7 @@ final class SpeedTester: ObservableObject {
     private func measure(direction: Direction) async throws -> Double {
         let runner = ThroughputRunner(
             endpoints: endpoints(for: direction),
-            uploadBody: direction == .upload ? Data(count: uploadChunkBytes) : nil,
-            maxRequests: direction == .download ? maxDownloadRequests : maxUploadRequests
+            uploadBody: direction == .upload ? Data(count: uploadChunkBytes) : nil
         )
         defer { runner.stop() }
 
@@ -324,27 +289,15 @@ private struct SpeedTestHTTPError: Error { let status: Int }
 /// A resolved speed-test endpoint. Sendable so the background runner can mint a
 /// fresh URL per request without touching the main actor.
 private enum SpeedEndpoint: Sendable {
-    case cloudflareDown(bytes: Int)
-    case cloudflareUp
     case openSpeedTestDown(base: String)
     case openSpeedTestUp(base: String)
-    /// A plain large static file (download only) — used for the user-selected OVH /
-    /// Hetzner servers. Cache-busted per request.
-    case staticFile(url: String)
 
     func makeURL() -> URL? {
         switch self {
-        case .cloudflareDown(let bytes):
-            return URL(string: "https://speed.cloudflare.com/__down?bytes=\(bytes)")
-        case .cloudflareUp:
-            return URL(string: "https://speed.cloudflare.com/__up")
         case .openSpeedTestDown(let base):
             return URL(string: "\(base)/downloading?r=\(Int.random(in: 0...Int.max))")
         case .openSpeedTestUp(let base):
             return URL(string: "\(base)/upload?r=\(Int.random(in: 0...Int.max))")
-        case .staticFile(let url):
-            let sep = url.contains("?") ? "&" : "?"
-            return URL(string: "\(url)\(sep)nocache=\(Int.random(in: 0...Int.max))")
         }
     }
 }
@@ -371,7 +324,7 @@ private final class ThroughputRunner: NSObject, URLSessionDataDelegate, @uncheck
     private var _launchCount = 0
 
     init(endpoints: [SpeedEndpoint], uploadBody: Data?, maxRequests: Int = 0) {
-        self.endpoints = endpoints.isEmpty ? [.cloudflareUp] : endpoints
+        self.endpoints = endpoints
         self.uploadBody = uploadBody
         self.maxRequests = maxRequests
         super.init()

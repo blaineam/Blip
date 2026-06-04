@@ -1020,7 +1020,7 @@
                             Server:
                             <span class="dp-st-server-pill" id="net-st-server">
                                 <span style="width:5px;height:5px;border-radius:50%;background:var(--accent-orange);display:inline-block"></span>
-                                <span id="net-st-server-name">Cloudflare</span>
+                                <span id="net-st-server-name">OpenSpeedTest</span>
                             </span>
                         </div>
                         <div class="dp-st-run" id="net-st-run"><svg viewBox="0 0 16 16" fill="currentColor"><path d="M4 3l9 5-9 5z"/></svg> Run Test</div>
@@ -1160,7 +1160,7 @@
             <div class="feature-card">
                 <div class="feature-icon" style="background:rgba(100,210,255,0.15)">&#127760;</div>
                 <h3>Network</h3>
-                <p>Upload/download speeds with accurate 64-bit session totals, all active interfaces, WAN and router ping, IPv4/IPv6, MAC address, WAN IP reveal, VPN detection. <strong>New in v1.5.0:</strong> live Traceroute / MTR with per-hop loss &amp; latency that fills in hop-by-hop &mdash; with a geolocation map (powered by an optional on-device database you download yourself, so hop locations never leave your Mac) that plots the route across the world &mdash; and a multi-gigabit speed test you can point at Cloudflare, OVH, Hetzner, or your own self-hosted OpenSpeedTest server on the LAN. Bandwidth chart with Y-axis labels.</p>
+                <p>Upload/download speeds with accurate 64-bit session totals, all active interfaces, WAN and router ping, IPv4/IPv6, MAC address, WAN IP reveal, VPN detection. <strong>New in v1.5.0:</strong> live Traceroute / MTR with per-hop loss &amp; latency that fills in hop-by-hop &mdash; with a geolocation map (powered by an optional on-device database you download yourself, so hop locations never leave your Mac) that plots the route across the world &mdash; and a multi-gigabit speed test that runs against your own self-hosted OpenSpeedTest server (open-source, sanctioned, unlimited). Bandwidth chart with Y-axis labels.</p>
             </div>
             <div class="feature-card">
                 <div class="feature-icon" style="background:rgba(255,69,58,0.15)">&#9211;</div>
@@ -1200,7 +1200,7 @@
             <div class="feature-card">
                 <div class="feature-icon" style="background:rgba(100,210,255,0.15)">&#128274;</div>
                 <h3>Private & Secure</h3>
-                <p>Zero telemetry, zero tracking, zero analytics. Blip has no servers and never sends your data to us, and the traceroute map geolocates entirely on-device from an optional database you download yourself — no third-party lookup. The only network connections are ones you start: the speed test talks to the server you pick (Cloudflare, OVH, Hetzner, or your own LAN server), and WAN-IP reveal, subject to those services' own policies.</p>
+                <p>Zero telemetry, zero tracking, zero analytics. Blip has no servers and never sends your data to us, and the traceroute map geolocates entirely on-device from an optional database you download yourself — no third-party lookup. The only network connections are ones you start: the speed test talks only to the OpenSpeedTest server you self-host, and WAN-IP reveal.</p>
             </div>
         </div>
     </div>
@@ -1967,7 +1967,7 @@
     // ── 3. Network speed test ──
     const netSpark = [];
     let netRunning = false;
-    const netServers = ['Cloudflare', 'OpenSpeedTest (LAN)'];
+    const netServers = ['OpenSpeedTest'];
     let netServerIdx = 0;
     const netSrvPill = document.getElementById('net-st-server');
     const netSrvName = document.getElementById('net-st-server-name');
@@ -2008,7 +2008,7 @@
         if (run) run.style.display = 'none';
         if (running) running.style.display = '';
         if (result) result.style.display = 'none';
-        // On LAN OpenSpeedTest, multi-gig. On Cloudflare, ~gigabit.
+        // OpenSpeedTest server, multi-gig.
         const lan = netServerIdx === 1;
         const downTarget = lan ? 2350 + Math.random() * 400 : 880 + Math.random() * 120;
         const upTarget = lan ? 2300 + Math.random() * 300 : 34 + Math.random() * 10;

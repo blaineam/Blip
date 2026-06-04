@@ -625,27 +625,20 @@ struct SpeedTestSection: View {
     @AppStorage("netSpeedAutoRun") private var autoRunPref = false
     @AppStorage("netSpeedInterval") private var intervalPref = 15
 
-    // Server selection (persisted): Cloudflare (default), OVH, Hetzner, or a
-    // self-hosted OpenSpeedTest server on the LAN. The test only ever contacts the
-    // server chosen here — there is no automatic fallback to any other host.
-    @AppStorage("speedTestServerKind") private var serverKind = "cloudflare"
+    // The speed test runs against an OpenSpeedTest server (self-hosted, or any
+    // OpenSpeedTest-Server-compatible instance). Set its URL in Settings → Network.
     @AppStorage("speedTestOpenSpeedTestURL") private var openSpeedTestURL = ""
 
     private let intervalOptions = [1, 5, 15, 30, 60]
 
     /// The configured target server.
     private var selectedServer: SpeedTestServer {
-        switch serverKind {
-        case "ovh": return .ovh
-        case "hetzner": return .hetzner
-        case "openspeedtest": return .openSpeedTest(baseURL: openSpeedTestURL)
-        default: return .cloudflare
-        }
+        .openSpeedTest(baseURL: openSpeedTestURL)
     }
 
-    /// True when the LAN server is selected but no usable URL has been entered.
+    /// True when no usable server URL has been entered.
     private var needsServerURL: Bool {
-        serverKind == "openspeedtest" && selectedServer.openSpeedTestBase == nil
+        selectedServer.openSpeedTestBase == nil
     }
 
     /// Apply the chosen server and start a run.
@@ -684,7 +677,6 @@ struct SpeedTestSection: View {
             }
         }
         .onAppear { syncTester() }
-        .onChange(of: serverKind) { _, _ in syncTester() }
         .onChange(of: openSpeedTestURL) { _, _ in syncTester() }
         .onChange(of: isExpensiveNetwork) { _, _ in tester.autoRunBlocked = isExpensiveNetwork }
     }
@@ -699,30 +691,23 @@ struct SpeedTestSection: View {
 
     @ViewBuilder
     private var content: some View {
-        // Server selector: Cloudflare, OVH, Hetzner, or a self-hosted OpenSpeedTest server.
+        // Server: an OpenSpeedTest instance (self-hosted, set in Settings → Network).
         HStack(spacing: 4) {
             Image(systemName: "server.rack")
                 .font(.system(size: 9))
                 .foregroundStyle(.secondary)
-            Picker("", selection: $serverKind) {
-                Text("Cloudflare").tag("cloudflare")
-                Text("OVH (download only)").tag("ovh")
-                Text("Hetzner (download only)").tag("hetzner")
-                Text("OpenSpeedTest (LAN)").tag("openspeedtest")
+            if let base = selectedServer.openSpeedTestBase {
+                Text(base)
+                    .font(.system(size: 9, design: .monospaced))
+                    .foregroundStyle(.secondary)
+                    .lineLimit(1)
+                    .truncationMode(.middle)
+            } else {
+                Text("OpenSpeedTest — set a server URL in Settings → Network")
+                    .font(.system(size: 9))
+                    .foregroundStyle(.tertiary)
             }
-            .labelsHidden()
-            .pickerStyle(.menu)
-            .controlSize(.small)
-            .font(.system(size: 10))
             Spacer()
-        }
-
-        if serverKind == "openspeedtest" && selectedServer.openSpeedTestBase != nil {
-            Text(openSpeedTestURL)
-                .font(.system(size: 9, design: .monospaced))
-                .foregroundStyle(.secondary)
-                .lineLimit(1)
-                .truncationMode(.middle)
         }
 
         // Run / Cancel control

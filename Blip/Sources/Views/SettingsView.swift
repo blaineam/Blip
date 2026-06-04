@@ -128,9 +128,11 @@ struct SettingsView: View {
                             .truncationMode(.tail)
                             .disableAutocorrection(true)
                     }
-                    Text("Used by the Network → Speed Test panel when “OpenSpeedTest (LAN)” is selected.")
+                    Text("The Network → Speed Test runs against this OpenSpeedTest server. Self-host one for free (no third parties, unlimited): `docker run --rm -p 3000:3000 openspeedtest/latest`, then enter its address (e.g. http://192.168.1.50:3000).")
                         .font(.caption)
                         .foregroundStyle(.secondary)
+                    Link("Deploy an OpenSpeedTest server", destination: URL(string: "https://openspeedtest.com/selfhosted-speedtest")!)
+                        .font(.caption)
                 }
             }
 
