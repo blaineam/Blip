@@ -31,7 +31,16 @@ final class GeoIPDatabase: ObservableObject {
     static let attribution = "IP geolocation by DB-IP"
     static let attributionURL = URL(string: "https://db-ip.com")!
 
+    private enum Keys {
+        static let autoUpdate = "geoipAutoUpdate"
+        static let installedMonth = "geoipInstalledMonth"   // "YYYY-MM" of the installed file
+        static let lastCheck = "geoipLastUpdateCheck"
+    }
+
     var isReady: Bool { reader != nil }
+
+    /// "YYYY-MM" tag of the currently installed database, if known.
+    var installedMonth: String? { UserDefaults.standard.string(forKey: Keys.installedMonth) }
 
     init() { loadIfPresent() }
 
@@ -50,7 +59,14 @@ final class GeoIPDatabase: ObservableObject {
         do {
             let r = try MMDBReader(url: url)
             reader = r
-            status = .ready(date: Date(timeIntervalSince1970: TimeInterval(r.buildEpoch)), type: r.databaseType)
+            let buildDate = Date(timeIntervalSince1970: TimeInterval(r.buildEpoch))
+            // Backfill the installed-month tag for databases installed before this existed,
+            // so the auto-updater has a baseline and doesn't re-download unnecessarily.
+            if UserDefaults.standard.string(forKey: Keys.installedMonth) == nil {
+                let c = Calendar(identifier: .gregorian).dateComponents([.year, .month], from: buildDate)
+                UserDefaults.standard.set(String(format: "%04d-%02d", c.year ?? 0, c.month ?? 0), forKey: Keys.installedMonth)
+            }
+            status = .ready(date: buildDate, type: r.databaseType)
         } catch {
             reader = nil
             status = .failed("Installed database is unreadable — re-download to fix.")
@@ -66,13 +82,15 @@ final class GeoIPDatabase: ObservableObject {
         status = .downloading(-1)
         downloadTask = Task { [weak self] in
             do {
-                let url = try await Self.fetchAndInstall { p in
+                let (url, month) = try await Self.fetchAndInstall { p in
                     Task { @MainActor in
                         guard let self, case .downloading = self.status else { return }
                         self.status = .downloading(p)
                     }
                 }
                 let r = try MMDBReader(url: url)
+                UserDefaults.standard.set(month, forKey: Keys.installedMonth)
+                UserDefaults.standard.set(Date(), forKey: Keys.lastCheck)
                 self?.reader = r
                 self?.status = .ready(date: Date(timeIntervalSince1970: TimeInterval(r.buildEpoch)), type: r.databaseType)
             } catch is CancellationError {
@@ -81,6 +99,26 @@ final class GeoIPDatabase: ObservableObject {
                 self?.status = .failed(Self.message(for: error))
             }
             self?.downloadTask = nil
+        }
+    }
+
+    // MARK: - Auto-update
+
+    /// If auto-update is enabled and a database is installed, check (at most once a day)
+    /// whether DB-IP has published a newer monthly file and, if so, download it.
+    /// Called on launch and when the toggle is switched on. `force` bypasses the throttle.
+    func runAutoUpdateCheck(force: Bool = false) {
+        guard force || UserDefaults.standard.bool(forKey: Keys.autoUpdate) else { return }
+        guard isReady, downloadTask == nil else { return }     // only refresh an existing install
+        if !force, let last = UserDefaults.standard.object(forKey: Keys.lastCheck) as? Date,
+           Date().timeIntervalSince(last) < 24 * 3600 { return }
+
+        Task { [weak self] in
+            UserDefaults.standard.set(Date(), forKey: Keys.lastCheck)
+            guard let newest = await Self.newestAvailableMonth() else { return }
+            let installed = UserDefaults.standard.string(forKey: Keys.installedMonth) ?? ""
+            guard newest > installed else { return }            // already current
+            await MainActor.run { self?.download() }
         }
     }
 
@@ -93,6 +131,7 @@ final class GeoIPDatabase: ObservableObject {
     func remove() {
         cancelDownload()
         try? FileManager.default.removeItem(at: Self.fileURL())
+        UserDefaults.standard.removeObject(forKey: Keys.installedMonth)
         reader = nil
         status = .absent
     }
@@ -110,30 +149,45 @@ final class GeoIPDatabase: ObservableObject {
         return "Download failed."
     }
 
-    /// Candidate monthly files, newest first (DB-IP keeps only the most recent months).
-    private static func candidateURLs() -> [URL] {
+    /// Candidate monthly files as (tag, URL), newest first. DB-IP keeps only the most
+    /// recent months, so the current month may 404 until it's published.
+    private static func candidateMonths() -> [(tag: String, url: URL)] {
         let cal = Calendar(identifier: .gregorian)
         let now = Date()
-        var urls: [URL] = []
+        var out: [(String, URL)] = []
         for back in 0...3 {
             guard let d = cal.date(byAdding: .month, value: -back, to: now) else { continue }
             let c = cal.dateComponents([.year, .month], from: d)
             let tag = String(format: "%04d-%02d", c.year ?? 0, c.month ?? 0)
             if let u = URL(string: "https://download.db-ip.com/free/dbip-city-lite-\(tag).mmdb.gz") {
-                urls.append(u)
+                out.append((tag, u))
             }
         }
-        return urls
+        return out
+    }
+
+    /// The newest published month tag (HEAD-probes candidates, newest first).
+    private static func newestAvailableMonth() async -> String? {
+        for (tag, url) in candidateMonths() {
+            var req = URLRequest(url: url)
+            req.httpMethod = "HEAD"
+            req.timeoutInterval = 20
+            if let (_, resp) = try? await URLSession.shared.data(for: req),
+               (resp as? HTTPURLResponse)?.statusCode == 200 {
+                return tag
+            }
+        }
+        return nil
     }
 
     /// Download the newest available `.mmdb.gz`, gunzip it, and atomically install it.
-    /// Returns the installed file URL.
-    private static func fetchAndInstall(progress: @escaping @Sendable (Double) -> Void) async throws -> URL {
+    /// Returns the installed file URL and the month tag that was installed.
+    private static func fetchAndInstall(progress: @escaping @Sendable (Double) -> Void) async throws -> (url: URL, month: String) {
         let downloader = GeoIPDownloader()
         downloader.onProgress = progress
 
         var lastError: Error?
-        for url in candidateURLs() {
+        for (tag, url) in candidateMonths() {
             do {
                 let gzURL = try await downloader.download(url)
                 defer { try? FileManager.default.removeItem(at: gzURL) }
@@ -145,7 +199,7 @@ final class GeoIPDatabase: ObservableObject {
                 _ = try MMDBReader(url: tmp)
                 try? FileManager.default.removeItem(at: dest)
                 try FileManager.default.moveItem(at: tmp, to: dest)
-                return dest
+                return (dest, tag)
             } catch let e as GeoIPDownloader.HTTPError where e.status == 404 {
                 lastError = e
                 continue   // this month isn't published yet — try the previous one

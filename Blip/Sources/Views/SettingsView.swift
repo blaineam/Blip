@@ -23,6 +23,7 @@ struct SettingsView: View {
 
     /// Optional on-device geolocation database for the traceroute map.
     @ObservedObject private var geoDB = GeoIPDatabase.shared
+    @AppStorage("geoipAutoUpdate") private var geoipAutoUpdate = false
 
     @State private var selectedTab: Int = 2
     @State private var selectedMode: ColorMode = .category
@@ -492,6 +493,17 @@ struct SettingsView: View {
                     Button("Retry") { geoDB.download() }
                 }
             }
+
+            Toggle("Keep it up to date automatically", isOn: $geoipAutoUpdate)
+                .onChange(of: geoipAutoUpdate) { _, on in
+                    if on { geoDB.runAutoUpdateCheck(force: true) }
+                }
+                .disabled(!geoDB.isReady)
+            Text(geoDB.isReady
+                 ? "Checks DB-IP about once a day and downloads a newer monthly release when one is available."
+                 : "Download the database first to enable automatic updates.")
+                .font(.caption)
+                .foregroundStyle(.secondary)
 
             Text("Optional. The traceroute map plots hops using this on-device database — no IP addresses are ever sent to a third-party geolocation service. About 130 MB; published monthly, so you can update it here whenever you like.")
                 .font(.caption)

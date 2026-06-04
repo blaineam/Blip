@@ -67,6 +67,10 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
         setupEventMonitor()
         setupLiveRefresh()
         monitor.start()
+
+        // If the optional traceroute-map database is installed and auto-update is on,
+        // quietly check (throttled to once a day) for a newer monthly DB-IP release.
+        GeoIPDatabase.shared.runAutoUpdateCheck()
     }
 
     /// Renders the requested scene (overview popover or a section detail panel)
