@@ -2,17 +2,17 @@ import Foundation
 import WebKit
 import AppKit
 
-/// Drives OpenSpeedTest's **public** hosted test in a hidden `WKWebView` and reports the
-/// result as if it were native — so the public option behaves like the self-hosted
-/// endpoint from Blip's perspective. The web view lives in an on-screen but fully
-/// transparent, click-through window so WebKit keeps the page "visible" (its timers run)
-/// while the user never sees it.
+/// Drives OpenSpeedTest's **public** hosted test in a `WKWebView` and reports the result
+/// as if it were native — so the public option feeds Blip's chart like the self-hosted
+/// endpoint. The web view is shown in a small window so you can watch the automated run
+/// (and so WebKit never throttles its timers); it auto-starts and closes itself when the
+/// result is in.
 ///
 /// This is the sanctioned way to use OpenSpeedTest's public service (their embeddable
 /// widget) — just driven and read programmatically. It scrapes the page's result fields,
 /// so it's best-effort and could need updating if OpenSpeedTest changes their markup.
 @MainActor
-final class OpenSpeedTestWidgetRunner: NSObject, WKScriptMessageHandler, WKNavigationDelegate {
+final class OpenSpeedTestWidgetRunner: NSObject, WKScriptMessageHandler, WKNavigationDelegate, NSWindowDelegate {
     enum RunError: Error { case loadFailed, timedOut, noResult, cancelled }
 
     struct Result: Sendable { let down: Double; let up: Double?; let ping: Double? }
@@ -22,7 +22,9 @@ final class OpenSpeedTestWidgetRunner: NSObject, WKScriptMessageHandler, WKNavig
     private var continuation: CheckedContinuation<Result, Error>?
     private var onLive: (@MainActor (_ isUpload: Bool, _ liveMbps: Double?) -> Void)?
     private var timeoutTask: Task<Void, Never>?
-    private var finished = false
+    private var closeTask: Task<Void, Never>?
+    private var finished = false      // continuation resumed
+    private var closed = false        // window/web view torn down
 
     /// Runs one test. `onLive(isUpload, mbps)` reports live progress. Returns the result.
     func run(timeout: TimeInterval = 90,
@@ -36,17 +38,21 @@ final class OpenSpeedTestWidgetRunner: NSObject, WKScriptMessageHandler, WKNavig
         controller.addUserScript(WKUserScript(source: Self.script, injectionTime: .atDocumentEnd, forMainFrameOnly: true))
         config.userContentController = controller
 
-        let frame = NSRect(x: 0, y: 0, width: 480, height: 360)
+        let frame = NSRect(x: 0, y: 0, width: 760, height: 560)
         let wv = WKWebView(frame: frame, configuration: config)
         wv.navigationDelegate = self
         webView = wv
 
-        let win = NSWindow(contentRect: frame, styleMask: [.borderless], backing: .buffered, defer: false)
-        win.alphaValue = 0                 // invisible to the user…
-        win.ignoresMouseEvents = true      // …and click-through
-        win.level = .normal
+        let win = NSWindow(contentRect: frame,
+                           styleMask: [.titled, .closable, .miniaturizable, .resizable],
+                           backing: .buffered, defer: false)
+        win.title = "OpenSpeedTest — running…"
         win.contentView = wv
-        win.orderFrontRegardless()         // …but on-screen, so WebKit keeps it "visible"
+        win.delegate = self
+        win.isReleasedWhenClosed = false
+        win.center()
+        win.makeKeyAndOrderFront(nil)
+        NSApp.activate(ignoringOtherApps: true)
         window = win
 
         wv.load(URLRequest(url: URL(string: "https://openspeedtest.com/")!))
@@ -60,25 +66,52 @@ final class OpenSpeedTestWidgetRunner: NSObject, WKScriptMessageHandler, WKNavig
         }
     }
 
-    /// Abort an in-flight run (e.g. user pressed Cancel).
-    func cancel() { finish(.failure(RunError.cancelled)) }
+    /// Abort an in-flight run / close a lingering window (e.g. user pressed Cancel or
+    /// started a new run).
+    func cancel() {
+        if !finished { finish(.failure(RunError.cancelled)) } else { close() }
+    }
 
     private func finish(_ result: Swift.Result<Result, Error>) {
         guard !finished else { return }
         finished = true
         timeoutTask?.cancel(); timeoutTask = nil
         let cont = continuation; continuation = nil
+        switch result {
+        case .success(let v):
+            cont?.resume(returning: v)
+            window?.title = "OpenSpeedTest — done ✓"
+            // Leave the result on screen briefly, then close.
+            closeTask = Task { [weak self] in
+                try? await Task.sleep(nanoseconds: 3_000_000_000)
+                self?.close()
+            }
+        case .failure(let e):
+            cont?.resume(throwing: e)
+            close()
+        }
+    }
+
+    /// Tear down the web view + window. Idempotent.
+    private func close() {
+        guard !closed else { return }
+        closed = true
+        closeTask?.cancel(); closeTask = nil
+        timeoutTask?.cancel(); timeoutTask = nil
         webView?.stopLoading()
         webView?.configuration.userContentController.removeAllScriptMessageHandlers()
         webView?.navigationDelegate = nil
+        window?.delegate = nil
         window?.orderOut(nil)
         window = nil
         webView = nil
         onLive = nil
-        switch result {
-        case .success(let v): cont?.resume(returning: v)
-        case .failure(let e): cont?.resume(throwing: e)
-        }
+        if let cont = continuation { continuation = nil; cont.resume(throwing: RunError.cancelled) }
+    }
+
+    // User closed the window manually.
+    func windowWillClose(_ notification: Notification) {
+        if !finished { finish(.failure(RunError.cancelled)) } else { close() }
     }
 
     // MARK: - WKScriptMessageHandler

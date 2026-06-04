@@ -213,9 +213,9 @@ final class SpeedTester: ObservableObject {
     private func runPublicWidget() async throws -> NetSpeedResult {
         phase = .download
         liveMbps = 0
+        publicRunner?.cancel()             // close any previous run's window
         let runner = OpenSpeedTestWidgetRunner()
-        publicRunner = runner
-        defer { publicRunner = nil }
+        publicRunner = runner              // kept alive so its window can linger on "done"
         let r = try await runner.run { [weak self] isUpload, mbps in
             guard let self else { return }
             self.phase = isUpload ? .upload : .download

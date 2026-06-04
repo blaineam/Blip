@@ -725,7 +725,7 @@ struct SpeedTestSection: View {
                     .foregroundStyle(.tertiary)
             }
         } else {
-            Text("Runs OpenSpeedTest's public test in the background; results graph here. Public infra — manual runs only.")
+            Text("Opens OpenSpeedTest's public test in a window, runs it automatically, and graphs the result here. Public infra — manual runs only.")
                 .font(.system(size: 9))
                 .foregroundStyle(.tertiary)
                 .fixedSize(horizontal: false, vertical: true)
