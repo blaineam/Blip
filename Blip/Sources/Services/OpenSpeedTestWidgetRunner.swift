@@ -17,10 +17,18 @@ final class OpenSpeedTestWidgetRunner: NSObject, WKScriptMessageHandler, WKNavig
 
     struct Result: Sendable { let down: Double; let up: Double?; let ping: Double? }
 
-    /// A page that embeds the OpenSpeedTest widget (an `<iframe>` to
-    /// openspeedtest.com/speedtest). The scraper is injected into all frames so it runs
-    /// inside that cross-origin iframe where the result elements live.
-    static let widgetURL = URL(string: "https://wemiller.com/speedtest/")!
+    /// A tiny in-app host page that embeds the OpenSpeedTest widget via an `<iframe>`.
+    /// Loaded with an openspeedtest.com base URL so the iframe is same-origin. No local
+    /// *server* is hosted — the test itself still runs against OpenSpeedTest's servers
+    /// inside the iframe; this just removes any dependency on an external host page.
+    static let hostHTML = """
+    <!DOCTYPE html><html><head><meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <style>html,body{margin:0;height:100%;background:#0b0b0c;overflow:hidden}
+    iframe{border:0;width:100%;height:100%;display:block}</style></head>
+    <body><iframe src="https://openspeedtest.com/speedtest" allow="fullscreen" allowfullscreen></iframe></body></html>
+    """
+    static let baseURL = URL(string: "https://openspeedtest.com/")
 
     private var webView: WKWebView?
     private var window: NSWindow?
@@ -62,7 +70,7 @@ final class OpenSpeedTestWidgetRunner: NSObject, WKScriptMessageHandler, WKNavig
         NSApp.activate(ignoringOtherApps: true)
         window = win
 
-        wv.load(URLRequest(url: Self.widgetURL))
+        wv.loadHTMLString(Self.hostHTML, baseURL: Self.baseURL)
 
         return try await withCheckedThrowingContinuation { cont in
             self.continuation = cont
