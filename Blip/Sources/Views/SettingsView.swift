@@ -21,6 +21,9 @@ struct SettingsView: View {
     /// Used by the Recommendations "Reset" action; nil when Settings is opened without it.
     var monitor: SystemMonitor?
 
+    /// Optional on-device geolocation database for the traceroute map.
+    @ObservedObject private var geoDB = GeoIPDatabase.shared
+
     @State private var selectedTab: Int = 2
     @State private var selectedMode: ColorMode = .category
     @State private var customColor: Color = .blue
@@ -128,6 +131,10 @@ struct SettingsView: View {
                         .font(.caption)
                         .foregroundStyle(.secondary)
                 }
+            }
+
+            Section("Traceroute Map — Location Database") {
+                locationDatabaseControls
             }
 
             Section("Recommendations") {
@@ -438,6 +445,60 @@ struct SettingsView: View {
         }
         .formStyle(.grouped)
         .padding()
+    }
+
+    // MARK: - Location database controls
+
+    private static let dbDateFormatter: DateFormatter = {
+        let f = DateFormatter(); f.dateFormat = "MMM yyyy"; return f
+    }()
+
+    @ViewBuilder
+    private var locationDatabaseControls: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            switch geoDB.status {
+            case .absent:
+                HStack {
+                    Image(systemName: "globe").foregroundStyle(.secondary)
+                    Text("Not installed").foregroundStyle(.secondary)
+                    Spacer()
+                    Button("Download") { geoDB.download() }
+                }
+            case .downloading(let p):
+                HStack(spacing: 8) {
+                    if p < 0 {
+                        ProgressView().controlSize(.small)
+                        Text("Downloading…").font(.caption).foregroundStyle(.secondary)
+                    } else {
+                        ProgressView(value: p).frame(width: 130)
+                        Text("Downloading… \(Int(p * 100))%").font(.caption).foregroundStyle(.secondary)
+                    }
+                    Spacer()
+                    Button("Cancel") { geoDB.cancelDownload() }
+                }
+            case .ready(let date, let type):
+                HStack {
+                    Image(systemName: "checkmark.circle.fill").foregroundStyle(.green)
+                    Text("Installed — \(type), \(Self.dbDateFormatter.string(from: date))")
+                    Spacer()
+                    Button("Update") { geoDB.download() }
+                    Button("Remove", role: .destructive) { geoDB.remove() }
+                }
+            case .failed(let msg):
+                HStack {
+                    Image(systemName: "exclamationmark.triangle.fill").foregroundStyle(.orange)
+                    Text(msg).font(.caption).foregroundStyle(.secondary)
+                    Spacer()
+                    Button("Retry") { geoDB.download() }
+                }
+            }
+
+            Text("Optional. The traceroute map plots hops using this on-device database — no IP addresses are ever sent to a third-party geolocation service. About 130 MB; published monthly, so you can update it here whenever you like.")
+                .font(.caption)
+                .foregroundStyle(.secondary)
+            Link(GeoIPDatabase.attribution, destination: GeoIPDatabase.attributionURL)
+                .font(.caption)
+        }
     }
 }
 

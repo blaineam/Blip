@@ -1,5 +1,11 @@
 # Changelog
 
+## v1.5.1
+
+### Privacy
+- **Traceroute map geolocates entirely on-device** — the map no longer uses the `ipwho.is` reverse-IP web service (which isn't licensed for commercial use). Instead it reads an **optional, user-downloaded offline database** — DB-IP IP-to-City Lite, free for commercial use under CC BY 4.0 — so **no IP addresses are ever sent to a third-party geolocation service**. Manage it in **Settings → Network → Location Database**: download, update (files are published monthly), or remove. It's ~130 MB and ships with a tiny built-in MMDB reader, so Blip keeps its zero-dependency footprint. If the database isn't installed, the map shows a prompt and simply doesn't plot hops.
+- **Speed test contacts only the server you choose** — **OVH** and **Hetzner** are now selectable download-test servers alongside Cloudflare and your LAN OpenSpeedTest server. The test never silently falls back to a host you didn't pick; if the chosen server is busy it reports a clear message. (OVH/Hetzner are download-only, so upload is skipped for those.)
+
 ## v1.5.0
 
 ### Features

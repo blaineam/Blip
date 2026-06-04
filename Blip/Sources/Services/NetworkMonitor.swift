@@ -10,7 +10,8 @@ import SwiftUI
 struct NetSpeedResult: Identifiable, Sendable {
     let id = UUID()
     let downMbps: Double
-    let upMbps: Double
+    /// nil when the selected server is download-only (e.g. OVH / Hetzner static files).
+    let upMbps: Double?
     let timestamp: Date
 }
 
@@ -27,11 +28,16 @@ enum SpeedTestPhase: Sendable, Equatable {
 /// (default) or a self-hosted OpenSpeedTest server on the LAN.
 enum SpeedTestServer: Equatable, Sendable {
     case cloudflare
+    /// OVH public test file (download only). An explicit user choice — never an
+    /// automatic fallback.
+    case ovh
+    /// Hetzner public test file (download only). Explicit user choice.
+    case hetzner
     /// A self-hosted OpenSpeedTest server, e.g. "http://192.168.1.50:3000".
     case openSpeedTest(baseURL: String)
 
-    /// Normalized base URL for an OpenSpeedTest server, or nil for Cloudflare /
-    /// an empty entry. Adds a default http:// scheme and trims a trailing slash.
+    /// Normalized base URL for an OpenSpeedTest server, or nil for the public
+    /// servers / an empty entry. Adds a default http:// scheme and trims a trailing slash.
     var openSpeedTestBase: String? {
         guard case let .openSpeedTest(raw) = self else { return nil }
         var s = raw.trimmingCharacters(in: .whitespacesAndNewlines)
@@ -44,9 +50,20 @@ enum SpeedTestServer: Equatable, Sendable {
         return s
     }
 
+    /// OVH / Hetzner expose only a static download file — no upload endpoint — so
+    /// the test measures download only for those.
+    var supportsUpload: Bool {
+        switch self {
+        case .cloudflare, .openSpeedTest: return true
+        case .ovh, .hetzner: return false
+        }
+    }
+
     var displayName: String {
         switch self {
         case .cloudflare: return "Cloudflare"
+        case .ovh: return "OVH"
+        case .hetzner: return "Hetzner"
         case .openSpeedTest: return "OpenSpeedTest (LAN)"
         }
     }
@@ -153,10 +170,14 @@ final class SpeedTester: ObservableObject {
             let down = try await measure(direction: .download)
             try Task.checkCancellation()
 
-            phase = .upload
-            liveMbps = 0
-            let up = try await measure(direction: .upload)
-            try Task.checkCancellation()
+            // OVH / Hetzner are download-only (static files); skip the upload phase.
+            var up: Double? = nil
+            if server.supportsUpload {
+                phase = .upload
+                liveMbps = 0
+                up = try await measure(direction: .upload)
+                try Task.checkCancellation()
+            }
 
             let result = NetSpeedResult(downMbps: down, upMbps: up, timestamp: Date())
             lastResult = result
@@ -185,10 +206,17 @@ final class SpeedTester: ObservableObject {
     /// rate-limits), the test surfaces a clear message rather than silently
     /// routing the user's traffic to a host they didn't pick.
     private func endpoints(for direction: Direction) -> [SpeedEndpoint] {
-        if let base = server.openSpeedTestBase {
+        switch server {
+        case .openSpeedTest:
+            let base = server.openSpeedTestBase ?? ""
             return [direction == .download ? .openSpeedTestDown(base: base) : .openSpeedTestUp(base: base)]
+        case .cloudflare:
+            return [direction == .download ? .cloudflareDown(bytes: downloadChunkBytes) : .cloudflareUp]
+        case .ovh:
+            return [.staticFile(url: "https://proof.ovh.net/files/100Mb.dat")]
+        case .hetzner:
+            return [.staticFile(url: "https://speed.hetzner.de/100MB.bin")]
         }
-        return [direction == .download ? .cloudflareDown(bytes: downloadChunkBytes) : .cloudflareUp]
     }
 
     /// Runs `parallelism` concurrent transfers for `phaseDuration` seconds and
@@ -271,6 +299,9 @@ private enum SpeedEndpoint: Sendable {
     case cloudflareUp
     case openSpeedTestDown(base: String)
     case openSpeedTestUp(base: String)
+    /// A plain large static file (download only) — used for the user-selected OVH /
+    /// Hetzner servers. Cache-busted per request.
+    case staticFile(url: String)
 
     func makeURL() -> URL? {
         switch self {
@@ -282,6 +313,9 @@ private enum SpeedEndpoint: Sendable {
             return URL(string: "\(base)/downloading?r=\(Int.random(in: 0...Int.max))")
         case .openSpeedTestUp(let base):
             return URL(string: "\(base)/upload?r=\(Int.random(in: 0...Int.max))")
+        case .staticFile(let url):
+            let sep = url.contains("?") ? "&" : "?"
+            return URL(string: "\(url)\(sep)nocache=\(Int.random(in: 0...Int.max))")
         }
     }
 }

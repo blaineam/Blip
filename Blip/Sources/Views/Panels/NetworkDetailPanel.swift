@@ -625,21 +625,27 @@ struct SpeedTestSection: View {
     @AppStorage("netSpeedAutoRun") private var autoRunPref = false
     @AppStorage("netSpeedInterval") private var intervalPref = 15
 
-    // Server selection (persisted): Cloudflare by default, or a self-hosted
-    // OpenSpeedTest server on the LAN.
-    @AppStorage("speedTestUseOpenSpeedTest") private var useOpenSpeedTest = false
+    // Server selection (persisted): Cloudflare (default), OVH, Hetzner, or a
+    // self-hosted OpenSpeedTest server on the LAN. The test only ever contacts the
+    // server chosen here — there is no automatic fallback to any other host.
+    @AppStorage("speedTestServerKind") private var serverKind = "cloudflare"
     @AppStorage("speedTestOpenSpeedTestURL") private var openSpeedTestURL = ""
 
     private let intervalOptions = [1, 5, 15, 30, 60]
 
     /// The configured target server.
     private var selectedServer: SpeedTestServer {
-        useOpenSpeedTest ? .openSpeedTest(baseURL: openSpeedTestURL) : .cloudflare
+        switch serverKind {
+        case "ovh": return .ovh
+        case "hetzner": return .hetzner
+        case "openspeedtest": return .openSpeedTest(baseURL: openSpeedTestURL)
+        default: return .cloudflare
+        }
     }
 
-    /// True when a LAN server is selected but no usable URL has been entered.
+    /// True when the LAN server is selected but no usable URL has been entered.
     private var needsServerURL: Bool {
-        useOpenSpeedTest && selectedServer.openSpeedTestBase == nil
+        serverKind == "openspeedtest" && selectedServer.openSpeedTestBase == nil
     }
 
     /// Apply the chosen server and start a run.
@@ -678,7 +684,7 @@ struct SpeedTestSection: View {
             }
         }
         .onAppear { syncTester() }
-        .onChange(of: useOpenSpeedTest) { _, _ in syncTester() }
+        .onChange(of: serverKind) { _, _ in syncTester() }
         .onChange(of: openSpeedTestURL) { _, _ in syncTester() }
         .onChange(of: isExpensiveNetwork) { _, _ in tester.autoRunBlocked = isExpensiveNetwork }
     }
@@ -693,14 +699,16 @@ struct SpeedTestSection: View {
 
     @ViewBuilder
     private var content: some View {
-        // Server selector: Cloudflare or a self-hosted OpenSpeedTest server.
+        // Server selector: Cloudflare, OVH, Hetzner, or a self-hosted OpenSpeedTest server.
         HStack(spacing: 4) {
             Image(systemName: "server.rack")
                 .font(.system(size: 9))
                 .foregroundStyle(.secondary)
-            Picker("", selection: $useOpenSpeedTest) {
-                Text("Cloudflare").tag(false)
-                Text("OpenSpeedTest (LAN)").tag(true)
+            Picker("", selection: $serverKind) {
+                Text("Cloudflare").tag("cloudflare")
+                Text("OVH (download only)").tag("ovh")
+                Text("Hetzner (download only)").tag("hetzner")
+                Text("OpenSpeedTest (LAN)").tag("openspeedtest")
             }
             .labelsHidden()
             .pickerStyle(.menu)
@@ -709,7 +717,7 @@ struct SpeedTestSection: View {
             Spacer()
         }
 
-        if useOpenSpeedTest && selectedServer.openSpeedTestBase != nil {
+        if serverKind == "openspeedtest" && selectedServer.openSpeedTestBase != nil {
             Text(openSpeedTestURL)
                 .font(.system(size: 9, design: .monospaced))
                 .foregroundStyle(.secondary)
@@ -754,7 +762,7 @@ struct SpeedTestSection: View {
         // Phase + live throughput
         liveStatus
 
-        // Last result (down / up)
+        // Last result (down / up). Upload shows "—" for download-only servers.
         if let last = tester.lastResult {
             HStack(spacing: 0) {
                 resultColumn(icon: "arrow.down", color: .green, label: "Download", mbps: last.downMbps)
@@ -824,7 +832,7 @@ struct SpeedTestSection: View {
         }
     }
 
-    private func resultColumn(icon: String, color: Color, label: String, mbps: Double) -> some View {
+    private func resultColumn(icon: String, color: Color, label: String, mbps: Double?) -> some View {
         VStack(alignment: .leading, spacing: 2) {
             HStack(spacing: 2) {
                 Image(systemName: icon)
@@ -834,7 +842,7 @@ struct SpeedTestSection: View {
                     .font(.system(size: 10))
                     .foregroundStyle(.secondary)
             }
-            Text(Fmt.throughput(mbps))
+            Text(mbps.map(Fmt.throughput) ?? "—")
                 .font(.system(size: 11, design: .monospaced))
         }
         .frame(maxWidth: .infinity, alignment: .leading)
@@ -852,18 +860,21 @@ struct SpeedTestSection: View {
                         .foregroundStyle(.green)
                         .lineStyle(StrokeStyle(lineWidth: 1.5))
                         .interpolationMethod(.monotone)
-                    LineMark(x: .value("N", i), y: .value("Mbps", r.upMbps), series: .value("Dir", "Up"))
-                        .foregroundStyle(.blue)
-                        .lineStyle(StrokeStyle(lineWidth: 1.5))
-                        .interpolationMethod(.monotone)
                     // Point marks make individual results visible — including the very
                     // first one, where a single-sample line would otherwise draw nothing.
                     PointMark(x: .value("N", i), y: .value("Mbps", r.downMbps))
                         .foregroundStyle(.green)
                         .symbolSize(18)
-                    PointMark(x: .value("N", i), y: .value("Mbps", r.upMbps))
-                        .foregroundStyle(.blue)
-                        .symbolSize(18)
+                    // Upload series only for results that measured it (skips OVH/Hetzner).
+                    if let up = r.upMbps {
+                        LineMark(x: .value("N", i), y: .value("Mbps", up), series: .value("Dir", "Up"))
+                            .foregroundStyle(.blue)
+                            .lineStyle(StrokeStyle(lineWidth: 1.5))
+                            .interpolationMethod(.monotone)
+                        PointMark(x: .value("N", i), y: .value("Mbps", up))
+                            .foregroundStyle(.blue)
+                            .symbolSize(18)
+                    }
                 }
             }
             .chartLegend(.hidden)
@@ -908,37 +919,10 @@ struct GeoHop: Identifiable, Equatable {
     }
 }
 
-/// Caches reverse-IP geolocation lookups (ipwho.is, free HTTPS, no key). Works in the
-/// App Store sandbox — only outbound URLSession, no helper required.
-actor GeoIPLookup {
-    static let shared = GeoIPLookup()
-    private var cache: [String: CLLocationCoordinate2D?] = [:]
-    private var labels: [String: String] = [:]
-
-    func locate(_ ip: String) async -> (coord: CLLocationCoordinate2D, label: String)? {
-        if let cached = cache[ip] {
-            guard let c = cached else { return nil }
-            return (c, labels[ip] ?? ip)
-        }
-        guard Self.isPublicIPv4(ip), let url = URL(string: "https://ipwho.is/\(ip)") else {
-            cache[ip] = .some(nil); return nil
-        }
-        struct Resp: Decodable { let success: Bool?; let latitude: Double?; let longitude: Double?; let city: String?; let country: String? }
-        do {
-            let (data, _) = try await URLSession.shared.data(from: url)
-            let r = try JSONDecoder().decode(Resp.self, from: data)
-            if r.success == true, let lat = r.latitude, let lon = r.longitude {
-                let coord = CLLocationCoordinate2D(latitude: lat, longitude: lon)
-                let label = [r.city, r.country].compactMap { $0 }.filter { !$0.isEmpty }.joined(separator: ", ")
-                cache[ip] = .some(coord)
-                labels[ip] = label.isEmpty ? ip : label
-                return (coord, labels[ip]!)
-            }
-        } catch {}
-        cache[ip] = .some(nil)
-        return nil
-    }
-
+/// IP-address classification used to skip hops that can't be publicly geolocated.
+/// Geolocation itself is done entirely on-device via `GeoIPDatabase` (no network
+/// lookup, no third-party service).
+enum GeoIPLookup {
     /// Skip private / reserved / non-routable addresses (no public geolocation).
     static func isPublicIPv4(_ ip: String) -> Bool {
         let parts = ip.split(separator: ".").compactMap { Int($0) }
@@ -965,6 +949,8 @@ struct TracerouteMapView: View {
     /// True once we've framed the route. We frame exactly once and then never move the
     /// camera again, so the user can pan/zoom freely and it never lurches or hits (0,0).
     @State private var didFrame = false
+    /// On-device geolocation database (optional, user-downloaded from Settings).
+    @ObservedObject private var geoDB = GeoIPDatabase.shared
 
     private var hopsKey: String { hops.map { "\($0.hop):\($0.host)" }.joined(separator: ",") }
 
@@ -989,6 +975,23 @@ struct TracerouteMapView: View {
                         }
                     }
                     .mapStyle(.standard(elevation: .flat))
+                } else if !geoDB.isReady {
+                    // No offline database installed — the map does no network geolocation,
+                    // so prompt the user to download the optional database from Settings.
+                    RoundedRectangle(cornerRadius: 8)
+                        .fill(Color.secondary.opacity(0.08))
+                        .overlay(
+                            VStack(spacing: 5) {
+                                Image(systemName: "globe.badge.chevron.backward")
+                                    .font(.system(size: 16))
+                                    .foregroundStyle(.secondary)
+                                Text("Download the offline location database in\nSettings → Network to map the route.")
+                                    .font(.system(size: 9))
+                                    .multilineTextAlignment(.center)
+                                    .foregroundStyle(.secondary)
+                            }
+                            .padding(8)
+                        )
                 } else {
                     // Placeholder while locating — avoids showing the default world view (0,0).
                     RoundedRectangle(cornerRadius: 8)
@@ -1014,20 +1017,32 @@ struct TracerouteMapView: View {
                     .padding(6)
             }
         }
-        .task(id: hopsKey) { await geolocate() }
+        .task(id: "\(hopsKey)|\(geoDB.isReady)") { await geolocate() }
     }
 
     /// Geolocate the current hops, then frame the route **once** and leave the camera
     /// alone. The map only appears after it's framed (so there's no (0,0) flash), and it
     /// never re-zooms as the live traceroute refines — the user pans/zooms freely.
     private func geolocate() async {
+        // No database installed → nothing to plot (and the prompt placeholder shows).
+        guard geoDB.isReady else {
+            geoHops = []
+            didFrame = false
+            return
+        }
         var built: [GeoHop] = []
         for hop in hops where hop.host != "*" {
             if Task.isCancelled { return }
-            guard let g = await GeoIPLookup.shared.locate(hop.host) else { continue }
+            // Skip private/reserved IPv4 (no public geolocation); IPv6 is looked up directly.
+            if !hop.host.contains(":") && !GeoIPLookup.isPublicIPv4(hop.host) { continue }
+            guard let g = geoDB.lookup(hop.host) else { continue }
             // Skip null-island / invalid coordinates so they can't drag the map to 0,0.
-            if abs(g.coord.latitude) < 0.01 && abs(g.coord.longitude) < 0.01 { continue }
-            built.append(GeoHop(id: hop.hop, ip: hop.host, coordinate: g.coord, label: g.label))
+            if abs(g.latitude) < 0.01 && abs(g.longitude) < 0.01 { continue }
+            let label = [g.city, g.country].compactMap { $0 }.filter { !$0.isEmpty }.joined(separator: ", ")
+            built.append(GeoHop(
+                id: hop.hop, ip: hop.host,
+                coordinate: CLLocationCoordinate2D(latitude: g.latitude, longitude: g.longitude),
+                label: label.isEmpty ? hop.host : label))
         }
         if Task.isCancelled { return }
         guard built != geoHops else { return }
