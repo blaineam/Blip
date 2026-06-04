@@ -13,9 +13,9 @@
 set -uo pipefail
 cd "$(dirname "$0")/.."
 SHARED="$(cd ../_shared/screenshots && pwd)"
-OUT="screenshots/mac"; mkdir -p "$OUT"
+OUT="docs/appstore-screenshots/mac"; mkdir -p "$OUT/raw"
 WALL=/tmp/blip-wallpaper.png
-SCENES=(popover cpu network)
+SCENES=(popover cpu memory disk network)
 
 echo "• Building Blip…"
 xcodegen generate >/dev/null
@@ -57,7 +57,7 @@ defaults write com.apple.finder CreateDesktop -bool false 2>/dev/null
 killall WindowManager Finder 2>/dev/null
 WEATHER_WAS=$(pgrep -x WeatherMenu 2>/dev/null && echo 1)
 osascript -e 'quit app "WeatherMenu"' 2>/dev/null; pkill -x WeatherMenu 2>/dev/null
-swift "$SHARED/display-mode.swift" set 1024 640 >/dev/null 2>&1   # 16:10, big popover
+swift "$SHARED/display-mode.swift" set 1440 900 >/dev/null 2>&1   # valid 16:10 (1024x640 doesn't exist); 2x -> 2880x1800, popover prominent top-right
 sleep 2
 defaults write com.apple.dock autohide -bool true 2>/dev/null; killall Dock 2>/dev/null  # res change re-shows Dock
 sleep 2
@@ -69,10 +69,13 @@ for scene in "${SCENES[@]}"; do
   sleep 3
   IFS=',' read -ra A <<< "$HIDDEN_APPS"
   for app in "${A[@]}"; do app="${app## }"; app="${app%% }"; [ -n "$app" ] && osascript -e "tell application \"System Events\" to set visible of process \"$app\" to false" 2>/dev/null; done
+  # Close any open Finder windows (they show the user's real files = PII).
+  osascript -e 'tell application "Finder" to close every window' 2>/dev/null
   sleep 1.5
   printf -v n "%02d" "$i"
-  screencapture -x -t png "$OUT/$n-$scene.png" 2>/dev/null
-  sips -z 1800 2880 "$OUT/$n-$scene.png" >/dev/null 2>&1
+  screencapture -x -t png "$OUT/raw/$n-$scene.png" 2>/dev/null   # full clean-desktop capture (1440x900, popover top-right)
+  cp "$OUT/raw/$n-$scene.png" "$OUT/$n-$scene.png"
+  sips -z 1800 2880 "$OUT/$n-$scene.png" >/dev/null 2>&1          # 2x -> 2880x1800 (16:10, no distortion)
   echo "  ✓ $n-$scene.png"; i=$((i+1))
 done
 echo "• Done → $OUT"
