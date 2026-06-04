@@ -175,27 +175,20 @@ final class SpeedTester: ObservableObject {
 
     private enum Direction { case download, upload }
 
-    /// Resolves the endpoint for a direction from the configured server. Built on
-    /// the main actor (reads `server`); the returned value is Sendable so the
+    /// Resolves the endpoints for a direction from the configured server. Built on
+    /// the main actor (reads `server`); the returned values are Sendable so the
     /// background transfer runner can mint fresh URLs without actor hops.
-    /// Ordered endpoints to try for a direction. The runner advances to the next entry
-    /// only when the current one returns an HTTP error (e.g. Cloudflare 429/403), so a
-    /// throttled primary transparently falls back to an alternate CDN.
+    ///
+    /// The test only ever contacts the server the user selected — Cloudflare or
+    /// their own LAN OpenSpeedTest server. It deliberately does NOT fall back to
+    /// any other third-party host: if the chosen server errors (e.g. Cloudflare
+    /// rate-limits), the test surfaces a clear message rather than silently
+    /// routing the user's traffic to a host they didn't pick.
     private func endpoints(for direction: Direction) -> [SpeedEndpoint] {
         if let base = server.openSpeedTestBase {
             return [direction == .download ? .openSpeedTestDown(base: base) : .openSpeedTestUp(base: base)]
         }
-        if direction == .upload {
-            return [.cloudflareUp]
-        }
-        // Cloudflare first (most accurate, geo-routed); fall back to large static files
-        // on other CDNs if it rate-limits. These keep the test working when the egress
-        // IP is throttled, at the cost of some geographic accuracy.
-        return [
-            .cloudflareDown(bytes: downloadChunkBytes),
-            .staticFile(url: "https://proof.ovh.net/files/100Mb.dat"),
-            .staticFile(url: "https://speed.hetzner.de/100MB.bin"),
-        ]
+        return [direction == .download ? .cloudflareDown(bytes: downloadChunkBytes) : .cloudflareUp]
     }
 
     /// Runs `parallelism` concurrent transfers for `phaseDuration` seconds and
@@ -278,9 +271,6 @@ private enum SpeedEndpoint: Sendable {
     case cloudflareUp
     case openSpeedTestDown(base: String)
     case openSpeedTestUp(base: String)
-    /// A plain large static file on a third-party CDN, used as a download fallback when
-    /// Cloudflare rate-limits (429) or rejects (403). Cache-busted per request.
-    case staticFile(url: String)
 
     func makeURL() -> URL? {
         switch self {
@@ -292,9 +282,6 @@ private enum SpeedEndpoint: Sendable {
             return URL(string: "\(base)/downloading?r=\(Int.random(in: 0...Int.max))")
         case .openSpeedTestUp(let base):
             return URL(string: "\(base)/upload?r=\(Int.random(in: 0...Int.max))")
-        case .staticFile(let url):
-            let sep = url.contains("?") ? "&" : "?"
-            return URL(string: "\(url)\(sep)nocache=\(Int.random(in: 0...Int.max))")
         }
     }
 }
