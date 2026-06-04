@@ -17,6 +17,11 @@ final class OpenSpeedTestWidgetRunner: NSObject, WKScriptMessageHandler, WKNavig
 
     struct Result: Sendable { let down: Double; let up: Double?; let ping: Double? }
 
+    /// A page that embeds the OpenSpeedTest widget (an `<iframe>` to
+    /// openspeedtest.com/speedtest). The scraper is injected into all frames so it runs
+    /// inside that cross-origin iframe where the result elements live.
+    static let widgetURL = URL(string: "https://wemiller.com/speedtest/")!
+
     private var webView: WKWebView?
     private var window: NSWindow?
     private var continuation: CheckedContinuation<Result, Error>?
@@ -35,7 +40,9 @@ final class OpenSpeedTestWidgetRunner: NSObject, WKScriptMessageHandler, WKNavig
         config.websiteDataStore = .nonPersistent()
         let controller = WKUserContentController()
         controller.add(self, name: "ost")
-        controller.addUserScript(WKUserScript(source: Self.script, injectionTime: .atDocumentEnd, forMainFrameOnly: true))
+        // forMainFrameOnly: false so the scraper also runs inside the cross-origin
+        // openspeedtest.com widget iframe, where the result elements actually live.
+        controller.addUserScript(WKUserScript(source: Self.script, injectionTime: .atDocumentEnd, forMainFrameOnly: false))
         config.userContentController = controller
 
         let frame = NSRect(x: 0, y: 0, width: 760, height: 560)
@@ -55,7 +62,7 @@ final class OpenSpeedTestWidgetRunner: NSObject, WKScriptMessageHandler, WKNavig
         NSApp.activate(ignoringOtherApps: true)
         window = win
 
-        wv.load(URLRequest(url: URL(string: "https://openspeedtest.com/")!))
+        wv.load(URLRequest(url: Self.widgetURL))
 
         return try await withCheckedThrowingContinuation { cont in
             self.continuation = cont
@@ -144,20 +151,30 @@ final class OpenSpeedTestWidgetRunner: NSObject, WKScriptMessageHandler, WKNavig
         finish(.failure(RunError.loadFailed))
     }
 
-    // Injected: auto-start once, stream live progress, post the final result.
+    // Injected into every frame (the widget lives in a cross-origin iframe). In frames
+    // without the widget the element lookups are null, so it's a harmless no-op there.
     private static let script = """
     (function(){
       function val(id){var e=document.getElementById(id);if(!e)return null;var v=parseFloat((e.textContent||'').replace(/[^0-9.]/g,''));return isNaN(v)?null:v;}
       function txt(id){var e=document.getElementById(id);return e?(e.textContent||'').trim().toLowerCase():'';}
       function post(o){try{window.webkit.messageHandlers.ost.postMessage(o);}catch(e){}}
+      // Auto-start: click the Start button as soon as it appears (once) — unless a test is
+      // already running (clicking again would toggle Stop). Handles variable iframe/server
+      // list load time better than a fixed delay.
+      var clicked=false;
+      var startIv=setInterval(function(){
+        if(clicked){clearInterval(startIv);return;}
+        if((val('pingResult')||0)>0||(val('downResult')||0)>0){clicked=true;clearInterval(startIv);return;}
+        var b=document.getElementById('startButtonDesk')||document.getElementById('startButtonMob');
+        if(b){b.click();clicked=true;clearInterval(startIv);}
+      },800);
+      setTimeout(function(){clearInterval(startIv);},20000);
+      // Scrape live progress + the final result.
       var lastUp=null, stableSince=0, done=false;
-      // Auto-start once, after the server list has had time to load. One click only —
-      // clicking again while running would toggle the test to Stop.
-      setTimeout(function(){var b=document.getElementById('startButtonDesk')||document.getElementById('startButtonMob');if(b){b.click();}},3000);
       setInterval(function(){
         if(done) return;
         var d=val('downResult'), u=val('upRestxt'), live=val('oDoLiveSpeed'), status=txt('oDoLiveStatus');
-        post({type:'live', status:status, live:live});
+        if(d!=null||u!=null||live!=null){ post({type:'live', status:status, live:live}); }
         // Upload is the final phase — once its value stops changing, the run is done.
         if(d!=null&&d>0&&u!=null&&u>0){
           if(u===lastUp){ if(Date.now()-stableSince>1500){ done=true; post({type:'done', down:d, up:u, ping:val('pingResult')}); } }
