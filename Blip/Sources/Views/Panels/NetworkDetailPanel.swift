@@ -15,8 +15,6 @@ struct NetworkDetailPanel: View {
     var traceStop: (() async -> Void)? = nil
     var tracePoll: (() async -> (hops: [HelperTraceHop], running: Bool))? = nil
     var onOpenTracerouteWindow: (() -> Void)? = nil
-    /// Opens the public OpenSpeedTest web test in an embedded WebView window.
-    var onOpenWebSpeedTest: (() -> Void)? = nil
 
     @State private var wanIP: String? = nil
     @State private var showWAN = false
@@ -228,8 +226,7 @@ struct NetworkDetailPanel: View {
             // Speed Test (self-contained block — see SpeedTestSection below)
             Divider()
             SpeedTestSection(tester: speedTester,
-                             isExpensiveNetwork: stats.isExpensive || stats.isConstrained,
-                             onOpenWebTest: onOpenWebSpeedTest)
+                             isExpensiveNetwork: stats.isExpensive || stats.isConstrained)
         }
         .padding(12)
         .frame(width: 260)
@@ -622,8 +619,6 @@ struct SpeedTestSection: View {
     /// True when the current network is metered (expensive/constrained); blocks
     /// only the automated interval run, never a manual one.
     var isExpensiveNetwork: Bool = false
-    /// Opens the public OpenSpeedTest web test (no self-host required).
-    var onOpenWebTest: (() -> Void)? = nil
 
     @AppStorage("netSpeedExpanded") private var expanded = false
     // Auto-run is persisted here (UI source of truth) and pushed to the tester so the
@@ -631,20 +626,23 @@ struct SpeedTestSection: View {
     @AppStorage("netSpeedAutoRun") private var autoRunPref = false
     @AppStorage("netSpeedInterval") private var intervalPref = 15
 
-    // The speed test runs against an OpenSpeedTest server (self-hosted, or any
-    // OpenSpeedTest-Server-compatible instance). Set its URL in Settings → Network.
+    // Server selection: "public" = OpenSpeedTest's hosted test (driven headlessly via
+    // their widget); "selfhosted" = your own OpenSpeedTest server (URL in Settings).
+    @AppStorage("speedTestServerKind") private var serverKind = "public"
     @AppStorage("speedTestOpenSpeedTestURL") private var openSpeedTestURL = ""
 
     private let intervalOptions = [1, 5, 15, 30, 60]
 
+    private var usingSelfHosted: Bool { serverKind == "selfhosted" }
+
     /// The configured target server.
     private var selectedServer: SpeedTestServer {
-        .openSpeedTest(baseURL: openSpeedTestURL)
+        usingSelfHosted ? .openSpeedTest(baseURL: openSpeedTestURL) : .openSpeedTestPublic
     }
 
-    /// True when no usable server URL has been entered.
+    /// True when self-hosted is selected but no usable server URL has been entered.
     private var needsServerURL: Bool {
-        selectedServer.openSpeedTestBase == nil
+        usingSelfHosted && selectedServer.openSpeedTestBase == nil
     }
 
     /// Apply the chosen server and start a run.
@@ -683,6 +681,7 @@ struct SpeedTestSection: View {
             }
         }
         .onAppear { syncTester() }
+        .onChange(of: serverKind) { _, _ in syncTester() }
         .onChange(of: openSpeedTestURL) { _, _ in syncTester() }
         .onChange(of: isExpensiveNetwork) { _, _ in tester.autoRunBlocked = isExpensiveNetwork }
     }
@@ -697,11 +696,23 @@ struct SpeedTestSection: View {
 
     @ViewBuilder
     private var content: some View {
-        // Server: an OpenSpeedTest instance (self-hosted, set in Settings → Network).
+        // Server picker: OpenSpeedTest public (headless widget) or your self-hosted server.
         HStack(spacing: 4) {
             Image(systemName: "server.rack")
                 .font(.system(size: 9))
                 .foregroundStyle(.secondary)
+            Picker("", selection: $serverKind) {
+                Text("OpenSpeedTest (public)").tag("public")
+                Text("Self-hosted").tag("selfhosted")
+            }
+            .labelsHidden()
+            .pickerStyle(.menu)
+            .controlSize(.small)
+            .font(.system(size: 10))
+            Spacer()
+        }
+
+        if usingSelfHosted {
             if let base = selectedServer.openSpeedTestBase {
                 Text(base)
                     .font(.system(size: 9, design: .monospaced))
@@ -709,11 +720,15 @@ struct SpeedTestSection: View {
                     .lineLimit(1)
                     .truncationMode(.middle)
             } else {
-                Text("OpenSpeedTest — set a server URL in Settings → Network")
+                Text("Set your server URL in Settings → Network")
                     .font(.system(size: 9))
                     .foregroundStyle(.tertiary)
             }
-            Spacer()
+        } else {
+            Text("Runs OpenSpeedTest's public test in the background; results graph here. Public infra — manual runs only.")
+                .font(.system(size: 9))
+                .foregroundStyle(.tertiary)
+                .fixedSize(horizontal: false, vertical: true)
         }
 
         // Run / Cancel control
@@ -766,51 +781,40 @@ struct SpeedTestSection: View {
             sparkline
         }
 
-        // Auto-run controls
-        BlipToggle(title: "Auto-run on interval", isOn: $autoRunPref) { v in tester.autoRun = v }
+        // Auto-run controls — interval testing is only allowed against your own server
+        // (auto-running the public service would hammer their donated infrastructure).
+        if usingSelfHosted {
+            BlipToggle(title: "Auto-run on interval", isOn: $autoRunPref) { v in tester.autoRun = v }
 
-        if autoRunPref {
-            Picker("", selection: $intervalPref) {
-                ForEach(intervalOptions, id: \.self) { m in
-                    Text("every \(m) min").tag(m)
+            if autoRunPref {
+                Picker("", selection: $intervalPref) {
+                    ForEach(intervalOptions, id: \.self) { m in
+                        Text("every \(m) min").tag(m)
+                    }
+                }
+                .labelsHidden()
+                .pickerStyle(.menu)
+                .controlSize(.small)
+                .font(.system(size: 10))
+                .onChange(of: intervalPref) { _, v in tester.intervalMinutes = v }
+
+                if isExpensiveNetwork {
+                    Text("Paused — this network is metered. Manual runs still work.")
+                        .font(.system(size: 9))
+                        .foregroundStyle(.orange)
                 }
             }
-            .labelsHidden()
-            .pickerStyle(.menu)
-            .controlSize(.small)
-            .font(.system(size: 10))
-            .onChange(of: intervalPref) { _, v in tester.intervalMinutes = v }
-
-            if isExpensiveNetwork {
-                Text("Paused — this network is metered. Manual runs still work.")
-                    .font(.system(size: 9))
-                    .foregroundStyle(.orange)
-            }
+        } else {
+            Text("Want interval auto-run? Switch to a self-hosted server.")
+                .font(.system(size: 9))
+                .foregroundStyle(.tertiary)
         }
 
-        // No self-hosted server? Offer the public OpenSpeedTest web test.
-        if needsServerURL, let openWeb = onOpenWebTest {
-            Button { openWeb() } label: {
-                HStack(spacing: 3) {
-                    Image(systemName: "safari").font(.system(size: 9))
-                    Text("Run the public web test (OpenSpeedTest)").font(.system(size: 10, weight: .medium))
-                }
-                .foregroundStyle(.blue)
-            }
-            .buttonStyle(.plain)
-        }
-
-        // Attribution + paths to the public test / your own server.
+        // Attribution + a path to run your own server.
         HStack(spacing: 6) {
-            if !needsServerURL, let openWeb = onOpenWebTest {
-                Button { openWeb() } label: { Text("Public web test ↗") }
-                    .buttonStyle(.plain)
-                    .foregroundStyle(.blue)
-                Text("·").foregroundStyle(.tertiary)
-            }
-            Link("OpenSpeedTest", destination: URL(string: "https://openspeedtest.com")!)
+            Link("Powered by OpenSpeedTest", destination: URL(string: "https://openspeedtest.com")!)
             Text("·").foregroundStyle(.tertiary)
-            Link("Self-host", destination: URL(string: "https://openspeedtest.com/selfhosted-speedtest")!)
+            Link("Self-host a server", destination: URL(string: "https://openspeedtest.com/selfhosted-speedtest")!)
             Spacer()
         }
         .font(.system(size: 9))

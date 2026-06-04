@@ -30,10 +30,12 @@ enum SpeedTestPhase: Sendable, Equatable {
 /// OpenSpeedTest server (Docker), or any OpenSpeedTest-Server-compatible instance that
 /// exposes the `/downloading` and `/upload` endpoints.
 enum SpeedTestServer: Equatable, Sendable {
+    /// OpenSpeedTest's public hosted test, driven headlessly via their embeddable widget.
+    case openSpeedTestPublic
+    /// A self-hosted OpenSpeedTest server, e.g. "http://192.168.1.50:3000".
     case openSpeedTest(baseURL: String)
 
-    /// Normalized base URL, or nil for an empty entry. Adds a default http:// scheme and
-    /// trims a trailing slash.
+    /// Normalized base URL (self-hosted only), or nil for the public test / an empty entry.
     var openSpeedTestBase: String? {
         guard case let .openSpeedTest(raw) = self else { return nil }
         var s = raw.trimmingCharacters(in: .whitespacesAndNewlines)
@@ -46,8 +48,17 @@ enum SpeedTestServer: Equatable, Sendable {
         return s
     }
 
+    /// The public widget runs against OpenSpeedTest's donated infrastructure — only ever
+    /// used for explicit, manual runs (never automated interval testing).
+    var isPublic: Bool { if case .openSpeedTestPublic = self { return true } else { return false } }
+
     var supportsUpload: Bool { true }
-    var displayName: String { "OpenSpeedTest" }
+    var displayName: String {
+        switch self {
+        case .openSpeedTestPublic: return "OpenSpeedTest (public)"
+        case .openSpeedTest: return "Self-hosted"
+        }
+    }
 }
 
 /// Drives a multi-gigabit throughput test against Cloudflare's free speed
@@ -62,9 +73,9 @@ final class SpeedTester: ObservableObject {
     @Published private(set) var lastResult: NetSpeedResult?
     @Published private(set) var history: [NetSpeedResult] = []
 
-    /// Target server. Set this before calling `start()` (from the configured
-    /// OpenSpeedTest URL).
-    var server: SpeedTestServer = .openSpeedTest(baseURL: "")
+    /// Target server. Set this before calling `start()`. Defaults to the public
+    /// OpenSpeedTest test so it works out of the box.
+    var server: SpeedTestServer = .openSpeedTestPublic
 
     /// Number of concurrent transfers used to saturate fast links. Tests run against the
     /// user's own OpenSpeedTest server, so we can saturate freely.
@@ -100,20 +111,14 @@ final class SpeedTester: ObservableObject {
     func cancel() {
         runTask?.cancel()
         runTask = nil
+        publicRunner?.cancel()
+        publicRunner = nil
         if isRunning { phase = .idle }
         liveMbps = 0
     }
 
-    /// Record a result obtained outside the native engine (e.g. scraped from the
-    /// OpenSpeedTest public web test) so it appears in the history/chart alongside
-    /// native runs.
-    func recordExternalResult(downMbps: Double, upMbps: Double?) {
-        let result = NetSpeedResult(downMbps: downMbps, upMbps: upMbps, timestamp: Date())
-        lastResult = result
-        history.append(result)
-        if history.count > maxHistory { history.removeFirst(history.count - maxHistory) }
-        if !isRunning { phase = .done }
-    }
+    /// Active headless runner for the OpenSpeedTest public widget (when that server is used).
+    private var publicRunner: OpenSpeedTestWidgetRunner?
 
     // MARK: - Automated interval runs
 
@@ -123,7 +128,8 @@ final class SpeedTester: ObservableObject {
         didSet {
             if autoRun {
                 startAutoTimer()
-                if !suppressImmediateRun, !autoRunBlocked, !isRunning { start() }   // instant feedback
+                // Never auto-run the public widget (it leans on donated infra) — manual only.
+                if !suppressImmediateRun, !autoRunBlocked, !server.isPublic, !isRunning { start() }
             } else {
                 stopAutoTimer()
             }
@@ -156,7 +162,7 @@ final class SpeedTester: ObservableObject {
         let timer = Timer(timeInterval: interval, repeats: true) { [weak self] t in
             guard let self else { t.invalidate(); return }
             Task { @MainActor in
-                guard !self.autoRunBlocked, !self.isRunning else { return }
+                guard !self.autoRunBlocked, !self.server.isPublic, !self.isRunning else { return }
                 self.start()
             }
         }
@@ -171,21 +177,23 @@ final class SpeedTester: ObservableObject {
 
     private func run() async {
         do {
-            phase = .download
-            liveMbps = 0
-            let down = try await measure(direction: .download)
-            try Task.checkCancellation()
+            let result: NetSpeedResult
+            if server.isPublic {
+                result = try await runPublicWidget()
+            } else {
+                phase = .download
+                liveMbps = 0
+                let down = try await measure(direction: .download)
+                try Task.checkCancellation()
 
-            // OVH / Hetzner are download-only (static files); skip the upload phase.
-            var up: Double? = nil
-            if server.supportsUpload {
                 phase = .upload
                 liveMbps = 0
-                up = try await measure(direction: .upload)
+                let up = try await measure(direction: .upload)
                 try Task.checkCancellation()
+
+                result = NetSpeedResult(downMbps: down, upMbps: up, timestamp: Date())
             }
 
-            let result = NetSpeedResult(downMbps: down, upMbps: up, timestamp: Date())
             lastResult = result
             history.append(result)
             if history.count > maxHistory { history.removeFirst(history.count - maxHistory) }
@@ -198,6 +206,23 @@ final class SpeedTester: ObservableObject {
             phase = .failed(Self.message(for: error))
             liveMbps = 0
         }
+    }
+
+    /// Drive OpenSpeedTest's public test headlessly and surface live progress + the result
+    /// as if it were a native run.
+    private func runPublicWidget() async throws -> NetSpeedResult {
+        phase = .download
+        liveMbps = 0
+        let runner = OpenSpeedTestWidgetRunner()
+        publicRunner = runner
+        defer { publicRunner = nil }
+        let r = try await runner.run { [weak self] isUpload, mbps in
+            guard let self else { return }
+            self.phase = isUpload ? .upload : .download
+            if let mbps { self.liveMbps = mbps }
+        }
+        try Task.checkCancellation()
+        return NetSpeedResult(downMbps: r.down, upMbps: r.up, timestamp: Date())
     }
 
     private enum Direction { case download, upload }
@@ -269,6 +294,13 @@ final class SpeedTester: ObservableObject {
     }
 
     private static func message(for error: Error) -> String {
+        if let widget = error as? OpenSpeedTestWidgetRunner.RunError {
+            switch widget {
+            case .loadFailed: return "Couldn't reach openspeedtest.com. Check your connection, or use a self-hosted server."
+            case .timedOut: return "Public test timed out. Try again, or use a self-hosted server."
+            case .noResult, .cancelled: return "Public test didn't finish. Try again, or use a self-hosted server."
+            }
+        }
         if let httpError = error as? SpeedTestHTTPError {
             switch httpError.status {
             case 429:
