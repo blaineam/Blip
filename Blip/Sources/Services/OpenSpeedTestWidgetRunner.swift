@@ -2,11 +2,12 @@ import Foundation
 import WebKit
 import AppKit
 
-/// Drives OpenSpeedTest's **public** hosted test in a `WKWebView` and reports the result
-/// as if it were native — so the public option feeds Blip's chart like the self-hosted
-/// endpoint. The web view is shown in a small window so you can watch the automated run
-/// (and so WebKit never throttles its timers); it auto-starts and closes itself when the
-/// result is in.
+/// Drives OpenSpeedTest's **public** hosted test in a hidden `WKWebView` and reports the
+/// result as if it were native — so the public option feeds Blip's chart like the
+/// self-hosted endpoint. The web view lives in an on-screen but fully transparent,
+/// click-through window so WebKit keeps the page "visible" (its timers run) while the user
+/// never sees it; it auto-starts (the widget's `?run` param, plus a click fallback),
+/// streams live progress to the native panel, scrapes the result, and tears down.
 ///
 /// This is the sanctioned way to use OpenSpeedTest's public service (their embeddable
 /// widget) — just driven and read programmatically. It scrapes the page's result fields,
@@ -26,7 +27,7 @@ final class OpenSpeedTestWidgetRunner: NSObject, WKScriptMessageHandler, WKNavig
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <style>html,body{margin:0;height:100%;background:#0b0b0c;overflow:hidden}
     iframe{border:0;width:100%;height:100%;display:block}</style></head>
-    <body><iframe src="https://openspeedtest.com/speedtest" allow="fullscreen" allowfullscreen></iframe></body></html>
+    <body><iframe src="https://openspeedtest.com/speedtest?run" allow="fullscreen" allowfullscreen></iframe></body></html>
     """
     static let baseURL = URL(string: "https://openspeedtest.com/")
 
@@ -40,7 +41,7 @@ final class OpenSpeedTestWidgetRunner: NSObject, WKScriptMessageHandler, WKNavig
     private var closed = false        // window/web view torn down
 
     /// Runs one test. `onLive(isUpload, mbps)` reports live progress. Returns the result.
-    func run(timeout: TimeInterval = 90,
+    func run(timeout: TimeInterval = 180,
              onLive: @escaping @MainActor (_ isUpload: Bool, _ liveMbps: Double?) -> Void) async throws -> Result {
         self.onLive = onLive
 
@@ -58,16 +59,17 @@ final class OpenSpeedTestWidgetRunner: NSObject, WKScriptMessageHandler, WKNavig
         wv.navigationDelegate = self
         webView = wv
 
-        let win = NSWindow(contentRect: frame,
-                           styleMask: [.titled, .closable, .miniaturizable, .resizable],
-                           backing: .buffered, defer: false)
-        win.title = "OpenSpeedTest — running…"
-        win.contentView = wv
-        win.delegate = self
+        // Invisible, click-through, on-screen window. On-screen (not off-screen/occluded)
+        // so WebKit keeps the page "visible" and doesn't throttle its timers; alpha 0 so
+        // the user never sees it — the whole run happens in the background. Live progress
+        // is surfaced through the native panel instead.
+        let win = NSWindow(contentRect: frame, styleMask: [.borderless], backing: .buffered, defer: false)
+        win.alphaValue = 0
+        win.ignoresMouseEvents = true
         win.isReleasedWhenClosed = false
-        win.center()
-        win.makeKeyAndOrderFront(nil)
-        NSApp.activate(ignoringOtherApps: true)
+        win.contentView = wv
+        win.setFrameOrigin(.zero)
+        win.orderFrontRegardless()
         window = win
 
         wv.loadHTMLString(Self.hostHTML, baseURL: Self.baseURL)
@@ -95,12 +97,7 @@ final class OpenSpeedTestWidgetRunner: NSObject, WKScriptMessageHandler, WKNavig
         switch result {
         case .success(let v):
             cont?.resume(returning: v)
-            window?.title = "OpenSpeedTest — done ✓"
-            // Leave the result on screen briefly, then close.
-            closeTask = Task { [weak self] in
-                try? await Task.sleep(nanoseconds: 3_000_000_000)
-                self?.close()
-            }
+            close()
         case .failure(let e):
             cont?.resume(throwing: e)
             close()
@@ -134,10 +131,11 @@ final class OpenSpeedTestWidgetRunner: NSObject, WKScriptMessageHandler, WKNavig
     func userContentController(_ controller: WKUserContentController, didReceive message: WKScriptMessage) {
         guard let body = message.body as? [String: Any], let type = body["type"] as? String else { return }
         switch type {
-        case "live":
-            let status = (body["status"] as? String ?? "")
+        case "state":
+            // Surface live progress through the native panel (the window is invisible).
             let live = (body["live"] as? NSNumber)?.doubleValue
-            onLive?(status.contains("upload"), live)
+            let isUpload = (body["status"] as? String ?? "").lowercased().contains("upload")
+            onLive?(isUpload, live)
         case "done":
             guard let down = (body["down"] as? NSNumber)?.doubleValue, down > 0 else {
                 finish(.failure(RunError.noResult)); return
@@ -159,36 +157,46 @@ final class OpenSpeedTestWidgetRunner: NSObject, WKScriptMessageHandler, WKNavig
         finish(.failure(RunError.loadFailed))
     }
 
-    // Injected into every frame (the widget lives in a cross-origin iframe). In frames
-    // without the widget the element lookups are null, so it's a harmless no-op there.
+    // Injected into every frame (the widget lives in an iframe). Operates on whichever
+    // document actually has the widget — this frame's own document (when injected into the
+    // iframe) or a same-origin child iframe reached from the main frame — and reports
+    // diagnostics so the automation is observable.
     private static let script = """
     (function(){
-      function val(id){var e=document.getElementById(id);if(!e)return null;var v=parseFloat((e.textContent||'').replace(/[^0-9.]/g,''));return isNaN(v)?null:v;}
-      function txt(id){var e=document.getElementById(id);return e?(e.textContent||'').trim().toLowerCase():'';}
+      function num(el){if(!el)return null;var v=parseFloat((el.textContent||'').replace(/[^0-9.]/g,''));return isNaN(v)?null:v;}
       function post(o){try{window.webkit.messageHandlers.ost.postMessage(o);}catch(e){}}
-      // Auto-start: click the Start button as soon as it appears (once) — unless a test is
-      // already running (clicking again would toggle Stop). Handles variable iframe/server
-      // list load time better than a fixed delay.
-      var clicked=false;
-      var startIv=setInterval(function(){
-        if(clicked){clearInterval(startIv);return;}
-        if((val('pingResult')||0)>0||(val('downResult')||0)>0){clicked=true;clearInterval(startIv);return;}
-        var b=document.getElementById('startButtonDesk')||document.getElementById('startButtonMob');
-        if(b){b.click();clicked=true;clearInterval(startIv);}
-      },800);
-      setTimeout(function(){clearInterval(startIv);},20000);
-      // Scrape live progress + the final result.
-      var lastUp=null, stableSince=0, done=false;
+      // The document that actually holds the widget: this frame's own document (when this
+      // script is injected into the iframe), or a same-origin child iframe reached from the
+      // main frame. Returns null until the widget elements exist.
+      function widgetDoc(){
+        try{ if(document.getElementById('startButtonDesk')||document.getElementById('downResult')) return document; }catch(e){}
+        var ifr=document.querySelector('iframe');
+        if(ifr){ try{ var d=ifr.contentDocument; if(d&&(d.getElementById('startButtonDesk')||d.getElementById('downResult'))) return d; }catch(e){} }
+        return null;
+      }
+      function fire(el){ try{el.click();}catch(e){}
+        try{['mousedown','mouseup','click'].forEach(function(t){el.dispatchEvent(new MouseEvent(t,{bubbles:true,cancelable:true,view:window}));});}catch(e){} }
+      var started=false, lastUp=null, stableSince=0, done=false, ticks=0, lastClick=0;
       setInterval(function(){
+        ticks++;
+        var doc=widgetDoc();
+        if(!doc){ if(ticks%2===0) post({type:'state', phase:'loading'}); return; }
+        var btn=doc.getElementById('startButtonDesk')||doc.getElementById('startButtonMob');
+        var down=num(doc.getElementById('downResult')), up=num(doc.getElementById('upRestxt')),
+            live=num(doc.getElementById('oDoLiveSpeed')), ping=num(doc.getElementById('pingResult'));
+        var st=doc.getElementById('oDoLiveStatus'); var status=st?(''+st.textContent).trim():'';
+        if((down||0)>0||(up||0)>0||(ping||0)>0||(live||0)>0) started=true;
+        // The ?run URL param should auto-start once the server list loads. As a fallback,
+        // if it hasn't started after ~10s, click+dispatch on the Start button every ~2.5s
+        // until it does (the started guard stops it from toggling Stop).
+        if(!started && btn && ticks>20 && (Date.now()-lastClick>2500)){ lastClick=Date.now(); fire(btn); }
         if(done) return;
-        var d=val('downResult'), u=val('upRestxt'), live=val('oDoLiveSpeed'), status=txt('oDoLiveStatus');
-        if(d!=null||u!=null||live!=null){ post({type:'live', status:status, live:live}); }
-        // Upload is the final phase — once its value stops changing, the run is done.
-        if(d!=null&&d>0&&u!=null&&u>0){
-          if(u===lastUp){ if(Date.now()-stableSince>1500){ done=true; post({type:'done', down:d, up:u, ping:val('pingResult')}); } }
-          else { lastUp=u; stableSince=Date.now(); }
+        post({type:'state', phase: started?'running':'starting', down:down, up:up, live:live, status:status});
+        if(down!=null&&down>0&&up!=null&&up>0){
+          if(up===lastUp){ if(Date.now()-stableSince>1500){ done=true; post({type:'done', down:down, up:up, ping:ping}); } }
+          else { lastUp=up; stableSince=Date.now(); }
         }
-      },400);
+      },500);
     })();
     """
 }
