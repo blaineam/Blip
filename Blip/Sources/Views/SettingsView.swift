@@ -131,8 +131,12 @@ struct SettingsView: View {
                     Text("The Network → Speed Test runs against this OpenSpeedTest server. Self-host one for free (no third parties, unlimited): `docker run --rm -p 3000:3000 openspeedtest/latest`, then enter its address (e.g. http://192.168.1.50:3000).")
                         .font(.caption)
                         .foregroundStyle(.secondary)
-                    Link("Deploy an OpenSpeedTest server", destination: URL(string: "https://openspeedtest.com/selfhosted-speedtest")!)
-                        .font(.caption)
+                    HStack(spacing: 6) {
+                        Link("Powered by OpenSpeedTest", destination: URL(string: "https://openspeedtest.com")!)
+                        Text("·").foregroundStyle(.tertiary)
+                        Link("How to self-host", destination: URL(string: "https://openspeedtest.com/selfhosted-speedtest")!)
+                    }
+                    .font(.caption)
                 }
             }
 

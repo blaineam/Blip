@@ -781,6 +781,16 @@ struct SpeedTestSection: View {
                     .foregroundStyle(.orange)
             }
         }
+
+        // Attribution + a path to run your own server.
+        HStack(spacing: 6) {
+            Link("Powered by OpenSpeedTest", destination: URL(string: "https://openspeedtest.com")!)
+            Text("·").foregroundStyle(.tertiary)
+            Link("Self-host a server", destination: URL(string: "https://openspeedtest.com/selfhosted-speedtest")!)
+            Spacer()
+        }
+        .font(.system(size: 9))
+        .padding(.top, 1)
     }
 
     @ViewBuilder
