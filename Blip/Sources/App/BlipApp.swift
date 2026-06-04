@@ -68,6 +68,17 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
         setupLiveRefresh()
         monitor.start()
 
+        // Resume persisted interval speed/disk tests so they keep running across restarts
+        // without needing to open a detail panel first. (Starts the timers only — no
+        // immediate run on launch.)
+        let defaults = UserDefaults.standard
+        if defaults.bool(forKey: "netSpeedAutoRun") {
+            netSpeedTester.resumeAutoRun(every: defaults.object(forKey: "netSpeedInterval") as? Int ?? 15)
+        }
+        if defaults.bool(forKey: "diskSpeedAutoRun") {
+            diskSpeedTester.resumeAutoRun(every: defaults.object(forKey: "diskSpeedInterval") as? Int ?? 5)
+        }
+
         // If the optional traceroute-map database is installed and auto-update is on,
         // quietly check (throttled to once a day) for a newer monthly DB-IP release.
         GeoIPDatabase.shared.runAutoUpdateCheck()

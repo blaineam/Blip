@@ -131,7 +131,7 @@ final class SpeedTester: ObservableObject {
         didSet {
             if autoRun {
                 startAutoTimer()
-                if !autoRunBlocked, !isRunning { start() }   // run once now for instant feedback
+                if !suppressImmediateRun, !autoRunBlocked, !isRunning { start() }   // instant feedback
             } else {
                 stopAutoTimer()
             }
@@ -142,6 +142,20 @@ final class SpeedTester: ObservableObject {
     /// (metered / expensive / constrained network). A manual `start()` is never blocked.
     var autoRunBlocked = false
     private var autoTimer: Timer?
+    /// Set while resuming a persisted schedule at launch so we don't fire a heavy test
+    /// on every app start.
+    private var suppressImmediateRun = false
+
+    /// Resume a persisted auto-run schedule at app launch: starts the interval timer
+    /// WITHOUT an immediate run. Call this once from the app delegate so interval tests
+    /// keep running across restarts without needing to open the Network panel.
+    func resumeAutoRun(every minutes: Int) {
+        intervalMinutes = max(1, minutes)
+        guard !autoRun else { return }
+        suppressImmediateRun = true
+        autoRun = true
+        suppressImmediateRun = false
+    }
 
     private func startAutoTimer() {
         stopAutoTimer()
