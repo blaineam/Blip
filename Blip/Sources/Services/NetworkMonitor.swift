@@ -84,10 +84,12 @@ final class SpeedTester: ObservableObject {
     /// Target server. Set this before calling `start()`. Defaults to Cloudflare.
     var server: SpeedTestServer = .cloudflare
 
-    /// Number of concurrent transfers used to saturate fast links.
-    private let parallelism = 6
+    /// Number of concurrent transfers used to saturate fast links. Kept modest to be a
+    /// good citizen toward public test servers (fewer requests/second → less likely to
+    /// trip rate limits like Cloudflare's HTTP 429).
+    private let parallelism = 4
     /// Duration of each measured phase (seconds).
-    private let phaseDuration: TimeInterval = 9
+    private let phaseDuration: TimeInterval = 8
     /// Short warm-up window discarded from the measurement (seconds).
     private let warmup: TimeInterval = 1.5
     /// Bytes requested per download chunk (50 MB). Cloudflare's `__down` rejects
@@ -96,6 +98,10 @@ final class SpeedTester: ObservableObject {
     private let downloadChunkBytes = 50_000_000
     /// Bytes posted per upload chunk (25 MB in-memory body).
     private let uploadChunkBytes = 25_000_000
+    /// Hard cap on the number of requests per phase, so a single test can't flood a
+    /// public server even on a very fast link (≈1 GB down / ≈0.6 GB up max).
+    private let maxDownloadRequests = 20
+    private let maxUploadRequests = 24
     private let maxHistory = 10
 
     private var runTask: Task<Void, Never>?
@@ -240,7 +246,8 @@ final class SpeedTester: ObservableObject {
     private func measure(direction: Direction) async throws -> Double {
         let runner = ThroughputRunner(
             endpoints: endpoints(for: direction),
-            uploadBody: direction == .upload ? Data(count: uploadChunkBytes) : nil
+            uploadBody: direction == .upload ? Data(count: uploadChunkBytes) : nil,
+            maxRequests: direction == .download ? maxDownloadRequests : maxUploadRequests
         )
         defer { runner.stop() }
 
@@ -250,24 +257,32 @@ final class SpeedTester: ObservableObject {
         runner.start(parallelism: parallelism, deadline: deadline)
 
         // Sample throughput each tick; capture the byte count at warm-up end so the
-        // reported number excludes TCP slow-start.
+        // reported number excludes TCP slow-start. We measure over the window in which
+        // data actually flowed ([warmupEnd, lastProgress]) so that hitting the per-phase
+        // request cap early (on a very fast link) doesn't dilute the result with idle time.
         var bytesAtWarmup: Int?
+        var lastBytes = 0
+        var lastProgress = warmupEnd
         while Date() < deadline {
             try Task.checkCancellation()
             try await Task.sleep(nanoseconds: 200_000_000)
             let now = Date()
-            if bytesAtWarmup == nil, now >= warmupEnd { bytesAtWarmup = runner.bytes }
+            let b = runner.bytes
+            if bytesAtWarmup == nil, now >= warmupEnd { bytesAtWarmup = b; lastBytes = b; lastProgress = now }
             if let baseline = bytesAtWarmup {
-                let elapsed = now.timeIntervalSince(warmupEnd)
+                if b > lastBytes { lastBytes = b; lastProgress = now }
+                let elapsed = lastProgress.timeIntervalSince(warmupEnd)
                 if elapsed > 0 {
-                    liveMbps = Double(runner.bytes - baseline) * 8 / elapsed / 1_000_000
+                    liveMbps = Double(lastBytes - baseline) * 8 / elapsed / 1_000_000
                 }
+                // Transfers wound down (e.g. request cap reached) — stop measuring idle time.
+                if now.timeIntervalSince(lastProgress) > 0.5, lastBytes - baseline > 0 { break }
             }
         }
 
         let baseline = bytesAtWarmup ?? 0
-        let measuredBytes = max(0, runner.bytes - baseline)
-        let measuredSeconds = max(0.001, deadline.timeIntervalSince(warmupEnd))
+        let measuredBytes = max(0, lastBytes - baseline)
+        let measuredSeconds = max(0.001, lastProgress.timeIntervalSince(warmupEnd))
         runner.stop()
 
         if measuredBytes == 0 {
@@ -350,10 +365,15 @@ private final class ThroughputRunner: NSObject, URLSessionDataDelegate, @uncheck
     private var stopped = false
     private var invalidated = false
     private var deadline = Date.distantPast
+    /// Hard cap on total requests issued this phase (a good-citizen limit so a single
+    /// test can't flood a public server even on a very fast link). 0 = unlimited.
+    private let maxRequests: Int
+    private var _launchCount = 0
 
-    init(endpoints: [SpeedEndpoint], uploadBody: Data?) {
+    init(endpoints: [SpeedEndpoint], uploadBody: Data?, maxRequests: Int = 0) {
         self.endpoints = endpoints.isEmpty ? [.cloudflareUp] : endpoints
         self.uploadBody = uploadBody
+        self.maxRequests = maxRequests
         super.init()
     }
 
@@ -391,8 +411,11 @@ private final class ThroughputRunner: NSObject, URLSessionDataDelegate, @uncheck
         lock.lock()
         // Stop relaunching once every endpoint has been exhausted with HTTP errors —
         // hammering a rate-limited server only deepens the throttle. Fail fast instead.
-        let go = !stopped && _httpError == 0 && Date() < deadline
+        // Also stop once the per-phase request cap is reached.
+        let underCap = maxRequests == 0 || _launchCount < maxRequests
+        let go = !stopped && _httpError == 0 && underCap && Date() < deadline
         let index = _endpointIndex
+        if go { _launchCount += 1 }
         lock.unlock()
         guard go, index < endpoints.count, let url = endpoints[index].makeURL() else { return }
 
