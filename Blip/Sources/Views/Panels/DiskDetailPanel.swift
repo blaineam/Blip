@@ -255,6 +255,19 @@ struct DiskDetailPanel: View {
         return cells
     }
 
+    /// Hover help explaining each S.M.A.R.T. metric (these confuse people — notably
+    /// "Used" can exceed 100% while "Spare" is a separate 0–100% reserve metric).
+    private static let metricHelp: [String: String] = [
+        "Used": "NVMe “Percentage Used” — estimated share of the drive's rated write endurance that has been consumed. Per the NVMe spec this can exceed 100% once the drive passes its rated lifespan (it may still work fine). Life Remaining = 100 − Used.",
+        "Spare": "NVMe “Available Spare” — percentage of the drive's reserve (over-provisioned) blocks still available. Starts at 100% and falls as failing blocks are retired. A different metric from Used.",
+        "Temp": "Current drive/controller temperature.",
+        "Written": "Total data written over the drive's lifetime.",
+        "Read": "Total data read over the drive's lifetime.",
+        "Power On": "Cumulative hours the drive has been powered on.",
+        "Cycles": "Number of power-on cycles.",
+        "Unsafe Off": "Count of unsafe/unexpected shutdowns recorded by the drive.",
+    ]
+
     private func healthCell(_ label: String, _ value: String) -> some View {
         VStack(alignment: .leading, spacing: 1) {
             Text(label)
@@ -264,6 +277,7 @@ struct DiskDetailPanel: View {
                 .font(.system(size: 10, design: .monospaced))
         }
         .frame(maxWidth: .infinity, alignment: .leading)
+        .help(Self.metricHelp[label] ?? "")
     }
 
     private func lifeColor(_ life: Int) -> Color {

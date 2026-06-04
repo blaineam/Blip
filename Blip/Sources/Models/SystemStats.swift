@@ -194,6 +194,9 @@ struct ProcessInfo: Identifiable, Sendable {
     let cpu: Double
     let memory: UInt64
     let icon: Data?
+    /// True when owned by the logged-in user (a user-space process). System/root
+    /// processes are false. Defaults true for sources that can't determine ownership.
+    var isUserOwned: Bool = true
 }
 
 // MARK: - Aggregate
@@ -234,8 +237,11 @@ enum RecommendationsEngine {
     static func analyze(_ s: SystemSnapshot) -> [Recommendation] {
         var recs: [Recommendation] = []
 
-        // Runaway CPU process
-        if let p = s.topProcessesByCPU.first, p.cpu > 85 {
+        // Runaway CPU process — only ever suggest quitting a user-space application,
+        // never a system service / agent (WindowServer, kernel_task, mds, Dock, Finder…).
+        if let p = s.topProcessesByCPU.first(where: {
+            $0.cpu > 85 && $0.isUserOwned && !isSystemProcess($0.name)
+        }) {
             recs.append(.init(id: "cpu-hog", severity: .warning, icon: "cpu",
                 title: "\(p.name) is using \(Int(p.cpu))% CPU",
                 detail: "Quitting or restarting it would cut heat, fan noise, and battery drain."))
@@ -295,6 +301,28 @@ enum RecommendationsEngine {
         }
 
         return recs.sorted { $0.severity.rawValue > $1.severity.rawValue }
+    }
+
+    /// macOS system services / agents that should never be suggested for quitting,
+    /// even when they're owned by the logged-in user (Dock, Finder, …) or surfaced via
+    /// the helper without ownership info. The uid check already excludes root daemons in
+    /// the direct build; this also covers user-owned system UI agents and the helper path.
+    private static let systemProcessNames: Set<String> = [
+        "windowserver", "kernel_task", "launchd", "logd", "mds", "mds_stores",
+        "mdworker", "mdworker_shared", "mdbulkimport", "backupd", "coreaudiod",
+        "hidd", "bluetoothd", "powerd", "configd", "cfprefsd", "distnoted",
+        "notifyd", "securityd", "trustd", "syspolicyd", "nsurlsessiond", "cloudd",
+        "bird", "apsd", "identityservicesd", "spindump", "reportcrash",
+        "corespotlightd", "suggestd", "parsecd", "photoanalysisd", "photolibraryd",
+        "mediaanalysisd", "mediaremoted", "symptomsd", "locationd", "sharingd",
+        "rapportd", "useractivityd", "universalaccessd", "airportd",
+        "dock", "finder", "systemuiserver", "controlcenter", "controlcenterhelper",
+        "notificationcenter", "spotlight", "loginwindow", "talagent", "windowmanager",
+        "wallpaper", "wallpaperagent", "dockhelper",
+    ]
+
+    private static func isSystemProcess(_ name: String) -> Bool {
+        systemProcessNames.contains(name.lowercased())
     }
 }
 

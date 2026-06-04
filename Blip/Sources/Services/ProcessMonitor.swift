@@ -58,10 +58,10 @@ final class ProcessMonitor: @unchecked Sendable {
         }
 
         let byCPUWithIcons = byCPU.map { p in
-            ProcessInfo(id: p.id, name: nameMap[p.id] ?? p.name, cpu: p.cpu, memory: p.memory, icon: iconMap[p.id] ?? nil)
+            ProcessInfo(id: p.id, name: nameMap[p.id] ?? p.name, cpu: p.cpu, memory: p.memory, icon: iconMap[p.id] ?? nil, isUserOwned: p.isUserOwned)
         }
         let byMemWithIcons = byMemory.map { p in
-            ProcessInfo(id: p.id, name: nameMap[p.id] ?? p.name, cpu: p.cpu, memory: p.memory, icon: iconMap[p.id] ?? nil)
+            ProcessInfo(id: p.id, name: nameMap[p.id] ?? p.name, cpu: p.cpu, memory: p.memory, icon: iconMap[p.id] ?? nil, isUserOwned: p.isUserOwned)
         }
 
         // Prune stale PIDs from the delta cache
@@ -139,12 +139,15 @@ final class ProcessMonitor: @unchecked Sendable {
             guard !name.isEmpty, (cpuPercent > 0.1 || memory > 1_048_576) else { continue }
 
             directPIDs.insert(pid)
-            results.append(ProcessInfo(id: pid, name: name, cpu: cpuPercent, memory: memory, icon: nil))
+            // proc_pidinfo(PROC_PIDTASKINFO) only succeeds for the caller's own
+            // processes (without root), so anything we read directly is user-owned.
+            results.append(ProcessInfo(id: pid, name: name, cpu: cpuPercent, memory: memory, icon: nil, isUserOwned: true))
         }
 
-        // Merge in system processes from ps that we couldn't read via proc_pidinfo
+        // Merge in system processes from ps that we couldn't read via proc_pidinfo —
+        // these are other users' / root / system processes (not user-space).
         for entry in psCPU where !directPIDs.contains(entry.pid) && entry.cpu > 0.5 {
-            results.append(ProcessInfo(id: entry.pid, name: entry.name, cpu: entry.cpu, memory: 0, icon: nil))
+            results.append(ProcessInfo(id: entry.pid, name: entry.name, cpu: entry.cpu, memory: 0, icon: nil, isUserOwned: false))
         }
 
         return results
