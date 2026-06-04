@@ -22,7 +22,8 @@ final class DiskMonitor: @unchecked Sendable {
 
         // Get mounted volume URLs
         guard let volumeURLs = fileManager.mountedVolumeURLs(
-            includingResourceValuesForKeys: [.volumeNameKey, .volumeTotalCapacityKey, .volumeAvailableCapacityForImportantUsageKey],
+            includingResourceValuesForKeys: [.volumeNameKey, .volumeTotalCapacityKey,
+                                             .volumeAvailableCapacityForImportantUsageKey, .volumeAvailableCapacityKey],
             options: [.skipHiddenVolumes]
         ) else {
             return stats
@@ -32,12 +33,20 @@ final class DiskMonitor: @unchecked Sendable {
             guard let resources = try? url.resourceValues(forKeys: [
                 .volumeNameKey,
                 .volumeTotalCapacityKey,
-                .volumeAvailableCapacityForImportantUsageKey
+                .volumeAvailableCapacityForImportantUsageKey,
+                .volumeAvailableCapacityKey
             ]) else { continue }
 
             let name = resources.volumeName ?? url.lastPathComponent
             let total = UInt64(resources.volumeTotalCapacity ?? 0)
-            let free = UInt64(resources.volumeAvailableCapacityForImportantUsage ?? 0)
+            // `…ForImportantUsage` is accurate for the APFS boot volume (it accounts for
+            // purgeable space) but returns 0 on external / non-APFS volumes (exFAT, etc.),
+            // which made every external drive read as 100% full. Fall back to the plain
+            // available capacity, then to statfs, so external drives report correctly.
+            let important = resources.volumeAvailableCapacityForImportantUsage ?? 0
+            let plain = Int64(resources.volumeAvailableCapacity ?? 0)
+            var free = UInt64(max(0, important > 0 ? important : plain))
+            if free == 0 { free = Self.statfsFreeBytes(url.path) }
 
             guard total > 0 else { continue }
 
@@ -84,6 +93,14 @@ final class DiskMonitor: @unchecked Sendable {
         #endif
 
         return stats
+    }
+
+    /// Free bytes via `statfs` — a reliable cross-filesystem fallback for volumes where
+    /// the URL capacity keys return 0 (e.g. external exFAT/FAT drives).
+    private static func statfsFreeBytes(_ path: String) -> UInt64 {
+        var s = statfs()
+        guard statfs(path, &s) == 0 else { return 0 }
+        return UInt64(s.f_bavail) * UInt64(s.f_bsize)
     }
 
     #if !APPSTORE
