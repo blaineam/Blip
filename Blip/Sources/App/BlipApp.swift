@@ -39,12 +39,26 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
     private var processListFrozen = false
 
     func applicationDidFinishLaunching(_ notification: Notification) {
-        // Screenshot automation: inject fictional demo data and render the
-        // requested scene as a standalone card window for capture — no menu-bar
-        // item, no real monitoring, no helper.
+        // Screenshot automation: inject fictional demo data, then run the REAL
+        // menu-bar UI (status item + popover) and pin the popover open so a
+        // full-screen capture shows the authentic menu-bar app. No real
+        // monitoring, no helper.
         if BlipScreenshotMode.isActive {
             monitor.loadDemoData()
-            setupScreenshotWindow()
+            setupStatusItem()
+            setupPopover()
+            setupDetailPanel()
+            popover.behavior = .applicationDefined   // don't auto-dismiss
+            NSApp.activate(ignoringOtherApps: true)
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.6) { [self] in
+                if let button = statusItem.button {
+                    popover.show(relativeTo: button.bounds, of: button, preferredEdge: .minY)
+                }
+                // Section scenes also reveal that detail panel beside the popover.
+                if let section = BlipScreenshotMode.section {
+                    showDetailPanel(for: section)
+                }
+            }
             return
         }
         setupStatusItem()
