@@ -428,7 +428,10 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
             return
         }
 
-        let hostingController = NSHostingController(rootView: OpenSpeedTestWebView())
+        let view = OpenSpeedTestWebView(onResult: { [weak self] down, up, _ in
+            self?.netSpeedTester.recordExternalResult(downMbps: down, upMbps: up)
+        })
+        let hostingController = NSHostingController(rootView: view)
         let window = NSWindow(contentViewController: hostingController)
         window.title = "Speed Test — OpenSpeedTest"
         window.styleMask = [.titled, .closable, .resizable, .miniaturizable]

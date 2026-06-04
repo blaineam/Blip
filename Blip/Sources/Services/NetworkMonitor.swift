@@ -104,6 +104,17 @@ final class SpeedTester: ObservableObject {
         liveMbps = 0
     }
 
+    /// Record a result obtained outside the native engine (e.g. scraped from the
+    /// OpenSpeedTest public web test) so it appears in the history/chart alongside
+    /// native runs.
+    func recordExternalResult(downMbps: Double, upMbps: Double?) {
+        let result = NetSpeedResult(downMbps: downMbps, upMbps: upMbps, timestamp: Date())
+        lastResult = result
+        history.append(result)
+        if history.count > maxHistory { history.removeFirst(history.count - maxHistory) }
+        if !isRunning { phase = .done }
+    }
+
     // MARK: - Automated interval runs
 
     /// When true, an interval test runs every `intervalMinutes`. Lives on the tester
