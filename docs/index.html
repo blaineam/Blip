@@ -736,17 +736,11 @@
                     </div>
                 </div>
 
-                <!-- Optimization "Suggestion" banner (bottom of popover, like the real app) -->
+                <!-- Optimization "Suggestion" banner — interactive: cycles through the
+                     same recommendation types the real rules engine surfaces. Filled
+                     by JS (#recBanner) so Dismiss advances to the next suggestion. -->
                 <div class="pop-divider"></div>
-                <div class="pop-suggestion" style="display:flex;gap:7px;align-items:flex-start;margin:6px;padding:8px;border-radius:8px;background:color-mix(in srgb, var(--accent-orange) 12%, transparent);">
-                    <svg viewBox="0 0 24 24" fill="var(--accent-orange)" style="width:16px;height:16px;flex:none;margin-top:1px"><path d="M12 2a7 7 0 0 0-4 12.7V17a1 1 0 0 0 1 1h6a1 1 0 0 0 1-1v-2.3A7 7 0 0 0 12 2z"/><rect x="9" y="19" width="6" height="2" rx="1"/></svg>
-                    <div style="flex:1;min-width:0">
-                        <div style="font-size:8px;font-weight:700;letter-spacing:.04em;color:var(--accent-orange)">SUGGESTION <span style="color:var(--demo-muted-text);font-weight:400">&middot; +1 more</span></div>
-                        <div style="font-size:11px;font-weight:600;margin-top:1px">Safari is using 82% CPU</div>
-                        <div style="font-size:9px;color:var(--demo-muted-text);margin-top:1px">Quitting or reloading its busiest tab could free the processor and lower temps.</div>
-                    </div>
-                    <svg viewBox="0 0 16 16" fill="none" stroke="var(--demo-muted-text)" stroke-width="1.6" stroke-linecap="round" style="width:9px;height:9px;flex:none;margin-top:2px"><path d="M3 3l10 10M13 3L3 13"/></svg>
-                </div>
+                <div id="recBanner" class="pop-suggestion"></div>
             </div>
 
             <!-- ── Detail Panels ── -->
@@ -2123,6 +2117,61 @@
             autoFeatureTimers.push(setTimeout(() => { if (diskExpand) diskExpand.setOpen(true); runDiskTest(); }, 500));
         }
     };
+})();
+</script>
+
+<!-- Interactive "Suggestion" banner — mirrors Blip's RecommendationsEngine rules. -->
+<script>
+(function () {
+  const el = document.getElementById('recBanner');
+  if (!el) return;
+  // severity → CSS accent var (matches the app: info=blue, warning=orange, critical=red)
+  const SEV = { info: 'var(--accent-blue)', warning: 'var(--accent-orange)', critical: 'var(--accent-red)' };
+  const ic = {
+    cpu: '<path d="M9 2v3M15 2v3M9 19v3M15 19v3M2 9h3M2 15h3M19 9h3M19 15h3"/><rect x="6" y="6" width="12" height="12" rx="2"/><rect x="9" y="9" width="6" height="6" rx="1"/>',
+    ssd: '<rect x="3" y="4" width="18" height="16" rx="2"/><path d="M7 8h10M7 12h10M7 16h6"/>',
+    therm: '<path d="M12 3a2.5 2.5 0 0 1 2.5 2.5v8.4a4.5 4.5 0 1 1-5 0V5.5A2.5 2.5 0 0 1 12 3z"/>',
+    mem: '<rect x="4" y="6" width="16" height="12" rx="2"/><path d="M8 6V3M12 6V3M16 6V3M8 21v-3M16 21v-3"/>',
+    batt: '<rect x="2" y="7" width="18" height="10" rx="2"/><path d="M22 10v4"/><rect x="4" y="9" width="5" height="6" rx="1" fill="currentColor"/>',
+  };
+  // The same condition families the rules engine produces, with stable copy.
+  const RECS = [
+    { sev: 'warning',  icon: 'cpu',   title: 'Safari is using 88% CPU',
+      detail: 'Quitting or restarting it would cut heat, fan noise, and battery drain.' },
+    { sev: 'critical', icon: 'mem',   title: 'Memory pressure is high',
+      detail: 'Close some apps or browser tabs — heavy swapping wears the SSD and slows things down.' },
+    { sev: 'warning',  icon: 'ssd',   title: 'Macintosh HD is at 14% life remaining',
+      detail: 'The SSD is wearing out — keep backups and plan a replacement.' },
+    { sev: 'critical', icon: 'therm', title: 'Your Mac is running hot (serious)',
+      detail: 'Reduce load, improve airflow, or move off soft surfaces to avoid throttling.' },
+    { sev: 'warning',  icon: 'ssd',   title: 'Startup disk is 93% full',
+      detail: 'Free up space — a nearly-full SSD slows down and has less room for wear-leveling.' },
+    { sev: 'info',     icon: 'batt',  title: 'Battery health is 78%',
+      detail: 'Capacity has dropped — a battery service would restore runtime.' },
+  ];
+  let i = 0, timer = null;
+  function render() {
+    const r = RECS[i], col = SEV[r.sev], more = RECS.length - 1;
+    el.style.cssText = 'display:flex;gap:7px;align-items:flex-start;margin:6px;padding:8px;border-radius:8px;cursor:default;'
+      + 'background:color-mix(in srgb,' + col + ' 12%, transparent);transition:background .25s';
+    el.innerHTML =
+      '<svg viewBox="0 0 24 24" fill="none" stroke="' + col + '" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" style="width:16px;height:16px;flex:none;margin-top:1px">' + ic[r.icon] + '</svg>'
+      + '<div style="flex:1;min-width:0">'
+      +   '<div style="font-size:8px;font-weight:700;letter-spacing:.04em;color:' + col + '">SUGGESTION'
+      +     '<span style="color:var(--demo-muted-text);font-weight:400">&middot; +' + more + ' more</span></div>'
+      +   '<div style="font-size:11px;font-weight:600;margin-top:1px">' + r.title + '</div>'
+      +   '<div style="font-size:9px;color:var(--demo-muted-text);margin-top:1px">' + r.detail + '</div>'
+      + '</div>'
+      + '<button aria-label="Dismiss suggestion" title="Dismiss" style="background:none;border:0;padding:2px;cursor:pointer;flex:none;margin-top:1px">'
+      +   '<svg viewBox="0 0 16 16" fill="none" stroke="var(--demo-muted-text)" stroke-width="1.6" stroke-linecap="round" style="width:9px;height:9px"><path d="M3 3l10 10M13 3L3 13"/></svg>'
+      + '</button>';
+    el.querySelector('button').onclick = next;
+  }
+  function next() { i = (i + 1) % RECS.length; render(); restart(); }
+  function restart() { clearInterval(timer); timer = setInterval(next, 4800); }
+  el.addEventListener('mouseenter', () => clearInterval(timer));
+  el.addEventListener('mouseleave', restart);
+  render(); restart();
 })();
 </script>
 
