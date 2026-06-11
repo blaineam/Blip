@@ -28,6 +28,11 @@ Top Processes — See the top 5 processes by CPU and memory with app icons and a
 System — Mac model name, macOS version, uptime, thermal state, and Blip's own memory footprint so you can verify it stays tiny.
 Some advanced metrics (disk I/O speeds, GPU utilization, battery health details, thermals, fan speeds, and top processes) require hardware-level access. Install the free Blip Helper companion app to unlock these features. Available at github.com/blaineam/blip.
 
+Test and automate:
+
+Speed tests built in — benchmark any mounted drive (each volume has its own one-click speed test button) with uncached sequential write/read plus random-read IOPS, and measure network throughput against OpenSpeedTest's public test or your own self-hosted server. Run a live traceroute (MTR) with per-hop loss and latency, mapped hop-by-hop.
+Shortcuts support — automate all of it. Get System Metric exposes 37 live metrics (CPU, memory, disk and drive health, GPU, network, battery, temperatures, fans, uptime) as chainable numbers for your own workflows. Run drive and network speed tests, run or stop a traceroute and get a summary, open the Traceroute Map, and read or change Blip's settings — straight from the Shortcuts app.
+
 Designed to stay out of your way:
 
 Two menu bar layouts: horizontal (wide side-by-side) or stacked (compact vertical bars)
@@ -49,10 +54,9 @@ system monitor,cpu usage,memory pressure,menu bar,activity monitor,gpu,battery h
 See your Mac's vitals at a glance. CPU, memory, disk, GPU, network, battery, fans, and thermals — all live in your menu bar. Tiny footprint. Zero dependencies.
 
 ## whats_new
-+ Adds speed tests for both internal and external disks as well as network speed tests too!
-+ Adds Traceroute feature with support for mapped routes to help you test and monitor spotty networks
-+ Adds recommended actions to keep your machine running smoothly that can be dismissed if desired. 
-* Fixes issue with total data transferred over the network being inaccurate
++ Shortcuts support! Eight actions for your own workflows: read any of 37 live system metrics as chainable numbers, run drive and network speed tests, run a traceroute and get a per-hop summary, open the Traceroute Map, and read or change Blip's settings
++ One-click per-volume speed tests — every volume in the Disk panel now has its own speed test button
+* Under the hood: a full unit test suite with a coverage gate, and zero build warnings
 
 ## marketing_url
 https://wemiller.com/apps/blip/

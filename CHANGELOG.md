@@ -1,9 +1,20 @@
 # Changelog
 
-## v1.5.0
+## v1.6.0
 
 ### Features
 - **Shortcuts (App Intents)** — Blip's monitoring and tools are now scriptable from the Shortcuts app (and Spotlight) via eight actions: **Get System Metric** (a dynamic, searchable catalog of 37 metrics across CPU, memory, disk + S.M.A.R.T., GPU, network, battery, temperatures/fans, and system — returns a chainable number, with optional average/min/max over Blip's in-memory ~2-minute history for the seven charted metrics), **Run Drive Speed Test** (pick any mounted volume — wired to the same per-volume benchmark as the Disk panel, results land in its history), **Run Network Speed Test** (OpenSpeedTest public or your self-hosted server, mirroring the panel's provider choice), **Run Traceroute** (samples the continuous MTR session for 3–120 s and returns a hop/loss/latency summary; optionally leaves the session running), **Stop Traceroute**, **Open Traceroute Map** (optionally pre-targeting a host), and **Get/Set Blip Setting** over a curated catalog (menu-bar toggles, layout, ping/traceroute targets, speed-test server — hosts and URLs validated; `launchAtLogin` deliberately excluded since flipping the default wouldn't re-register the login item; a structural secrets gate keeps anything sensitive out of Shortcuts). Zero-setup App Shortcut phrases included ("Run a drive speed test in Blip", …)
+- **Per-volume speed test** — each volume in the Disk panel has a gauge button that targets that drive and runs the benchmark in one click (sandbox-safe: the App Store build one-click-confirms access to external volumes)
+
+### Build & Tests
+- **Unit test suite from scratch** — new `BlipTests` target (79 hermetic tests, ~13 s, hosted by the direct app which skips all UI/monitor startup under XCTest): the full App Intents layer via mocked monitor/tester seams (metric catalog & mapping, entity queries, speed-test and traceroute parameter validation, settings get/set), plus the recommendations engine, history ring buffer, host validation, TOTP, helper IPC framing, and netstat parsing. Wired into the `Blip` scheme's test action and CI
+- **Coverage ratchet** — `Scripts/coverage-check.sh` gates app-logic line coverage (measured 87.85% at introduction, MIN 84%; explicit, documented exclusions for SwiftUI bodies, the app shell, and the hardware/network monitor internals) and runs before every local-CI archive via `PREBUILD_CMD`
+- **Zero warnings** — fixed the four pre-existing build warnings (two unused `fcntl` results in the disk benchmark, two `var`-never-mutated MMDB decoders); both app variants now compile warning-free
+- Debug builds disable the hardened runtime so the test bundle can be injected into the test host; Release/notarized builds keep it enabled
+
+## v1.5.0
+
+### Features
 - **Optimization recommendations** — a dismissable "Suggestion" banner at the top of the popover surfaces actionable advice to improve performance, health, and longevity: runaway-CPU apps, high memory pressure / heavy swap, thermal throttling, a nearly-full startup disk, S.M.A.R.T. warnings, low SSD life, and weak battery health. Highest-severity first; dismissed items stay hidden for 24h (or until the condition worsens)
 - **Traceroute map (fully on-device geolocation)** — the Traceroute/MTR section has a "Map" disclosure that geolocates each hop and plots the path on a MapKit map, revealing hops one-by-one so you can watch the route travel across the world. Geolocation is done **entirely on-device** from an **optional, user-downloaded database** — DB-IP IP-to-City Lite, free for commercial use under CC BY 4.0 — so **no IP addresses are ever sent to a third-party geolocation service**. Manage it in **Settings → Network → Location Database**: download, remove, update on demand, or enable **automatic monthly updates**. It's ~130 MB and ships with a tiny built-in MMDB reader, keeping Blip's zero-dependency footprint. If the database isn't installed the map shows a prompt and plots nothing
 - **Kill processes from the menu bar** — hover any row in the CPU/Memory top-process lists to reveal a kill control (two-click confirm; ⌥ for force/SIGKILL). In the sandboxed App Store build the request is routed through the helper over the TOTP-authenticated IPC channel; the direct build signals locally. The helper runs as you, so user-owned processes can be terminated and system/root processes fail gracefully with a clear message
@@ -20,19 +31,12 @@
   - **Self-hosted** runs the native multi-gig engine against your own server (Docker one-liner), with full interval auto-run; bytes are counted at the chunk level for accurate multi-gig results
 - **Speed-test history charts** (network and disk) now appear from the very first result, with point marks so each individual run is visible — not just after two or more runs
 - **External-drive S.M.A.R.T.** — drive health now also reads external SATA/USB SSDs via the ATA/SAT SMART user client (overall pass/fail is reliable; life%/temperature/power-on hours are shown when the USB bridge reports them). Works in-process in the direct build and via the helper in the App Store build. External drives whose USB/Thunderbolt bridge can't pass through wear details (notably NVMe-in-USB enclosures — macOS provides no NVMe-over-USB SMART passthrough at all) now show just the Verified/Failing verdict, with no empty placeholder card
-- **Per-volume speed test** — each volume in the Disk panel has a gauge button that targets that drive and runs the benchmark in one click (sandbox-safe: the App Store build one-click-confirms access to external volumes)
 - **Network speed-test chart** shows both upload and download series (like the disk read/write chart)
 - **Interval-run guards** — automated interval speed tests are skipped on metered/expensive/constrained networks, and disk benchmarks are skipped for drives reporting under 30% health. Manual runs are never blocked
 - **Traceroute & speed-test targets** moved to Settings → Network (and the disk test's location picker cleaned up)
 - **Helper update prompt** — the helper now reports its version in each snapshot, and Settings → Blip Helper shows an amber "Update available" status with an update link when the connected helper is older than the app (or predates version reporting). Prevents silent version skew where an old helper can't service newer commands
 - **Drive S.M.A.R.T. health now shows in the direct build** — NVMe health (SSD life remaining, temperature, TBW, power-on hours, …) is read in-process for the unsandboxed build instead of only via the helper, so the direct download shows it without a helper installed
 - **Network totals match Activity Monitor** — cumulative up/down now report the kernel's true since-boot 64-bit counters (via `netstat -ib`, cached) instead of session-only accumulation, fixing figures that read orders of magnitude low. The sandboxed build gets them from the helper
-
-### Build & Tests
-- **Unit test suite from scratch** — new `BlipTests` target (79 hermetic tests, ~13 s, hosted by the direct app which skips all UI/monitor startup under XCTest): the full App Intents layer via mocked monitor/tester seams (metric catalog & mapping, entity queries, speed-test and traceroute parameter validation, settings get/set), plus the recommendations engine, history ring buffer, host validation, TOTP, helper IPC framing, and netstat parsing. Wired into the `Blip` scheme's test action and CI
-- **Coverage ratchet** — `Scripts/coverage-check.sh` gates app-logic line coverage (measured 87.85% at introduction, MIN 84%; explicit, documented exclusions for SwiftUI bodies, the app shell, and the hardware/network monitor internals) and runs before every local-CI archive via `PREBUILD_CMD`
-- **Zero warnings** — fixed the four pre-existing build warnings (two unused `fcntl` results in the disk benchmark, two `var`-never-mutated MMDB decoders); both app variants now compile warning-free
-- Debug builds disable the hardened runtime so the test bundle can be injected into the test host; Release/notarized builds keep it enabled
 
 ### Notes
 - All features ship in **both** the free direct-download build and the App Store build — Blip stays fully open-source and free; the App Store copy is a way to support development.
