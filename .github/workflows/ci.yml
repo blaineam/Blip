@@ -25,6 +25,16 @@ jobs:
       - name: Generate Xcode Project
         run: xcodegen generate
 
+      # Hermetic unit suite (BlipTests). Ad-hoc signing (project default) is
+      # required here: the test bundle is injected into the Blip test host,
+      # which Debug builds with hardened runtime disabled for exactly this.
+      - name: Unit Tests (BlipTests)
+        run: |
+          xcodebuild test -scheme Blip \
+            -destination 'platform=macOS,arch=arm64' \
+            -derivedDataPath .build/DerivedData-tests \
+            -quiet
+
       - name: Build (Direct Distribution - Debug)
         run: |
           xcodebuild -scheme Blip -configuration Debug \

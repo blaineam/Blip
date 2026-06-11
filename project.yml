@@ -33,8 +33,30 @@ targets:
         ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
         GENERATE_INFOPLIST_FILE: NO
         COMBINE_HIDPI_IMAGES: YES
+      configs:
+        # Hardened runtime stays ON for Release (notarization requires it) but
+        # OFF for Debug so the unit-test bundle can be injected into the test
+        # host (library validation rejects an ad-hoc-signed test bundle).
+        Debug:
+          ENABLE_HARDENED_RUNTIME: NO
     frameworks:
       - sdk: IOKit.framework
+
+  # ---------- Unit Tests (hosted by the direct app) ----------
+  BlipTests:
+    type: bundle.unit-test
+    platform: macOS
+    sources:
+      - path: BlipTests
+    dependencies:
+      - target: Blip
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.blainemiller.BlipTests
+        TEST_HOST: "$(BUILT_PRODUCTS_DIR)/Blip.app/Contents/MacOS/Blip"
+        BUNDLE_LOADER: "$(TEST_HOST)"
+        GENERATE_INFOPLIST_FILE: YES
+        ENABLE_HARDENED_RUNTIME: NO
 
   # ---------- Main App (Mac App Store) ----------
   BlipAppStore:
@@ -101,8 +123,14 @@ schemes:
     build:
       targets:
         Blip: all
+        BlipTests: [test]
     run:
       config: Debug
+    test:
+      config: Debug
+      gatherCoverageData: true
+      targets:
+        - BlipTests
 
   BlipAppStore:
     build:
