@@ -18,6 +18,13 @@ set -euo pipefail
 
 cd "${0:A:h}/.."
 
+# Coverage gate: the hermetic BlipTests suite must pass (and stay above the
+# coverage ratchet) before anything is archived for App Store Connect.
+# Skip with SKIP_COVERAGE_GATE=1 only for emergency re-uploads.
+if [[ "${SKIP_COVERAGE_GATE:-0}" != "1" ]]; then
+  ./Scripts/coverage-check.sh
+fi
+
 TEAM_ID="8ZVSPZYSVF"
 SCHEME="BlipAppStore"
 KEY_ID="${ASC_API_KEY_ID:?set ASC_API_KEY_ID}"
