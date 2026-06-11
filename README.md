@@ -39,6 +39,7 @@ Plus:
 - **Two layouts** — horizontal (default, wide side-by-side) or stacked (compact vertical bars)
 - **Customizable** — category colors, monochrome, or custom color picker; separate measurement and value label toggles; optional utilization colorization
 - **Launch at login** — one toggle in settings
+- **Shortcuts support (App Intents)** — automate Blip from the Shortcuts app: **Get System Metric** (37 metrics, chainable numeric results, optional 2-minute average/min/max for charted metrics), **Run Drive Speed Test** on any mounted volume, **Run Network Speed Test** (public or self-hosted OpenSpeedTest), **Run/Stop Traceroute** with an MTR summary, **Open Traceroute Map**, and **Get/Set Setting** over a curated, validated settings catalog
 
 ## 📦 Install
 
@@ -74,6 +75,15 @@ xcodebuild -scheme Blip -configuration Release -arch arm64
 ```
 
 The app lands in `.build/DerivedData/Build/Products/Release/Blip.app`.
+
+### Run the Tests
+
+```bash
+xcodebuild test -scheme Blip -destination 'platform=macOS,arch=arm64'
+
+# Or with the coverage ratchet (fails below the gated minimum):
+./Scripts/coverage-check.sh
+```
 
 ### Build DMG Locally
 
@@ -127,6 +137,8 @@ Blip/
 │   │   │   ├── FanMonitor.swift         # SMC fan keys
 │   │   │   ├── ProcessMonitor.swift     # proc_pidinfo + proc_pid_rusage
 │   │   │   └── SMCKit.swift             # IOKit SMC interface
+│   │   ├── Intents/                     # App Intents (Shortcuts): metrics,
+│   │   │                                #   speed tests, traceroute, settings
 │   │   └── Views/
 │   │       ├── StatusItemView.swift     # Menu bar layout (stacked/horizontal)
 │   │       ├── PopoverView.swift        # Main overview + detail routing
@@ -137,8 +149,10 @@ Blip/
 │       ├── Assets.xcassets
 │       ├── Info.plist
 │       └── Blip.entitlements
+├── BlipTests/                           # Hermetic unit tests (intents, models)
 ├── Scripts/
 │   ├── build-dmg.sh                     # Local build + package
+│   ├── coverage-check.sh                # App-logic coverage ratchet (xccov)
 │   └── generate-assets.swift            # App icon generator
 ├── .github/workflows/
 │   ├── ci.yml                           # PR build + QA checks
