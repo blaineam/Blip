@@ -646,15 +646,45 @@ final class DiskSpeedTester: ObservableObject {
         isRunning ? cancel() : start()
     }
 
+    /// Targets a specific mounted volume and immediately benchmarks it. Used by the
+    /// per-volume "speed test" buttons in the disk panel so one click picks the drive
+    /// and runs the test.
+    func runOn(mountPoint: String, label: String) {
+        guard !isRunning else { return }
+        if mountPoint == "/" {
+            useBootVolume()
+            start()
+            return
+        }
+        let url = URL(fileURLWithPath: mountPoint, isDirectory: true)
+        #if APPSTORE
+        // Sandboxed builds can't write to an external volume without user-granted
+        // access, so pre-point the open panel at the volume — one click to confirm.
+        chooseLocation(startingAt: url)
+        if bookmarkData != nil { start() }
+        #else
+        do {
+            let data = try url.bookmarkData(options: [], includingResourceValuesForKeys: nil, relativeTo: nil)
+            bookmarkData = data
+            locationLabel = label
+            lastError = nil
+            start()
+        } catch {
+            lastError = "Couldn't target \(label)"
+        }
+        #endif
+    }
+
     /// Prompts the user to pick a folder on the volume to benchmark, persisting a
     /// (security-scoped) bookmark so the choice survives relaunch and works sandboxed.
-    func chooseLocation() {
+    func chooseLocation(startingAt: URL? = nil) {
         let panel = NSOpenPanel()
         panel.canChooseDirectories = true
         panel.canChooseFiles = false
         panel.allowsMultipleSelection = false
         panel.prompt = "Choose"
         panel.message = "Pick a writable folder on the drive you want to benchmark."
+        if let startingAt { panel.directoryURL = startingAt }
         // This is an accessory (menu-bar) app — bring it forward so the panel takes focus.
         NSApp.activate(ignoringOtherApps: true)
         panel.level = .modalPanel

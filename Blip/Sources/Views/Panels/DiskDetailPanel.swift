@@ -104,6 +104,17 @@ struct DiskDetailPanel: View {
                         Text(volume.name)
                             .font(.system(size: 11, weight: .medium))
                         Spacer()
+                        Button {
+                            speedTester.runOn(mountPoint: volume.mountPoint, label: volume.name)
+                            withAnimation(.easeInOut(duration: 0.15)) { speedTestExpanded = true }
+                        } label: {
+                            Image(systemName: "gauge.with.dots.needle.67percent")
+                                .font(.system(size: 10))
+                                .foregroundStyle(.orange)
+                        }
+                        .buttonStyle(.borderless)
+                        .disabled(speedTester.isRunning)
+                        .help("Run a speed test on \(volume.name)")
                         Text(Fmt.percent(volume.usagePercent))
                             .font(.system(size: 11, design: .monospaced))
                             .foregroundStyle(.secondary)
@@ -216,16 +227,10 @@ struct DiskDetailPanel: View {
                 }
             }
 
-            // NVMe-over-USB / USB-SATA bridges typically pass through only the overall
-            // pass/fail verdict, not the underlying drive's wear/temperature attributes
-            // — say so rather than show an empty card. (Verified via deep IOKit probing:
-            // the bridge returns a valid status but no real attribute table.)
-            if drive.lifeRemaining == nil && cells.isEmpty {
-                Text("Overall status only — this drive's USB bridge doesn't pass through wear/temperature details. The Verified/Failing verdict is reliable.")
-                    .font(.system(size: 9))
-                    .foregroundStyle(.tertiary)
-                    .fixedSize(horizontal: false, vertical: true)
-            }
+            // External USB/Thunderbolt enclosures (especially NVMe-over-USB) don't pass
+            // through wear/temperature/power-on attributes on macOS — the OS provides no
+            // raw-USB SMART passthrough. So for those drives we deliberately show nothing
+            // beyond the Verified/Failing verdict rather than an empty or misleading card.
 
             if !drive.isHealthy {
                 HStack(spacing: 3) {

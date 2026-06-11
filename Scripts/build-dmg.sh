@@ -41,7 +41,7 @@ find "$PROJECT_DIR" -not -path "$PROJECT_DIR/.git/*" -not -path "$PROJECT_DIR/.b
 
 # 4. Build
 echo "→ Building release..."
-xcodebuild -scheme Blip -configuration Release \
+xcodebuild -project Blip.xcodeproj -scheme Blip -configuration Release \
     -derivedDataPath "$BUILD_DIR/DerivedData" \
     -arch arm64 \
     CODE_SIGN_IDENTITY="" \
