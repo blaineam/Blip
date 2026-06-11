@@ -72,6 +72,9 @@ final class SystemMonitor: ObservableObject {
     }()
 
     private var pollTask: Task<Void, Never>?
+    /// True once at least one full poll has populated `snapshot`. App Intents
+    /// wait on this so a Shortcut that launches the app doesn't read zeros.
+    private(set) var hasSampled = false
     private var diskPollCount = 0
     private var cachedModelName: String?
     @AppStorage("pingTarget") private var pingTarget: String = "1.1.1.1"
@@ -161,6 +164,16 @@ final class SystemMonitor: ObservableObject {
     /// Local traceroute runner used by the unsandboxed build when no helper is present.
     private let localTrace = LocalTraceRunner()
     #endif
+
+    /// Waits (up to ~5 s) for the first poll to complete so intent reads see real
+    /// data when a Shortcut launches the app cold. No-op once a sample exists.
+    func ensureFreshSample() async {
+        guard !hasSampled else { return }
+        for _ in 0..<50 {
+            try? await Task.sleep(for: .milliseconds(100))
+            if hasSampled { return }
+        }
+    }
 
     private func poll() async {
         // Pass user's ping target preference to network monitor
@@ -311,6 +324,7 @@ final class SystemMonitor: ObservableObject {
         newSnapshot.timestamp = Date()
 
         snapshot = newSnapshot
+        hasSampled = true
         recommendations = RecommendationsEngine.analyze(newSnapshot).filter { !isDismissed($0.id) }
         cpuHistory.append(cpu.totalUsage)
         memoryHistory.append(memory.usagePercent)
@@ -508,10 +522,7 @@ final class LocalTraceRunner: @unchecked Sendable {
     }
 
     static func isValidHost(_ host: String) -> Bool {
-        guard !host.isEmpty, host.count <= 253 else { return false }
-        let allowed = CharacterSet(charactersIn:
-            "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789.-:")
-        return host.unicodeScalars.allSatisfy { allowed.contains($0) }
+        HostValidation.isValid(host)
     }
 
     func start(host: String) {

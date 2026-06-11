@@ -18,53 +18,7 @@ final class DiskMonitor: @unchecked Sendable {
 
     func read() -> DiskStats {
         var stats = DiskStats()
-        let fileManager = FileManager.default
-
-        // Get mounted volume URLs
-        guard let volumeURLs = fileManager.mountedVolumeURLs(
-            includingResourceValuesForKeys: [.volumeNameKey, .volumeTotalCapacityKey,
-                                             .volumeAvailableCapacityForImportantUsageKey, .volumeAvailableCapacityKey],
-            options: [.skipHiddenVolumes]
-        ) else {
-            return stats
-        }
-
-        for url in volumeURLs {
-            guard let resources = try? url.resourceValues(forKeys: [
-                .volumeNameKey,
-                .volumeTotalCapacityKey,
-                .volumeAvailableCapacityForImportantUsageKey,
-                .volumeAvailableCapacityKey
-            ]) else { continue }
-
-            let name = resources.volumeName ?? url.lastPathComponent
-            let total = UInt64(resources.volumeTotalCapacity ?? 0)
-            // `…ForImportantUsage` is accurate for the APFS boot volume (it accounts for
-            // purgeable space) but returns 0 on external / non-APFS volumes (exFAT, etc.),
-            // which made every external drive read as 100% full. Fall back to the plain
-            // available capacity, then to statfs, so external drives report correctly.
-            let important = resources.volumeAvailableCapacityForImportantUsage ?? 0
-            let plain = Int64(resources.volumeAvailableCapacity ?? 0)
-            var free = UInt64(max(0, important > 0 ? important : plain))
-            if free == 0 { free = Self.statfsFreeBytes(url.path) }
-
-            guard total > 0 else { continue }
-
-            let volume = VolumeInfo(
-                name: name,
-                mountPoint: url.path,
-                totalBytes: total,
-                freeBytes: free
-            )
-            stats.volumes.append(volume)
-        }
-
-        // Sort: root volume first, then alphabetically
-        stats.volumes.sort { a, b in
-            if a.mountPoint == "/" { return true }
-            if b.mountPoint == "/" { return false }
-            return a.name < b.name
-        }
+        stats.volumes = Self.readVolumes()
 
         #if !APPSTORE
         // Read disk I/O from IOKit (undocumented IOBlockStorageDriver properties)
@@ -93,6 +47,59 @@ final class DiskMonitor: @unchecked Sendable {
         #endif
 
         return stats
+    }
+
+    /// Enumerates mounted, visible volumes with name / capacity / free space.
+    /// Static so the App Intents layer (VolumeEntity query) can reuse it without
+    /// spinning up a full DiskMonitor. Root volume first, then alphabetical.
+    static func readVolumes() -> [VolumeInfo] {
+        var volumes: [VolumeInfo] = []
+        let fileManager = FileManager.default
+
+        guard let volumeURLs = fileManager.mountedVolumeURLs(
+            includingResourceValuesForKeys: [.volumeNameKey, .volumeTotalCapacityKey,
+                                             .volumeAvailableCapacityForImportantUsageKey, .volumeAvailableCapacityKey],
+            options: [.skipHiddenVolumes]
+        ) else {
+            return volumes
+        }
+
+        for url in volumeURLs {
+            guard let resources = try? url.resourceValues(forKeys: [
+                .volumeNameKey,
+                .volumeTotalCapacityKey,
+                .volumeAvailableCapacityForImportantUsageKey,
+                .volumeAvailableCapacityKey
+            ]) else { continue }
+
+            let name = resources.volumeName ?? url.lastPathComponent
+            let total = UInt64(resources.volumeTotalCapacity ?? 0)
+            // `…ForImportantUsage` is accurate for the APFS boot volume (it accounts for
+            // purgeable space) but returns 0 on external / non-APFS volumes (exFAT, etc.),
+            // which made every external drive read as 100% full. Fall back to the plain
+            // available capacity, then to statfs, so external drives report correctly.
+            let important = resources.volumeAvailableCapacityForImportantUsage ?? 0
+            let plain = Int64(resources.volumeAvailableCapacity ?? 0)
+            var free = UInt64(max(0, important > 0 ? important : plain))
+            if free == 0 { free = Self.statfsFreeBytes(url.path) }
+
+            guard total > 0 else { continue }
+
+            volumes.append(VolumeInfo(
+                name: name,
+                mountPoint: url.path,
+                totalBytes: total,
+                freeBytes: free
+            ))
+        }
+
+        // Sort: root volume first, then alphabetically
+        volumes.sort { a, b in
+            if a.mountPoint == "/" { return true }
+            if b.mountPoint == "/" { return false }
+            return a.name < b.name
+        }
+        return volumes
     }
 
     /// Free bytes via `statfs` — a reliable cross-filesystem fallback for volumes where
@@ -499,7 +506,7 @@ enum DiskBenchmark {
         // MARK: Write pass
         let writeFD = open(path, O_CREAT | O_WRONLY | O_TRUNC, 0o600)
         guard writeFD >= 0 else { throw posixError() }
-        fcntl(writeFD, F_NOCACHE, 1)
+        _ = fcntl(writeFD, F_NOCACHE, 1)
 
         var written = 0
         let writeStart = Date()
@@ -523,7 +530,7 @@ enum DiskBenchmark {
         // MARK: Read pass (re-open uncached)
         let readFD = open(path, O_RDONLY)
         guard readFD >= 0 else { throw posixError() }
-        fcntl(readFD, F_NOCACHE, 1)
+        _ = fcntl(readFD, F_NOCACHE, 1)
 
         var readBuffer = [UInt8](repeating: 0, count: blockSize)
         var readTotal = 0
@@ -796,6 +803,16 @@ final class DiskSpeedTester: ObservableObject {
         isRunning = false
         phase = .idle
         progress = 0
+    }
+
+    /// Records an externally-run benchmark result (e.g. from the RunDriveSpeedTest
+    /// App Intent) into the tester's result/history so the Disk panel reflects it.
+    func record(_ result: DiskSpeedResult) {
+        lastResult = result
+        history.append(result)
+        if history.count > Self.maxHistory {
+            history.removeFirst(history.count - Self.maxHistory)
+        }
     }
 
     /// Health % of the drive being tested (set by the UI). Below 30% the *automated*

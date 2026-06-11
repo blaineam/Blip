@@ -39,6 +39,19 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
     private var processListFrozen = false
 
     func applicationDidFinishLaunching(_ notification: Notification) {
+        // Unit tests host this app: skip the menu-bar UI, monitors, and timers
+        // entirely so tests stay deterministic and fast. Tests install their
+        // own mocked seams via AppIntentsEnvironment.
+        if Foundation.ProcessInfo.processInfo.environment["XCTestConfigurationFilePath"] != nil
+            || Foundation.ProcessInfo.processInfo.environment["XCTestSessionIdentifier"] != nil {
+            return
+        }
+
+        // Make the live services available to App Intents (Shortcuts) in every
+        // mode — installed first so an intent arriving right after a cold
+        // Shortcut-triggered launch finds them.
+        installAppIntentServices()
+
         // Screenshot automation: inject fictional demo data, then run the REAL
         // menu-bar UI (status item + popover) and pin the popover open so a
         // full-screen capture shows the authentic menu-bar app. No real
@@ -86,6 +99,32 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
         // If the optional traceroute-map database is installed and auto-update is on,
         // quietly check (throttled to once a day) for a newer monthly DB-IP release.
         GeoIPDatabase.shared.runAutoUpdateCheck()
+    }
+
+    /// Installs the real monitor/testers behind the App Intents seams so
+    /// Shortcuts actions read live data and share results with the panels.
+    private func installAppIntentServices() {
+        AppIntentsEnvironment.metricSource = monitor
+        AppIntentsEnvironment.tracerouteControl = TracerouteControl(
+            start: { [monitor] host in await monitor.startTraceroute(host: host) },
+            stop: { [monitor] in await monitor.stopTraceroute() },
+            poll: { [monitor] in await monitor.tracerouteHops() }
+        )
+        AppIntentsEnvironment.openTracerouteWindow = { [weak self] host in
+            if let host { UserDefaults.standard.set(host, forKey: "tracerouteTarget") }
+            self?.openTracerouteWindow()
+        }
+        AppIntentsEnvironment.networkSpeedRunner = { [netSpeedTester] server in
+            try await netSpeedTester.runOnce(server: server)
+        }
+        AppIntentsEnvironment.diskSpeedRunner = { [diskSpeedTester] size, mountPoint in
+            guard !diskSpeedTester.isRunning else {
+                throw SpeedTestRunFailure(message: "A disk speed test is already running.")
+            }
+            let result = try await IntentDiskSpeedRunner.run(size: size, mountPoint: mountPoint)
+            diskSpeedTester.record(result)
+            return result
+        }
     }
 
     /// Renders the requested scene (overview popover or a section detail panel)

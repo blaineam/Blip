@@ -46,7 +46,7 @@ struct MMDBReader: @unchecked Sendable {
         let metaStart = markerStart + marker.count - data.startIndex
 
         // Decode the metadata map. Its pointers/offsets are relative to metaStart.
-        var decoder = Decoder(data: data, base: data.startIndex, sectionStart: metaStart)
+        let decoder = Decoder(data: data, base: data.startIndex, sectionStart: metaStart)
         let meta = decoder.decode(at: 0).value
         guard case let .map(m) = meta,
               case let .uint(nc)? = m["node_count"],
@@ -103,7 +103,7 @@ struct MMDBReader: @unchecked Sendable {
         // node == nodeCount → empty (no data). node > nodeCount → data pointer.
         guard node > nodeCount else { return nil }
         let dataOffset = node - nodeCount - 16
-        var decoder = Decoder(data: data, base: base, sectionStart: dataSectionStart)
+        let decoder = Decoder(data: data, base: base, sectionStart: dataSectionStart)
         let record = decoder.decode(at: dataOffset).value
 
         guard case let .map(m) = record else { return nil }

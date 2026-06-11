@@ -117,6 +117,32 @@ final class SpeedTester: ObservableObject {
         liveMbps = 0
     }
 
+    /// Runs a single test against `server` and awaits the result. Used by the
+    /// RunNetworkSpeedTest App Intent; the result also lands in `lastResult`/
+    /// `history` so the Network panel reflects intent-triggered runs.
+    func runOnce(server: SpeedTestServer, timeout: TimeInterval = 180) async throws -> NetSpeedResult {
+        guard !isRunning else { throw SpeedTestRunFailure(message: "A network speed test is already running.") }
+        self.server = server
+        start()
+        let deadline = Date().addingTimeInterval(timeout)
+        while isRunning {
+            if Date() > deadline {
+                cancel()
+                throw SpeedTestRunFailure(message: "The speed test timed out.")
+            }
+            try await Task.sleep(nanoseconds: 250_000_000)
+        }
+        switch phase {
+        case .done:
+            if let result = lastResult { return result }
+            throw SpeedTestRunFailure(message: "The speed test produced no result.")
+        case .failed(let message):
+            throw SpeedTestRunFailure(message: message)
+        default:
+            throw SpeedTestRunFailure(message: "The speed test was cancelled.")
+        }
+    }
+
     /// Active headless runner for the OpenSpeedTest public widget (when that server is used).
     private var publicRunner: OpenSpeedTestWidgetRunner?
 
@@ -328,6 +354,9 @@ final class SpeedTester: ObservableObject {
 /// Raised when the speed-test server returns an HTTP error status (e.g. 429/403),
 /// so the UI can show a precise, actionable message instead of a generic failure.
 private struct SpeedTestHTTPError: Error { let status: Int }
+
+/// Thrown by `SpeedTester.runOnce` with a user-presentable message.
+struct SpeedTestRunFailure: Error { let message: String }
 
 /// A resolved speed-test endpoint. Sendable so the background runner can mint a
 /// fresh URL per request without touching the main actor.
