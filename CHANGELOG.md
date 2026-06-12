@@ -1,5 +1,9 @@
 # Changelog
 
+## v1.6.1
+
+- **App Store screenshot refresh** — replaces the 1.6.0 listing's screenshot #2, which shipped with a stray notification banner visible behind the CPU popover (approved listings are immutable, so the corrected, uniform 5-scene set rides this release). No functional changes from 1.6.0 build 53.
+
 ## v1.6.0
 
 ### Features
