@@ -181,12 +181,37 @@ final class TracerouteIntentTests: XCTestCase {
 
     func testOpenWindowPreTargetsHost() async throws {
         var opened: String??
+        var started: String?
         AppIntentsEnvironment.openTracerouteWindow = { host in opened = host }
+        AppIntentsEnvironment.tracerouteControl = TracerouteControl(
+            start: { host in started = host },
+            stop: {},
+            poll: { ([], true) }
+        )
 
         let intent = OpenTracerouteWindowIntent()
         intent.host = " example.com "
         _ = try await intent.perform()
         XCTAssertEqual(opened, "example.com")
+        XCTAssertEqual(started, "example.com")
+    }
+
+    /// QA build 52: the map opened but sat idle on "Enter a host and press
+    /// Start." Opening with a host must auto-START the trace, and it must be
+    /// running BEFORE the window opens so the first poll already sees it live.
+    func testOpenWindowAutoStartsTraceBeforeOpening() async throws {
+        var events: [String] = []
+        AppIntentsEnvironment.openTracerouteWindow = { host in events.append("open:\(host ?? "-")") }
+        AppIntentsEnvironment.tracerouteControl = TracerouteControl(
+            start: { host in events.append("start:\(host)") },
+            stop: { events.append("stop") },
+            poll: { ([], true) }
+        )
+
+        let intent = OpenTracerouteWindowIntent()
+        intent.host = "1.1.1.1"
+        _ = try await intent.perform()
+        XCTAssertEqual(events, ["start:1.1.1.1", "open:1.1.1.1"])
     }
 
     func testOpenWindowWithoutHost() async throws {
@@ -196,6 +221,12 @@ final class TracerouteIntentTests: XCTestCase {
             openCalls += 1
             lastHost = host
         }
+        // No host → just open: the MTR session must NOT be touched.
+        AppIntentsEnvironment.tracerouteControl = TracerouteControl(
+            start: { _ in XCTFail("must not auto-start without a host") },
+            stop: { XCTFail("must not stop without a host") },
+            poll: { ([], false) }
+        )
         let intent = OpenTracerouteWindowIntent()
         intent.host = nil
         _ = try await intent.perform()
@@ -203,8 +234,28 @@ final class TracerouteIntentTests: XCTestCase {
         XCTAssertNil(lastHost)
     }
 
+    func testOpenWindowWithHostRequiresTracerouteControl() async {
+        AppIntentsEnvironment.openTracerouteWindow = { _ in XCTFail("must not open when the trace can't start") }
+        AppIntentsEnvironment.tracerouteControl = nil
+        let intent = OpenTracerouteWindowIntent()
+        intent.host = "1.1.1.1"
+        do {
+            _ = try await intent.perform()
+            XCTFail("expected appNotReady")
+        } catch let error as BlipIntentError {
+            guard case .appNotReady = error else { return XCTFail("wrong error: \(error)") }
+        } catch {
+            XCTFail("wrong error type: \(error)")
+        }
+    }
+
     func testOpenWindowRejectsInvalidHost() async {
         AppIntentsEnvironment.openTracerouteWindow = { _ in XCTFail("must not open with invalid host") }
+        AppIntentsEnvironment.tracerouteControl = TracerouteControl(
+            start: { _ in XCTFail("must not start with invalid host") },
+            stop: {},
+            poll: { ([], false) }
+        )
         let intent = OpenTracerouteWindowIntent()
         intent.host = "nope nope"
         do {

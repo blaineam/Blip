@@ -115,7 +115,7 @@ struct StopTracerouteIntent: AppIntent {
 struct OpenTracerouteWindowIntent: AppIntent {
     static let title: LocalizedStringResource = "Open Traceroute Map"
     static let description = IntentDescription(
-        "Opens Blip's Traceroute Map window, optionally pre-targeting a host.",
+        "Opens Blip's Traceroute Map window. When a host is given, the trace starts automatically so the map opens live.",
         categoryName: "Network"
     )
 
@@ -135,6 +135,13 @@ struct OpenTracerouteWindowIntent: AppIntent {
         if let h = host?.trimmingCharacters(in: .whitespaces), !h.isEmpty {
             guard HostValidation.isValid(h) else { throw BlipIntentError.invalidHost(h) }
             target = h
+        }
+        // With a host, auto-START the trace (through the same MTR session the
+        // panels poll) before opening — the map must come up live, not sit on
+        // "Enter a host and press Start." Without a host, just open the window.
+        if let target {
+            guard let control = AppIntentsEnvironment.tracerouteControl else { throw BlipIntentError.appNotReady }
+            await control.start(target)
         }
         open(target)
         return .result()

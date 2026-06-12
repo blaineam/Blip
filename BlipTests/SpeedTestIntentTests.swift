@@ -225,6 +225,48 @@ final class SpeedTestIntentTests: XCTestCase {
                        "OpenSpeedTest (public): down 250.0 Mbps")
     }
 
+    // MARK: SpeedTester.runOnce waits for the run (QA build 52)
+    //
+    // The shortcut "ran but didn't wait for the results, no matter which
+    // server": runOnce polled `isRunning`, which read the PREVIOUS run's stale
+    // phase before the freshly spawned task had set one — so it returned
+    // immediately (stale result / "cancelled" error) while the real test kept
+    // running in the background.
+
+    /// `start()` must flip `isRunning` synchronously — before the caller ever
+    /// suspends — so `runOnce` (and the panel) can never observe a stale phase.
+    func testSpeedTesterStartMarksRunningSynchronously() {
+        let tester = SpeedTester()
+        tester.server = .openSpeedTest(baseURL: "http://127.0.0.1:9")
+        tester.start()
+        XCTAssertTrue(tester.isRunning, "start() must mark the tester running before any suspension")
+        tester.cancel()
+        XCTAssertFalse(tester.isRunning)
+    }
+
+    /// End-to-end on a guaranteed-unreachable loopback server (port 9, nothing
+    /// listening — instant connection refusal, no external network): runOnce
+    /// must wait for the run's REAL outcome instead of returning early with
+    /// the pre-fix "The speed test was cancelled." stale-phase error.
+    func testSpeedTesterRunOnceWaitsForRunOutcome() async {
+        let tester = SpeedTester()
+        tester.phaseDuration = 0.4   // keep the failing run fast + deterministic
+        tester.warmup = 0.05
+        do {
+            _ = try await tester.runOnce(server: .openSpeedTest(baseURL: "http://127.0.0.1:9"), timeout: 10)
+            XCTFail("expected the unreachable server to fail the run")
+        } catch let error as SpeedTestRunFailure {
+            XCTAssertNotEqual(error.message, "The speed test was cancelled.",
+                              "runOnce returned before the run finished — the stale-phase race is back")
+        } catch {
+            XCTFail("wrong error type: \(error)")
+        }
+        guard case .failed = tester.phase else {
+            return XCTFail("runOnce must only return after the run records its outcome (phase: \(tester.phase))")
+        }
+        XCTAssertFalse(tester.isRunning)
+    }
+
     // MARK: DiskSpeedTester recording
 
     func testDiskSpeedTesterRecordKeepsBoundedHistory() {

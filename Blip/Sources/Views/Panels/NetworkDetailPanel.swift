@@ -1187,8 +1187,12 @@ struct TracerouteWindowView: View {
                 let snap = await poll()
                 running = snap.running
                 hops = snap.hops
-                if snap.running { schedulePoll() }
             }
+            // Poll for as long as the window is visible — not only when THIS view
+            // started the trace. A session started externally (e.g. the "Open
+            // Traceroute Map" Shortcut auto-starting its host while the window is
+            // already open) must show up here live.
+            schedulePoll()
         }
         .onDisappear { pollTimer?.invalidate(); pollTimer = nil }
     }
@@ -1235,11 +1239,11 @@ struct TracerouteWindowView: View {
         running = true
         hops = []
         Task { await start(target) }
-        schedulePoll()
     }
 
     private func stopTrace() {
-        pollTimer?.invalidate(); pollTimer = nil
+        // The poll timer keeps ticking while the window is visible so a later
+        // external (Shortcut-started) session still shows up.
         running = false
         Task { await stop() }
     }
@@ -1250,6 +1254,12 @@ struct TracerouteWindowView: View {
             Task { @MainActor in
                 let snap = await poll()
                 hops = snap.hops
+                if snap.running, !running {
+                    // A session was started externally (Shortcuts) — adopt its
+                    // target so the host field matches what's being traced.
+                    let t = tracerouteTarget.trimmingCharacters(in: .whitespaces)
+                    if !t.isEmpty { host = t }
+                }
                 running = snap.running
             }
         }

@@ -80,10 +80,11 @@ final class SpeedTester: ObservableObject {
     /// Number of concurrent transfers used to saturate fast links. Tests run against the
     /// user's own OpenSpeedTest server, so we can saturate freely.
     private let parallelism = 6
-    /// Duration of each measured phase (seconds).
-    private let phaseDuration: TimeInterval = 8
-    /// Short warm-up window discarded from the measurement (seconds).
-    private let warmup: TimeInterval = 1.5
+    /// Duration of each measured phase (seconds). Internal var so tests can
+    /// shorten it; production code never mutates it.
+    var phaseDuration: TimeInterval = 8
+    /// Short warm-up window discarded from the measurement (seconds). Test-tunable.
+    var warmup: TimeInterval = 1.5
     /// Bytes requested per download chunk (OpenSpeedTest streams a large response).
     private let downloadChunkBytes = 50_000_000
     /// Bytes posted per upload chunk (25 MB in-memory body).
@@ -102,6 +103,12 @@ final class SpeedTester: ObservableObject {
     func start() {
         guard runTask == nil else { return }
         liveMbps = 0
+        // Mark the run as started SYNCHRONOUSLY. The spawned task doesn't get a
+        // chance to set `phase` until the caller suspends, so without this a
+        // caller checking `isRunning` right after start() (the panel, and
+        // especially `runOnce`) would observe the stale idle/done/failed phase
+        // of a previous run.
+        phase = .download
         runTask = Task { [weak self] in
             await self?.run()
             self?.runTask = nil
@@ -121,11 +128,16 @@ final class SpeedTester: ObservableObject {
     /// RunNetworkSpeedTest App Intent; the result also lands in `lastResult`/
     /// `history` so the Network panel reflects intent-triggered runs.
     func runOnce(server: SpeedTestServer, timeout: TimeInterval = 180) async throws -> NetSpeedResult {
-        guard !isRunning else { throw SpeedTestRunFailure(message: "A network speed test is already running.") }
+        guard !isRunning, runTask == nil else { throw SpeedTestRunFailure(message: "A network speed test is already running.") }
         self.server = server
         start()
         let deadline = Date().addingTimeInterval(timeout)
-        while isRunning {
+        // Wait on the run TASK's lifetime, not on `phase`: the old `while
+        // isRunning` check raced the task startup — it read the previous run's
+        // stale phase before the new task had set one, returned immediately,
+        // and the Shortcut got a "cancelled" error / stale result while the
+        // test kept running in the background.
+        while runTask != nil {
             if Date() > deadline {
                 cancel()
                 throw SpeedTestRunFailure(message: "The speed test timed out.")
