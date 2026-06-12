@@ -604,9 +604,9 @@ final class HelperDaemon: @unchecked Sendable {
             }
             previousCPUTimes[pid] = (currentUser, currentSystem, nowNs)
 
-            var nameBuffer = [CChar](repeating: 0, count: Int(MAXPATHLEN))
+            var nameBuffer = [UInt8](repeating: 0, count: Int(MAXPATHLEN))
             proc_pidpath(pid, &nameBuffer, UInt32(nameBuffer.count))
-            let path = String(cString: nameBuffer)
+            let path = String(decoding: nameBuffer.prefix(while: { $0 != 0 }), as: UTF8.self)
             let name = (path as NSString).lastPathComponent
 
             guard !name.isEmpty, (cpuPercent > 0.1 || memory > 1_048_576) else { continue }

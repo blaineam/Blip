@@ -13,7 +13,7 @@
 ### Build & Tests
 - **Unit test suite from scratch** — new `BlipTests` target (79 hermetic tests, ~13 s, hosted by the direct app which skips all UI/monitor startup under XCTest): the full App Intents layer via mocked monitor/tester seams (metric catalog & mapping, entity queries, speed-test and traceroute parameter validation, settings get/set), plus the recommendations engine, history ring buffer, host validation, TOTP, helper IPC framing, and netstat parsing. Wired into the `Blip` scheme's test action and CI
 - **Coverage ratchet** — `Scripts/coverage-check.sh` gates app-logic line coverage (measured 87.85% at introduction, MIN 84%; explicit, documented exclusions for SwiftUI bodies, the app shell, and the hardware/network monitor internals) and runs before every local-CI archive via `PREBUILD_CMD`
-- **Zero warnings** — fixed the four pre-existing build warnings (two unused `fcntl` results in the disk benchmark, two `var`-never-mutated MMDB decoders); both app variants now compile warning-free
+- **Zero warnings** — fixed the four pre-existing build warnings (two unused `fcntl` results in the disk benchmark, two `var`-never-mutated MMDB decoders); both app variants now compile warning-free. BlipHelper too: the deprecated `String(cString:)` process-path decode in `HelperDaemon` is now `String(decoding:as:)`, so the helper also builds warning-free
 - Debug builds disable the hardened runtime so the test bundle can be injected into the test host; Release/notarized builds keep it enabled
 
 ## v1.5.0

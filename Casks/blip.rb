@@ -1,5 +1,5 @@
 cask "blip" do
-  version "1.5.0"
+  version "1.6.0"
   sha256 :no_check
 
   url "https://github.com/blaineam/Blip/releases/download/v#{version}/Blip.dmg"
