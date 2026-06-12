@@ -15,6 +15,7 @@
 - **Coverage ratchet** — `Scripts/coverage-check.sh` gates app-logic line coverage (measured 87.85% at introduction, MIN 84%; explicit, documented exclusions for SwiftUI bodies, the app shell, and the hardware/network monitor internals) and runs before every local-CI archive via `PREBUILD_CMD`
 - **Zero warnings** — fixed the four pre-existing build warnings (two unused `fcntl` results in the disk benchmark, two `var`-never-mutated MMDB decoders); both app variants now compile warning-free. BlipHelper too: the deprecated `String(cString:)` process-path decode in `HelperDaemon` is now `String(decoding:as:)`, so the helper also builds warning-free
 - Debug builds disable the hardened runtime so the test bundle can be injected into the test host; Release/notarized builds keep it enabled
+- **CI binary-size gate raised 5 MB → 8 MB** — the App Intents metadata and the v1.5.0/v1.6.0 feature wave grew the direct binary to ~5.7 MB, tripping the old featherlight guard; the gate stays to catch runaway growth
 
 ## v1.5.0
 

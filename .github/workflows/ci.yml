@@ -72,11 +72,11 @@ jobs:
           echo "=== Binary Size ==="
           BINARY_SIZE=$(stat -f%z "$APP/Contents/MacOS/Blip")
           echo "Size: $BINARY_SIZE bytes ($(( BINARY_SIZE / 1024 )) KB)"
-          if [ "$BINARY_SIZE" -gt 5242880 ]; then
-            echo "::error::Binary exceeds 5MB limit"
+          if [ "$BINARY_SIZE" -gt 8388608 ]; then
+            echo "::error::Binary exceeds 8MB limit"
             exit 1
           fi
-          echo "✓ Under 5MB limit"
+          echo "✓ Under 8MB limit"
 
           echo "=== Architecture ==="
           ARCHS=$(lipo -archs "$APP/Contents/MacOS/Blip")
