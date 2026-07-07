@@ -37,3 +37,6 @@ Keychain/
 .claude/
 .build-screenshots/
 screenshots/
+
+# Coverage artifacts
+*.profraw
