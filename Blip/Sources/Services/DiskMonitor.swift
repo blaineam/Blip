@@ -758,10 +758,10 @@ final class DiskSpeedTester: ObservableObject {
         let target = resolveTargetDirectory()
         let dirURL = target?.url
 
-        task = Task.detached(priority: .utility) {
+        task = Task.detached(priority: .utility) { [weak self] in
             let cancelledFlag: @Sendable () -> Bool = { Task.isCancelled }
             let progressHandler: @Sendable (DiskBenchmark.Phase, Double) -> Void = { phase, frac in
-                Task { @MainActor [weak self] in
+                Task { @MainActor in
                     self?.phase = phase
                     self?.progress = frac
                 }
@@ -776,7 +776,7 @@ final class DiskSpeedTester: ObservableObject {
             } catch {
                 failure = (error as NSError).localizedDescription
             }
-            await MainActor.run { [weak self] in
+            await MainActor.run {
                 if let target, target.scoped { target.url.stopAccessingSecurityScopedResource() }
                 guard let self else { return }
                 if let result {
