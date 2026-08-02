@@ -7,6 +7,7 @@ struct SettingsView: View {
     @AppStorage("showMemory") private var showMemory = true
     @AppStorage("showDisk") private var showDisk = true
     @AppStorage("showNetworkDot") private var showNetworkDot = true
+    @AppStorage("showGPU") private var showGPU = false
     @AppStorage("showMeasurementLabels") private var showMeasurementLabels = true
     @AppStorage("showValueLabels") private var showValueLabels = true
     @AppStorage("menuBarLayout") private var menuBarLayout: String = "horizontal"
@@ -276,6 +277,7 @@ struct SettingsView: View {
                     if showCPU { previewLabel("CPU") }
                     if showMemory { previewLabel("MEM") }
                     if showDisk { previewLabel(" HD") }
+                    if showGPU { previewLabel("GPU") }
                 }
             }
 
@@ -283,6 +285,7 @@ struct SettingsView: View {
                 if showCPU { previewTinyBar(fill: 0.45, color: resolvedPreviewColor(.blue)) }
                 if showMemory { previewTinyBar(fill: 0.67, color: resolvedPreviewColor(.green)) }
                 if showDisk { previewTinyBar(fill: 0.34, color: resolvedPreviewColor(.orange)) }
+                if showGPU { previewTinyBar(fill: 0.12, color: resolvedPreviewColor(.purple)) }
             }
 
             if showValueLabels {
@@ -290,6 +293,7 @@ struct SettingsView: View {
                     if showCPU { previewValue("45") }
                     if showMemory { previewValue("67") }
                     if showDisk { previewValue("34") }
+                    if showGPU { previewValue("12") }
                 }
             }
 
@@ -311,6 +315,7 @@ struct SettingsView: View {
             if showCPU { horizontalPreviewItem(label: "CPU", fill: 0.45, color: resolvedPreviewColor(.blue)) }
             if showMemory { horizontalPreviewItem(label: "MEM", fill: 0.67, color: resolvedPreviewColor(.green)) }
             if showDisk { horizontalPreviewItem(label: "HD", fill: 0.34, color: resolvedPreviewColor(.orange)) }
+            if showGPU { horizontalPreviewItem(label: "GPU", fill: 0.12, color: resolvedPreviewColor(.purple)) }
             if showNetworkDot {
                 Circle()
                     .fill(resolvedPreviewColor(.green))
@@ -427,6 +432,7 @@ struct SettingsView: View {
                 Toggle("Memory", isOn: $showMemory)
                 Toggle("Disk", isOn: $showDisk)
                 Toggle("Network Indicator", isOn: $showNetworkDot)
+                Toggle("GPU", isOn: $showGPU)
             }
             Section("Layout") {
                 Picker("Menu Bar Style", selection: $menuBarLayout) {
