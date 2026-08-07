@@ -4,7 +4,6 @@ import MillerKit
 
 struct SettingsView: View {
     @EnvironmentObject private var rating: RatingManager
-    @State private var settingsDidAppear = false
     @AppStorage("accentColorOverride") private var colorOverride: String = ""
     @AppStorage("showCPU") private var showCPU = true
     @AppStorage("showMemory") private var showMemory = true
@@ -209,11 +208,12 @@ struct SettingsView: View {
             SupportSection(app: .blip)
             LoveThisAppSection(app: .blip)
         }
-        // The ask lives on Settings because it's Blip's only real window — a
-        // menu-bar app has no key window, which is exactly why the old rating
-        // manager's prompt never appeared at all.
-        .requestReviewAfterSuccess(rating, when: settingsDidAppear)
-        .onAppear { settingsDidAppear = true }
+        // NO review ask here. Opening Settings is not a success path, and this
+        // is the screen with the "Report an Issue" button on it — asking someone
+        // who came to complain is exactly what _shared/docs §4.6 forbids. The
+        // benchmark still records its significant action (DiskSpeedTester writes
+        // the same UserDefaults state); the ask needs a home on the disk detail
+        // panel, where the benchmark actually finishes.
         .formStyle(.grouped)
         .padding()
     }
