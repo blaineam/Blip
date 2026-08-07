@@ -15,6 +15,13 @@ settings:
     SWIFT_STRICT_CONCURRENCY: complete
     SWIFT_TREAT_WARNINGS_AS_ERRORS: YES
     GCC_TREAT_WARNINGS_AS_ERRORS: YES
+packages:
+  # Shared feedback / rating / "other apps" kit. Local path rather than a
+  # GitHub remote (how Keystone and MediaStream are consumed) so it needs no
+  # publish step; swap `path` for `url`+`from` if it ever moves to GitHub.
+  MillerKit:
+    path: ../Libraries/MillerKit
+
 targets:
 
   # ---------- Main App (Direct Distribution) ----------
@@ -43,6 +50,8 @@ targets:
           ENABLE_HARDENED_RUNTIME: NO
     frameworks:
       - sdk: IOKit.framework
+    dependencies:
+      - package: MillerKit
 
   # ---------- Unit Tests (hosted by the direct app) ----------
   BlipTests:
@@ -95,6 +104,8 @@ targets:
           CODE_SIGN_IDENTITY: "Apple Development"
     frameworks:
       - sdk: IOKit.framework
+    dependencies:
+      - package: MillerKit
 
   # ---------- Helper App (Direct Distribution, unsandboxed) ----------
   BlipHelper:

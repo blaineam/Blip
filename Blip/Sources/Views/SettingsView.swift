@@ -1,5 +1,6 @@
 import SwiftUI
 import ServiceManagement
+import MillerKit
 
 struct SettingsView: View {
     @AppStorage("accentColorOverride") private var colorOverride: String = ""
@@ -202,6 +203,9 @@ struct SettingsView: View {
                         .font(.system(size: 12))
                 }
             }
+
+            SupportSection(app: .blip)
+            LoveThisAppSection(app: .blip)
         }
         .formStyle(.grouped)
         .padding()
