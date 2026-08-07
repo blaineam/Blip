@@ -1,14 +1,22 @@
 import SwiftUI
 import AppKit
 import Combine
+import MillerKit
 
 @main
 struct BlipApp: App {
     @NSApplicationDelegateAdaptor(AppDelegate.self) var appDelegate
+    // .utility gates. Blip is a menu-bar app, which is exactly the case the old
+    // per-app managers got wrong: with no key window they resolved no host and
+    // the prompt never appeared. MillerKit asks through SwiftUI's environment
+    // action instead, and the ask is attached to Settings — a real window.
+    @StateObject private var rating = RatingManager(gates: .utility)
 
     var body: some Scene {
         Settings {
             SettingsView(helperClient: nil)
+                .environmentObject(rating)
+                .task { rating.recordLaunch() }
         }
     }
 }

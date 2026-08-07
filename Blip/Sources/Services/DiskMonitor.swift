@@ -601,6 +601,9 @@ final class DiskSpeedTester: ObservableObject {
     @Published private(set) var phase: DiskBenchmark.Phase = .idle
     @Published private(set) var progress: Double = 0
     @Published private(set) var lastResult: DiskSpeedResult?
+    /// Advances only on a benchmark that produced a result — cancels and
+    /// failures leave it alone, so neither can count toward a review prompt.
+    @Published private(set) var completedBenchmarks = 0
     @Published private(set) var history: [DiskSpeedResult] = []
     @Published var size: DiskBenchmark.Size = .medium
 
@@ -785,6 +788,7 @@ final class DiskSpeedTester: ObservableObject {
                 guard let self else { return }
                 if let result {
                     self.lastResult = result
+                    self.completedBenchmarks += 1
                     self.history.append(result)
                     if self.history.count > Self.maxHistory {
                         self.history.removeFirst(self.history.count - Self.maxHistory)
