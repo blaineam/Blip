@@ -1,6 +1,7 @@
 import Foundation
 import SwiftUI
 import AppKit
+import MillerKit
 #if !APPSTORE
 import IOKit
 #endif
@@ -789,6 +790,13 @@ final class DiskSpeedTester: ObservableObject {
                 if let result {
                     self.lastResult = result
                     self.completedBenchmarks += 1
+                    // Recorded here rather than plumbed to the Settings window:
+                    // RatingManager keeps all its state in UserDefaults, so an
+                    // instance created here and the one the Settings scene holds
+                    // are the same counter. The benchmark runs in a popover the
+                    // ask can never be shown from — Settings is the only real
+                    // window — and this is what lets the two meet.
+                    RatingManager(gates: .utility).recordSignificantAction()
                     self.history.append(result)
                     if self.history.count > Self.maxHistory {
                         self.history.removeFirst(self.history.count - Self.maxHistory)

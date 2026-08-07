@@ -3,6 +3,8 @@ import ServiceManagement
 import MillerKit
 
 struct SettingsView: View {
+    @EnvironmentObject private var rating: RatingManager
+    @State private var settingsDidAppear = false
     @AppStorage("accentColorOverride") private var colorOverride: String = ""
     @AppStorage("showCPU") private var showCPU = true
     @AppStorage("showMemory") private var showMemory = true
@@ -207,6 +209,11 @@ struct SettingsView: View {
             SupportSection(app: .blip)
             LoveThisAppSection(app: .blip)
         }
+        // The ask lives on Settings because it's Blip's only real window — a
+        // menu-bar app has no key window, which is exactly why the old rating
+        // manager's prompt never appeared at all.
+        .requestReviewAfterSuccess(rating, when: settingsDidAppear)
+        .onAppear { settingsDidAppear = true }
         .formStyle(.grouped)
         .padding()
     }
