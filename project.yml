@@ -32,6 +32,7 @@ targets:
       - path: Blip/Sources
       - path: Shared
       - path: Blip/Resources/Assets.xcassets
+      - path: Blip/Resources/Blip.icon
     settings:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: com.blainemiller.Blip
@@ -39,7 +40,7 @@ targets:
         CODE_SIGN_ENTITLEMENTS: Blip/Resources/Blip.entitlements
         LD_RUNPATH_SEARCH_PATHS: "@executable_path/../Frameworks"
         PRODUCT_NAME: Blip
-        ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
+        ASSETCATALOG_COMPILER_APPICON_NAME: Blip
         GENERATE_INFOPLIST_FILE: NO
         COMBINE_HIDPI_IMAGES: YES
       configs:
@@ -77,6 +78,7 @@ targets:
       - path: Blip/Sources
       - path: Shared
       - path: Blip/Resources/Assets.xcassets
+      - path: Blip/Resources/Blip.icon
     settings:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: com.blainemiller.Blip
@@ -90,7 +92,7 @@ targets:
         DEVELOPMENT_TEAM: 8ZVSPZYSVF
         LD_RUNPATH_SEARCH_PATHS: "@executable_path/../Frameworks"
         PRODUCT_NAME: Blip
-        ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
+        ASSETCATALOG_COMPILER_APPICON_NAME: Blip
         GENERATE_INFOPLIST_FILE: NO
         COMBINE_HIDPI_IMAGES: YES
         SWIFT_ACTIVE_COMPILATION_CONDITIONS: APPSTORE
@@ -123,7 +125,7 @@ targets:
         CODE_SIGN_ENTITLEMENTS: BlipHelper/Resources/BlipHelper.entitlements
         LD_RUNPATH_SEARCH_PATHS: "@executable_path/../Frameworks"
         PRODUCT_NAME: "Blip Helper"
-        ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
+        ASSETCATALOG_COMPILER_APPICON_NAME: Blip
         GENERATE_INFOPLIST_FILE: NO
         COMBINE_HIDPI_IMAGES: YES
     frameworks:

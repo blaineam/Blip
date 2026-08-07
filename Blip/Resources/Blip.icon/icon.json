@@ -1,0 +1,22 @@
+{
+  "fill" : {
+    "automatic-gradient" : "srgb:0.05098,0.06667,0.12157,1.00000"
+  },
+  "groups" : [
+    {
+      "layers" : [
+        {
+          "blend-mode" : "normal",
+          "image-name" : "blip-icon.png",
+          "name" : "blip-icon"
+        }
+      ]
+    }
+  ],
+  "supported-platforms" : {
+    "circles" : [
+      "watchOS"
+    ],
+    "squares" : "shared"
+  }
+}
