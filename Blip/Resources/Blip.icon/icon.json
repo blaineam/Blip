@@ -7,10 +7,19 @@
       "layers" : [
         {
           "blend-mode" : "normal",
+          "hidden" : false,
           "image-name" : "blip-icon.png",
           "name" : "blip-icon"
         }
-      ]
+      ],
+      "shadow" : {
+        "kind" : "neutral",
+        "opacity" : 0.5
+      },
+      "translucency" : {
+        "enabled" : true,
+        "value" : 0.3
+      }
     }
   ],
   "supported-platforms" : {
