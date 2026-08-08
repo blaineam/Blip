@@ -26,7 +26,8 @@ packages:
   # GitHub remote (how Keystone and MediaStream are consumed) so it needs no
   # publish step; swap `path` for `url`+`from` if it ever moves to GitHub.
   MillerKit:
-    path: ../Libraries/MillerKit
+    url: https://github.com/blaineam/MillerKit
+    from: "1.0.0"
 
 targets:
 

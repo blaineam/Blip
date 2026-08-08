@@ -54,9 +54,14 @@ system monitor,cpu usage,memory pressure,menu bar,activity monitor,gpu,battery h
 See your Mac's vitals at a glance. CPU, memory, disk, GPU, network, battery, fans, and thermals — all live in your menu bar. Tiny footprint. Zero dependencies.
 
 ## whats_new
-+ Shortcuts support! Eight actions for your own workflows: read any of 37 live system metrics as chainable numbers, run drive and network speed tests, run a traceroute and get a per-hop summary, open the Traceroute Map, and read or change Blip's settings
-+ One-click per-volume speed tests — every volume in the Disk panel now has its own speed test button
-* Under the hood: a full unit test suite with a coverage gate, and zero build warnings
+NOW FULLY LOCALIZED IN 8 LANGUAGES.
+
+Blip now speaks your language: German, Spanish, French, Italian, Japanese, Korean, Portuguese (Brazil), and Simplified Chinese — every panel, metric label, and settings row.
+
+Also in this update:
++ A dedicated Support window, so help is one click away
++ The rating prompt moved to a considerate moment — it no longer lives in Settings
+* Stability fixes and tune-ups
 
 ## marketing_url
 https://wemiller.com/apps/blip/

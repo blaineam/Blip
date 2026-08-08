@@ -40,3 +40,15 @@ screenshots/
 
 # Coverage artifacts
 *.profraw
+
+# Xcode Cloud runs with automatic SwiftPM resolution disabled and needs the
+# workspace Package.resolved checked in (negation chain; last rules win):
+!Blip.xcodeproj/
+Blip.xcodeproj/*
+!Blip.xcodeproj/project.xcworkspace/
+Blip.xcodeproj/project.xcworkspace/*
+!Blip.xcodeproj/project.xcworkspace/xcshareddata/
+Blip.xcodeproj/project.xcworkspace/xcshareddata/*
+!Blip.xcodeproj/project.xcworkspace/xcshareddata/swiftpm/
+Blip.xcodeproj/project.xcworkspace/xcshareddata/swiftpm/*
+!Blip.xcodeproj/project.xcworkspace/xcshareddata/swiftpm/Package.resolved
