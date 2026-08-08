@@ -742,6 +742,17 @@
             .stat-value { font-size: 28px; }
         }
     </style>
+  <link rel="alternate" hreflang="x-default" href="https://blip.wemiller.com/">
+  <link rel="alternate" hreflang="en" href="https://blip.wemiller.com/">
+  <link rel="alternate" hreflang="zh-Hans" href="https://blip.wemiller.com/?lang=zh-Hans">
+  <link rel="alternate" hreflang="ja" href="https://blip.wemiller.com/?lang=ja">
+  <link rel="alternate" hreflang="de" href="https://blip.wemiller.com/?lang=de">
+  <link rel="alternate" hreflang="fr" href="https://blip.wemiller.com/?lang=fr">
+  <link rel="alternate" hreflang="es" href="https://blip.wemiller.com/?lang=es">
+  <link rel="alternate" hreflang="ko" href="https://blip.wemiller.com/?lang=ko">
+  <link rel="alternate" hreflang="pt-BR" href="https://blip.wemiller.com/?lang=pt-BR">
+  <link rel="alternate" hreflang="it" href="https://blip.wemiller.com/?lang=it">
+  <script src="i18n/i18n.js" defer data-page="index" data-pos="bottom-left"></script>
 </head>
 <body>
 
@@ -749,9 +760,9 @@
     <div class="container">
         <a href="#" class="logo"><span class="logo-dot"></span> Blip</a>
         <div class="nav-links">
-            <a href="#whats-new">What&rsquo;s New</a>
-            <a href="#features">Features</a>
-            <a href="#faq">FAQ</a>
+            <a href="#whats-new" data-i18n="what-s-new.10a47d">What&rsquo;s New</a>
+            <a href="#features" data-i18n="features.fc338f">Features</a>
+            <a href="#faq" data-i18n="faq.03688b">FAQ</a>
             <a href="https://github.com/blaineam/blip" class="btn btn-secondary">GitHub</a>
         </div>
     </div>
@@ -759,15 +770,15 @@
 
 <section class="hero">
     <div class="container">
-        <a href="#whats-new" class="hero-badge" style="text-decoration:none">v1.6.1 &mdash; See What&rsquo;s New</a>
-        <h1>Your Mac's vitals,<br>at a glance.</h1>
-        <p>Blip is a featherlight macOS menu bar app that monitors CPU, memory, disk, GPU, network, and battery. Beautiful charts, tiny footprint, zero dependencies.</p>
+        <a href="#whats-new" class="hero-badge" style="text-decoration:none" data-i18n="v1-6-1-see.8352cd">v1.6.1 &mdash; See What&rsquo;s New</a>
+        <h1 data-i18n-html="your-mac-s-vitals.814ea7">Your Mac's vitals,<br>at a glance.</h1>
+        <p data-i18n="blip-is-a-featherlight.e8a657">Blip is a featherlight macOS menu bar app that monitors CPU, memory, disk, GPU, network, and battery. Beautiful charts, tiny footprint, zero dependencies.</p>
         <div class="hero-buttons">
             <a href="https://apps.apple.com/us/app/blip-stats/id6762329495" class="btn btn-primary">
                 <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor"><path d="M8 12l-4-4h2.5V4h3v4H12L8 12z"/><path d="M14 14H2v-2h12v2z"/></svg>
                 Download
             </a>
-            <a href="https://github.com/blaineam/blip" class="btn btn-secondary">View Source</a>
+            <a href="https://github.com/blaineam/blip" class="btn btn-secondary" data-i18n="view-source.accd4b">View Source</a>
         </div>
     </div>
 </section>
@@ -786,17 +797,17 @@
             <div class="demo-menubar" id="menubar">
                 <div class="mb-items" id="mbItems">
                     <div class="mb-item">
-                        <span class="mb-label">CPU</span>
+                        <span class="mb-label" data-i18n="cpu.ff221d">CPU</span>
                         <div class="mb-bar"><div class="mb-fill" style="width:19%;background:var(--accent-blue)"></div></div>
                         <span class="mb-val" style="color:var(--accent-blue)">19</span>
                     </div>
                     <div class="mb-item">
-                        <span class="mb-label">MEM</span>
+                        <span class="mb-label" data-i18n="mem.006339">MEM</span>
                         <div class="mb-bar"><div class="mb-fill" style="width:42%;background:var(--accent)"></div></div>
                         <span class="mb-val" style="color:var(--accent)">42</span>
                     </div>
                     <div class="mb-item">
-                        <span class="mb-label">HD</span>
+                        <span class="mb-label" data-i18n="hd.bd5157">HD</span>
                         <div class="mb-bar"><div class="mb-fill" style="width:65%;background:var(--accent-orange)"></div></div>
                         <span class="mb-val" style="color:var(--accent-orange)">65</span>
                     </div>
@@ -809,7 +820,7 @@
                 <!-- CPU -->
                 <div class="pop-row" data-panel="cpu">
                     <span class="pop-row-icon" style="color:var(--accent-blue)"><svg viewBox="0 0 24 24" fill="currentColor"><rect x="7" y="7" width="10" height="10" rx="2"/><rect x="9" y="3" width="2" height="4" rx="0.5"/><rect x="13" y="3" width="2" height="4" rx="0.5"/><rect x="9" y="17" width="2" height="4" rx="0.5"/><rect x="13" y="17" width="2" height="4" rx="0.5"/><rect x="3" y="9" width="4" height="2" rx="0.5"/><rect x="3" y="13" width="4" height="2" rx="0.5"/><rect x="17" y="9" width="4" height="2" rx="0.5"/><rect x="17" y="13" width="4" height="2" rx="0.5"/></svg></span>
-                    <span class="pop-row-label">CPU</span>
+                    <span class="pop-row-label" data-i18n="cpu.ff221d">CPU</span>
                     <div class="pop-row-bar-wrap"><div class="pop-row-bar"><div class="pop-row-fill" style="width:19%;background:var(--accent-blue)"></div></div></div>
                     <span class="pop-row-value">19%</span>
                     <span class="pop-row-chevron">&#8250;</span>
@@ -817,7 +828,7 @@
                 <!-- Memory -->
                 <div class="pop-row" data-panel="memory">
                     <span class="pop-row-icon" style="color:var(--accent)"><svg viewBox="0 0 24 24" fill="currentColor"><rect x="3" y="6" width="18" height="12" rx="2"/><rect x="7" y="3" width="2" height="3" rx="0.5"/><rect x="11" y="3" width="2" height="3" rx="0.5"/><rect x="15" y="3" width="2" height="3" rx="0.5"/><rect x="6" y="9" width="5" height="4" rx="1" fill-opacity="0.4"/><rect x="13" y="9" width="5" height="4" rx="1" fill-opacity="0.4"/></svg></span>
-                    <span class="pop-row-label">Memory</span>
+                    <span class="pop-row-label" data-i18n="memory.89c8a2">Memory</span>
                     <div class="pop-row-bar-wrap"><div class="pop-row-bar"><div class="pop-row-fill" style="width:42%;background:var(--accent)"></div></div></div>
                     <span class="pop-row-value">42%</span>
                     <span class="pop-row-chevron">&#8250;</span>
@@ -825,7 +836,7 @@
                 <!-- Disk -->
                 <div class="pop-row" data-panel="disk">
                     <span class="pop-row-icon" style="color:var(--accent-orange)"><svg viewBox="0 0 24 24" fill="currentColor"><rect x="4" y="7" width="16" height="10" rx="3"/><circle cx="16" cy="12" r="1.5" fill-opacity="0.4"/><rect x="7" y="11" width="5" height="2" rx="1" fill-opacity="0.4"/></svg></span>
-                    <span class="pop-row-label">Disk</span>
+                    <span class="pop-row-label" data-i18n="disk.ef9952">Disk</span>
                     <div class="pop-row-bar-wrap"><div class="pop-row-bar"><div class="pop-row-fill" style="width:65%;background:var(--accent-orange)"></div></div></div>
                     <span class="pop-row-value">65%</span>
                     <span class="pop-row-chevron">&#8250;</span>
@@ -833,14 +844,14 @@
                 <!-- Network -->
                 <div class="pop-row" data-panel="network">
                     <span class="pop-row-icon" style="color:var(--accent-cyan)"><svg viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="19" r="1.5"/><path d="M8.5 15.5a5 5 0 0 1 7 0" stroke="currentColor" stroke-width="2" stroke-linecap="round" fill="none"/><path d="M5 12a10 10 0 0 1 14 0" stroke="currentColor" stroke-width="2" stroke-linecap="round" fill="none"/><path d="M1.5 8.5a15 15 0 0 1 21 0" stroke="currentColor" stroke-width="2" stroke-linecap="round" fill="none"/></svg></span>
-                    <span class="pop-row-label">Network</span>
+                    <span class="pop-row-label" data-i18n="network.53ebc5">Network</span>
                     <span class="pop-row-net-value"><span style="color:var(--accent)">&#8595;</span>4K <span style="color:var(--accent-blue)">&#8593;</span>2K</span>
                     <span class="pop-row-chevron">&#8250;</span>
                 </div>
                 <!-- GPU -->
                 <div class="pop-row" data-panel="gpu">
                     <span class="pop-row-icon" style="color:var(--accent-purple)"><svg viewBox="0 0 24 24" fill="currentColor"><rect x="2" y="4" width="8" height="6" rx="1.5" fill-opacity="0.9"/><rect x="14" y="4" width="8" height="6" rx="1.5" fill-opacity="0.9"/><rect x="5" y="14" width="14" height="6" rx="1.5" fill-opacity="0.9"/></svg></span>
-                    <span class="pop-row-label">GPU</span>
+                    <span class="pop-row-label" data-i18n="gpu.a6a631">GPU</span>
                     <div class="pop-row-bar-wrap"><div class="pop-row-bar"><div class="pop-row-fill" style="width:67%;background:var(--accent-purple)"></div></div></div>
                     <span class="pop-row-value">67%</span>
                     <span class="pop-row-chevron">&#8250;</span>
@@ -848,14 +859,14 @@
                 <!-- Thermal -->
                 <div class="pop-row" data-panel="thermal">
                     <span class="pop-row-icon" style="color:var(--accent)"><svg viewBox="0 0 24 24" fill="currentColor"><rect x="10" y="2" width="4" height="14" rx="2"/><circle cx="12" cy="18" r="4"/><circle cx="12" cy="18" r="2" fill-opacity="0.4"/><rect x="11" y="5" width="2" height="8" rx="0.5" fill-opacity="0.4"/></svg></span>
-                    <span class="pop-row-label">Thermal</span>
-                    <span class="pop-row-thermal-value" style="color:var(--accent)">Nominal</span>
+                    <span class="pop-row-label" data-i18n="thermal.5438c3">Thermal</span>
+                    <span class="pop-row-thermal-value" style="color:var(--accent)" data-i18n="nominal.1795d1">Nominal</span>
                     <span class="pop-row-chevron">&#8250;</span>
                 </div>
                 <!-- Battery -->
                 <div class="pop-row" data-panel="battery">
                     <span class="pop-row-icon" style="color:var(--accent-red)"><svg viewBox="0 0 28 24" fill="currentColor"><rect x="2" y="7" width="20" height="10" rx="2.5"/><rect x="4" y="9" width="16" height="6" rx="1" fill-opacity="0.5"/><path d="M22 10v4a2 2 0 0 0 0-4z"/></svg></span>
-                    <span class="pop-row-label">Battery</span>
+                    <span class="pop-row-label" data-i18n="battery.4a9be0">Battery</span>
                     <div class="pop-row-bar-wrap"><div class="pop-row-bar"><div class="pop-row-fill" style="width:100%;background:var(--accent-red)"></div></div></div>
                     <span class="pop-row-value">100%</span>
                     <span class="pop-row-chevron">&#8250;</span>
@@ -867,18 +878,18 @@
                 <div class="pop-footer">
                     <div class="pop-footer-row">
                         <svg viewBox="0 0 16 16" fill="currentColor"><rect x="1" y="4" width="14" height="9" rx="1.5"/><rect x="5" y="13" width="6" height="1" rx="0.5"/></svg>
-                        <span>MacBook Pro (Apple M4 Pro)</span>
+                        <span data-i18n="macbook-pro-apple-m4.38095b">MacBook Pro (Apple M4 Pro)</span>
                     </div>
                     <div class="pop-footer-row">
                         <svg viewBox="0 0 16 16" fill="currentColor"><path d="M8 1.5c1.5 0 2.8.8 3.4 2 .4-.1.7-.2 1.1-.2C14.4 3.3 16 4.9 16 6.8c0 1.4-.8 2.5-2 3-.1 1.7-1.5 3-3.2 3H5.2C3.5 12.8 2.1 11.5 2 9.8 .8 9.3 0 8.2 0 6.8 0 4.9 1.6 3.3 3.5 3.3c.4 0 .7.1 1.1.2C5.2 2.3 6.5 1.5 8 1.5z" transform="scale(0.7) translate(3,3)"/></svg>
-                        <span>macOS 15.3.1</span>
+                        <span data-i18n="macos-15-3-1.610d43">macOS 15.3.1</span>
                     </div>
                     <div class="pop-footer-row">
                         <svg viewBox="0 0 16 16" fill="currentColor"><circle cx="8" cy="8" r="6.5" fill="none" stroke="currentColor" stroke-width="1.5"/><path d="M8 4v4.5l3 1.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" fill="none"/></svg>
                         <span>2d 14h</span>
                     </div>
                     <div class="pop-footer-info">
-                        <span class="pop-footer-version">Blip v1.6.1 &middot; 42 MB</span>
+                        <span class="pop-footer-version" data-i18n="blip-v1-6-1.03d2bb">Blip v1.6.1 &middot; 42 MB</span>
                         <div class="pop-footer-btns">
                             <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.2"><circle cx="8" cy="8" r="2.5"/><path d="M8 1.5v2M8 12.5v2M1.5 8h2M12.5 8h2M3.4 3.4l1.4 1.4M11.2 11.2l1.4 1.4M3.4 12.6l1.4-1.4M11.2 4.8l1.4-1.4" stroke-linecap="round"/></svg>
                             <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"><circle cx="8" cy="9" r="5"/><path d="M8 1v4"/></svg>
@@ -899,21 +910,21 @@
             <div class="demo-detail right-side" id="panel-cpu">
                 <div class="dp-header">
                     <svg viewBox="0 0 24 24" fill="var(--accent-blue)"><rect x="7" y="7" width="10" height="10" rx="2"/><rect x="9" y="3" width="2" height="4" rx="0.5"/><rect x="13" y="3" width="2" height="4" rx="0.5"/><rect x="9" y="17" width="2" height="4" rx="0.5"/><rect x="13" y="17" width="2" height="4" rx="0.5"/><rect x="3" y="9" width="4" height="2" rx="0.5"/><rect x="3" y="13" width="4" height="2" rx="0.5"/><rect x="17" y="9" width="4" height="2" rx="0.5"/><rect x="17" y="13" width="4" height="2" rx="0.5"/></svg>
-                    <span class="dp-header-title">CPU</span>
+                    <span class="dp-header-title" data-i18n="cpu.ff221d">CPU</span>
                     <span class="dp-header-right"><span class="dp-header-value" style="color:var(--accent-blue)">19%</span></span>
                 </div>
                 <div class="dp-cols">
-                    <div class="dp-col"><div class="dp-col-label">User</div><div class="dp-col-value">12%</div></div>
-                    <div class="dp-col"><div class="dp-col-label">System</div><div class="dp-col-value">7%</div></div>
-                    <div class="dp-col"><div class="dp-col-label">Idle</div><div class="dp-col-value" style="color:var(--text-secondary)">81%</div></div>
+                    <div class="dp-col"><div class="dp-col-label" data-i18n="user.9f8a23">User</div><div class="dp-col-value">12%</div></div>
+                    <div class="dp-col"><div class="dp-col-label" data-i18n="system.bc0792">System</div><div class="dp-col-value">7%</div></div>
+                    <div class="dp-col"><div class="dp-col-label" data-i18n="idle.cc1ebd">Idle</div><div class="dp-col-value" style="color:var(--text-secondary)">81%</div></div>
                 </div>
                 <div class="dp-cols">
-                    <div class="dp-col"><div class="dp-col-label">P-Cores</div><div class="dp-col-value">10</div></div>
-                    <div class="dp-col"><div class="dp-col-label">E-Cores</div><div class="dp-col-value">4</div></div>
-                    <div class="dp-col"><div class="dp-col-label">Logical</div><div class="dp-col-value">14</div></div>
+                    <div class="dp-col"><div class="dp-col-label" data-i18n="p-cores.00f59c">P-Cores</div><div class="dp-col-value">10</div></div>
+                    <div class="dp-col"><div class="dp-col-label" data-i18n="e-cores.ce06c4">E-Cores</div><div class="dp-col-value">4</div></div>
+                    <div class="dp-col"><div class="dp-col-label" data-i18n="logical.122f17">Logical</div><div class="dp-col-value">14</div></div>
                 </div>
                 <div class="dp-cols">
-                    <div class="dp-col"><div class="dp-col-label">Load 1m</div><div class="dp-col-value">5.48</div></div>
+                    <div class="dp-col"><div class="dp-col-label" data-i18n="load-1m.0f9196">Load 1m</div><div class="dp-col-value">5.48</div></div>
                     <div class="dp-col"><div class="dp-col-label">5m</div><div class="dp-col-value">5.09</div></div>
                     <div class="dp-col"><div class="dp-col-label">15m</div><div class="dp-col-value">5.32</div></div>
                 </div>
@@ -935,84 +946,84 @@
                     <div class="dp-core-row"><span class="dp-core-label">13</span><div class="dp-core-track"><div class="dp-core-fill" style="width:7%;background:var(--accent-blue)"></div></div></div>
                 </div>
                 <div class="dp-chart-wrap">
-                    <div class="dp-chart-label">Usage over time</div>
+                    <div class="dp-chart-label" data-i18n="usage-over-time.068245">Usage over time</div>
                     <div class="dp-chart-container">
                         <div class="dp-chart-yaxis"><span>100%</span><span>50%</span><span>0%</span></div>
                         <div class="dp-chart"><svg id="chart-cpu" viewBox="0 0 200 50"><defs><linearGradient id="cpuG" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="rgba(10,132,255,0.3)"/><stop offset="100%" stop-color="rgba(10,132,255,0)"/></linearGradient></defs><path class="chart-area" d="" fill="url(#cpuG)"/><path class="chart-line" d="" fill="none" stroke="var(--accent-blue)" stroke-width="1.5"/></svg></div>
                     </div>
                 </div>
                 <div class="dp-divider"></div>
-                <div class="dp-section-title">Top Processes</div>
-                <div class="dp-proc" data-killable><div class="dp-proc-icon" style="background:rgba(0,122,255,0.15)"><svg viewBox="0 0 16 16"><circle cx="8" cy="8" r="6" fill="#007AFF"/><path d="M8 3L5 11h2l.5-1.5h1L9 11h2L8 3zm0 3.5l.5 2h-1l.5-2z" fill="#fff" font-size="6"/></svg></div><div class="dp-proc-name">Safari</div><div class="dp-proc-val">8.2%</div></div>
-                <div class="dp-proc" data-killable><div class="dp-proc-icon" style="background:var(--demo-overlay)"><svg viewBox="0 0 16 16" fill="#8e8e93" opacity="0.6"><circle cx="8" cy="8" r="6"/></svg></div><div class="dp-proc-name">WindowServer</div><div class="dp-proc-val">5.4%</div></div>
-                <div class="dp-proc" data-killable><div class="dp-proc-icon" style="background:rgba(75,0,130,0.2)"><svg viewBox="0 0 16 16"><circle cx="8" cy="8" r="6" fill="#4A154B"/><path d="M6 5h1v2h2V5h1v6h-1V9H7v2H6V5z" fill="#fff"/></svg></div><div class="dp-proc-name">Slack</div><div class="dp-proc-val">4.1%</div></div>
-                <div class="dp-proc" data-killable><div class="dp-proc-icon" style="background:rgba(30,215,96,0.15)"><svg viewBox="0 0 16 16"><circle cx="8" cy="8" r="6" fill="#1DB954"/><circle cx="8" cy="8" r="3" fill="none" stroke="#fff" stroke-width="1.2"/></svg></div><div class="dp-proc-name">Spotify</div><div class="dp-proc-val">2.4%</div></div>
-                <div class="dp-proc" data-killable><div class="dp-proc-icon" style="background:rgba(0,122,255,0.12)"><svg viewBox="0 0 16 16"><circle cx="8" cy="8" r="6" fill="#007AFF"/><rect x="5" y="5.5" width="6" height="4" rx="0.5" fill="#fff" opacity="0.9"/></svg></div><div class="dp-proc-name">Mail</div><div class="dp-proc-val">1.1%</div></div>
+                <div class="dp-section-title" data-i18n="top-processes.61335f">Top Processes</div>
+                <div class="dp-proc" data-killable><div class="dp-proc-icon" style="background:rgba(0,122,255,0.15)"><svg viewBox="0 0 16 16"><circle cx="8" cy="8" r="6" fill="#007AFF"/><path d="M8 3L5 11h2l.5-1.5h1L9 11h2L8 3zm0 3.5l.5 2h-1l.5-2z" fill="#fff" font-size="6"/></svg></div><div class="dp-proc-name" data-i18n="safari.424dd4">Safari</div><div class="dp-proc-val">8.2%</div></div>
+                <div class="dp-proc" data-killable><div class="dp-proc-icon" style="background:var(--demo-overlay)"><svg viewBox="0 0 16 16" fill="#8e8e93" opacity="0.6"><circle cx="8" cy="8" r="6"/></svg></div><div class="dp-proc-name" data-i18n="windowserver.9ee04b">WindowServer</div><div class="dp-proc-val">5.4%</div></div>
+                <div class="dp-proc" data-killable><div class="dp-proc-icon" style="background:rgba(75,0,130,0.2)"><svg viewBox="0 0 16 16"><circle cx="8" cy="8" r="6" fill="#4A154B"/><path d="M6 5h1v2h2V5h1v6h-1V9H7v2H6V5z" fill="#fff"/></svg></div><div class="dp-proc-name" data-i18n="slack.430b38">Slack</div><div class="dp-proc-val">4.1%</div></div>
+                <div class="dp-proc" data-killable><div class="dp-proc-icon" style="background:rgba(30,215,96,0.15)"><svg viewBox="0 0 16 16"><circle cx="8" cy="8" r="6" fill="#1DB954"/><circle cx="8" cy="8" r="3" fill="none" stroke="#fff" stroke-width="1.2"/></svg></div><div class="dp-proc-name" data-i18n="spotify.2a0cb6">Spotify</div><div class="dp-proc-val">2.4%</div></div>
+                <div class="dp-proc" data-killable><div class="dp-proc-icon" style="background:rgba(0,122,255,0.12)"><svg viewBox="0 0 16 16"><circle cx="8" cy="8" r="6" fill="#007AFF"/><rect x="5" y="5.5" width="6" height="4" rx="0.5" fill="#fff" opacity="0.9"/></svg></div><div class="dp-proc-name" data-i18n="mail.92379c">Mail</div><div class="dp-proc-val">1.1%</div></div>
             </div>
 
             <!-- Memory Detail -->
             <div class="demo-detail right-side" id="panel-memory">
                 <div class="dp-header">
                     <svg viewBox="0 0 24 24" fill="var(--accent)"><rect x="3" y="6" width="18" height="12" rx="2"/><rect x="7" y="3" width="2" height="3" rx="0.5"/><rect x="11" y="3" width="2" height="3" rx="0.5"/><rect x="15" y="3" width="2" height="3" rx="0.5"/><rect x="6" y="9" width="5" height="4" rx="1" fill-opacity="0.4"/><rect x="13" y="9" width="5" height="4" rx="1" fill-opacity="0.4"/></svg>
-                    <span class="dp-header-title">Memory</span>
+                    <span class="dp-header-title" data-i18n="memory.89c8a2">Memory</span>
                     <span class="dp-header-right"><span class="dp-header-value" style="color:var(--accent)">42%</span></span>
                 </div>
-                <div class="dp-row"><span class="dp-row-label">Total</span><span class="dp-row-value">48 GB</span></div>
+                <div class="dp-row"><span class="dp-row-label" data-i18n="total.b25928">Total</span><span class="dp-row-value" data-i18n="48-gb.fe121e">48 GB</span></div>
                 <div style="margin: 4px 0">
-                    <div class="dp-dot-row"><div class="dp-dot" style="background:var(--accent-blue)"></div><span class="dp-dot-label">App Memory</span><span class="dp-dot-value">15.42 GB</span></div>
-                    <div class="dp-dot-row"><div class="dp-dot" style="background:var(--accent-orange)"></div><span class="dp-dot-label">Wired</span><span class="dp-dot-value">3.47 GB</span></div>
-                    <div class="dp-dot-row"><div class="dp-dot" style="background:var(--accent-purple)"></div><span class="dp-dot-label">Compressed</span><span class="dp-dot-value">1.12 GB</span></div>
+                    <div class="dp-dot-row"><div class="dp-dot" style="background:var(--accent-blue)"></div><span class="dp-dot-label" data-i18n="app-memory.d78fd7">App Memory</span><span class="dp-dot-value" data-i18n="15-42-gb.47e8aa">15.42 GB</span></div>
+                    <div class="dp-dot-row"><div class="dp-dot" style="background:var(--accent-orange)"></div><span class="dp-dot-label" data-i18n="wired.db1df6">Wired</span><span class="dp-dot-value" data-i18n="3-47-gb.9f7bcc">3.47 GB</span></div>
+                    <div class="dp-dot-row"><div class="dp-dot" style="background:var(--accent-purple)"></div><span class="dp-dot-label" data-i18n="compressed.1238ea">Compressed</span><span class="dp-dot-value" data-i18n="1-12-gb.194cde">1.12 GB</span></div>
                 </div>
                 <div class="dp-divider"></div>
                 <div style="margin: 4px 0">
-                    <div class="dp-dot-row"><div class="dp-dot" style="background:var(--accent)"></div><span class="dp-dot-label">Memory Used</span><span class="dp-dot-value">20.01 GB</span></div>
-                    <div class="dp-dot-row"><div class="dp-dot" style="background:var(--accent-cyan)"></div><span class="dp-dot-label">Cached Files</span><span class="dp-dot-value">11.79 GB</span></div>
-                    <div class="dp-dot-row"><div class="dp-dot" style="background:var(--demo-muted-medium)"></div><span class="dp-dot-label">Free</span><span class="dp-dot-value">27.99 GB</span></div>
+                    <div class="dp-dot-row"><div class="dp-dot" style="background:var(--accent)"></div><span class="dp-dot-label" data-i18n="memory-used.c01360">Memory Used</span><span class="dp-dot-value" data-i18n="20-01-gb.40ae7c">20.01 GB</span></div>
+                    <div class="dp-dot-row"><div class="dp-dot" style="background:var(--accent-cyan)"></div><span class="dp-dot-label" data-i18n="cached-files.ac243c">Cached Files</span><span class="dp-dot-value" data-i18n="11-79-gb.16e56d">11.79 GB</span></div>
+                    <div class="dp-dot-row"><div class="dp-dot" style="background:var(--demo-muted-medium)"></div><span class="dp-dot-label" data-i18n="free.75f527">Free</span><span class="dp-dot-value" data-i18n="27-99-gb.d33f4e">27.99 GB</span></div>
                 </div>
-                <div class="dp-dot-row"><div class="dp-dot" style="background:var(--accent-yellow)"></div><span class="dp-dot-label">Swap Used</span><span class="dp-dot-value">Zero KB</span></div>
+                <div class="dp-dot-row"><div class="dp-dot" style="background:var(--accent-yellow)"></div><span class="dp-dot-label" data-i18n="swap-used.b7d8dd">Swap Used</span><span class="dp-dot-value" data-i18n="zero-kb.75be7e">Zero KB</span></div>
                 <div class="dp-pressure-row">
-                    <span class="dp-pressure-label">Pressure</span>
+                    <span class="dp-pressure-label" data-i18n="pressure.d12221">Pressure</span>
                     <div class="dp-pressure-track"><div class="dp-pressure-fill" style="width:15%;background:var(--accent)"></div></div>
-                    <span class="dp-pressure-text" style="color:var(--accent)">Normal</span>
+                    <span class="dp-pressure-text" style="color:var(--accent)" data-i18n="normal.45e118">Normal</span>
                 </div>
                 <div class="dp-chart-wrap">
-                    <div class="dp-chart-label">Usage over time</div>
+                    <div class="dp-chart-label" data-i18n="usage-over-time.068245">Usage over time</div>
                     <div class="dp-chart-container">
                         <div class="dp-chart-yaxis"><span>100%</span><span>50%</span><span>0%</span></div>
                         <div class="dp-chart"><svg id="chart-mem" viewBox="0 0 200 50"><defs><linearGradient id="memG" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="rgba(48,209,88,0.3)"/><stop offset="100%" stop-color="rgba(48,209,88,0)"/></linearGradient></defs><path class="chart-area" d="" fill="url(#memG)"/><path class="chart-line" d="" fill="none" stroke="var(--accent)" stroke-width="1.5"/></svg></div>
                     </div>
                 </div>
                 <div class="dp-divider"></div>
-                <div class="dp-section-title">Top Processes</div>
-                <div class="dp-proc" data-killable><div class="dp-proc-icon" style="background:rgba(0,122,255,0.15)"><svg viewBox="0 0 16 16"><circle cx="8" cy="8" r="6" fill="#007AFF"/><path d="M8 3L5 11h2l.5-1.5h1L9 11h2L8 3zm0 3.5l.5 2h-1l.5-2z" fill="#fff"/></svg></div><div class="dp-proc-name">Safari</div><div class="dp-proc-val">1.4 GB</div></div>
-                <div class="dp-proc" data-killable><div class="dp-proc-icon" style="background:rgba(75,0,130,0.2)"><svg viewBox="0 0 16 16"><circle cx="8" cy="8" r="6" fill="#4A154B"/><path d="M6 5h1v2h2V5h1v6h-1V9H7v2H6V5z" fill="#fff"/></svg></div><div class="dp-proc-name">Slack</div><div class="dp-proc-val">890 MB</div></div>
-                <div class="dp-proc" data-killable><div class="dp-proc-icon" style="background:rgba(30,215,96,0.15)"><svg viewBox="0 0 16 16"><circle cx="8" cy="8" r="6" fill="#1DB954"/><circle cx="8" cy="8" r="3" fill="none" stroke="#fff" stroke-width="1.2"/></svg></div><div class="dp-proc-name">Spotify</div><div class="dp-proc-val">620 MB</div></div>
-                <div class="dp-proc" data-killable><div class="dp-proc-icon" style="background:rgba(0,122,255,0.12)"><svg viewBox="0 0 16 16"><circle cx="8" cy="8" r="6" fill="#007AFF"/><rect x="5" y="5.5" width="6" height="4" rx="0.5" fill="#fff" opacity="0.9"/></svg></div><div class="dp-proc-name">Mail</div><div class="dp-proc-val">340 MB</div></div>
-                <div class="dp-proc" data-killable><div class="dp-proc-icon" style="background:rgba(0,122,255,0.12)"><svg viewBox="0 0 16 16"><rect x="3" y="3" width="10" height="10" rx="2" fill="#339CEC"/><circle cx="8" cy="7" r="2" fill="#fff"/><path d="M5 11c0-1.5 1.3-2.5 3-2.5s3 1 3 2.5" fill="#fff"/></svg></div><div class="dp-proc-name">Finder</div><div class="dp-proc-val">210 MB</div></div>
+                <div class="dp-section-title" data-i18n="top-processes.61335f">Top Processes</div>
+                <div class="dp-proc" data-killable><div class="dp-proc-icon" style="background:rgba(0,122,255,0.15)"><svg viewBox="0 0 16 16"><circle cx="8" cy="8" r="6" fill="#007AFF"/><path d="M8 3L5 11h2l.5-1.5h1L9 11h2L8 3zm0 3.5l.5 2h-1l.5-2z" fill="#fff"/></svg></div><div class="dp-proc-name" data-i18n="safari.424dd4">Safari</div><div class="dp-proc-val" data-i18n="1-4-gb.2c9444">1.4 GB</div></div>
+                <div class="dp-proc" data-killable><div class="dp-proc-icon" style="background:rgba(75,0,130,0.2)"><svg viewBox="0 0 16 16"><circle cx="8" cy="8" r="6" fill="#4A154B"/><path d="M6 5h1v2h2V5h1v6h-1V9H7v2H6V5z" fill="#fff"/></svg></div><div class="dp-proc-name" data-i18n="slack.430b38">Slack</div><div class="dp-proc-val" data-i18n="890-mb.ca72e4">890 MB</div></div>
+                <div class="dp-proc" data-killable><div class="dp-proc-icon" style="background:rgba(30,215,96,0.15)"><svg viewBox="0 0 16 16"><circle cx="8" cy="8" r="6" fill="#1DB954"/><circle cx="8" cy="8" r="3" fill="none" stroke="#fff" stroke-width="1.2"/></svg></div><div class="dp-proc-name" data-i18n="spotify.2a0cb6">Spotify</div><div class="dp-proc-val" data-i18n="620-mb.11c4e3">620 MB</div></div>
+                <div class="dp-proc" data-killable><div class="dp-proc-icon" style="background:rgba(0,122,255,0.12)"><svg viewBox="0 0 16 16"><circle cx="8" cy="8" r="6" fill="#007AFF"/><rect x="5" y="5.5" width="6" height="4" rx="0.5" fill="#fff" opacity="0.9"/></svg></div><div class="dp-proc-name" data-i18n="mail.92379c">Mail</div><div class="dp-proc-val" data-i18n="340-mb.414a25">340 MB</div></div>
+                <div class="dp-proc" data-killable><div class="dp-proc-icon" style="background:rgba(0,122,255,0.12)"><svg viewBox="0 0 16 16"><rect x="3" y="3" width="10" height="10" rx="2" fill="#339CEC"/><circle cx="8" cy="7" r="2" fill="#fff"/><path d="M5 11c0-1.5 1.3-2.5 3-2.5s3 1 3 2.5" fill="#fff"/></svg></div><div class="dp-proc-name">Finder</div><div class="dp-proc-val" data-i18n="210-mb.a4d05f">210 MB</div></div>
             </div>
 
             <!-- Disk Detail -->
             <div class="demo-detail right-side" id="panel-disk">
                 <div class="dp-header">
                     <svg viewBox="0 0 24 24" fill="var(--accent-orange)"><rect x="4" y="7" width="16" height="10" rx="3"/><circle cx="16" cy="12" r="1.5" fill-opacity="0.4"/><rect x="7" y="11" width="5" height="2" rx="1" fill-opacity="0.4"/></svg>
-                    <span class="dp-header-title">Disk</span>
+                    <span class="dp-header-title" data-i18n="disk.ef9952">Disk</span>
                     <span class="dp-header-right">
                         <span style="display:inline-block;width:6px;height:6px;border-radius:50%;background:var(--accent)"></span>
-                        <span style="font-size:10px;color:var(--text-secondary)">Verified</span>
+                        <span style="font-size:10px;color:var(--text-secondary)" data-i18n="verified.aed3b8">Verified</span>
                     </span>
                 </div>
                 <div class="dp-cols">
-                    <div class="dp-col"><div class="dp-col-label" style="display:flex;align-items:center;gap:3px"><span style="color:var(--accent)">&#8595;</span> Read</div><div class="dp-col-value">1 KB/s</div></div>
-                    <div class="dp-col"><div class="dp-col-label" style="display:flex;align-items:center;gap:3px"><span style="color:var(--accent-blue)">&#8593;</span> Write</div><div class="dp-col-value">261 KB/s</div></div>
+                    <div class="dp-col"><div class="dp-col-label" style="display:flex;align-items:center;gap:3px" data-i18n-html="read.66c0b9"><span style="color:var(--accent)">&#8595;</span> Read</div><div class="dp-col-value" data-i18n="1-kb-s.8a8371">1 KB/s</div></div>
+                    <div class="dp-col"><div class="dp-col-label" style="display:flex;align-items:center;gap:3px" data-i18n-html="write.761fa7"><span style="color:var(--accent-blue)">&#8593;</span> Write</div><div class="dp-col-value" data-i18n="261-kb-s.32a86e">261 KB/s</div></div>
                 </div>
                 <div class="dp-cols">
-                    <div class="dp-col"><div class="dp-col-label">Total Read</div><div class="dp-col-value">318.1 GB</div></div>
-                    <div class="dp-col"><div class="dp-col-label">Total Written</div><div class="dp-col-value">275.2 GB</div></div>
+                    <div class="dp-col"><div class="dp-col-label" data-i18n="total-read.7dab01">Total Read</div><div class="dp-col-value" data-i18n="318-1-gb.c2a19d">318.1 GB</div></div>
+                    <div class="dp-col"><div class="dp-col-label" data-i18n="total-written.2fac8c">Total Written</div><div class="dp-col-value" data-i18n="275-2-gb.6ea2ad">275.2 GB</div></div>
                 </div>
                 <div class="dp-chart-wrap">
-                    <div class="dp-chart-label">Read / Write over time</div>
+                    <div class="dp-chart-label" data-i18n="read-write-over-time.f0c0e9">Read / Write over time</div>
                     <div class="dp-chart-container">
-                        <div class="dp-chart-yaxis"><span>6.0 MB/s</span><span>3.0 MB/s</span><span>0 B/s</span></div>
+                        <div class="dp-chart-yaxis"><span data-i18n="6-0-mb-s.9aab05">6.0 MB/s</span><span data-i18n="3-0-mb-s.cdf4fa">3.0 MB/s</span><span>0 B/s</span></div>
                         <div class="dp-chart">
                             <svg viewBox="0 0 200 50">
                                 <defs>
@@ -1035,18 +1046,18 @@
                 <!-- Macintosh HD volume -->
                 <div class="dp-vol-header">
                     <svg viewBox="0 0 16 16" fill="var(--text-secondary)"><rect x="2" y="4" width="12" height="8" rx="2"/><circle cx="11" cy="8" r="1" fill-opacity="0.4"/><rect x="4.5" y="7.5" width="4" height="1" rx="0.5" fill-opacity="0.4"/></svg>
-                    <span class="dp-vol-name">Macintosh HD</span>
+                    <span class="dp-vol-name" data-i18n="macintosh-hd.a9c0a9">Macintosh HD</span>
                     <span class="dp-vol-pct">65%</span>
                     <span class="dp-vol-gauge" id="vol-gauge-main" title="Run speed test on Macintosh HD"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><path d="M3.2 11.5a5.5 5.5 0 1 1 9.6 0"/><path d="M8 11l2.6-3.4"/></svg></span>
                 </div>
                 <div class="dp-vol-bar"><div class="dp-vol-fill" style="width:65%"></div></div>
-                <div class="dp-vol-info"><span>2.59 TB used</span><span>1.41 TB free</span></div>
+                <div class="dp-vol-info"><span data-i18n="2-59-tb-used.750f77">2.59 TB used</span><span data-i18n="1-41-tb-free.f7731a">1.41 TB free</span></div>
 
                 <div class="dp-divider"></div>
                 <!-- Disk Speed Test (v1.5.0) -->
                 <div class="dp-expand-header" id="disk-st-header">
                     <svg class="dp-expand-icon" viewBox="0 0 24 24" fill="var(--accent-orange)"><path d="M12 4a8 8 0 0 0-8 8 8 8 0 0 0 1.5 4.66.9.9 0 0 0 .73.38h11.54a.9.9 0 0 0 .73-.38A8 8 0 0 0 20 12a8 8 0 0 0-8-8zm0 2.2a.8.8 0 0 1 .8.8.8.8 0 0 1-.8.8.8.8 0 0 1-.8-.8.8.8 0 0 1 .8-.8zm4 1.6 .9.9-2.6 2.6a1.8 1.8 0 1 1-1.1-1.1zM6.5 8.7a.8.8 0 1 1 0 1.6.8.8 0 0 1 0-1.6zm11 0a.8.8 0 1 1 0 1.6.8.8 0 0 1 0-1.6zM5.5 12.5a.8.8 0 1 1 0 1.6.8.8 0 0 1 0-1.6z"/></svg>
-                    <span class="dp-expand-title">Speed Test</span>
+                    <span class="dp-expand-title" data-i18n="speed-test.5a4882">Speed Test</span>
                     <span class="dp-expand-right">
                         <span class="dp-expand-summary" id="disk-st-summary"></span>
                         <span class="dp-expand-chevron" id="disk-st-chevron" style="font-size:9px">&#8250;</span>
@@ -1054,21 +1065,21 @@
                 </div>
                 <div class="dp-expand-body" id="disk-st-body">
                     <div style="padding-top:6px">
-                        <div style="font-size:10px;color:var(--text-secondary);margin-bottom:4px">Testing: Macintosh HD &middot; 1 GB</div>
+                        <div style="font-size:10px;color:var(--text-secondary);margin-bottom:4px" data-i18n="testing-macintosh-hd-1.faadfe">Testing: Macintosh HD &middot; 1 GB</div>
                         <div class="dp-st-run" id="disk-st-run"><svg viewBox="0 0 16 16" fill="currentColor"><path d="M4 3l9 5-9 5z"/></svg> Run Test</div>
                         <div id="disk-st-running" style="display:none">
-                            <div class="dp-st-phase"><span class="dp-st-phase-label" id="disk-st-phase" style="color:var(--accent-blue)">Writing&hellip;</span></div>
+                            <div class="dp-st-phase"><span class="dp-st-phase-label" id="disk-st-phase" style="color:var(--accent-blue)" data-i18n="writing.969b46">Writing&hellip;</span></div>
                             <div class="dp-st-progress"><div class="dp-st-progress-fill" id="disk-st-progress" style="width:0%;background:var(--accent-orange)"></div></div>
                         </div>
                         <div id="disk-st-result" style="display:none">
                             <div class="dp-st-result-col">
-                                <div class="dp-st-result"><div class="dp-st-result-label"><span class="dp-st-result-dot" style="background:var(--accent)"></span>Read</div><div class="dp-st-result-val" id="disk-st-read">2841 MB/s</div></div>
-                                <div class="dp-st-result"><div class="dp-st-result-label"><span class="dp-st-result-dot" style="background:var(--accent-blue)"></span>Write</div><div class="dp-st-result-val" id="disk-st-write">2530 MB/s</div></div>
+                                <div class="dp-st-result"><div class="dp-st-result-label" data-i18n-html="read.a2785a"><span class="dp-st-result-dot" style="background:var(--accent)"></span>Read</div><div class="dp-st-result-val" id="disk-st-read" data-i18n="2841-mb-s.2e7b75">2841 MB/s</div></div>
+                                <div class="dp-st-result"><div class="dp-st-result-label" data-i18n-html="write.71c53f"><span class="dp-st-result-dot" style="background:var(--accent-blue)"></span>Write</div><div class="dp-st-result-val" id="disk-st-write" data-i18n="2530-mb-s.0b5ae1">2530 MB/s</div></div>
                             </div>
-                            <div class="dp-st-iops"><span class="dp-st-iops-label">Random read</span><span class="dp-st-iops-val" id="disk-st-iops">182400 IOPS</span></div>
+                            <div class="dp-st-iops"><span class="dp-st-iops-label" data-i18n="random-read.edbf80">Random read</span><span class="dp-st-iops-val" id="disk-st-iops" data-i18n="182400-iops.d55f76">182400 IOPS</span></div>
                         </div>
                         <div id="disk-st-spark-wrap" style="display:none">
-                            <div class="dp-st-spark-label">History</div>
+                            <div class="dp-st-spark-label" data-i18n="history.90ccd6">History</div>
                             <div class="dp-st-spark"><svg viewBox="0 0 200 40" preserveAspectRatio="none"><path id="disk-st-spark-r" fill="none" stroke="var(--accent)" stroke-width="1.5" d=""/><path id="disk-st-spark-w" fill="none" stroke="var(--accent-blue)" stroke-width="1.5" d=""/></svg></div>
                         </div>
                     </div>
@@ -1079,25 +1090,25 @@
             <div class="demo-detail left-side" id="panel-network">
                 <div class="dp-header">
                     <svg viewBox="0 0 24 24" fill="var(--accent-cyan)"><circle cx="12" cy="19" r="1.5"/><path d="M8.5 15.5a5 5 0 0 1 7 0" stroke="var(--accent-cyan)" stroke-width="2" stroke-linecap="round" fill="none"/><path d="M5 12a10 10 0 0 1 14 0" stroke="var(--accent-cyan)" stroke-width="2" stroke-linecap="round" fill="none"/><path d="M1.5 8.5a15 15 0 0 1 21 0" stroke="var(--accent-cyan)" stroke-width="2" stroke-linecap="round" fill="none"/></svg>
-                    <span class="dp-header-title">Network</span>
+                    <span class="dp-header-title" data-i18n="network.53ebc5">Network</span>
                     <span class="dp-header-right"><span style="display:inline-block;width:7px;height:7px;border-radius:50%;background:var(--accent)"></span></span>
                 </div>
                 <div class="dp-cols">
-                    <div class="dp-col"><div class="dp-col-label" style="color:var(--accent)">&#8595; Download</div><div class="dp-col-value" id="net-dl">7 KB/s</div></div>
-                    <div class="dp-col"><div class="dp-col-label" style="color:var(--accent-blue)">&#8593; Upload</div><div class="dp-col-value" id="net-ul">3 KB/s</div></div>
+                    <div class="dp-col"><div class="dp-col-label" style="color:var(--accent)" data-i18n="download.a8acf2">&#8595; Download</div><div class="dp-col-value" id="net-dl" data-i18n="7-kb-s.25355b">7 KB/s</div></div>
+                    <div class="dp-col"><div class="dp-col-label" style="color:var(--accent-blue)" data-i18n="upload.71887a">&#8593; Upload</div><div class="dp-col-value" id="net-ul" data-i18n="3-kb-s.e6e22e">3 KB/s</div></div>
                 </div>
                 <div class="dp-cols">
-                    <div class="dp-col"><div class="dp-col-label" style="display:flex;align-items:center;gap:2px"><svg width="9" height="9" viewBox="0 0 16 16" fill="none" stroke="var(--accent-yellow)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M1 8h3l1.5-4 2 8 2-6 1.5 2H15"/></svg> WAN Ping</div><div class="dp-col-value" style="color:var(--accent)">3 ms</div></div>
-                    <div class="dp-col"><div class="dp-col-label" style="display:flex;align-items:center;gap:2px"><svg width="9" height="9" viewBox="0 0 16 16" fill="none" stroke="var(--accent-yellow)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M1 8h3l1.5-4 2 8 2-6 1.5 2H15"/></svg> Router Ping</div><div class="dp-col-value" style="color:var(--accent)">3 ms</div></div>
+                    <div class="dp-col"><div class="dp-col-label" style="display:flex;align-items:center;gap:2px"><svg width="9" height="9" viewBox="0 0 16 16" fill="none" stroke="var(--accent-yellow)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M1 8h3l1.5-4 2 8 2-6 1.5 2H15"/></svg> WAN Ping</div><div class="dp-col-value" style="color:var(--accent)" data-i18n="3-ms.0a4cb1">3 ms</div></div>
+                    <div class="dp-col"><div class="dp-col-label" style="display:flex;align-items:center;gap:2px"><svg width="9" height="9" viewBox="0 0 16 16" fill="none" stroke="var(--accent-yellow)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M1 8h3l1.5-4 2 8 2-6 1.5 2H15"/></svg> Router Ping</div><div class="dp-col-value" style="color:var(--accent)" data-i18n="3-ms.0a4cb1">3 ms</div></div>
                 </div>
                 <div class="dp-cols">
-                    <div class="dp-col"><div class="dp-col-label">Total Down</div><div class="dp-col-value">3.9 GB</div></div>
-                    <div class="dp-col"><div class="dp-col-label">Total Up</div><div class="dp-col-value">3.6 GB</div></div>
+                    <div class="dp-col"><div class="dp-col-label" data-i18n="total-down.6e63a5">Total Down</div><div class="dp-col-value" data-i18n="3-9-gb.47b682">3.9 GB</div></div>
+                    <div class="dp-col"><div class="dp-col-label" data-i18n="total-up.e5a4e4">Total Up</div><div class="dp-col-value" data-i18n="3-6-gb.525bb4">3.6 GB</div></div>
                 </div>
                 <div class="dp-chart-wrap">
-                    <div class="dp-chart-label">Bandwidth over time</div>
+                    <div class="dp-chart-label" data-i18n="bandwidth-over-time.19ae62">Bandwidth over time</div>
                     <div class="dp-chart-container">
-                        <div class="dp-chart-yaxis"><span>4.0 MB/s</span><span>2.0 MB/s</span><span>0 B/s</span></div>
+                        <div class="dp-chart-yaxis"><span data-i18n="4-0-mb-s.033e27">4.0 MB/s</span><span data-i18n="2-0-mb-s.34bb4c">2.0 MB/s</span><span>0 B/s</span></div>
                         <div class="dp-chart">
                             <svg viewBox="0 0 200 50"><defs><linearGradient id="nDG" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="rgba(48,209,88,0.15)"/><stop offset="100%" stop-color="rgba(48,209,88,0)"/></linearGradient><linearGradient id="nUG" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="rgba(10,132,255,0.15)"/><stop offset="100%" stop-color="rgba(10,132,255,0)"/></linearGradient></defs>
                             <path id="chart-net-dl-area" class="chart-area" d="" fill="url(#nDG)"/>
@@ -1113,38 +1124,38 @@
                     </div>
                 </div>
                 <div class="dp-divider"></div>
-                <div class="dp-section-title">Active Interfaces</div>
+                <div class="dp-section-title" data-i18n="active-interfaces.472f17">Active Interfaces</div>
                 <div style="margin-bottom:6px">
-                    <div style="display:flex;align-items:baseline;gap:6px;margin-bottom:2px"><span style="font-size:12px;font-weight:600">Wi-Fi</span><span style="font-size:9px;color:var(--text-secondary)">(en0)</span></div>
-                    <div class="dp-row"><span class="dp-row-label">IPv4</span><span class="dp-row-value">192.168.1.42 <span style="cursor:pointer;opacity:0.3;font-size:9px">&#9112;</span></span></div>
-                    <div class="dp-row"><span class="dp-row-label">IPv6</span><span class="dp-row-value" style="font-size:9px">fe80::1a2b:3c4d:5e6f <span style="cursor:pointer;opacity:0.3;font-size:8px">&#9112;</span></span></div>
-                    <div class="dp-row"><span class="dp-row-label">MAC</span><span class="dp-row-value" style="font-size:9px">AA:BB:CC:11:22:33 <span style="cursor:pointer;opacity:0.3;font-size:8px">&#9112;</span></span></div>
+                    <div style="display:flex;align-items:baseline;gap:6px;margin-bottom:2px"><span style="font-size:12px;font-weight:600" data-i18n="wi-fi.780ff7">Wi-Fi</span><span style="font-size:9px;color:var(--text-secondary)" data-i18n="en0.49e857">(en0)</span></div>
+                    <div class="dp-row"><span class="dp-row-label" data-i18n="ipv4.f8a4e5">IPv4</span><span class="dp-row-value">192.168.1.42 <span style="cursor:pointer;opacity:0.3;font-size:9px">&#9112;</span></span></div>
+                    <div class="dp-row"><span class="dp-row-label" data-i18n="ipv6.76b87a">IPv6</span><span class="dp-row-value" style="font-size:9px" data-i18n-html="fe80-1a2b-3c4d-5e6f.988557">fe80::1a2b:3c4d:5e6f <span style="cursor:pointer;opacity:0.3;font-size:8px">&#9112;</span></span></div>
+                    <div class="dp-row"><span class="dp-row-label">MAC</span><span class="dp-row-value" style="font-size:9px" data-i18n-html="aa-bb-cc-11.ea8821">AA:BB:CC:11:22:33 <span style="cursor:pointer;opacity:0.3;font-size:8px">&#9112;</span></span></div>
                 </div>
-                <div class="dp-row"><span class="dp-row-label">Router</span><span class="dp-row-value">192.168.1.1 <span style="cursor:pointer;opacity:0.3;font-size:9px">&#9112;</span></span></div>
-                <div class="dp-row"><span class="dp-row-label">WAN IP</span><span id="wan-ip-btn" class="dp-row-value" style="color:var(--accent-blue);cursor:pointer;font-size:10px">Tap to reveal</span></div>
+                <div class="dp-row"><span class="dp-row-label" data-i18n="router.6dcf16">Router</span><span class="dp-row-value">192.168.1.1 <span style="cursor:pointer;opacity:0.3;font-size:9px">&#9112;</span></span></div>
+                <div class="dp-row"><span class="dp-row-label" data-i18n="wan-ip.f71226">WAN IP</span><span id="wan-ip-btn" class="dp-row-value" style="color:var(--accent-blue);cursor:pointer;font-size:10px" data-i18n="tap-to-reveal.8e80e1">Tap to reveal</span></div>
 
                 <div class="dp-divider"></div>
                 <!-- Traceroute / MTR (v1.5.0) -->
                 <div class="dp-expand-header" id="trace-header">
                     <span class="dp-expand-chevron" id="trace-chevron">&#8250;</span>
                     <svg class="dp-expand-icon" viewBox="0 0 24 24" fill="none" stroke="var(--accent-purple)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="5" cy="6" r="2"/><circle cx="19" cy="18" r="2"/><path d="M5 8c0 4 3 5 7 5s7 1 7 5" /></svg>
-                    <span class="dp-expand-title">Traceroute / MTR</span>
+                    <span class="dp-expand-title" data-i18n="traceroute-mtr.fc4eec">Traceroute / MTR</span>
                     <span class="dp-expand-right"><span class="dp-run-dot" id="trace-run-dot" style="display:none"></span></span>
                 </div>
                 <div class="dp-expand-body" id="trace-body">
                     <div style="padding-top:6px">
                         <div class="dp-trace-controls">
                             <input class="dp-trace-field" id="trace-host" value="1.1.1.1" readonly>
-                            <button class="dp-trace-btn" id="trace-btn">Start</button>
+                            <button class="dp-trace-btn" id="trace-btn" data-i18n="start.952f37">Start</button>
                         </div>
-                        <div id="trace-probe" class="dp-hop-probe" style="display:none">Probing&hellip;</div>
+                        <div id="trace-probe" class="dp-hop-probe" style="display:none" data-i18n="probing.6b8b7f">Probing&hellip;</div>
                         <div id="trace-table" style="display:none">
                             <div class="dp-hop-head">
                                 <span class="dp-hop-num">#</span>
-                                <span class="dp-hop-host">Host</span>
-                                <span class="dp-hop-loss">Loss</span>
-                                <span class="dp-hop-ms">Last</span>
-                                <span class="dp-hop-ms">Avg</span>
+                                <span class="dp-hop-host" data-i18n="host.3960ec">Host</span>
+                                <span class="dp-hop-loss" data-i18n="loss.12e24a">Loss</span>
+                                <span class="dp-hop-ms" data-i18n="last.d1c69a">Last</span>
+                                <span class="dp-hop-ms" data-i18n="avg.cdc931">Avg</span>
                             </div>
                             <div id="trace-hops"></div>
                         </div>
@@ -1156,12 +1167,12 @@
                 <div class="dp-expand-header" id="net-st-header">
                     <span class="dp-expand-chevron" id="net-st-chevron">&#8250;</span>
                     <svg class="dp-expand-icon" viewBox="0 0 24 24" fill="var(--accent-purple)"><path d="M12 4a8 8 0 0 0-8 8 8 8 0 0 0 1.5 4.66.9.9 0 0 0 .73.38h11.54a.9.9 0 0 0 .73-.38A8 8 0 0 0 20 12a8 8 0 0 0-8-8zm0 2.2a.8.8 0 0 1 .8.8.8.8 0 0 1-.8.8.8.8 0 0 1-.8-.8.8.8 0 0 1 .8-.8zm4 1.6 .9.9-2.6 2.6a1.8 1.8 0 1 1-1.1-1.1zM6.5 8.7a.8.8 0 1 1 0 1.6.8.8 0 0 1 0-1.6zm11 0a.8.8 0 1 1 0 1.6.8.8 0 0 1 0-1.6zM5.5 12.5a.8.8 0 1 1 0 1.6.8.8 0 0 1 0-1.6z"/></svg>
-                    <span class="dp-expand-title">Speed Test</span>
+                    <span class="dp-expand-title" data-i18n="speed-test.5a4882">Speed Test</span>
                     <span class="dp-expand-right"><span class="dp-expand-summary" id="net-st-summary"></span></span>
                 </div>
                 <div class="dp-expand-body" id="net-st-body">
                     <div style="padding-top:6px">
-                        <div class="dp-st-server">
+                        <div class="dp-st-server" data-i18n-html="server-openspeedtest.6b1ed9">
                             Server:
                             <span class="dp-st-server-pill" id="net-st-server">
                                 <span style="width:5px;height:5px;border-radius:50%;background:var(--accent-orange);display:inline-block"></span>
@@ -1170,16 +1181,16 @@
                         </div>
                         <div class="dp-st-run" id="net-st-run"><svg viewBox="0 0 16 16" fill="currentColor"><path d="M4 3l9 5-9 5z"/></svg> Run Test</div>
                         <div id="net-st-running" style="display:none">
-                            <div class="dp-st-phase"><span class="dp-st-phase-label" id="net-st-phase" style="color:var(--accent)">Download&hellip;</span><span class="dp-st-phase-val" id="net-st-live">0.0 Mbps</span></div>
+                            <div class="dp-st-phase"><span class="dp-st-phase-label" id="net-st-phase" style="color:var(--accent)" data-i18n="download.24ef51">Download&hellip;</span><span class="dp-st-phase-val" id="net-st-live" data-i18n="0-0-mbps.de8fba">0.0 Mbps</span></div>
                         </div>
                         <div id="net-st-result" style="display:none">
                             <div class="dp-st-result-col">
-                                <div class="dp-st-result"><div class="dp-st-result-label"><span style="color:var(--accent)">&#8595;</span>Download</div><div class="dp-st-result-val" id="net-st-down">942 Mbps</div></div>
-                                <div class="dp-st-result"><div class="dp-st-result-label"><span style="color:var(--accent-blue)">&#8593;</span>Upload</div><div class="dp-st-result-val" id="net-st-up">38 Mbps</div></div>
+                                <div class="dp-st-result"><div class="dp-st-result-label" data-i18n-html="download.80c3c7"><span style="color:var(--accent)">&#8595;</span>Download</div><div class="dp-st-result-val" id="net-st-down" data-i18n="942-mbps.961bbc">942 Mbps</div></div>
+                                <div class="dp-st-result"><div class="dp-st-result-label" data-i18n-html="upload.b1a26b"><span style="color:var(--accent-blue)">&#8593;</span>Upload</div><div class="dp-st-result-val" id="net-st-up" data-i18n="38-mbps.bac4d5">38 Mbps</div></div>
                             </div>
                         </div>
                         <div id="net-st-spark-wrap" style="display:none">
-                            <div class="dp-st-spark-label">Recent (download)</div>
+                            <div class="dp-st-spark-label" data-i18n="recent-download.743b12">Recent (download)</div>
                             <div class="dp-st-spark"><svg viewBox="0 0 200 40" preserveAspectRatio="none"><path id="net-st-spark" fill="none" stroke="var(--accent)" stroke-width="1.5" d=""/></svg></div>
                         </div>
                     </div>
@@ -1190,19 +1201,19 @@
             <div class="demo-detail right-side" id="panel-gpu">
                 <div class="dp-header">
                     <svg viewBox="0 0 24 24" fill="var(--accent-purple)"><rect x="2" y="4" width="8" height="6" rx="1.5"/><rect x="14" y="4" width="8" height="6" rx="1.5"/><rect x="5" y="14" width="14" height="6" rx="1.5"/></svg>
-                    <span class="dp-header-title">GPU</span>
+                    <span class="dp-header-title" data-i18n="gpu.a6a631">GPU</span>
                     <span class="dp-header-right"><span class="dp-header-value" style="color:var(--accent-purple)">67%</span></span>
                 </div>
-                <div class="dp-row"><span class="dp-row-label">Renderer</span><span class="dp-row-value">Apple M4 Pro</span></div>
-                <div class="dp-row"><span class="dp-row-label">GPU Cores</span><span class="dp-row-value">20</span></div>
-                <div class="dp-row"><span class="dp-row-label">Utilization</span><span class="dp-row-value">67%</span></div>
+                <div class="dp-row"><span class="dp-row-label" data-i18n="renderer.e72008">Renderer</span><span class="dp-row-value" data-i18n="apple-m4-pro.9f169c">Apple M4 Pro</span></div>
+                <div class="dp-row"><span class="dp-row-label" data-i18n="gpu-cores.115fa9">GPU Cores</span><span class="dp-row-value">20</span></div>
+                <div class="dp-row"><span class="dp-row-label" data-i18n="utilization.ea3c24">Utilization</span><span class="dp-row-value">67%</span></div>
                 <div style="margin:6px 0">
                     <div style="height:8px;background:rgba(191,90,242,0.1);border-radius:4px;overflow:hidden">
                         <div style="width:67%;height:100%;background:var(--accent-purple);border-radius:4px"></div>
                     </div>
                 </div>
                 <div class="dp-chart-wrap">
-                    <div class="dp-chart-label">Usage over time</div>
+                    <div class="dp-chart-label" data-i18n="usage-over-time.068245">Usage over time</div>
                     <div class="dp-chart-container">
                         <div class="dp-chart-yaxis"><span>100%</span><span>50%</span><span>0%</span></div>
                         <div class="dp-chart"><svg id="chart-gpu" viewBox="0 0 200 50"><defs><linearGradient id="gpuG" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="rgba(191,90,242,0.3)"/><stop offset="100%" stop-color="rgba(191,90,242,0)"/></linearGradient></defs><path class="chart-area" d="" fill="url(#gpuG)"/><path class="chart-line" d="" fill="none" stroke="var(--accent-purple)" stroke-width="1.5"/></svg></div>
@@ -1214,31 +1225,31 @@
             <div class="demo-detail left-side" id="panel-thermal">
                 <div class="dp-header">
                     <svg viewBox="0 0 24 24" fill="var(--accent)"><rect x="10" y="2" width="4" height="14" rx="2"/><circle cx="12" cy="18" r="4"/><circle cx="12" cy="18" r="2" fill-opacity="0.4"/><rect x="11" y="5" width="2" height="8" rx="0.5" fill-opacity="0.4"/></svg>
-                    <span class="dp-header-title">Thermal</span>
-                    <span class="dp-header-right"><span class="dp-header-value" style="color:var(--accent)">Nominal</span></span>
+                    <span class="dp-header-title" data-i18n="thermal.5438c3">Thermal</span>
+                    <span class="dp-header-right"><span class="dp-header-value" style="color:var(--accent)" data-i18n="nominal.1795d1">Nominal</span></span>
                 </div>
-                <div style="font-size:11px;color:var(--text-secondary);margin-bottom:8px">System is running within normal thermal limits.</div>
+                <div style="font-size:11px;color:var(--text-secondary);margin-bottom:8px" data-i18n="system-is-running-within.771232">System is running within normal thermal limits.</div>
                 <div class="dp-divider"></div>
                 <div style="display:flex;align-items:center;gap:5px;margin:6px 0 4px">
                     <svg width="12" height="12" viewBox="0 0 16 16" fill="var(--accent-orange)"><path d="M8 1C8 1 3 6 3 10a5 5 0 0010 0C13 6 8 1 8 1z"/></svg>
-                    <span style="font-size:13px;font-weight:600">Temperatures</span>
+                    <span style="font-size:13px;font-weight:600" data-i18n="temperatures.89574d">Temperatures</span>
                 </div>
-                <div class="dp-row"><span class="dp-row-label">CPU</span><span class="dp-row-value" style="color:var(--accent)">42&deg;C</span></div>
-                <div class="dp-row"><span class="dp-row-label">GPU</span><span class="dp-row-value" style="color:var(--accent)">38&deg;C</span></div>
+                <div class="dp-row"><span class="dp-row-label" data-i18n="cpu.ff221d">CPU</span><span class="dp-row-value" style="color:var(--accent)">42&deg;C</span></div>
+                <div class="dp-row"><span class="dp-row-label" data-i18n="gpu.a6a631">GPU</span><span class="dp-row-value" style="color:var(--accent)">38&deg;C</span></div>
                 <div class="dp-divider"></div>
                 <div style="display:flex;align-items:center;gap:5px;margin:6px 0 4px">
                     <svg width="12" height="12" viewBox="0 0 16 16" fill="var(--accent-teal)"><path d="M8 6.5a1.5 1.5 0 110 3 1.5 1.5 0 010-3zm0-5.5c1.2 0 2.2.9 2.4 2.1.6-.2 1.3 0 1.8.5s.7 1.2.5 1.8C14.1 5.8 15 6.8 15 8c0 1.2-.9 2.2-2.1 2.4.2.6 0 1.3-.5 1.8s-1.2.7-1.8.5C10.2 14.1 9.2 15 8 15c-1.2 0-2.2-.9-2.4-2.1-.6.2-1.3 0-1.8-.5s-.7-1.2-.5-1.8C1.9 10.2 1 9.2 1 8c0-1.2.9-2.2 2.1-2.4-.2-.6 0-1.3.5-1.8s1.2-.7 1.8-.5C5.8 1.9 6.8 1 8 1z"/></svg>
-                    <span style="font-size:13px;font-weight:600">Fans</span>
+                    <span style="font-size:13px;font-weight:600" data-i18n="fans.73d38d">Fans</span>
                 </div>
                 <div class="dp-fan-bar">
-                    <div class="dp-fan-header"><span class="dp-fan-name">Left Fan</span><span class="dp-fan-rpm">1200 RPM</span></div>
+                    <div class="dp-fan-header"><span class="dp-fan-name" data-i18n="left-fan.2edbeb">Left Fan</span><span class="dp-fan-rpm" data-i18n="1200-rpm.379ffc">1200 RPM</span></div>
                     <div class="dp-fan-track"><div class="dp-fan-fill" style="width:20%"></div></div>
-                    <div class="dp-fan-range"><span>0 RPM</span><span>6200 RPM</span></div>
+                    <div class="dp-fan-range"><span data-i18n="0-rpm.7e0e05">0 RPM</span><span data-i18n="6200-rpm.e4dc35">6200 RPM</span></div>
                 </div>
                 <div class="dp-fan-bar">
-                    <div class="dp-fan-header"><span class="dp-fan-name">Right Fan</span><span class="dp-fan-rpm">1180 RPM</span></div>
+                    <div class="dp-fan-header"><span class="dp-fan-name" data-i18n="right-fan.de99f9">Right Fan</span><span class="dp-fan-rpm" data-i18n="1180-rpm.2860bf">1180 RPM</span></div>
                     <div class="dp-fan-track"><div class="dp-fan-fill" style="width:19%"></div></div>
-                    <div class="dp-fan-range"><span>0 RPM</span><span>6200 RPM</span></div>
+                    <div class="dp-fan-range"><span data-i18n="0-rpm.7e0e05">0 RPM</span><span data-i18n="6200-rpm.e4dc35">6200 RPM</span></div>
                 </div>
             </div>
 
@@ -1246,93 +1257,93 @@
             <div class="demo-detail left-side" id="panel-battery">
                 <div class="dp-header">
                     <svg viewBox="0 0 28 24" fill="var(--accent-red)"><rect x="2" y="7" width="20" height="10" rx="2.5"/><rect x="4" y="9" width="16" height="6" rx="1" fill-opacity="0.5"/><path d="M22 10v4a2 2 0 0 0 0-4z"/></svg>
-                    <span class="dp-header-title">Battery</span>
+                    <span class="dp-header-title" data-i18n="battery.4a9be0">Battery</span>
                     <span class="dp-header-right"><span class="dp-header-value" style="color:var(--accent-red)">100%</span></span>
                 </div>
                 <div style="height:8px;background:rgba(255,69,58,0.1);border-radius:4px;overflow:hidden;margin-bottom:8px">
                     <div style="width:100%;height:100%;background:var(--accent-red);border-radius:4px"></div>
                 </div>
-                <div class="dp-row"><span class="dp-row-label">Status</span><span class="dp-row-value">Charging</span></div>
-                <div class="dp-row"><span class="dp-row-label">Source</span><span class="dp-row-value">AC Power</span></div>
-                <div class="dp-row"><span class="dp-row-label">Health</span><span class="dp-row-value">98%</span></div>
-                <div class="dp-row"><span class="dp-row-label">Condition</span><span class="dp-row-value">Normal</span></div>
-                <div class="dp-row"><span class="dp-row-label">Cycle Count</span><span class="dp-row-value">42</span></div>
-                <div class="dp-row"><span class="dp-row-label">Temperature</span><span class="dp-row-value">34.2&deg;C</span></div>
+                <div class="dp-row"><span class="dp-row-label" data-i18n="status.bae7d5">Status</span><span class="dp-row-value" data-i18n="charging.5f99fe">Charging</span></div>
+                <div class="dp-row"><span class="dp-row-label" data-i18n="source.6da13a">Source</span><span class="dp-row-value" data-i18n="ac-power.c702db">AC Power</span></div>
+                <div class="dp-row"><span class="dp-row-label" data-i18n="health.3703cd">Health</span><span class="dp-row-value">98%</span></div>
+                <div class="dp-row"><span class="dp-row-label" data-i18n="condition.2f4979">Condition</span><span class="dp-row-value" data-i18n="normal.45e118">Normal</span></div>
+                <div class="dp-row"><span class="dp-row-label" data-i18n="cycle-count.7b52ca">Cycle Count</span><span class="dp-row-value">42</span></div>
+                <div class="dp-row"><span class="dp-row-label" data-i18n="temperature.0a9062">Temperature</span><span class="dp-row-value">34.2&deg;C</span></div>
             </div>
 
             <!-- Style Showcase (cycles the actual menu bar) -->
             <div class="style-showcase" id="styleShowcase">
-                <div class="style-showcase-title">Menu Bar Styles</div>
-                <div class="style-label" id="styleLabel">Category Colors</div>
+                <div class="style-showcase-title" data-i18n="menu-bar-styles.663371">Menu Bar Styles</div>
+                <div class="style-label" id="styleLabel" data-i18n="category-colors.a0160a">Category Colors</div>
             </div>
 
         </div>
-        <p style="text-align:center;font-size:11px;color:var(--hint-color);margin-top:14px;font-style:italic">Interactive demo — double-click the menu bar to cycle styles. Some differences may be present in the installed native Mac app.</p>
+        <p style="text-align:center;font-size:11px;color:var(--hint-color);margin-top:14px;font-style:italic" data-i18n="interactive-demo-double-click.b4a683">Interactive demo — double-click the menu bar to cycle styles. Some differences may be present in the installed native Mac app.</p>
     </div>
 </section>
 
 <!-- ═══════════════════ New in v1.6.0 ═══════════════════ -->
 <section class="whats-new" id="whats-new">
     <div class="container">
-        <h2>New in v1.6.0</h2>
-        <p class="subtitle">Blip is now scriptable from Shortcuts &mdash; and every volume gets a one-click benchmark.</p>
+        <h2 data-i18n="new-in-v1-6.d48735">New in v1.6.0</h2>
+        <p class="subtitle" data-i18n="blip-is-now-scriptable.1ce5c9">Blip is now scriptable from Shortcuts &mdash; and every volume gets a one-click benchmark.</p>
         <div class="wn-grid">
 
             <!-- Shortcuts / App Intents workflow demo -->
             <div class="wn-card">
-                <h3>&#9881;&#65039; Shortcuts &amp; App Intents</h3>
-                <p class="wn-card-sub">Eight actions make Blip's monitoring and diagnostics scriptable from the Shortcuts app and Spotlight. Chain live metrics into your own automations &mdash; press &#9654;&#65039; to run this one.</p>
+                <h3 data-i18n="shortcuts-app-intents.4e0f4e">&#9881;&#65039; Shortcuts &amp; App Intents</h3>
+                <p class="wn-card-sub" data-i18n="eight-actions-make-blip.c57e99">Eight actions make Blip's monitoring and diagnostics scriptable from the Shortcuts app and Spotlight. Chain live metrics into your own automations &mdash; press &#9654;&#65039; to run this one.</p>
                 <div class="sc-wrap">
                     <div class="sc-window" id="sc-window">
                         <div class="sc-titlebar">
                             <div class="sc-tile"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><path d="M3.2 11.5a5.5 5.5 0 1 1 9.6 0"/><path d="M8 11l2.6-3.4"/></svg></div>
-                            <span class="sc-title">Drive Health Check</span>
+                            <span class="sc-title" data-i18n="drive-health-check.7290bb">Drive Health Check</span>
                             <button class="sc-run-btn" id="sc-run" aria-label="Run shortcut"><svg viewBox="0 0 16 16" fill="currentColor"><path d="M4 2.5l9 5.5-9 5.5z"/></svg></button>
                         </div>
                         <div class="sc-action" id="sc-a1">
                             <span class="sc-action-icon" style="background:var(--accent-teal)"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><path d="M3.2 11.5a5.5 5.5 0 1 1 9.6 0"/><path d="M8 11l2.6-3.4"/></svg></span>
-                            Get <span class="sc-pill">SSD Life Remaining</span> from <span class="sc-pill">Blip</span>
+                            Get <span class="sc-pill" data-i18n="ssd-life-remaining.8fd51d">SSD Life Remaining</span> from <span class="sc-pill">Blip</span>
                             <span class="sc-result" id="sc-a1-result">14 %</span>
                         </div>
                         <div class="sc-action" id="sc-a2">
                             <span class="sc-action-icon" style="background:var(--accent-orange)"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><path d="M2 4h4l4 8h4M10 4h4M11 3l3 1-3 1M11 11l3 1-3 1"/></svg></span>
-                            If <span class="sc-pill">Metric Value</span> is less than <span class="sc-pill">20</span>
+                            If <span class="sc-pill" data-i18n="metric-value.8b2d1a">Metric Value</span> is less than <span class="sc-pill">20</span>
                         </div>
                         <div class="sc-action" id="sc-a3">
                             <span class="sc-action-icon" style="background:var(--accent-red)"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M8 2a4 4 0 0 1 4 4c0 3 1.5 4.5 1.5 4.5h-11S4 9 4 6a4 4 0 0 1 4-4zM6.5 13a1.5 1.5 0 0 0 3 0"/></svg></span>
-                            Show notification <span class="sc-pill">SSD wearing out</span>
+                            Show notification <span class="sc-pill" data-i18n="ssd-wearing-out.cb1eb3">SSD wearing out</span>
                         </div>
                     </div>
                     <div class="sc-notif" id="sc-notif">
                         <div class="sc-notif-icon"><span></span></div>
                         <div>
                             <div class="sc-notif-title">Blip</div>
-                            <div class="sc-notif-body">Macintosh HD is at 14% SSD life &mdash; plan a replacement.</div>
+                            <div class="sc-notif-body" data-i18n="macintosh-hd-is-at.68b5db">Macintosh HD is at 14% SSD life &mdash; plan a replacement.</div>
                         </div>
                     </div>
                 </div>
-                <div class="sc-actions-label">ALL EIGHT ACTIONS</div>
+                <div class="sc-actions-label" data-i18n="all-eight-actions.fb6e30">ALL EIGHT ACTIONS</div>
                 <div class="sc-chips">
-                    <span class="sc-chip"><span class="sc-chip-dot"></span>Get System Metric</span>
-                    <span class="sc-chip"><span class="sc-chip-dot"></span>Run Drive Speed Test</span>
-                    <span class="sc-chip"><span class="sc-chip-dot"></span>Run Network Speed Test</span>
-                    <span class="sc-chip"><span class="sc-chip-dot"></span>Run Traceroute</span>
-                    <span class="sc-chip"><span class="sc-chip-dot"></span>Stop Traceroute</span>
-                    <span class="sc-chip"><span class="sc-chip-dot"></span>Open Traceroute Map</span>
-                    <span class="sc-chip"><span class="sc-chip-dot"></span>Get Blip Setting</span>
-                    <span class="sc-chip"><span class="sc-chip-dot"></span>Set Blip Setting</span>
+                    <span class="sc-chip" data-i18n-html="get-system-metric.20656d"><span class="sc-chip-dot"></span>Get System Metric</span>
+                    <span class="sc-chip" data-i18n-html="run-drive-speed-test.9c0f82"><span class="sc-chip-dot"></span>Run Drive Speed Test</span>
+                    <span class="sc-chip" data-i18n-html="run-network-speed-test.d594e2"><span class="sc-chip-dot"></span>Run Network Speed Test</span>
+                    <span class="sc-chip" data-i18n-html="run-traceroute.c83cb0"><span class="sc-chip-dot"></span>Run Traceroute</span>
+                    <span class="sc-chip" data-i18n-html="stop-traceroute.627851"><span class="sc-chip-dot"></span>Stop Traceroute</span>
+                    <span class="sc-chip" data-i18n-html="open-traceroute-map.58a1f3"><span class="sc-chip-dot"></span>Open Traceroute Map</span>
+                    <span class="sc-chip" data-i18n-html="get-blip-setting.4386c6"><span class="sc-chip-dot"></span>Get Blip Setting</span>
+                    <span class="sc-chip" data-i18n-html="set-blip-setting.8cc75a"><span class="sc-chip-dot"></span>Set Blip Setting</span>
                 </div>
                 <div class="siri-row">
                     <div class="siri-orb"></div>
-                    <span class="siri-phrase" id="siri-phrase">&ldquo;Run a drive speed test in Blip&rdquo;</span>
+                    <span class="siri-phrase" id="siri-phrase" data-i18n="run-a-drive-speed.564505">&ldquo;Run a drive speed test in Blip&rdquo;</span>
                 </div>
-                <div class="siri-hint">Five zero-setup App Shortcut phrases &mdash; say them to Siri or type them into Spotlight, no setup required.</div>
+                <div class="siri-hint" data-i18n="five-zero-setup-app.b51c76">Five zero-setup App Shortcut phrases &mdash; say them to Siri or type them into Spotlight, no setup required.</div>
             </div>
 
             <!-- Metric catalog browser demo -->
             <div class="wn-card">
-                <h3>&#128202; Get System Metric &mdash; a 37-metric catalog</h3>
-                <p class="wn-card-sub">One action exposes every number Blip tracks as a chainable result, searchable right in Shortcuts &mdash; try the search below. The seven charted metrics also offer average / min / max over Blip's in-memory ~2-minute history.</p>
+                <h3 data-i18n="get-system-metric-a.bb848e">&#128202; Get System Metric &mdash; a 37-metric catalog</h3>
+                <p class="wn-card-sub" data-i18n="one-action-exposes-every.deaab8">One action exposes every number Blip tracks as a chainable result, searchable right in Shortcuts &mdash; try the search below. The seven charted metrics also offer average / min / max over Blip's in-memory ~2-minute history.</p>
                 <div class="mc-search">
                     <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><circle cx="7" cy="7" r="4.5"/><path d="M10.5 10.5L14 14"/></svg>
                     <input id="mc-input" type="text" placeholder="Search 37 metrics&hellip;" aria-label="Search metrics">
@@ -1343,30 +1354,30 @@
 
             <!-- Per-volume speed test demo -->
             <div class="wn-card wn-wide">
-                <h3>&#9201;&#65039; One-click, per-volume disk speed test</h3>
-                <p class="wn-card-sub">Every volume in the Disk panel now carries a gauge button that targets that drive and runs the uncached write/read + random-IOPS benchmark in one click &mdash; external drives included (the App Store build one-click-confirms access to them). Results land in the same history sparkline as the Disk panel's speed test. Click a gauge to try it.</p>
+                <h3 data-i18n="one-click-per-volume.e74ee0">&#9201;&#65039; One-click, per-volume disk speed test</h3>
+                <p class="wn-card-sub" data-i18n="every-volume-in-the.1bc2bb">Every volume in the Disk panel now carries a gauge button that targets that drive and runs the uncached write/read + random-IOPS benchmark in one click &mdash; external drives included (the App Store build one-click-confirms access to them). Results land in the same history sparkline as the Disk panel's speed test. Click a gauge to try it.</p>
                 <div class="wn-volumes">
                     <div class="wn-vol" data-read="2841" data-write="2530" data-iops="182400">
                         <div class="dp-vol-header">
                             <svg viewBox="0 0 16 16" fill="var(--text-secondary)"><rect x="2" y="4" width="12" height="8" rx="2"/><circle cx="11" cy="8" r="1" fill-opacity="0.4"/><rect x="4.5" y="7.5" width="4" height="1" rx="0.5" fill-opacity="0.4"/></svg>
-                            <span class="dp-vol-name">Macintosh HD</span>
+                            <span class="dp-vol-name" data-i18n="macintosh-hd.a9c0a9">Macintosh HD</span>
                             <span class="dp-vol-pct">65%</span>
                             <span class="dp-vol-gauge" title="Run speed test on Macintosh HD"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><path d="M3.2 11.5a5.5 5.5 0 1 1 9.6 0"/><path d="M8 11l2.6-3.4"/></svg></span>
                         </div>
                         <div class="dp-vol-bar"><div class="dp-vol-fill" style="width:65%"></div></div>
-                        <div class="dp-vol-info"><span>2.59 TB used</span><span>1.41 TB free</span></div>
-                        <div class="wn-vol-st"><div class="wn-vol-st-hint">Internal NVMe SSD</div></div>
+                        <div class="dp-vol-info"><span data-i18n="2-59-tb-used.750f77">2.59 TB used</span><span data-i18n="1-41-tb-free.f7731a">1.41 TB free</span></div>
+                        <div class="wn-vol-st"><div class="wn-vol-st-hint" data-i18n="internal-nvme-ssd.c902e0">Internal NVMe SSD</div></div>
                     </div>
                     <div class="wn-vol" data-read="948" data-write="901" data-iops="61200">
                         <div class="dp-vol-header">
                             <svg viewBox="0 0 16 16" fill="var(--text-secondary)"><rect x="2" y="4" width="12" height="8" rx="2"/><circle cx="11" cy="8" r="1" fill-opacity="0.4"/><rect x="4.5" y="7.5" width="4" height="1" rx="0.5" fill-opacity="0.4"/></svg>
-                            <span class="dp-vol-name">T7 Shield</span>
+                            <span class="dp-vol-name" data-i18n="t7-shield.5e878c">T7 Shield</span>
                             <span class="dp-vol-pct">42%</span>
                             <span class="dp-vol-gauge" title="Run speed test on T7 Shield"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><path d="M3.2 11.5a5.5 5.5 0 1 1 9.6 0"/><path d="M8 11l2.6-3.4"/></svg></span>
                         </div>
                         <div class="dp-vol-bar"><div class="dp-vol-fill" style="width:42%"></div></div>
-                        <div class="dp-vol-info"><span>840 GB used</span><span>1.16 TB free</span></div>
-                        <div class="wn-vol-st"><div class="wn-vol-st-hint">External USB-C SSD</div></div>
+                        <div class="dp-vol-info"><span data-i18n="840-gb-used.d3406d">840 GB used</span><span data-i18n="1-16-tb-free.fa69ee">1.16 TB free</span></div>
+                        <div class="wn-vol-st"><div class="wn-vol-st-hint" data-i18n="external-usb-c-ssd.a417c0">External USB-C SSD</div></div>
                     </div>
                     <div class="wn-vol" data-read="184" data-write="161" data-iops="2100">
                         <div class="dp-vol-header">
@@ -1376,8 +1387,8 @@
                             <span class="dp-vol-gauge" title="Run speed test on Time Machine"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><path d="M3.2 11.5a5.5 5.5 0 1 1 9.6 0"/><path d="M8 11l2.6-3.4"/></svg></span>
                         </div>
                         <div class="dp-vol-bar"><div class="dp-vol-fill" style="width:78%"></div></div>
-                        <div class="dp-vol-info"><span>10.9 TB used</span><span>3.1 TB free</span></div>
-                        <div class="wn-vol-st"><div class="wn-vol-st-hint">External USB hard drive</div></div>
+                        <div class="dp-vol-info"><span data-i18n="10-9-tb-used.0a09ff">10.9 TB used</span><span data-i18n="3-1-tb-free.376a5f">3.1 TB free</span></div>
+                        <div class="wn-vol-st"><div class="wn-vol-st-hint" data-i18n="external-usb-hard-drive.2a730e">External USB hard drive</div></div>
                     </div>
                 </div>
             </div>
@@ -1389,83 +1400,83 @@
 <section class="stats-bar">
     <div class="container">
         <div class="stats-row">
-            <div class="stat-item"><div class="stat-value" style="color:var(--accent)">~2 MB</div><div class="stat-label">Binary size</div></div>
-            <div class="stat-item"><div class="stat-value" style="color:var(--accent-blue)">0</div><div class="stat-label">Dependencies</div></div>
-            <div class="stat-item"><div class="stat-value" style="color:var(--accent-purple)">~42 MB</div><div class="stat-label">Memory footprint</div></div>
-            <div class="stat-item"><div class="stat-value" style="color:var(--accent-orange)">MIT</div><div class="stat-label">License</div></div>
+            <div class="stat-item"><div class="stat-value" style="color:var(--accent)" data-i18n="2-mb.536c2c">~2 MB</div><div class="stat-label" data-i18n="binary-size.433ae4">Binary size</div></div>
+            <div class="stat-item"><div class="stat-value" style="color:var(--accent-blue)">0</div><div class="stat-label" data-i18n="dependencies.0562f3">Dependencies</div></div>
+            <div class="stat-item"><div class="stat-value" style="color:var(--accent-purple)" data-i18n="42-mb.675afc">~42 MB</div><div class="stat-label" data-i18n="memory-footprint.fc7dc9">Memory footprint</div></div>
+            <div class="stat-item"><div class="stat-value" style="color:var(--accent-orange)" data-i18n="mit.89690a">MIT</div><div class="stat-label" data-i18n="license.322960">License</div></div>
         </div>
     </div>
 </section>
 
 <section class="features" id="features">
     <div class="container">
-        <h2>Everything you need, nothing you don't.</h2>
-        <p class="subtitle">Blip monitors what matters and stays out of your way.</p>
+        <h2 data-i18n="everything-you-need-nothing.82ffca">Everything you need, nothing you don't.</h2>
+        <p class="subtitle" data-i18n="blip-monitors-what-matters.1b2428">Blip monitors what matters and stays out of your way.</p>
         <div class="feature-grid">
             <div class="feature-card">
                 <div class="feature-icon" style="background:rgba(10,132,255,0.15)">&#9889;</div>
-                <h3>CPU Monitoring</h3>
-                <p>Total and per-core usage, user/system/idle breakdown, load averages (1m/5m/15m), P-core and E-core counts. Accurate delta-based CPU per process with app icons.</p>
+                <h3 data-i18n="cpu-monitoring.7edd74">CPU Monitoring</h3>
+                <p data-i18n="total-and-per-core.b102a8">Total and per-core usage, user/system/idle breakdown, load averages (1m/5m/15m), P-core and E-core counts. Accurate delta-based CPU per process with app icons.</p>
             </div>
             <div class="feature-card">
                 <div class="feature-icon" style="background:rgba(48,209,88,0.15)">&#129504;</div>
-                <h3>Memory</h3>
-                <p>App memory, wired, compressed breakdown matching Activity Monitor. Swap usage, cached files, kernel-level pressure indicator. Accurate phys_footprint memory per process.</p>
+                <h3 data-i18n="memory.89c8a2">Memory</h3>
+                <p data-i18n="app-memory-wired-compressed.7b586f">App memory, wired, compressed breakdown matching Activity Monitor. Swap usage, cached files, kernel-level pressure indicator. Accurate phys_footprint memory per process.</p>
             </div>
             <div class="feature-card">
                 <div class="feature-icon" style="background:rgba(255,159,10,0.15)">&#128190;</div>
-                <h3>Disk</h3>
-                <p>Space used and available for all mounted volumes. Real-time read/write speeds via IOKit with total data read/written since boot. Full S.M.A.R.T. drive health &mdash; SSD life remaining, drive temperature, lifetime bytes written, power-on hours and more, now including external USB/SATA SSDs. <strong>New in v1.5.0:</strong> a built-in disk speed test with live Writing&hellip;/Reading&hellip; phases, sequential write/read MB/s, random-read IOPS, history sparkline, and optional interval testing &mdash; benchmark the boot drive or any external volume &mdash; plus an I/O chart with Y-axis labels. <strong>New in v1.6.0:</strong> every volume row gets a gauge button that targets that drive and runs the benchmark in one click.</p>
+                <h3 data-i18n="disk.ef9952">Disk</h3>
+                <p data-i18n-html="space-used-and-available.128957">Space used and available for all mounted volumes. Real-time read/write speeds via IOKit with total data read/written since boot. Full S.M.A.R.T. drive health &mdash; SSD life remaining, drive temperature, lifetime bytes written, power-on hours and more, now including external USB/SATA SSDs. <strong>New in v1.5.0:</strong> a built-in disk speed test with live Writing&hellip;/Reading&hellip; phases, sequential write/read MB/s, random-read IOPS, history sparkline, and optional interval testing &mdash; benchmark the boot drive or any external volume &mdash; plus an I/O chart with Y-axis labels. <strong>New in v1.6.0:</strong> every volume row gets a gauge button that targets that drive and runs the benchmark in one click.</p>
             </div>
             <div class="feature-card">
                 <div class="feature-icon" style="background:rgba(100,210,255,0.15)">&#127760;</div>
-                <h3>Network</h3>
-                <p>Upload/download speeds with accurate 64-bit session totals, all active interfaces, WAN and router ping, IPv4/IPv6, MAC address, WAN IP reveal, VPN detection. <strong>New in v1.5.0:</strong> live Traceroute / MTR with per-hop loss &amp; latency that fills in hop-by-hop &mdash; with a geolocation map (powered by an optional on-device database you download yourself, so hop locations never leave your Mac) that plots the route across the world &mdash; and a multi-gigabit speed test that runs against your own self-hosted <a href="https://openspeedtest.com" target="_blank" rel="noopener">OpenSpeedTest</a> server (open-source, sanctioned, unlimited). Bandwidth chart with Y-axis labels.</p>
+                <h3 data-i18n="network.53ebc5">Network</h3>
+                <p data-i18n-html="upload-download-speeds-with.7d3e90">Upload/download speeds with accurate 64-bit session totals, all active interfaces, WAN and router ping, IPv4/IPv6, MAC address, WAN IP reveal, VPN detection. <strong>New in v1.5.0:</strong> live Traceroute / MTR with per-hop loss &amp; latency that fills in hop-by-hop &mdash; with a geolocation map (powered by an optional on-device database you download yourself, so hop locations never leave your Mac) that plots the route across the world &mdash; and a multi-gigabit speed test that runs against your own self-hosted <a href="https://openspeedtest.com" target="_blank" rel="noopener">OpenSpeedTest</a> server (open-source, sanctioned, unlimited). Bandwidth chart with Y-axis labels.</p>
             </div>
             <div class="feature-card">
                 <div class="feature-icon" style="background:rgba(255,69,58,0.15)">&#9211;</div>
-                <h3>Processes</h3>
-                <p>Top CPU and memory consumers with real app icons, accurate delta-based CPU and phys_footprint memory. <strong>New in v1.5.0:</strong> hover any process to reveal a quit control &mdash; one click arms it, a second click terminates the process right from the panel.</p>
+                <h3 data-i18n="processes.ed7308">Processes</h3>
+                <p data-i18n-html="top-cpu-and-memory.6a8150">Top CPU and memory consumers with real app icons, accurate delta-based CPU and phys_footprint memory. <strong>New in v1.5.0:</strong> hover any process to reveal a quit control &mdash; one click arms it, a second click terminates the process right from the panel.</p>
             </div>
             <div class="feature-card">
                 <div class="feature-icon" style="background:rgba(255,159,10,0.15)">&#128161;</div>
-                <h3>Optimization Advisor</h3>
-                <p><strong>New in v1.5.0:</strong> a dismissable &ldquo;Suggestion&rdquo; banner surfaces actionable advice to improve performance, health, and longevity &mdash; runaway-CPU apps, high memory pressure or heavy swap, thermal throttling, a nearly-full startup disk, S.M.A.R.T. warnings, low SSD life, and weak battery health. Highest-severity first; dismissed items stay hidden for 24 hours or until the condition worsens.</p>
+                <h3 data-i18n="optimization-advisor.7e11ca">Optimization Advisor</h3>
+                <p data-i18n-html="new-in-v1-5.4d0296"><strong>New in v1.5.0:</strong> a dismissable &ldquo;Suggestion&rdquo; banner surfaces actionable advice to improve performance, health, and longevity &mdash; runaway-CPU apps, high memory pressure or heavy swap, thermal throttling, a nearly-full startup disk, S.M.A.R.T. warnings, low SSD life, and weak battery health. Highest-severity first; dismissed items stay hidden for 24 hours or until the condition worsens.</p>
             </div>
             <div class="feature-card">
                 <div class="feature-icon" style="background:rgba(191,90,242,0.15)">&#127918;</div>
-                <h3>GPU</h3>
-                <p>Apple Silicon GPU utilization percentage with renderer name. Historical usage chart shows GPU load over time with smooth monotone interpolation.</p>
+                <h3 data-i18n="gpu.a6a631">GPU</h3>
+                <p data-i18n="apple-silicon-gpu-utilization.1dced7">Apple Silicon GPU utilization percentage with renderer name. Historical usage chart shows GPU load over time with smooth monotone interpolation.</p>
             </div>
             <div class="feature-card">
                 <div class="feature-icon" style="background:rgba(48,209,88,0.15)">&#128267;</div>
-                <h3>Battery &amp; Fans</h3>
-                <p>Charge level, health matching Settings app, battery condition, cycle count, temperature, charging status. Fan RPM with min/max ranges.</p>
+                <h3 data-i18n="battery-fans.acaea9">Battery &amp; Fans</h3>
+                <p data-i18n="charge-level-health-matching.ef367e">Charge level, health matching Settings app, battery condition, cycle count, temperature, charging status. Fan RPM with min/max ranges.</p>
             </div>
             <div class="feature-card">
                 <div class="feature-icon" style="background:rgba(255,69,58,0.15)">&#128202;</div>
-                <h3>Beautiful Charts</h3>
-                <p>Historical sparklines for CPU, memory, and GPU. Bandwidth and disk I/O charts with auto-scaled Y-axis labels. Detail panels live-refresh as data changes.</p>
+                <h3 data-i18n="beautiful-charts.c5c99b">Beautiful Charts</h3>
+                <p data-i18n="historical-sparklines-for-cpu.66aab6">Historical sparklines for CPU, memory, and GPU. Bandwidth and disk I/O charts with auto-scaled Y-axis labels. Detail panels live-refresh as data changes.</p>
             </div>
             <div class="feature-card">
                 <div class="feature-icon" style="background:var(--demo-icon-bg)">&#129718;</div>
-                <h3>Featherlight</h3>
-                <p>~2 MB binary. Zero external dependencies. Polls every 2 seconds with efficient ring buffers. Shows its own memory usage in the footer.</p>
+                <h3 data-i18n="featherlight.7f901f">Featherlight</h3>
+                <p data-i18n="2-mb-binary-zero.8da17e">~2 MB binary. Zero external dependencies. Polls every 2 seconds with efficient ring buffers. Shows its own memory usage in the footer.</p>
             </div>
             <div class="feature-card">
                 <div class="feature-icon" style="background:rgba(255,159,10,0.15)">&#127912;</div>
-                <h3>Customizable</h3>
-                <p>Category colors, monochrome, or custom color via picker. Optional utilization colorization. Two layouts (horizontal/stacked). Toggle individual items and labels. Launch at login.</p>
+                <h3 data-i18n="customizable.6d072c">Customizable</h3>
+                <p data-i18n="category-colors-monochrome-or.e91d91">Category colors, monochrome, or custom color via picker. Optional utilization colorization. Two layouts (horizontal/stacked). Toggle individual items and labels. Launch at login.</p>
             </div>
             <div class="feature-card">
                 <div class="feature-icon" style="background:rgba(10,132,255,0.15)">&#9881;&#65039;</div>
-                <h3>Shortcuts Automation</h3>
-                <p><strong>New in v1.6.0:</strong> automate Blip from the Shortcuts app. <em>Get System Metric</em> exposes 37 live metrics (CPU, memory, disk &amp; S.M.A.R.T., GPU, network, battery, temps, fans, uptime) as chainable numbers &mdash; with average/min/max over the last two minutes for charted metrics. Run a drive speed test on any volume, run a network speed test, run or stop a traceroute and get an MTR summary, open the Traceroute Map, and read or change curated settings &mdash; all from your own workflows. Five zero-setup App Shortcut phrases work with Siri and Spotlight out of the box.</p>
+                <h3 data-i18n="shortcuts-automation.fe0898">Shortcuts Automation</h3>
+                <p data-i18n-html="new-in-v1-6.900200"><strong>New in v1.6.0:</strong> automate Blip from the Shortcuts app. <em>Get System Metric</em> exposes 37 live metrics (CPU, memory, disk &amp; S.M.A.R.T., GPU, network, battery, temps, fans, uptime) as chainable numbers &mdash; with average/min/max over the last two minutes for charted metrics. Run a drive speed test on any volume, run a network speed test, run or stop a traceroute and get an MTR summary, open the Traceroute Map, and read or change curated settings &mdash; all from your own workflows. Five zero-setup App Shortcut phrases work with Siri and Spotlight out of the box.</p>
             </div>
             <div class="feature-card">
                 <div class="feature-icon" style="background:rgba(100,210,255,0.15)">&#128274;</div>
-                <h3>Private & Secure</h3>
-                <p>Zero telemetry, zero tracking, zero analytics. Blip has no servers and never sends your data to us, and the traceroute map geolocates entirely on-device from an optional database you download yourself — no third-party lookup. The only network connections are ones you start: the speed test talks only to the OpenSpeedTest server you self-host, and WAN-IP reveal.</p>
+                <h3 data-i18n="private-secure.2f1e67">Private & Secure</h3>
+                <p data-i18n="zero-telemetry-zero-tracking.469416">Zero telemetry, zero tracking, zero analytics. Blip has no servers and never sends your data to us, and the traceroute map geolocates entirely on-device from an optional database you download yourself — no third-party lookup. The only network connections are ones you start: the speed test talks only to the OpenSpeedTest server you self-host, and WAN-IP reveal.</p>
             </div>
         </div>
     </div>
@@ -1473,39 +1484,39 @@
 
 <section class="faq" id="faq">
     <div class="container">
-        <h2>Questions &amp; Answers</h2>
+        <h2 data-i18n="questions-answers.8ae3d7">Questions &amp; Answers</h2>
         <div class="faq-list">
             <details class="faq-item">
-                <summary>Does Blip work on Intel Macs?</summary>
-                <p>Blip is built exclusively for Apple Silicon (M1, M2, M3, M4 and newer). It uses ARM64-specific optimizations and Apple Silicon IOKit interfaces for GPU and thermal monitoring.</p>
+                <summary data-i18n="does-blip-work-on.0c1c57">Does Blip work on Intel Macs?</summary>
+                <p data-i18n="blip-is-built-exclusively.784fc9">Blip is built exclusively for Apple Silicon (M1, M2, M3, M4 and newer). It uses ARM64-specific optimizations and Apple Silicon IOKit interfaces for GPU and thermal monitoring.</p>
             </details>
             <details class="faq-item">
-                <summary>What macOS version do I need?</summary>
-                <p>macOS 14.0 (Sonoma) or later. Blip uses Swift Charts and other APIs introduced in macOS 14.</p>
+                <summary data-i18n="what-macos-version-do.a5f00d">What macOS version do I need?</summary>
+                <p data-i18n="macos-14-0-sonoma.19a7f9">macOS 14.0 (Sonoma) or later. Blip uses Swift Charts and other APIs introduced in macOS 14.</p>
             </details>
             <details class="faq-item">
-                <summary>How much memory does Blip use?</summary>
-                <p>Typically around 42 MB physical footprint. Blip shows its own memory usage in the popover footer so you can always check. The binary itself is around 2 MB.</p>
+                <summary data-i18n="how-much-memory-does.a1c4d1">How much memory does Blip use?</summary>
+                <p data-i18n="typically-around-42-mb.7ba8b7">Typically around 42 MB physical footprint. Blip shows its own memory usage in the popover footer so you can always check. The binary itself is around 2 MB.</p>
             </details>
             <details class="faq-item">
-                <summary>Is it safe? Why does it need to run unsandboxed?</summary>
-                <p>Blip needs to read hardware sensors (SMC for fans, IOKit for GPU/disk I/O, process list for top apps) which require unsandboxed access. The app is fully open source — you can audit every line of code, and every release is notarized by Apple. There is no telemetry or tracking of any kind — no analytics, no crash reporters, no network calls home. No server infrastructure is used or needed for Blip to work; everything runs entirely on your Mac. The app has been security audited to ensure the utmost care in being a safe app for use.</p>
+                <summary data-i18n="is-it-safe-why.2386cf">Is it safe? Why does it need to run unsandboxed?</summary>
+                <p data-i18n="blip-needs-to-read.4b890f">Blip needs to read hardware sensors (SMC for fans, IOKit for GPU/disk I/O, process list for top apps) which require unsandboxed access. The app is fully open source — you can audit every line of code, and every release is notarized by Apple. There is no telemetry or tracking of any kind — no analytics, no crash reporters, no network calls home. No server infrastructure is used or needed for Blip to work; everything runs entirely on your Mac. The app has been security audited to ensure the utmost care in being a safe app for use.</p>
             </details>
             <details class="faq-item">
-                <summary>How does the hover detail panel work?</summary>
-                <p>Hover over any row in the main popover to reveal a detailed sub-panel to the side — just like iStats Menus. It shows charts, breakdowns, and top processes for that category.</p>
+                <summary data-i18n="how-does-the-hover.65453d">How does the hover detail panel work?</summary>
+                <p data-i18n="hover-over-any-row.3e9db5">Hover over any row in the main popover to reveal a detailed sub-panel to the side — just like iStats Menus. It shows charts, breakdowns, and top processes for that category.</p>
             </details>
             <details class="faq-item">
-                <summary>Can I customize what shows in the menu bar?</summary>
-                <p>Yes. Open Settings (gear icon in the popover) and toggle individual items: CPU, Memory, Disk, Network dot, and labels. You can also set a custom accent color.</p>
+                <summary data-i18n="can-i-customize-what.f3b410">Can I customize what shows in the menu bar?</summary>
+                <p data-i18n="yes-open-settings-gear.4601d1">Yes. Open Settings (gear icon in the popover) and toggle individual items: CPU, Memory, Disk, Network dot, and labels. You can also set a custom accent color.</p>
             </details>
             <details class="faq-item">
-                <summary>Why does the App Store version cost $2.99?</summary>
-                <p>The direct download and Homebrew versions are free and always will be. The $2.99 App Store price helps cover Apple Developer Program costs and supports ongoing development and maintenance. If you'd rather not pay, grab the identical free version from GitHub Releases or Homebrew.</p>
+                <summary data-i18n="why-does-the-app.76850d">Why does the App Store version cost $2.99?</summary>
+                <p data-i18n="the-direct-download-and.d5908a">The direct download and Homebrew versions are free and always will be. The $2.99 App Store price helps cover Apple Developer Program costs and supports ongoing development and maintenance. If you'd rather not pay, grab the identical free version from GitHub Releases or Homebrew.</p>
             </details>
             <details class="faq-item">
-                <summary>How do I build from source?</summary>
-                <p>Clone the repo, install XcodeGen (<code>brew install xcodegen</code>), run <code>xcodegen generate</code>, then build with Xcode or <code>xcodebuild</code>. See the README for full instructions.</p>
+                <summary data-i18n="how-do-i-build.5e186c">How do I build from source?</summary>
+                <p data-i18n-html="clone-the-repo-install.bd6619">Clone the repo, install XcodeGen (<code>brew install xcodegen</code>), run <code>xcodegen generate</code>, then build with Xcode or <code>xcodebuild</code>. See the README for full instructions.</p>
             </details>
         </div>
     </div>
@@ -1514,16 +1525,16 @@
 <section class="cta">
     <div class="container">
         <div class="cta-card">
-            <h2>Try Blip today.</h2>
-            <p>Open source, and built for Apple Silicon.</p>
+            <h2 data-i18n="try-blip-today.8f6bf3">Try Blip today.</h2>
+            <p data-i18n="open-source-and-built.364d20">Open source, and built for Apple Silicon.</p>
             <div class="cta-buttons">
                 <a href="https://apps.apple.com/us/app/blip-stats/id6762329495" style="display:inline-block">
                     <img src="https://toolbox.marketingtools.apple.com/api/badges/download-on-the-mac-app-store/black/en-us" alt="Download on the Mac App Store" style="height:40px">
                 </a>
-                <a href="https://github.com/blaineam/blip/releases/latest/download/Blip.dmg" class="btn btn-primary">Download DMG</a>
-                <a href="https://github.com/blaineam/blip" class="btn btn-secondary">View on GitHub</a>
+                <a href="https://github.com/blaineam/blip/releases/latest/download/Blip.dmg" class="btn btn-primary" data-i18n="download-dmg.3ab861">Download DMG</a>
+                <a href="https://github.com/blaineam/blip" class="btn btn-secondary" data-i18n="view-on-github.0c7799">View on GitHub</a>
             </div>
-            <p style="margin-top:16px;font-size:13px;color:var(--text-secondary)">
+            <p style="margin-top:16px;font-size:13px;color:var(--text-secondary)" data-i18n-html="optional-download-blip-helper.57ce2c">
                 Optional: <a href="https://github.com/blaineam/blip/releases/latest/download/BlipHelper.dmg" style="color:var(--accent-cyan)">Download Blip Helper</a> for fan speeds, temperatures, GPU utilization, disk I/O, battery health, and process monitoring when using the App Store version.
             </p>
         </div>
@@ -1532,7 +1543,7 @@
 
 <footer>
     <div class="container">
-        <p>Built by <a href="https://github.com/blaineam">Blaine Miller</a> &middot; <a href="https://github.com/blaineam/blip">Open Source</a> under MIT License</p>
+        <p data-i18n-html="built-by-blaine-miller.9d6375">Built by <a href="https://github.com/blaineam">Blaine Miller</a> &middot; <a href="https://github.com/blaineam/blip">Open Source</a> under MIT License</p>
     </div>
 </footer>
 
