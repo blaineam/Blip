@@ -11,20 +11,27 @@ let brandDeepBlue = NSColor(red: 0.10, green: 0.15, blue: 0.30, alpha: 1.0)
 let brandCyan = NSColor(red: 0.3, green: 0.9, blue: 1.0, alpha: 1.0)
 let brandCyanGlow = NSColor(red: 0.2, green: 0.8, blue: 1.0, alpha: 0.4)
 
-func generateIcon(size: CGFloat) -> NSImage {
+func generateIcon(size: CGFloat, includeBackground: Bool = true) -> NSImage {
     let image = NSImage(size: NSSize(width: size, height: size))
     image.lockFocus()
 
     let rect = NSRect(x: 0, y: 0, width: size, height: size)
 
-    // Background gradient: full square (macOS applies its own rounded-rect mask)
-    let path = NSBezierPath(rect: rect)
-    let gradient = NSGradient(
-        colors: [brandDarkNavy, brandDeepBlue],
-        atLocations: [0.0, 1.0],
-        colorSpace: .deviceRGB
-    )!
-    gradient.draw(in: path, angle: -45)
+    // Background gradient: full square (macOS applies its own rounded-rect mask).
+    // Skipped for the Icon Composer glyph layer: Blip.icon/icon.json supplies the
+    // navy fill, and the layer must stay transparent so the system's liquid-glass
+    // depth (shadow + translucency) has something to render against.
+    if includeBackground {
+        let path = NSBezierPath(rect: rect)
+        let gradient = NSGradient(
+            colors: [brandDarkNavy, brandDeepBlue],
+            atLocations: [0.0, 1.0],
+            colorSpace: .deviceRGB
+        )!
+        gradient.draw(in: path, angle: -45)
+    } else {
+        _ = rect // background comes from the .icon manifest fill
+    }
 
     // Draw 3 horizontal monitor bars (CPU/MEM/HD style)
     let barWidth = size * 0.72
@@ -150,5 +157,12 @@ for iconSize in sizes {
     savePNG(icon, to: path, pixelSize: iconSize.pixels)
     print("Generated \(iconSize.filename) (\(iconSize.pixels)x\(iconSize.pixels)px)")
 }
+
+// Icon Composer layer: transparent glyph only (bars + blip dot, no background).
+// The navy fill lives in Blip.icon/icon.json; keeping this layer transparent is
+// what lets macOS render the glass depth treatment the rest of the suite has.
+let glyph = generateIcon(size: 1024, includeBackground: false)
+savePNG(glyph, to: "Blip/Resources/Blip.icon/Assets/blip-icon.png", pixelSize: 1024)
+print("Generated Blip.icon/Assets/blip-icon.png (transparent glyph layer)")
 
 print("Done!")

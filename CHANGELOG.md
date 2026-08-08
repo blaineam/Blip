@@ -1,5 +1,16 @@
 # Changelog
 
+## v1.7.1
+
+- **Liquid-glass app icon** — the icon's bars-and-blip glyph is now a transparent Icon Composer layer over the manifest's navy fill, so macOS renders the same glass depth (shadow + translucency) as the rest of the suite. Previously the layer was a fully opaque square that occluded the fill and read as a flat tile.
+- `Scripts/generate-icon.swift` now emits the transparent glyph layer alongside the legacy asset-catalog renders.
+
+## v1.7.0
+
+- **Fully localized in 8 languages** — German, Spanish, French, Italian, Japanese, Korean, Portuguese (Brazil), and Simplified Chinese.
+- **Dedicated Support window** (via the shared MillerKit support kit); the rating prompt moved out of Settings to a considerate moment.
+- **MillerKit resolves from GitHub** so CI builds no longer depend on machine layout.
+
 ## v1.6.1
 
 - **App Store screenshot refresh** — replaces the 1.6.0 listing's screenshot #2, which shipped with a stray notification banner visible behind the CPU popover (approved listings are immutable, so the corrected, uniform 5-scene set rides this release). No functional changes from 1.6.0 build 53.
