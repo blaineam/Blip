@@ -13,6 +13,11 @@ struct PopoverView: View {
     /// Callback when a section is hovered — AppDelegate handles showing the detail window.
     var onHoverSection: ((PopoverSection?) -> Void)?
     var onOpenSettings: (() -> Void)?
+    /// Called alongside opening the support window so AppDelegate can close
+    /// the popover; the window itself is opened here via `openWindow`.
+    var onOpenSupport: (() -> Void)? = nil
+
+    @Environment(\.openWindow) private var openWindow
 
     var body: some View {
         VStack(spacing: 0) {
@@ -78,6 +83,26 @@ struct PopoverView: View {
                     }
                     Spacer()
                 }
+                .padding(.horizontal, 8)
+
+                // Support row: opens the dedicated support window (a real
+                // window — a sheet on a transient popover dies with it).
+                Button {
+                    onOpenSupport?()
+                    openWindow(id: "support")
+                } label: {
+                    HStack(spacing: 6) {
+                        Image(systemName: "lifepreserver")
+                            .font(.system(size: 9))
+                            .foregroundStyle(.secondary)
+                        Text("Support & Feedback")
+                            .font(.system(size: 9))
+                            .foregroundStyle(.secondary)
+                        Spacer()
+                    }
+                    .contentShape(Rectangle())
+                }
+                .buttonStyle(.plain)
                 .padding(.horizontal, 8)
 
                 HStack {

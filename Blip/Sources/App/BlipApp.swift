@@ -6,18 +6,40 @@ import MillerKit
 @main
 struct BlipApp: App {
     @NSApplicationDelegateAdaptor(AppDelegate.self) var appDelegate
-    // .utility gates. Blip is a menu-bar app, which is exactly the case the old
-    // per-app managers got wrong: with no key window they resolved no host and
-    // the prompt never appeared. MillerKit asks through SwiftUI's environment
-    // action instead, and the ask is attached to Settings — a real window.
-    @StateObject private var rating = RatingManager(gates: .utility)
 
     var body: some Scene {
         Settings {
             SettingsView(helperClient: nil)
-                .environmentObject(rating)
-                .task { rating.recordLaunch() }
         }
+
+        // The support surface gets a dedicated, real window. Blip is a
+        // menu-bar app: a sheet would attach to the transient popover and be
+        // torn down with it, so the rule stands — menu-bar apps host support
+        // UI in a real window, never a sheet. Opened via
+        // openWindow(id: "support") from the popover footer row and from
+        // Settings.
+        Window("Support Blip", id: "support") {
+            SupportWindowContent(app: .blip)
+                .onAppear {
+                    // Match the app's "windows show a Dock icon" behavior
+                    // (see AppDelegate.showDockIconForWindows) and take focus:
+                    // an accessory app's window otherwise opens behind.
+                    NSApp.setActivationPolicy(.regular)
+                    NSApp.activate(ignoringOtherApps: true)
+                }
+                .onDisappear {
+                    // Drop the Dock icon again if no titled Blip window
+                    // remains (async: this window still counts as visible
+                    // while it is closing).
+                    DispatchQueue.main.async {
+                        let anyVisible = NSApp.windows.contains {
+                            $0.isVisible && $0.styleMask.contains(.titled)
+                        }
+                        if !anyVisible { NSApp.setActivationPolicy(.accessory) }
+                    }
+                }
+        }
+        .windowResizability(.contentSize)
     }
 }
 
@@ -88,6 +110,13 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
         setupEventMonitor()
         setupLiveRefresh()
         monitor.start()
+
+        // Once per cold launch (§4.6: "Launch: once per cold launch"). This
+        // used to hang off the Settings scene's .task, which only ran when
+        // Settings was opened — so the launch gate for the review ask barely
+        // advanced. RatingManager keeps its state in UserDefaults, so this
+        // instance and the one on the disk detail panel read the same counters.
+        RatingManager(gates: .utility).recordLaunch()
 
         // Resume persisted interval speed/disk tests so they keep running across restarts
         // without needing to open a detail panel first. (Starts the timers only — no
@@ -215,6 +244,13 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
             },
             onOpenSettings: { [weak self] in
                 self?.openSettings()
+            },
+            // The row itself opens the SwiftUI Window scene via
+            // openWindow(id: "support"); the delegate only closes the
+            // popover so the new window isn't fighting a transient panel
+            // for focus.
+            onOpenSupport: { [weak self] in
+                self?.closeAll()
             }
         )
 
@@ -423,7 +459,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
         let hostingController = NSHostingController(rootView: settingsView)
 
         let window = NSWindow(contentViewController: hostingController)
-        window.title = "Blip Settings"
+        window.title = String(localized: "Blip Settings", comment: "Title of the settings window")
         window.styleMask = [.titled, .closable, .resizable, .miniaturizable]
         window.center()
         window.setFrameAutosaveName("BlipSettings")
@@ -453,7 +489,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
         )
         let hostingController = NSHostingController(rootView: view)
         let window = NSWindow(contentViewController: hostingController)
-        window.title = "Traceroute Map"
+        window.title = String(localized: "Traceroute Map", comment: "Title of the traceroute map window")
         window.styleMask = [.titled, .closable, .resizable, .miniaturizable]
         window.setContentSize(NSSize(width: 560, height: 620))
         window.center()

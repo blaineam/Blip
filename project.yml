@@ -4,6 +4,9 @@ options:
   deploymentTarget:
     macOS: "14.0"
   xcodeVersion: "26.0"
+  # In-app localization: en is the development language; translations live in
+  # Blip/Resources/Localizable.xcstrings.
+  developmentLanguage: en
 settings:
   base:
     SWIFT_VERSION: "6.0"
@@ -15,6 +18,9 @@ settings:
     SWIFT_STRICT_CONCURRENCY: complete
     SWIFT_TREAT_WARNINGS_AS_ERRORS: YES
     GCC_TREAT_WARNINGS_AS_ERRORS: YES
+    # Emit .stringsdata for every compiled file so `xcodebuild
+    # -exportLocalizations` can see string literals in SwiftUI views.
+    SWIFT_EMIT_LOC_STRINGS: YES
 packages:
   # Shared feedback / rating / "other apps" kit. Local path rather than a
   # GitHub remote (how Keystone and MediaStream are consumed) so it needs no
@@ -33,6 +39,7 @@ targets:
       - path: Shared
       - path: Blip/Resources/Assets.xcassets
       - path: Blip/Resources/Blip.icon
+      - path: Blip/Resources/Localizable.xcstrings
     settings:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: com.blainemiller.Blip
@@ -79,6 +86,7 @@ targets:
       - path: Shared
       - path: Blip/Resources/Assets.xcassets
       - path: Blip/Resources/Blip.icon
+      - path: Blip/Resources/Localizable.xcstrings
     settings:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: com.blainemiller.Blip

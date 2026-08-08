@@ -53,7 +53,9 @@ struct DetailChart: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 4) {
-            Text(label)
+            // LocalizedStringKey for the same reason as OverviewRow: the chart
+            // titles are passed in as variables and must still hit the catalog.
+            Text(LocalizedStringKey(label))
                 .font(.caption2)
                 .foregroundStyle(.secondary)
 

@@ -48,7 +48,10 @@ struct OverviewRow: View {
                 .foregroundStyle(color)
                 .frame(width: 16)
 
-            Text(label)
+            // LocalizedStringKey: `label` arrives as a variable, and Text(String)
+            // renders it verbatim — this is what routes "CPU"/"Memory"/… through
+            // the string catalog.
+            Text(LocalizedStringKey(label))
                 .font(.system(size: 11, weight: .medium))
                 .frame(width: 60, alignment: .leading)
 

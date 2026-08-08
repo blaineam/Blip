@@ -1,5 +1,6 @@
 import SwiftUI
 import Charts
+import MillerKit
 
 struct DiskDetailPanel: View {
     let stats: DiskStats
@@ -9,6 +10,10 @@ struct DiskDetailPanel: View {
     /// Persistent tester injected by the app so results/history survive the panel
     /// being dismissed and reopened.
     @ObservedObject var speedTester: DiskSpeedTester
+    // Same UserDefaults-backed counters as every other RatingManager instance
+    // in the app; a fresh instance here reads the launch count recorded by the
+    // AppDelegate and the significant actions recorded by DiskSpeedTester.
+    @StateObject private var rating = RatingManager(gates: .utility)
     @AppStorage("diskSpeedExpanded") private var speedTestExpanded = false
     // Auto-run persisted here so the switch reflects state after dismiss/reopen.
     @AppStorage("diskSpeedAutoRun") private var diskAutoRunPref = false
@@ -162,6 +167,15 @@ struct DiskDetailPanel: View {
         }
         .padding(12)
         .frame(width: 260)
+        // The review ask lives here, on the success path (§4.4–4.6): it fires
+        // only when `completedBenchmarks` crosses 0 → 1, i.e. the first disk
+        // benchmark of this app run *finishing* — never on open, never on a
+        // failed or cancelled run (those don't advance the counter). The panel
+        // is hosted in a real NSPanel window, and MillerKit asks through the
+        // SwiftUI \.requestReview environment action, so the system resolves
+        // the host itself. All further throttling (launches, days, actions,
+        // cooldown, once per version) is RatingManager's job.
+        .requestReviewAfterSuccess(rating, when: speedTester.completedBenchmarks > 0)
     }
 
     @ViewBuilder

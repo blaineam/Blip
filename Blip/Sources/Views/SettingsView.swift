@@ -3,7 +3,7 @@ import ServiceManagement
 import MillerKit
 
 struct SettingsView: View {
-    @EnvironmentObject private var rating: RatingManager
+    @Environment(\.openWindow) private var openWindow
     @AppStorage("accentColorOverride") private var colorOverride: String = ""
     @AppStorage("showCPU") private var showCPU = true
     @AppStorage("showMemory") private var showMemory = true
@@ -39,6 +39,17 @@ struct SettingsView: View {
         case category = "Category Colors"
         case monochrome = "Monochrome"
         case custom = "Custom Color"
+
+        /// Shown in the picker. The raw values stay English (they're stable
+        /// identifiers); Text(rawValue) would render them verbatim, so the
+        /// display name goes through the string catalog here.
+        var localizedTitle: String {
+            switch self {
+            case .category: return String(localized: "Category Colors", comment: "Menu bar color mode option")
+            case .monochrome: return String(localized: "Monochrome", comment: "Menu bar color mode option")
+            case .custom: return String(localized: "Custom Color", comment: "Menu bar color mode option")
+            }
+        }
     }
 
     var body: some View {
@@ -207,13 +218,23 @@ struct SettingsView: View {
 
             SupportSection(app: .blip)
             LoveThisAppSection(app: .blip)
+
+            Section {
+                Button {
+                    openWindow(id: "support")
+                } label: {
+                    Label("Open Support in Its Own Window", systemImage: "macwindow")
+                }
+            } footer: {
+                Text("The same support and feedback options, in a window you can keep around while writing.")
+            }
         }
         // NO review ask here. Opening Settings is not a success path, and this
         // is the screen with the "Report an Issue" button on it — asking someone
         // who came to complain is exactly what _shared/docs §4.6 forbids. The
-        // benchmark still records its significant action (DiskSpeedTester writes
-        // the same UserDefaults state); the ask needs a home on the disk detail
-        // panel, where the benchmark actually finishes.
+        // ask lives on the disk detail panel (DiskDetailPanel), where the
+        // benchmark actually finishes; DiskSpeedTester records the significant
+        // action into the same UserDefaults-backed counters.
         .formStyle(.grouped)
         .padding()
     }
@@ -223,7 +244,7 @@ struct SettingsView: View {
             Section("Menu Bar Colors") {
                 Picker("Mode", selection: $selectedMode) {
                     ForEach(ColorMode.allCases, id: \.self) { mode in
-                        Text(mode.rawValue).tag(mode)
+                        Text(mode.localizedTitle).tag(mode)
                     }
                 }
                 .pickerStyle(.radioGroup)
