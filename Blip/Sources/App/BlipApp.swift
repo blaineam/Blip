@@ -15,13 +15,28 @@ struct BlipApp: App {
         // that: a second Settings-lookalike nobody opened and nobody could
         // permanently close. Don't add another scene here.
         //
-        // Note this Settings scene is the ⌘, path only; every in-app route to
-        // Settings goes through AppDelegate.openSettings(), which builds the
-        // window with the live helperClient and monitor.
+        // The Settings scene earns its keep by making AppKit install the ⌘,
+        // "Settings…" item in the app menu — but the scene is NOT the
+        // destination. AppDelegate retargets that menu item at
+        // openSettings(), the same route the popover's gear and support rows
+        // take, so every entry point lands on one window built with the live
+        // helperClient and monitor. This content is the belt-and-braces path
+        // if the retarget ever misses; it resolves the same live services at
+        // render time instead of the old `helperClient: nil`.
         Settings {
-            SettingsView(helperClient: nil)
+            SettingsSceneContent()
         }
         .windowResizability(.contentSize)
+    }
+}
+
+/// Fallback body for the `Settings` scene. Resolves the live services when the
+/// view is actually rendered, so it can never show the "Not connected forever,
+/// dead Reset button" Settings that a statically-nil helperClient produced.
+private struct SettingsSceneContent: View {
+    var body: some View {
+        let monitor = AppDelegate.shared?.monitor
+        SettingsView(helperClient: monitor?.helperClient, monitor: monitor)
     }
 }
 
@@ -29,9 +44,13 @@ struct BlipApp: App {
 
 @MainActor
 final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
+    /// The live delegate, so the `Settings` scene's fallback content can reach
+    /// the same monitor the popover and the real Settings window use.
+    private(set) static weak var shared: AppDelegate?
+
     private var statusItem: NSStatusItem!
     private var popover: NSPopover!
-    private let monitor = SystemMonitor()
+    let monitor = SystemMonitor()
     // Persistent test engines so results/history survive a detail panel being
     // dismissed and reopened, and so interval runs continue while panels are closed.
     private let netSpeedTester = SpeedTester()
@@ -45,12 +64,15 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
     private var tracerouteWindow: NSWindow?
     private var screenshotWindow: NSWindow?
     private var dismissWorkItem: DispatchWorkItem?
+    private var appMenuObserver: NSObjectProtocol?
     private var cancellables = Set<AnyCancellable>()
     /// When true, the detail panel stops refreshing — used while the pointer is over
     /// the process list so rows don't reshuffle and the two-click kill state survives.
     private var processListFrozen = false
 
     func applicationDidFinishLaunching(_ notification: Notification) {
+        Self.shared = self
+
         // Unit tests host this app: skip the menu-bar UI, monitors, and timers
         // entirely so tests stay deterministic and fast. Tests install their
         // own mocked seams via AppIntentsEnvironment.
@@ -91,6 +113,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
         setupDetailPanel()
         setupEventMonitor()
         setupLiveRefresh()
+        installSettingsMenuOverride()
         monitor.start()
 
         // Once per cold launch (§4.6: "Launch: once per cold launch"). This
@@ -229,10 +252,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
             },
             // Support lives in Settings, and Settings means *this* window —
             // the one openSettings() builds with the live helperClient and
-            // monitor. Routing through NSApp's showSettingsWindow: instead
-            // would open the SwiftUI `Settings` scene, which is constructed
-            // as SettingsView(helperClient: nil): same layout, dead helper
-            // status, dead Recommendations reset.
+            // monitor. The ⌘, menu item lands here too, via
+            // installSettingsMenuOverride().
             onOpenSupport: { [weak self] in
                 self?.openSettings()
             }
@@ -429,6 +450,78 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
     }
 
     // MARK: - Settings
+
+    /// Points the app menu's ⌘, "Settings…" item at `openSettings()`.
+    ///
+    /// Left alone, that item opens the SwiftUI `Settings` scene, which is a
+    /// second window built without the live helperClient and monitor — so the
+    /// helper row reads "Not connected" forever and Recommendations "Reset"
+    /// does nothing. Every other route to Settings goes through
+    /// `openSettings()`; this makes ⌘, agree with them.
+    ///
+    /// Retargeting (rather than adding a `Window` scene, or dropping the
+    /// `Settings` scene and hand-building the menu item) is deliberate: Blip is
+    /// LSUIElement, where a `Window` scene materialises at launch and never
+    /// leaves the window list — the 1.7.1/1.8.0 phantom window. The `Settings`
+    /// scene is on-demand and safe to keep; we just never open it.
+    private func installSettingsMenuOverride(attemptsLeft: Int = 10) {
+        if retargetSettingsMenuItem() {
+            observeAppMenuRebuilds()
+            return
+        }
+        // The main menu is built by SwiftUI and isn't guaranteed to exist yet at
+        // applicationDidFinishLaunching. Retry on the next few runloop turns.
+        guard attemptsLeft > 0 else { return }
+        DispatchQueue.main.async { [weak self] in
+            self?.installSettingsMenuOverride(attemptsLeft: attemptsLeft - 1)
+        }
+    }
+
+    /// SwiftUI owns the app menu and rebuilds it (the delegate is its own
+    /// AppKitMainMenuItem, so we can't take it). Re-apply the retarget whenever
+    /// the menu's items change, so a rebuild can't quietly restore the scene.
+    private func observeAppMenuRebuilds() {
+        guard let appMenu = NSApp.mainMenu?.item(at: 0)?.submenu, appMenuObserver == nil else { return }
+        appMenuObserver = NotificationCenter.default.addObserver(
+            forName: NSMenu.didChangeItemNotification, object: appMenu, queue: .main
+        ) { _ in
+            MainActor.assumeIsolated {
+                _ = AppDelegate.shared?.retargetSettingsMenuItem()
+            }
+        }
+    }
+
+    /// Returns true once the app menu's Settings item points at `openSettings()`.
+    private func retargetSettingsMenuItem() -> Bool {
+        guard let appMenu = NSApp.mainMenu?.item(at: 0)?.submenu else { return false }
+        var found = false
+        for item in appMenu.items where isSettingsMenuItem(item) {
+            found = true
+            // Skip if already ours — setting target/action posts
+            // didChangeItemNotification, and this runs from that notification.
+            guard item.target !== self || item.action != #selector(openSettingsFromMenu(_:)) else { continue }
+            item.target = self
+            item.action = #selector(openSettingsFromMenu(_:))
+        }
+        return found
+    }
+
+    private func isSettingsMenuItem(_ item: NSMenuItem) -> Bool {
+        // SwiftUI doesn't build the item with AppKit's showSettingsWindow: — it
+        // uses a private target and a generic `menuAction:` selector, so a
+        // selector match finds nothing. Match how the user actually reaches it:
+        // the only ⌘, item in the app menu. The selector check stays for
+        // AppKit-built items, in case a future SDK goes back to them.
+        if let action = item.action,
+           ["showSettingsWindow:", "showPreferencesWindow:"].contains(NSStringFromSelector(action)) {
+            return true
+        }
+        return item.keyEquivalent == "," && item.keyEquivalentModifierMask == [.command]
+    }
+
+    @objc private func openSettingsFromMenu(_ sender: Any?) {
+        openSettings()
+    }
 
     private func openSettings() {
         closeAll()
