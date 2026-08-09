@@ -3,7 +3,7 @@
 ## v1.8.0 (build 57)
 
 ### Removed
-- **"Open Support in Its Own Window" is gone from Settings.** The support and feedback rows are already inline on that same screen; the button underneath them re-opened identical content in a second container, which is a duplicate of what the user is already looking at rather than a feature. The support window scene itself stays — the menu-bar popover still routes to it, because a transient popover can't host that UI and would tear it down on dismiss.
+- **"Open Support in Its Own Window" is gone from Settings**, and so is the support window itself. The button re-opened content already inline on the same screen. The window behind it was worse: Blip is `LSUIElement`, and in an accessory app a SwiftUI `Window` scene is *not* created on demand — it materialises at launch and stays in the window list for the app's lifetime, so every user got a second Settings-lookalike (900×450) they never asked for and couldn't permanently dismiss. Scene deleted. Support lives in Settings, which is Blip's one real window; the popover's support row opens it through `AppDelegate.openSettings()` — the same path as the gear button, so the window carries the live `helperClient` and `monitor`.
 
 ### Fixed
 - **Version numbers are read from the app bundle.** Settings and the popover footer both did their own `Bundle.main.infoDictionary` lookup with a `?? "1.0.0"` fallback — a fallback indistinguishable from a real version if it ever fired. Both use `MillerKit.AppVersion` now, which resolves the enclosing `.app` rather than whatever bundle the calling code happens to live in. The helper-outdated comparison reads from the same source.
