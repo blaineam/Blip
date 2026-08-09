@@ -526,8 +526,14 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
     private func openSettings() {
         closeAll()
 
-        if let existing = settingsWindow, existing.isVisible {
+        // Reuse the cached window even when it's closed. `isReleasedWhenClosed`
+        // is false, so a closed Settings window is still a live NSWindow — the
+        // old `isVisible` check fell through and built a brand-new one on every
+        // reopen, which briefly put two "Blip Settings" windows in the window
+        // list and threw away the window's state each time.
+        if let existing = settingsWindow {
             existing.makeKeyAndOrderFront(nil)
+            showDockIconForWindows()
             NSApp.activate(ignoringOtherApps: true)
             return
         }
@@ -553,8 +559,11 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
 
     func openTracerouteWindow() {
         closeAll()
-        if let existing = tracerouteWindow, existing.isVisible {
+        // Same reuse rule as the settings window: a closed window is still a
+        // live NSWindow, so reuse it instead of building a replacement.
+        if let existing = tracerouteWindow {
             existing.makeKeyAndOrderFront(nil)
+            showDockIconForWindows()
             NSApp.activate(ignoringOtherApps: true)
             return
         }
