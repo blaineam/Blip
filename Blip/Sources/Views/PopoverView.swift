@@ -14,11 +14,9 @@ struct PopoverView: View {
     /// Callback when a section is hovered — AppDelegate handles showing the detail window.
     var onHoverSection: ((PopoverSection?) -> Void)?
     var onOpenSettings: (() -> Void)?
-    /// Called alongside opening the support window so AppDelegate can close
-    /// the popover; the window itself is opened here via `openWindow`.
+    /// Opens Settings (where the support rows live) via AppDelegate, which
+    /// also closes this popover on the way.
     var onOpenSupport: (() -> Void)? = nil
-
-    @Environment(\.openWindow) private var openWindow
 
     var body: some View {
         VStack(spacing: 0) {
@@ -86,12 +84,15 @@ struct PopoverView: View {
                 }
                 .padding(.horizontal, 8)
 
-                // Support row: opens the dedicated support window (a real
-                // window — a sheet on a transient popover dies with it).
+                // Support row: opens Settings, which is where the support and
+                // feedback rows live. It can't be a sheet — this popover is
+                // .transient and takes the sheet down with it — but the answer
+                // to that was never a second top-level window. Blip is an
+                // LSUIElement app, and a SwiftUI `Window` scene there isn't
+                // created on demand: it materialises at launch and sits in the
+                // window list for the app's lifetime.
                 Button {
                     onOpenSupport?()
-                    // Settings is Blip's one real window; support lives there.
-                    NSApp.sendAction(Selector(("showSettingsWindow:")), to: nil, from: nil)
                 } label: {
                     HStack(spacing: 6) {
                         Image(systemName: "lifepreserver")

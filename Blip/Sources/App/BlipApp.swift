@@ -8,10 +8,19 @@ struct BlipApp: App {
     @NSApplicationDelegateAdaptor(AppDelegate.self) var appDelegate
 
     var body: some Scene {
+        // The only scene. Blip is LSUIElement, and in an accessory app a
+        // SwiftUI `Window` scene is NOT created on demand — it materialises at
+        // launch and stays in the window list for the app's lifetime. A
+        // "Support Blip" Window scene used to live here and shipped exactly
+        // that: a second Settings-lookalike nobody opened and nobody could
+        // permanently close. Don't add another scene here.
+        //
+        // Note this Settings scene is the ⌘, path only; every in-app route to
+        // Settings goes through AppDelegate.openSettings(), which builds the
+        // window with the live helperClient and monitor.
         Settings {
             SettingsView(helperClient: nil)
         }
-
         .windowResizability(.contentSize)
     }
 }
@@ -218,12 +227,14 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
             onOpenSettings: { [weak self] in
                 self?.openSettings()
             },
-            // The row itself opens the SwiftUI Window scene via
-            // openWindow(id: "support"); the delegate only closes the
-            // popover so the new window isn't fighting a transient panel
-            // for focus.
+            // Support lives in Settings, and Settings means *this* window —
+            // the one openSettings() builds with the live helperClient and
+            // monitor. Routing through NSApp's showSettingsWindow: instead
+            // would open the SwiftUI `Settings` scene, which is constructed
+            // as SettingsView(helperClient: nil): same layout, dead helper
+            // status, dead Recommendations reset.
             onOpenSupport: { [weak self] in
-                self?.closeAll()
+                self?.openSettings()
             }
         )
 
