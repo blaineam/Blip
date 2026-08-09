@@ -90,7 +90,8 @@ struct PopoverView: View {
                 // window — a sheet on a transient popover dies with it).
                 Button {
                     onOpenSupport?()
-                    openWindow(id: "support")
+                    // Settings is Blip's one real window; support lives there.
+                    NSApp.sendAction(Selector(("showSettingsWindow:")), to: nil, from: nil)
                 } label: {
                     HStack(spacing: 6) {
                         Image(systemName: "lifepreserver")

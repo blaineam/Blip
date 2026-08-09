@@ -12,33 +12,6 @@ struct BlipApp: App {
             SettingsView(helperClient: nil)
         }
 
-        // The support surface gets a dedicated, real window. Blip is a
-        // menu-bar app: a sheet would attach to the transient popover and be
-        // torn down with it, so the rule stands — menu-bar apps host support
-        // UI in a real window, never a sheet. Opened via
-        // openWindow(id: "support") from the popover footer row and from
-        // Settings.
-        Window("Support Blip", id: "support") {
-            SupportWindowContent(app: .blip)
-                .onAppear {
-                    // Match the app's "windows show a Dock icon" behavior
-                    // (see AppDelegate.showDockIconForWindows) and take focus:
-                    // an accessory app's window otherwise opens behind.
-                    NSApp.setActivationPolicy(.regular)
-                    NSApp.activate(ignoringOtherApps: true)
-                }
-                .onDisappear {
-                    // Drop the Dock icon again if no titled Blip window
-                    // remains (async: this window still counts as visible
-                    // while it is closing).
-                    DispatchQueue.main.async {
-                        let anyVisible = NSApp.windows.contains {
-                            $0.isVisible && $0.styleMask.contains(.titled)
-                        }
-                        if !anyVisible { NSApp.setActivationPolicy(.accessory) }
-                    }
-                }
-        }
         .windowResizability(.contentSize)
     }
 }
