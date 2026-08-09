@@ -26,7 +26,8 @@ struct SettingsView: View {
     @ObservedObject private var geoDB = GeoIPDatabase.shared
     @AppStorage("geoipAutoUpdate") private var geoipAutoUpdate = false
 
-    @State private var selectedTab: Int = 2
+    /// Settings opens on General (tag 0), the first tab — not Menu Bar.
+    @State private var selectedTab: Int = 0
     @State private var selectedMode: ColorMode = .category
     @State private var customColor: Color = .blue
     @State private var helperConnected = false
