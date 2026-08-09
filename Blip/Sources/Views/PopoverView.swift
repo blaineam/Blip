@@ -1,4 +1,5 @@
 import SwiftUI
+import MillerKit
 
 /// Main popover content showing overview rows.
 /// Hover triggers detail panel via a separate NSPanel managed by AppDelegate.
@@ -106,7 +107,7 @@ struct PopoverView: View {
                 .padding(.horizontal, 8)
 
                 HStack {
-                    Text("Blip v\(Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "1.0.0") · \(String(format: "%.1f", monitor.snapshot.system.blipMemoryMB)) MB")
+                    Text("Blip v\(AppVersion.short()) · \(String(format: "%.1f", monitor.snapshot.system.blipMemoryMB)) MB")
                         .font(.system(size: 8))
                         .foregroundStyle(.quaternary)
                     Spacer()

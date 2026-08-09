@@ -27,7 +27,7 @@ packages:
   # publish step; swap `path` for `url`+`from` if it ever moves to GitHub.
   MillerKit:
     url: https://github.com/blaineam/MillerKit
-    from: "1.0.0"
+    from: "1.1.0"
 
 targets:
 

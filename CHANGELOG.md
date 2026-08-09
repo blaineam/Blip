@@ -1,5 +1,17 @@
 # Changelog
 
+## v1.8.0 (build 57)
+
+### Removed
+- **"Open Support in Its Own Window" is gone from Settings.** The support and feedback rows are already inline on that same screen; the button underneath them re-opened identical content in a second container, which is a duplicate of what the user is already looking at rather than a feature. The support window scene itself stays — the menu-bar popover still routes to it, because a transient popover can't host that UI and would tear it down on dismiss.
+
+### Fixed
+- **Version numbers are read from the app bundle.** Settings and the popover footer both did their own `Bundle.main.infoDictionary` lookup with a `?? "1.0.0"` fallback — a fallback indistinguishable from a real version if it ever fired. Both use `MillerKit.AppVersion` now, which resolves the enclosing `.app` rather than whatever bundle the calling code happens to live in. The helper-outdated comparison reads from the same source.
+
+### Changed
+- MillerKit 1.1.0.
+- Blip Helper is versioned 1.8.0 (build 16), in lockstep with the app, so the "an update to Blip Helper is available" banner doesn't fire against the helper this release ships with.
+
 ## v1.7.1
 
 - **Liquid-glass app icon** — the icon's bars-and-blip glyph is now a transparent Icon Composer layer over the manifest's navy fill, so macOS renders the same glass depth (shadow + translucency) as the rest of the suite. Previously the layer was a fully opaque square that occluded the fill and read as a flat tile.

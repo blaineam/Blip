@@ -3,7 +3,6 @@ import ServiceManagement
 import MillerKit
 
 struct SettingsView: View {
-    @Environment(\.openWindow) private var openWindow
     @AppStorage("accentColorOverride") private var colorOverride: String = ""
     @AppStorage("showCPU") private var showCPU = true
     @AppStorage("showMemory") private var showMemory = true
@@ -203,8 +202,13 @@ struct SettingsView: View {
 
             Section {
                 LabeledContent("Version") {
-                    Text(Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "1.0.0")
+                    // MillerKit's AppVersion, which resolves the enclosing
+                    // .app rather than whatever bundle the calling code
+                    // happens to sit in — and has no "1.0.0" fallback to
+                    // mistake for a real version.
+                    Text(AppVersion.display())
                         .foregroundStyle(.secondary)
+                        .monospacedDigit()
                 }
                 LabeledContent("Website") {
                     Link("blip.wemiller.com", destination: URL(string: "https://blip.wemiller.com")!)
@@ -216,18 +220,14 @@ struct SettingsView: View {
                 }
             }
 
+            // The support and feedback rows are right here, inline. There used
+            // to be a further "Open Support in Its Own Window" button under
+            // them, which just re-opened this same content in a second
+            // container — a duplicate of what the user is already looking at.
+            // Removed. (The popover still routes to the support window,
+            // because a transient popover can't host this itself.)
             SupportSection(app: .blip)
             LoveThisAppSection(app: .blip)
-
-            Section {
-                Button {
-                    openWindow(id: "support")
-                } label: {
-                    Label("Open Support in Its Own Window", systemImage: "macwindow")
-                }
-            } footer: {
-                Text("The same support and feedback options, in a window you can keep around while writing.")
-            }
         }
         // NO review ask here. Opening Settings is not a success path, and this
         // is the screen with the "Report an Issue" button on it — asking someone
@@ -413,7 +413,7 @@ struct SettingsView: View {
     }
 
     private var appVersion: String {
-        Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "1.0.0"
+        AppVersion.short()
     }
 
     private var helperStatusText: String {

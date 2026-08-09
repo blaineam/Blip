@@ -54,14 +54,12 @@ system monitor,cpu usage,memory pressure,menu bar,activity monitor,gpu,battery h
 See your Mac's vitals at a glance. CPU, memory, disk, GPU, network, battery, fans, and thermals — all live in your menu bar. Tiny footprint. Zero dependencies.
 
 ## whats_new
-NOW FULLY LOCALIZED IN 8 LANGUAGES.
+Simpler support, honest version numbers.
 
-Blip now speaks your language: German, Spanish, French, Italian, Japanese, Korean, Portuguese (Brazil), and Simplified Chinese — every panel, metric label, and settings row.
++ Settings no longer offers "Open Support in Its Own Window". The support and feedback options were already right there on the same screen — the button just re-opened the same content in a second window. It's gone.
+* The version shown in Settings and in the popover footer is now read from the app itself, so it can't drift from the version you actually installed.
+* Stability fixes and tune-ups.
 
-Also in this update:
-+ A dedicated Support window, so help is one click away
-+ The rating prompt moved to a considerate moment — it no longer lives in Settings
-* Stability fixes and tune-ups
 
 ## marketing_url
 https://wemiller.com/apps/blip/
