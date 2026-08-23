@@ -2,6 +2,9 @@
 
 ## Unreleased
 
+### Added
+- **Settings → "Support Future Development"** (MillerKit 1.2.0): a heart row in the *Enjoying Blip?* block that opens wemiller.com/support — GitHub Sponsors, Ko-fi, a one-time tip. Blip is free on every channel, so the ask lives where the rating ask already does.
+
 ### Docs / Site
 - **The Mac App Store build is now free** — Blip Stats on the Mac App Store no longer carries a price; the direct download, Homebrew cask and App Store build are all free and identical. The landing page and README say so, and the old "Why does the App Store version cost…" FAQ is now "Is Blip really free?"
 - **Support future development** — the landing page and README gained a support block with GitHub Sponsors and Ko-fi links (plus a link to every way to support at wemiller.com/support)
