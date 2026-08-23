@@ -8,7 +8,7 @@
 Blip Stats
 
 ## subtitle
-Monitor en Barra de Menús
+Estadísticas y Bench
 
 ## description
 Blip es un monitor de sistema ultraligero que vive en tu barra de menús. Un clic muestra todo lo que ocurre dentro de tu Mac: carga de CPU, presión de memoria, actividad del disco, velocidad de red y mucho más. Sin desorden, sin suscripciones, sin excesos. Solo métricas rápidas y precisas cuando las necesitas.
@@ -47,20 +47,51 @@ Bien hecho:
 
 Blip está escrito en Swift con concurrencia estricta, async/await y cero dependencias externas. Es nativo para Apple Silicon y cada versión está notarizada por Apple.
 
+Blip Bench:
+
+Mide lo que tu máquina puede hacer realmente. Blip Bench puntúa CPU (un núcleo y todos), ancho de banda y latencia de memoria, GPU y rendimiento del Neural Engine en unidades de referencia fijas: una sola escala para cada Mac, iPhone y iPad con Blip. El perfil completo añade una fase sostenida que muestra cuánto rendimiento se llevan los límites térmicos, contrastada con datos de ventiladores y temperatura en vivo.
+
+Ahora en iPhone y iPad:
+
+Blip Stats 2.0 es una compra universal: la misma app en tu Mac, iPhone y iPad. La app de iOS trae tarjetas de dispositivo en vivo con detalles, Blip Bench, tests de velocidad con curvas separadas, latencia en reposo y bajo carga con notas por actividad, ping y traceroute con mapa GeoIP sin conexión, tests de disco, widgets, Atajos e instantáneas de un archivo.
+
 Si buscabas un monitor de sistema rápido, preciso, bonito y respetuoso con los recursos de tu Mac, es Blip.
+
+## description_ios
+Blip lleva estadísticas honestas, un benchmark de verdad y herramientas de red serias a tu iPhone y iPad, con la misma filosofía ligera de Blip para Mac, en una compra universal.
+
+Resumen — tarjetas en vivo de CPU, memoria, almacenamiento, batería, estado térmico y red. Toca cualquier tarjeta para ver todos los detalles: desglose de memoria, cargas medias, núcleos, tiempo activo desde el arranque, IPs locales con copiar al toque, IP pública bajo demanda, detección de VPN y radio. Las sugerencias honestas solo aparecen cuando hay una señal real.
+
+Blip Bench — rendimiento de CPU, memoria, GPU y Neural Engine en las unidades de referencia fijas de Blip, comparable entre todos los dispositivos con Blip. El perfil completo mide la limitación térmica con una fase sostenida, y los resultados se animan etapa a etapa.
+
+Velocidad — prueba contra el servicio público de OpenSpeedTest o tu propio servidor. Descarga y subida como curvas separadas, latencia en reposo y bajo carga (bufferbloat), y cada resultado con nota por actividad: navegación, streaming HD y 4K, videollamadas, juego en la nube, subidas grandes.
+
+Red — ping y traceroute con latencia por salto, detección de timeouts y un mapa GeoIP sin conexión de la ruta. La base de datos se descarga una vez y las consultas nunca salen del dispositivo.
+
+Almacenamiento — tests secuenciales de velocidad en el almacenamiento interno o en cualquier volumen accesible desde Archivos, sin caché y con flush incluido.
+
+Widgets — puntuación Bench, almacenamiento y último test de velocidad en tu pantalla de inicio, cada uno con su antigüedad. Atajos — ejecuta benchmarks y tests o captura una instantánea completa.
+
+Sin cuentas, sin anuncios, sin rastreo. Blip solo muestra lo que iOS expone honestamente a una app formal.
 
 ## keywords
 monitor sistema,uso cpu,memoria ram,barra menús,actividad,gpu,batería,temperatura,rendimiento,mac
 
 ## promotional_text
-El estado de tu Mac de un vistazo. CPU, memoria, disco, GPU, red, batería, ventiladores y temperatura — en la barra de menús. Mínimo consumo. Sin dependencias.
+Ahora también en iPhone y iPad. Datos en vivo, Blip Bench con Neural Engine, tests con nota, traceroute con mapa — una compra universal para Mac e iOS.
+
 
 ## whats_new
-Una ventana, no dos.
+2.0.0 — Blip llega a iPhone y iPad, y Blip Bench llega a todas partes.
 
-+ Corregido: Blip abría una segunda ventana «Soporte», vacía, al arrancar y la dejaba ahí durante toda la sesión. Ya no está — Blip vuelve a ser una app de barra de menús, sin ninguna ventana hasta que abres los Ajustes.
-+ Los Ajustes ya no incluyen «Abrir Soporte en su propia ventana». Las opciones de soporte y comentarios ya estaban ahí mismo, en la misma pantalla; el botón solo volvía a abrirlas en otro sitio.
-* La versión que aparece en los Ajustes y en el pie del panel ahora se lee de la propia app, así que no puede desviarse de la versión que tienes instalada.
++ Nuevo: Blip para iOS/iPadOS — tarjetas en vivo de CPU, memoria, almacenamiento, batería, térmico y red con detalles, copiar al toque y sugerencias honestas.
++ Nuevo: Blip Bench — CPU, memoria, GPU y Neural Engine en unidades de referencia fijas, comparable entre cada Mac, iPhone y iPad con Blip, con fase sostenida para la limitación térmica.
++ Nuevo: tests de velocidad con curvas separadas de bajada/subida, latencia en reposo y bajo carga (bufferbloat), notas por actividad, historial y tarjetas para compartir.
++ Nuevo: ping y traceroute en iOS con mapa GeoIP sin conexión.
++ Nuevo: tests de velocidad de disco en iOS — almacenamiento interno o cualquier volumen de Archivos.
++ Nuevo: widgets de pantalla de inicio (Bench, almacenamiento, último test) y soporte de Atajos.
+* Mac: los nombres de dispositivo aparecen siempre como nombre comercial en Apple Silicon.
+
 
 ## marketing_url
 https://wemiller.com/apps/blip/

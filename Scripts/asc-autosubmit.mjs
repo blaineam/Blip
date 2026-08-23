@@ -322,7 +322,20 @@ async function setNotes(versionId, version, notes, { dryRun }) {
 			if ((loc.attributes.promotionalText || '') !== promo) attrs.promotionalText = promo;
 		}
 		if (Object.keys(attrs).length && !dryRun) {
-			await api('PATCH', `/v1/appStoreVersionLocalizations/${loc.id}`, { data: { type: 'appStoreVersionLocalizations', id: loc.id, attributes: attrs } });
+			try {
+				await api('PATCH', `/v1/appStoreVersionLocalizations/${loc.id}`, { data: { type: 'appStoreVersionLocalizations', id: loc.id, attributes: attrs } });
+			} catch (e) {
+				// A brand-new app's FIRST version has no What's New field — ASC rejects the
+				// attribute outright (hit on Blip's first iOS version). Promotional text still
+				// applies, so retry without whatsNew rather than failing the release.
+				if (attrs.whatsNew && /whatsNew|first version|APP_STORE_VERSION/i.test(String(e.message))) {
+					delete attrs.whatsNew;
+					if (Object.keys(attrs).length) {
+						await api('PATCH', `/v1/appStoreVersionLocalizations/${loc.id}`, { data: { type: 'appStoreVersionLocalizations', id: loc.id, attributes: attrs } });
+					}
+					log(`${locale}: first-version localization — ASC refused whatsNew, set the rest`);
+				} else { throw e; }
+			}
 		}
 		set++;
 	}
