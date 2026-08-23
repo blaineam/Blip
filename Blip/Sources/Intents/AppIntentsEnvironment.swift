@@ -63,6 +63,12 @@ enum AppIntentsEnvironment {
     /// results land in the shared SpeedTester's history (panel stays in sync).
     static var networkSpeedRunner: (@MainActor (SpeedTestServer) async throws -> NetSpeedResult)?
 
+    /// Runs Blip Bench and returns the result (nil = cancelled). Overridable so intent tests
+    /// can assert plumbing without burning 6 s of CPU per test; the default runs the real thing.
+    static var benchRunner: @MainActor (BenchProfile) async -> BenchResult? = { profile in
+        await BenchEngine.runOnce(profile: profile, thermal: NullThermalSource())
+    }
+
     /// Runs one disk benchmark against a mount point. Defaults to the pure
     /// runner; AppDelegate wraps it to also record into the DiskSpeedTester.
     static var diskSpeedRunner: @MainActor (DiskBenchmark.Size, String) async throws -> DiskSpeedResult = { size, mountPoint in
