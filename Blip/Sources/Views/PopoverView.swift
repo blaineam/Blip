@@ -14,6 +14,8 @@ struct PopoverView: View {
     /// Callback when a section is hovered — AppDelegate handles showing the detail window.
     var onHoverSection: ((PopoverSection?) -> Void)?
     @ObservedObject var benchEngine: BenchEngine
+    /// For the footer's snapshot share — recent speed results enrich the export.
+    var speedHistory: [NetSpeedResult] = []
 
     private var benchScoreLabel: String {
         if benchEngine.isRunning { return "running…" }
@@ -121,6 +123,17 @@ struct PopoverView: View {
                         .font(.system(size: 8))
                         .foregroundStyle(.quaternary)
                     Spacer()
+                    // iOS-parity: one click hands you a Markdown snapshot of everything
+                    // Blip knows right now (same file the iOS toolbar button produces).
+                    ShareLink(item: SnapshotFilePayload(snapshot: monitor.snapshot, speedHistory: speedHistory),
+                              preview: SharePreview("Blip Snapshot")) {
+                        Image(systemName: "square.and.arrow.up.on.square")
+                            .font(.system(size: 10))
+                            .foregroundStyle(.secondary)
+                    }
+                    .buttonStyle(.plain)
+                    .help(String(localized: "Share a snapshot of all stats as one file"))
+
                     Button {
                         onOpenSettings?()
                     } label: {

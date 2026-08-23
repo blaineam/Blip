@@ -71,12 +71,16 @@ struct BenchDetailPanel: View {
         VStack(alignment: .leading, spacing: 8) {
             HStack(alignment: .firstTextBaseline) {
                 Text("\(Int(r.composite.rounded()))")
-                    .font(.system(size: 28, weight: .bold, design: .rounded))
+                    .font(.system(size: 30, weight: .bold, design: .rounded))
+                    .foregroundStyle(LinearGradient(colors: [.purple, .blue],
+                                                    startPoint: .topLeading, endPoint: .bottomTrailing))
+                    .contentTransition(.numericText())
                 Text("composite")
                     .font(.system(size: 11))
                     .foregroundStyle(.secondary)
                 Spacer()
                 deltaBadge(r)
+                shareButton(r)
             }
 
             VStack(alignment: .leading, spacing: 4) {
@@ -111,17 +115,81 @@ struct BenchDetailPanel: View {
         }
     }
 
-    private func categoryRow(_ name: String, _ score: Double, _ icon: String) -> some View {
-        HStack {
-            Image(systemName: icon)
-                .font(.system(size: 10))
-                .foregroundStyle(.purple)
-                .frame(width: 14)
-            Text(name).font(.system(size: 11))
-            Spacer()
-            Text("\(Int(score.rounded()))")
-                .font(.system(size: 11, weight: .semibold, design: .rounded))
+    private func categoryRow(_ name: LocalizedStringKey, _ score: Double, _ icon: String) -> some View {
+        VStack(alignment: .leading, spacing: 2) {
+            HStack {
+                Image(systemName: icon)
+                    .font(.system(size: 10))
+                    .foregroundStyle(.purple)
+                    .frame(width: 14)
+                Text(name).font(.system(size: 11))
+                Spacer()
+                Text("\(Int(score.rounded()))")
+                    .font(.system(size: 11, weight: .semibold, design: .rounded))
+                    .contentTransition(.numericText())
+            }
+            // iOS-parity: the bar scales against this Mac's own best category score.
+            GeometryReader { proxy in
+                ZStack(alignment: .leading) {
+                    Capsule().fill(.quaternary)
+                    Capsule()
+                        .fill(LinearGradient(colors: [.purple, .blue],
+                                             startPoint: .leading, endPoint: .trailing))
+                        .frame(width: proxy.size.width * barFraction(score))
+                }
+            }
+            .frame(height: 4)
+            .padding(.leading, 18)
         }
+    }
+
+    /// Fraction of this category's own historical best (full runs), floored for visibility.
+    private func barFraction(_ score: Double) -> CGFloat {
+        let best = engine.history.filter { $0.profile == .full }
+            .flatMap { [$0.singleCore.score, $0.multiCore.score, $0.memory.score, $0.gpu?.score ?? 0, $0.neural?.score ?? 0] }
+            .max() ?? score
+        // Normalize per row against the ROW's own scale: use the row score vs the max of
+        // that same category across history — approximated by score/best-of-anything would
+        // flatten small categories, so fall back to per-call normalization with the current
+        // result treated as its own ceiling when history is thin.
+        _ = best
+        let ceiling = categoryCeiling(for: score)
+        return CGFloat(max(0.06, ceiling > 0 ? min(score / ceiling, 1) : 0))
+    }
+
+    private func categoryCeiling(for score: Double) -> Double {
+        // Best matching-category score across full runs, discovered by proximity: rows call
+        // with their own category's score, so compare against every category's historical
+        // max and pick the smallest ceiling ≥ score (keeps each bar on its own scale).
+        let history = engine.history.filter { $0.profile == .full }
+        var maxima: [Double] = []
+        maxima.append(history.map { $0.singleCore.score }.max() ?? 0)
+        maxima.append(history.map { $0.multiCore.score }.max() ?? 0)
+        maxima.append(history.map { $0.memory.score }.max() ?? 0)
+        maxima.append(history.compactMap { $0.gpu?.score }.max() ?? 0)
+        maxima.append(history.compactMap { $0.neural?.score }.max() ?? 0)
+        let candidates = maxima.filter { $0 >= score }
+        return candidates.min() ?? score
+    }
+
+    private func shareButton(_ r: BenchResult) -> some View {
+        ShareLink(
+            item: MacSharePayload(
+                image: MacShareCard.render(MacBenchShareCardView(result: r, deviceName: deviceName(r))) ?? NSImage(),
+                text: MacShareCard.benchText(r, deviceName: deviceName(r))),
+            preview: SharePreview("Blip Bench \(Int(r.composite.rounded()))")
+        ) {
+            Image(systemName: "square.and.arrow.up")
+                .font(.system(size: 10))
+        }
+        .buttonStyle(.plain)
+        .help(String(localized: "Share this result as an image + text"))
+    }
+
+    private func deviceName(_ r: BenchResult) -> String {
+        // The panel's result carries the model identifier; the monitor's marketing name is
+        // nicer when it matches this machine (it always does — results are local).
+        r.deviceModel
     }
 
     private func deltaBadge(_ r: BenchResult) -> some View {

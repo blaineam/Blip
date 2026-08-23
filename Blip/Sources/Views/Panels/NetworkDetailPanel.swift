@@ -768,11 +768,41 @@ struct SpeedTestSection: View {
         // Phase + live throughput
         liveStatus
 
-        // Last result (down / up). Upload shows "—" for download-only servers.
+        // Last result — iOS-parity card: complementary colors, curves, the latency pair,
+        // per-activity grades, and a share button (image + text card).
         if let last = tester.lastResult {
-            HStack(spacing: 0) {
-                resultColumn(icon: "arrow.down", color: .green, label: "Download", mbps: last.downMbps)
-                resultColumn(icon: "arrow.up", color: .blue, label: "Upload", mbps: last.upMbps)
+            VStack(alignment: .leading, spacing: 6) {
+                HStack(spacing: 0) {
+                    resultColumn(icon: "arrow.down", color: .teal, label: String(localized: "Download"), mbps: last.downMbps)
+                    resultColumn(icon: "arrow.up", color: .orange, label: String(localized: "Upload"), mbps: last.upMbps)
+                    Spacer()
+                    ShareLink(
+                        item: MacSharePayload(
+                            image: MacShareCard.render(MacSpeedShareCardView(result: last)) ?? NSImage(),
+                            text: MacShareCard.speedText(last)),
+                        preview: SharePreview(String(format: "%.0f Mbps", last.downMbps))
+                    ) {
+                        Image(systemName: "square.and.arrow.up").font(.system(size: 10))
+                    }
+                    .buttonStyle(.plain)
+                    .help(String(localized: "Share this result as an image + text"))
+                }
+                if let ping = last.pingMs {
+                    HStack(spacing: 10) {
+                        Label(String(format: "%.0f ms idle", ping), systemImage: "clock")
+                        if let loaded = last.loadedPingMs {
+                            Label(String(format: "%.0f ms under load", loaded), systemImage: "clock.badge.exclamationmark")
+                                .foregroundStyle(loaded - ping > 100 ? Color.orange : Color.secondary)
+                        }
+                        Spacer()
+                    }
+                    .font(.system(size: 9))
+                    .foregroundStyle(.secondary)
+                }
+                if let down = last.downCurve, !down.isEmpty {
+                    DualCurveChart(down: down, up: last.upCurve ?? [], height: 36)
+                }
+                gradeChips(last)
             }
         }
 
@@ -823,23 +853,36 @@ struct SpeedTestSection: View {
 
     @ViewBuilder
     private var liveStatus: some View {
-        switch tester.phase {
-        case .idle:
-            EmptyView()
-        case .download:
-            phaseRow(text: "Download…", color: .green, mbps: tester.liveMbps)
-        case .upload:
-            phaseRow(text: "Upload…", color: .blue, mbps: tester.liveMbps)
-        case .done:
-            EmptyView()
-        case .failed(let message):
-            HStack(spacing: 3) {
-                Image(systemName: "exclamationmark.triangle.fill")
-                    .font(.system(size: 9))
-                    .foregroundStyle(.orange)
-                Text(message)
-                    .font(.system(size: 10))
-                    .foregroundStyle(.secondary)
+        Group {
+            switch tester.phase {
+            case .idle, .done:
+                EmptyView()
+            case .download, .upload:
+                // iOS-parity running state: the big rounded number + both curves live.
+                VStack(alignment: .leading, spacing: 4) {
+                    HStack(alignment: .firstTextBaseline) {
+                        Text("\(Int(tester.liveMbps))")
+                            .font(.system(size: 30, weight: .bold, design: .rounded))
+                            .contentTransition(.numericText())
+                            .foregroundStyle(tester.phase == .upload ? Color.orange : Color.teal)
+                        Text(tester.phase == .upload ? "Mbps · uploading" : "Mbps · downloading")
+                            .font(.system(size: 10))
+                            .foregroundStyle(.secondary)
+                        Spacer()
+                    }
+                    if !tester.downCurve.isEmpty {
+                        DualCurveChart(down: tester.downCurve, up: tester.upCurve, height: 44)
+                    }
+                }
+            case .failed(let message):
+                HStack(spacing: 3) {
+                    Image(systemName: "exclamationmark.triangle.fill")
+                        .font(.system(size: 9))
+                        .foregroundStyle(.orange)
+                    Text(message)
+                        .font(.system(size: 10))
+                        .foregroundStyle(.secondary)
+                }
             }
         }
     }
@@ -869,6 +912,31 @@ struct SpeedTestSection: View {
                 .font(.system(size: 11, design: .monospaced))
         }
         .frame(maxWidth: .infinity, alignment: .leading)
+    }
+
+    /// "Reliably good for" — the same per-activity grades the iOS result card shows.
+    private func gradeChips(_ r: NetSpeedResult) -> some View {
+        let grades = ConnectionGrades.evaluate(down: r.downMbps, up: r.upMbps,
+                                               unloadedMs: r.pingMs, loadedMs: r.loadedPingMs)
+        return VStack(alignment: .leading, spacing: 3) {
+            Text("Reliably good for")
+                .font(.system(size: 9, weight: .semibold))
+                .foregroundStyle(.secondary)
+            LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible())], spacing: 3) {
+                ForEach(grades) { g in
+                    HStack(spacing: 4) {
+                        Text(g.grade.rawValue)
+                            .font(.system(size: 9, weight: .bold))
+                            .frame(width: 14, height: 14)
+                            .background(g.grade.tint.opacity(0.2), in: Circle())
+                            .foregroundStyle(g.grade.tint)
+                        Image(systemName: g.icon).font(.system(size: 8)).foregroundStyle(.secondary)
+                        Text(g.name).font(.system(size: 9))
+                        Spacer(minLength: 0)
+                    }
+                }
+            }
+        }
     }
 
     private var sparkline: some View {

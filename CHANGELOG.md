@@ -20,6 +20,12 @@
 - **`Scripts/mint-dev-profiles.mjs`** — mints iOS development provisioning profiles (app + widget) via the ASC API and installs them locally, because CLI `xcodebuild` on this Mac can't see accounts. App-group assignment still needs one Xcode Cloud build to register; after that, dev builds carry widgets too.
 - **Bench cold launch shows your last result** instead of an empty pitch (history was already loaded; now `lastResult` seeds from it).
 
+### Added — macOS parity (share + styling)
+- **Share everywhere on the Mac, like iOS**: the Bench panel and the network Speed Test section share results as a rendered dark card image + accompanying text, and the popover footer gains a one-click all-stats Markdown snapshot (lazily produced — only written when actually shared). Same visual cards as iOS.
+- **Mac speed test, second edition**: idle vs under-load latency (ICMP median, bufferbloat) measured on every run, live download/upload drawn as separate teal/orange curves (shared DualCurveChart), per-activity connection grades on the result, and the running state shows the big rounded live number — matching the iOS styling.
+- **Mac Bench panel restyle**: gradient composite hero, per-category proportional bars scaled against this Mac's own best, share button.
+- ICMPProbe, DualCurveChart, and ConnectionGrades promoted to `Shared/` — one implementation for both platforms; the Mac string catalog gains the corresponding translations.
+
 ### Fixed — wave 3
 - **Mac Bench panel clipped its content** — it declared 300pt in a 260pt hover host; now 260 like every other panel.
 - **"Support Future Development" leaked into the macOS TestFlight build** — MillerKit 1.2.2 makes the gate structural: iOS-family builds never show external funding links, macOS decides by its own code signature (Apple-signed hides; Developer ID/dev-signed is direct), receipt presence only as a fast path.

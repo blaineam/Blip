@@ -13,6 +13,11 @@ struct NetSpeedResult: Identifiable, Sendable {
     /// nil when the selected server is download-only (e.g. OVH / Hetzner static files).
     let upMbps: Double?
     let timestamp: Date
+    // Second edition (iOS parity): latency idle vs under load, and the live curves.
+    var pingMs: Double?
+    var loadedPingMs: Double?
+    var downCurve: [Double]?
+    var upCurve: [Double]?
 }
 
 /// Phase of the current speed test, used to drive UI labels.
@@ -70,6 +75,8 @@ enum SpeedTestServer: Equatable, Sendable {
 final class SpeedTester: ObservableObject {
     @Published private(set) var phase: SpeedTestPhase = .idle
     @Published private(set) var liveMbps: Double = 0       // current direction throughput while running
+    @Published private(set) var downCurve: [Double] = []   // live Mbps samples per direction (iOS-parity chart)
+    @Published private(set) var upCurve: [Double] = []
     @Published private(set) var lastResult: NetSpeedResult?
     @Published private(set) var history: [NetSpeedResult] = []
 
@@ -103,6 +110,10 @@ final class SpeedTester: ObservableObject {
     func start() {
         guard runTask == nil else { return }
         liveMbps = 0
+        downCurve = []
+        upCurve = []
+        unloadedPing = nil
+        loadedSamples = []
         // Mark the run as started SYNCHRONOUSLY. The spawned task doesn't get a
         // chance to set `phase` until the caller suspends, so without this a
         // caller checking `isRunning` right after start() (the panel, and
@@ -213,15 +224,74 @@ final class SpeedTester: ObservableObject {
         autoTimer = nil
     }
 
+    // MARK: - Latency (idle before the run, loaded during the download) — iOS parity
+
+    private var unloadedPing: Double?
+    private var loadedSamples: [Double] = []
+    private var loadedProbeTask: Task<Void, Never>?
+
+    private static func medianPing(count: Int, spacingMs: UInt64) async -> Double? {
+        guard let addr = try? ICMPProbe.resolveIPv4("1.1.1.1") else { return nil }
+        var rtts: [Double] = []
+        for i in 0..<count {
+            if Task.isCancelled { break }
+            if let r = try? ICMPProbe.probe(addr: addr, ttl: nil, sequence: UInt16(4000 + i), timeout: 1) {
+                rtts.append(r.rttMs)
+            }
+            try? await Task.sleep(nanoseconds: spacingMs * 1_000_000)
+        }
+        guard !rtts.isEmpty else { return nil }
+        return rtts.sorted()[rtts.count / 2]
+    }
+
+    private func startLoadedProbes() {
+        loadedProbeTask = Task { [weak self] in
+            guard let addr = try? ICMPProbe.resolveIPv4("1.1.1.1") else { return }
+            var seq: UInt16 = 5000
+            while !Task.isCancelled {
+                seq &+= 1
+                if let r = try? ICMPProbe.probe(addr: addr, ttl: nil, sequence: seq, timeout: 1) {
+                    await MainActor.run { [weak self] in self?.loadedSamples.append(r.rttMs) }
+                }
+                try? await Task.sleep(nanoseconds: 400_000_000)
+            }
+        }
+    }
+
+    private func stopLoadedProbes() { loadedProbeTask?.cancel(); loadedProbeTask = nil }
+
+    private var loadedPing: Double? {
+        loadedSamples.isEmpty ? nil : loadedSamples.sorted()[loadedSamples.count / 2]
+    }
+
+    /// Route every live throughput report through here so the curves build themselves.
+    private func captureLive(_ mbps: Double, upload: Bool) {
+        liveMbps = mbps
+        if upload { upCurve.append(mbps); if upCurve.count > 240 { upCurve.removeFirst() } }
+        else { downCurve.append(mbps); if downCurve.count > 240 { downCurve.removeFirst() } }
+    }
+
+    private static func downsample(_ values: [Double], to target: Int = 80) -> [Double]? {
+        guard !values.isEmpty else { return nil }
+        guard values.count > target else { return values }
+        let stride = Double(values.count) / Double(target)
+        return (0..<target).map { values[min(values.count - 1, Int(Double($0) * stride))] }
+    }
+
     private func run() async {
         do {
-            let result: NetSpeedResult
+            unloadedPing = await Self.medianPing(count: 5, spacingMs: 120)
+            var result: NetSpeedResult
             if server.isPublic {
+                startLoadedProbes()
                 result = try await runPublicWidget()
+                stopLoadedProbes()
             } else {
                 phase = .download
                 liveMbps = 0
+                startLoadedProbes()
                 let down = try await measure(direction: .download)
+                stopLoadedProbes()
                 try Task.checkCancellation()
 
                 phase = .upload
@@ -231,6 +301,10 @@ final class SpeedTester: ObservableObject {
 
                 result = NetSpeedResult(downMbps: down, upMbps: up, timestamp: Date())
             }
+            result.pingMs = unloadedPing
+            result.loadedPingMs = loadedPing
+            result.downCurve = Self.downsample(downCurve)
+            result.upCurve = Self.downsample(upCurve)
 
             lastResult = result
             history.append(result)
@@ -238,9 +312,11 @@ final class SpeedTester: ObservableObject {
             phase = .done
             liveMbps = 0
         } catch is CancellationError {
+            stopLoadedProbes()
             phase = .idle
             liveMbps = 0
         } catch {
+            stopLoadedProbes()
             phase = .failed(Self.message(for: error))
             liveMbps = 0
         }
@@ -256,8 +332,9 @@ final class SpeedTester: ObservableObject {
         publicRunner = runner              // kept alive so its window can linger on "done"
         let r = try await runner.run { [weak self] isUpload, mbps in
             guard let self else { return }
+            if isUpload && self.phase != .upload { self.stopLoadedProbes() }
             self.phase = isUpload ? .upload : .download
-            if let mbps { self.liveMbps = mbps }
+            if let mbps { self.captureLive(mbps, upload: isUpload) }
         }
         try Task.checkCancellation()
         return NetSpeedResult(downMbps: r.down, upMbps: r.up, timestamp: Date())
@@ -312,7 +389,8 @@ final class SpeedTester: ObservableObject {
                 if b > lastBytes { lastBytes = b; lastProgress = now }
                 let elapsed = lastProgress.timeIntervalSince(warmupEnd)
                 if elapsed > 0 {
-                    liveMbps = Double(lastBytes - baseline) * 8 / elapsed / 1_000_000
+                    captureLive(Double(lastBytes - baseline) * 8 / elapsed / 1_000_000,
+                                upload: direction == .upload)
                 }
                 // Transfers wound down (e.g. request cap reached) — stop measuring idle time.
                 if now.timeIntervalSince(lastProgress) > 0.5, lastBytes - baseline > 0 { break }

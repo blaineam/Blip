@@ -150,6 +150,9 @@ targets:
     sources:
       - path: BlipMobile/Sources
       - path: Shared/BenchKit
+      - path: Shared/Net
+      - path: Shared/UI
+      - path: Shared/ConnectionGrades.swift
       # GeoIP: the Mac app's Foundation-only MMDB reader + DB-IP downloader, shared verbatim.
       - path: Blip/Sources/Services/MMDB.swift
       - path: Blip/Sources/Services/GeoIPDatabase.swift

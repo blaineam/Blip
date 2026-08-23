@@ -265,6 +265,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
                 self?.handleSectionHover(section)
             },
             benchEngine: benchEngine,
+            speedHistory: netSpeedTester.history,
             onOpenSettings: { [weak self] in
                 self?.openSettings()
             },
