@@ -20,6 +20,16 @@
 - **`Scripts/mint-dev-profiles.mjs`** — mints iOS development provisioning profiles (app + widget) via the ASC API and installs them locally, because CLI `xcodebuild` on this Mac can't see accounts. App-group assignment still needs one Xcode Cloud build to register; after that, dev builds carry widgets too.
 - **Bench cold launch shows your last result** instead of an empty pitch (history was already loaded; now `lastResult` seeds from it).
 
+### Added — docs site 2.0
+- **blip.wemiller.com tells the 2.0 story**: hero says free + Mac/iPhone/iPad, a new "Now on iPhone & iPad" section composes transparent Monkr device renders (iPhone overview, iPhone traceroute-with-map, iPad overview) into the layout, What's New retitled for v2.0.0, the free-FAQ covers every platform, and a new iPhone/iPad FAQ entry — all 19 new strings translated across the site's 9 languages.
+
+### Fixed — macOS share + bench panel (field-tested)
+- **The share sheet died with the hover panel** — the click that picks a share option is a global mouse-down, which tripped the popover's close-all monitor (and the transient popover's own auto-close). Shares now run through NSSharingServicePicker with a hold protocol: the panels pin open while the picker (and any compose window) is in flight.
+- **Shares now carry the actual image** — ShareLink handed services a temp-file URL; the picker shares real NSImage + caption items (the snapshot shares its Markdown file).
+- **Mac bench running state matches iOS** — legs animate in with scores + checkmarks, active leg pulses, sustained shows live %-held with temperature/fan readouts.
+- **History matches iOS** — score bar chart + a table of recent runs (score, quick/full, date) instead of a bare "N runs" counter.
+- **The panel wash reaches the edges** — the purple gradient is now a deliberate full-bleed background applied outside the panel padding.
+
 ### Added — macOS parity (share + styling)
 - **Share everywhere on the Mac, like iOS**: the Bench panel and the network Speed Test section share results as a rendered dark card image + accompanying text, and the popover footer gains a one-click all-stats Markdown snapshot (lazily produced — only written when actually shared). Same visual cards as iOS.
 - **Mac speed test, second edition**: idle vs under-load latency (ICMP median, bufferbloat) measured on every run, live download/upload drawn as separate teal/orange curves (shared DualCurveChart), per-activity connection grades on the result, and the running state shows the big rounded live number — matching the iOS styling.

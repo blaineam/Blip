@@ -296,3 +296,65 @@ struct SnapshotFilePayload: Transferable {
         }
     }
 }
+
+
+// MARK: - Panel-safe share button
+//
+// SwiftUI ShareLink inside the hover panels was doubly broken (field-tested):
+// the click that picks a share option is a *global* mouse-down, which tripped the
+// popover's closeAll monitor and tore down the picker mid-flight — and macOS
+// ShareLink hands many services a temp-file URL instead of the actual image.
+// This NSSharingServicePicker path shares real NSImage + caption items and
+// broadcasts hold notifications so the app pins the panels open while the
+// picker (and whatever compose window follows) is in flight.
+
+extension Notification.Name {
+    static let blipShareHoldBegan = Notification.Name("blipShareHoldBegan")
+    static let blipShareHoldEnded = Notification.Name("blipShareHoldEnded")
+}
+
+struct MacShareButton: NSViewRepresentable {
+    /// Built lazily at click time — rendering a card on every panel tick would be waste.
+    var makeItems: () -> [Any]
+    var help: String = String(localized: "Share")
+
+    func makeCoordinator() -> Coordinator { Coordinator(makeItems: makeItems) }
+
+    func makeNSView(context: Context) -> NSButton {
+        let b = NSButton(title: "", target: context.coordinator, action: #selector(Coordinator.share(_:)))
+        b.bezelStyle = .regularSquare
+        b.isBordered = false
+        b.image = NSImage(systemSymbolName: "square.and.arrow.up", accessibilityDescription: help)?
+            .withSymbolConfiguration(.init(pointSize: 10, weight: .medium))
+        b.contentTintColor = .secondaryLabelColor
+        b.toolTip = help
+        return b
+    }
+
+    func updateNSView(_ view: NSButton, context: Context) {
+        context.coordinator.makeItems = makeItems
+    }
+
+    final class Coordinator: NSObject, NSSharingServicePickerDelegate {
+        var makeItems: () -> [Any]
+        private var picker: NSSharingServicePicker?
+        init(makeItems: @escaping () -> [Any]) { self.makeItems = makeItems }
+
+        @objc func share(_ sender: NSButton) {
+            NotificationCenter.default.post(name: .blipShareHoldBegan, object: nil)
+            let picker = NSSharingServicePicker(items: makeItems())
+            picker.delegate = self
+            self.picker = picker
+            picker.show(relativeTo: sender.bounds, of: sender, preferredEdge: .minY)
+        }
+
+        func sharingServicePicker(_ picker: NSSharingServicePicker, didChoose service: NSSharingService?) {
+            // Fires on choice AND on cancel (nil). Give a chosen service a beat to take
+            // over presentation before the panels are allowed to dismiss again.
+            self.picker = nil
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
+                NotificationCenter.default.post(name: .blipShareHoldEnded, object: nil)
+            }
+        }
+    }
+}

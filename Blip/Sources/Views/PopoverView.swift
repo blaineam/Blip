@@ -125,14 +125,10 @@ struct PopoverView: View {
                     Spacer()
                     // iOS-parity: one click hands you a Markdown snapshot of everything
                     // Blip knows right now (same file the iOS toolbar button produces).
-                    ShareLink(item: SnapshotFilePayload(snapshot: monitor.snapshot, speedHistory: speedHistory),
-                              preview: SharePreview("Blip Snapshot")) {
-                        Image(systemName: "square.and.arrow.up.on.square")
-                            .font(.system(size: 10))
-                            .foregroundStyle(.secondary)
-                    }
-                    .buttonStyle(.plain)
-                    .help(String(localized: "Share a snapshot of all stats as one file"))
+                    MacShareButton(makeItems: {
+                        [MacSnapshotExport.file(monitor.snapshot, speedHistory: speedHistory)]
+                    }, help: String(localized: "Share a snapshot of all stats as one file"))
+                    .frame(width: 16, height: 14)
 
                     Button {
                         onOpenSettings?()

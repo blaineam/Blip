@@ -26,6 +26,12 @@ struct BenchDetailPanel: View {
         // 260 like every other detail panel — the hover host sizes for that width, and a
         // wider view gets edge-clipped (field-caught: the intro text lost its first column).
         .frame(width: 260)
+        // Deliberate full-bleed brand wash — applied OUTSIDE the padding so it reaches the
+        // panel's edges (field-caught: an inset wash stopping 12pt short read as a glitch).
+        .background(
+            LinearGradient(colors: [Color.purple.opacity(0.16), Color.blue.opacity(0.06), .clear],
+                           startPoint: .topLeading, endPoint: .bottomTrailing)
+        )
     }
 
     private var header: some View {
@@ -43,28 +49,9 @@ struct BenchDetailPanel: View {
     }
 
     private var running: some View {
-        VStack(alignment: .leading, spacing: 6) {
-            HStack {
-                ProgressView(value: engine.progress)
-                Text(engine.phase.label)
-                    .font(.system(size: 10))
-                    .foregroundStyle(.secondary)
-                    .frame(width: 110, alignment: .trailing)
-            }
-            if engine.phase == .sustained, let t = engine.liveThermal {
-                HStack(spacing: 10) {
-                    if let c = t.temperatureC {
-                        Label(String(format: "%.0f °C", c), systemImage: "thermometer.medium")
-                    }
-                    if let rpm = t.fanRPM {
-                        Label(String(format: "%.0f rpm", rpm), systemImage: "fan")
-                    }
-                    Label(thermalStateLabel(t.thermalState), systemImage: "flame")
-                }
-                .font(.system(size: 10))
-                .foregroundStyle(.secondary)
-            }
-        }
+        // iOS-parity running state: legs animate in with their scores the moment each
+        // finishes, the active leg pulses, sustained shows live %-held + thermals.
+        BenchRunningRows(engine: engine)
     }
 
     private func scoreCard(_ r: BenchResult) -> some View {
@@ -173,17 +160,16 @@ struct BenchDetailPanel: View {
     }
 
     private func shareButton(_ r: BenchResult) -> some View {
-        ShareLink(
-            item: MacSharePayload(
-                image: MacShareCard.render(MacBenchShareCardView(result: r, deviceName: deviceName(r))) ?? NSImage(),
-                text: MacShareCard.benchText(r, deviceName: deviceName(r))),
-            preview: SharePreview("Blip Bench \(Int(r.composite.rounded()))")
-        ) {
-            Image(systemName: "square.and.arrow.up")
-                .font(.system(size: 10))
-        }
-        .buttonStyle(.plain)
-        .help(String(localized: "Share this result as an image + text"))
+        // NSSharingServicePicker path: shares the REAL image + caption (ShareLink handed
+        // services a temp-file URL) and pins the panel open while the picker runs.
+        MacShareButton(makeItems: {
+            let name = deviceName(r)
+            var items: [Any] = []
+            if let img = MacShareCard.render(MacBenchShareCardView(result: r, deviceName: name)) { items.append(img) }
+            items.append(MacShareCard.benchText(r, deviceName: name))
+            return items
+        }, help: String(localized: "Share this result as an image + text"))
+        .frame(width: 16, height: 14)
     }
 
     private func deviceName(_ r: BenchResult) -> String {
@@ -206,7 +192,7 @@ struct BenchDetailPanel: View {
     }
 
     private var historySection: some View {
-        VStack(alignment: .leading, spacing: 4) {
+        VStack(alignment: .leading, spacing: 5) {
             Divider()
             HStack {
                 Image(systemName: "clock.arrow.circlepath")
@@ -215,11 +201,24 @@ struct BenchDetailPanel: View {
                 Text("History")
                     .font(.system(size: 11, weight: .semibold))
                 Spacer()
-                Text("\(engine.history.count) runs")
-                    .font(.system(size: 10))
-                    .foregroundStyle(.secondary)
             }
-            MiniChart(data: engine.history.map(\.composite), color: .purple, height: 28)
+            BenchHistoryChart(history: engine.history)
+                .frame(height: 56)
+            ForEach(engine.history.suffix(6).reversed()) { r in
+                HStack {
+                    Text("\(Int(r.composite.rounded()))")
+                        .font(.system(size: 11, weight: .semibold, design: .rounded))
+                        .frame(width: 44, alignment: .leading)
+                    Text(r.profile == .quick ? "quick" : "full")
+                        .font(.system(size: 8))
+                        .padding(.horizontal, 5).padding(.vertical, 1.5)
+                        .background(.quaternary, in: Capsule())
+                    Spacer()
+                    Text(r.date.formatted(date: .abbreviated, time: .shortened))
+                        .font(.system(size: 9))
+                        .foregroundStyle(.secondary)
+                }
+            }
         }
     }
 
@@ -230,5 +229,118 @@ struct BenchDetailPanel: View {
         case 2: return "Serious"
         default: return "Critical"
         }
+    }
+}
+
+// MARK: - The animated running rows (iOS parity, panel scale)
+
+struct BenchRunningRows: View {
+    @ObservedObject var engine: BenchEngine
+    @State private var pulse = false
+
+    private static let legOrder: [(id: String, name: LocalizedStringKey, icon: String, phase: BenchEngine.Phase)] = [
+        ("single", "Single-core", "cpu", .singleCore),
+        ("multi", "All cores", "square.grid.3x3", .multiCore),
+        ("memory", "Memory", "memorychip", .memory),
+        ("gpu", "GPU", "cube.transparent", .gpu),
+        ("neural", "Neural", "brain", .neural),
+    ]
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 7) {
+            ForEach(Self.legOrder, id: \.id) { leg in
+                if let done = engine.liveLegs.first(where: { $0.id == leg.id }) {
+                    finishedRow(leg.name, leg.icon, done.score)
+                        .transition(.asymmetric(insertion: .move(edge: .leading).combined(with: .opacity),
+                                                removal: .opacity))
+                } else if engine.phase == leg.phase {
+                    activeRow(leg.name, leg.icon)
+                }
+            }
+            if engine.phase == .sustained { sustainedRow }
+            ProgressView(value: engine.progress)
+                .tint(.purple)
+                .controlSize(.small)
+                .padding(.top, 2)
+        }
+        .animation(.spring(duration: 0.45), value: engine.liveLegs)
+        .animation(.spring(duration: 0.45), value: engine.phase)
+        .onAppear { pulse = true }
+    }
+
+    private func finishedRow(_ name: LocalizedStringKey, _ icon: String, _ score: Double) -> some View {
+        HStack(spacing: 6) {
+            Image(systemName: icon).font(.system(size: 10)).foregroundStyle(.purple).frame(width: 14)
+            Text(name).font(.system(size: 11))
+            Spacer()
+            Text("\(Int(score.rounded()))")
+                .font(.system(size: 11, weight: .bold, design: .rounded))
+                .contentTransition(.numericText())
+            Image(systemName: "checkmark.circle.fill")
+                .font(.system(size: 9)).foregroundStyle(.green)
+        }
+    }
+
+    private func activeRow(_ name: LocalizedStringKey, _ icon: String) -> some View {
+        HStack(spacing: 6) {
+            Image(systemName: icon)
+                .font(.system(size: 10))
+                .foregroundStyle(.purple)
+                .frame(width: 14)
+                .scaleEffect(pulse ? 1.2 : 0.9)
+                .animation(.easeInOut(duration: 0.7).repeatForever(autoreverses: true), value: pulse)
+            Text(name).font(.system(size: 11, weight: .medium))
+            Spacer()
+            PanelMeasuringDots()
+        }
+    }
+
+    private var sustainedRow: some View {
+        VStack(alignment: .leading, spacing: 3) {
+            HStack(spacing: 6) {
+                Image(systemName: "flame")
+                    .font(.system(size: 10))
+                    .foregroundStyle(.orange)
+                    .frame(width: 14)
+                    .scaleEffect(pulse ? 1.2 : 0.9)
+                    .animation(.easeInOut(duration: 0.7).repeatForever(autoreverses: true), value: pulse)
+                Text("Sustained + thermals").font(.system(size: 11, weight: .medium))
+                Spacer()
+                if let sVal = engine.liveLegs.first(where: { $0.id == "sustained" }) {
+                    Text("\(Int(sVal.score.rounded()))% held")
+                        .font(.system(size: 11, weight: .bold, design: .rounded))
+                        .contentTransition(.numericText())
+                        .foregroundStyle(sVal.score >= 85 ? Color.green : (sVal.score >= 70 ? .orange : .red))
+                } else {
+                    PanelMeasuringDots()
+                }
+            }
+            if let t = engine.liveThermal {
+                HStack(spacing: 8) {
+                    if let c = t.temperatureC { Label(String(format: "%.0f °C", c), systemImage: "thermometer.medium") }
+                    if let rpm = t.fanRPM { Label(String(format: "%.0f rpm", rpm), systemImage: "fan") }
+                }
+                .font(.system(size: 9))
+                .foregroundStyle(t.thermalState >= 2 ? .orange : .secondary)
+                .padding(.leading, 20)
+            }
+        }
+    }
+}
+
+/// Three dots breathing in sequence — "working on it" without a spinner.
+private struct PanelMeasuringDots: View {
+    @State private var on = false
+    var body: some View {
+        HStack(spacing: 3) {
+            ForEach(0..<3, id: \.self) { i in
+                Circle()
+                    .fill(.secondary)
+                    .frame(width: 4, height: 4)
+                    .opacity(on ? 1 : 0.25)
+                    .animation(.easeInOut(duration: 0.5).repeatForever(autoreverses: true).delay(Double(i) * 0.17), value: on)
+            }
+        }
+        .onAppear { on = true }
     }
 }

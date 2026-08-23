@@ -312,10 +312,14 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
         detailPanel = panel
     }
 
+    /// True while an NSSharingServicePicker spawned from a panel is in flight.
+    private var shareHoldActive = false
+
     private func handleSectionHover(_ section: PopoverSection?) {
         // Cancel any pending dismiss
         dismissWorkItem?.cancel()
         dismissWorkItem = nil
+        if shareHoldActive && section == nil { return }   // picker open: ignore hover-out
 
         if let section = section {
             currentSection = section
@@ -323,6 +327,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
         } else {
             // Delay dismiss to allow moving mouse to the detail panel
             let work = DispatchWorkItem { [weak self] in
+                guard self?.shareHoldActive != true else { return }
                 self?.hideDetailPanel()
             }
             dismissWorkItem = work
@@ -694,7 +699,25 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
         eventMonitor = NSEvent.addGlobalMonitorForEvents(
             matching: [.leftMouseDown, .rightMouseDown]
         ) { [weak self] _ in
+            // A share picker (or the compose window it spawns) is mid-flight: the click
+            // that picks a service must not tear the popover + panel down around it.
+            guard self?.shareHoldActive != true else { return }
             self?.closeAll()
+        }
+
+        NotificationCenter.default.addObserver(forName: .blipShareHoldBegan, object: nil, queue: .main) { [weak self] _ in
+            guard let self else { return }
+            self.shareHoldActive = true
+            self.dismissWorkItem?.cancel()
+            self.dismissWorkItem = nil
+            // The transient popover would ALSO auto-close on the picker click (AppKit-level,
+            // below our monitor) — suspend that while the share is in flight.
+            self.popover.behavior = .applicationDefined
+        }
+        NotificationCenter.default.addObserver(forName: .blipShareHoldEnded, object: nil, queue: .main) { [weak self] _ in
+            guard let self else { return }
+            self.shareHoldActive = false
+            self.popover.behavior = .transient
         }
     }
 }

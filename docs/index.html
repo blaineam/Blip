@@ -46,7 +46,7 @@
       "license": "https://opensource.org/licenses/MIT",
       "url": "https://blip.wemiller.com/",
       "downloadUrl": "https://github.com/blaineam/blip/releases/latest",
-      "softwareVersion": "1.6.1",
+      "softwareVersion": "2.0.0",
       "processorRequirements": "Apple Silicon (ARM64)"
     }
     </script>
@@ -734,6 +734,23 @@
         .support-more a:hover { text-decoration: underline; }
 
         /* Footer */
+        /* ── iOS section: transparent device renders composed into the layout ── */
+        .ios-section { padding: 90px 0 70px; overflow: hidden; }
+        .ios-section h2 { font-size: 36px; font-weight: 700; text-align: center; margin-bottom: 12px; letter-spacing: -0.5px; }
+        .ios-section .subtitle { text-align: center; color: var(--text-secondary); margin-bottom: 56px; font-size: 16px; max-width: 640px; margin-left: auto; margin-right: auto; }
+        .ios-stage { position: relative; display: flex; justify-content: center; align-items: flex-end; gap: 0; min-height: 440px; }
+        .ios-stage img { display: block; height: auto; filter: drop-shadow(0 24px 48px rgba(0,0,0,0.5)); }
+        .ios-device-ipad { width: min(520px, 58vw); transform: translateY(6px); z-index: 1; }
+        .ios-device-left { width: min(240px, 30vw); transform: rotate(-6deg) translate(34px, 18px); z-index: 2; }
+        .ios-device-right { width: min(240px, 30vw); transform: rotate(6deg) translate(-34px, 18px); z-index: 2; }
+        .ios-points { display: grid; grid-template-columns: repeat(auto-fit, minmax(230px, 1fr)); gap: 18px; margin-top: 56px; }
+        .ios-point h3 { font-size: 15px; font-weight: 650; margin-bottom: 6px; }
+        .ios-point p { font-size: 13.5px; color: var(--text-secondary); line-height: 1.65; }
+        @media (max-width: 720px) {
+            .ios-stage { flex-wrap: wrap; min-height: 0; }
+            .ios-device-ipad { display: none; }
+            .ios-device-left, .ios-device-right { width: 42vw; transform: none; }
+        }
         footer { padding: 40px 0; text-align: center; border-top: 1px solid var(--glass-border); }
         footer p { font-size: 13px; color: var(--text-secondary); }
         footer a { color: var(--accent); text-decoration: none; }
@@ -770,6 +787,7 @@
         <a href="#" class="logo"><span class="logo-dot"></span> Blip</a>
         <div class="nav-links">
             <a href="#whats-new" data-i18n="what-s-new.10a47d">What&rsquo;s New</a>
+            <a href="#ios" data-i18n="iphone-ipad.e51d02">iPhone &amp; iPad</a>
             <a href="#features" data-i18n="features.fc338f">Features</a>
             <a href="#faq" data-i18n="faq.03688b">FAQ</a>
             <a href="https://github.com/blaineam/blip" class="btn btn-secondary">GitHub</a>
@@ -779,9 +797,9 @@
 
 <section class="hero">
     <div class="container">
-        <a href="#whats-new" class="hero-badge" style="text-decoration:none" data-i18n="v1-6-1-see.8352cd">v1.6.1 &mdash; See What&rsquo;s New</a>
-        <h1 data-i18n-html="your-mac-s-vitals.814ea7">Your Mac's vitals,<br>at a glance.</h1>
-        <p data-i18n="blip-is-a-featherlight.e8a657">Blip is a featherlight macOS menu bar app that monitors CPU, memory, disk, GPU, network, and battery. Beautiful charts, tiny footprint, zero dependencies.</p>
+        <a href="#whats-new" class="hero-badge" style="text-decoration:none" data-i18n="v2-0-0-now-on.b20a01">v2.0.0 &mdash; Now on iPhone &amp; iPad</a>
+        <h1 data-i18n-html="your-devices-vitals.c4f2e8">Your devices' vitals,<br>at a glance.</h1>
+        <p data-i18n="blip-is-a-featherlight-v2.f3a917">Blip is a featherlight system monitor for Mac, iPhone, and iPad — CPU, memory, disk, GPU, network, battery, and a real benchmark. Beautiful charts, tiny footprint, completely free.</p>
         <div class="hero-buttons">
             <a href="https://apps.apple.com/us/app/blip-stats/id6762329495" class="btn btn-primary">
                 <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor"><path d="M8 12l-4-4h2.5V4h3v4H12L8 12z"/><path d="M14 14H2v-2h12v2z"/></svg>
@@ -1292,10 +1310,41 @@
 </section>
 
 <!-- ═══════════════════ New in v1.6.0 ═══════════════════ -->
+<!-- ═══════════════════ iPhone & iPad ═══════════════════ -->
+<section class="ios-section" id="ios">
+    <div class="container">
+        <h2 data-i18n="now-on-iphone-ipad.h2a933">Now on iPhone &amp; iPad</h2>
+        <p class="subtitle" data-i18n="one-free-app-across.s8b174">One free app across Mac, iPhone, and iPad. Live device cards with drill-in details, Blip Bench with Neural Engine scoring, graded speed tests, ping and traceroute with an offline hop map, disk speed tests, widgets, and Shortcuts.</p>
+        <div class="ios-stage">
+            <img class="ios-device-left" src="assets/ios-iphone-overview.png" alt="Blip for iPhone — live device stats" loading="lazy" width="370" height="760">
+            <img class="ios-device-ipad" src="assets/ios-ipad-overview.png" alt="Blip for iPad — device overview" loading="lazy" width="752" height="980">
+            <img class="ios-device-right" src="assets/ios-iphone-traceroute.png" alt="Blip for iPhone — traceroute with hop map" loading="lazy" width="370" height="760">
+        </div>
+        <div class="ios-points">
+            <div class="ios-point">
+                <h3 data-i18n="blip-bench-everywhere.p1a001">&#128293; Blip Bench, everywhere</h3>
+                <p data-i18n="cpu-memory-gpu-and.p1b002">CPU, memory, GPU, and Neural Engine throughput in fixed reference units &mdash; one scale for every Mac, iPhone, and iPad running Blip, with a sustained phase that measures thermal throttling.</p>
+            </div>
+            <div class="ios-point">
+                <h3 data-i18n="speed-tests-with-grades.p2a003">&#128200; Speed tests with grades</h3>
+                <p data-i18n="download-and-upload-draw.p2b004">Download and upload draw as separate curves, latency is measured idle and under load, and every result is graded per activity &mdash; from video calls to cloud gaming.</p>
+            </div>
+            <div class="ios-point">
+                <h3 data-i18n="network-tools-with-a.p3a005">&#128506; Network tools with a map</h3>
+                <p data-i18n="ping-and-traceroute-over.p3b006">Ping and traceroute with per-hop latency and an offline GeoIP map of the route. The location database downloads once; lookups never leave the device.</p>
+            </div>
+            <div class="ios-point">
+                <h3 data-i18n="widgets-and-shortcuts.p4a007">&#128241; Widgets &amp; Shortcuts</h3>
+                <p data-i18n="bench-score-storage-and.p4b008">Bench score, storage, and your last speed test on the Home Screen &mdash; each stamped with its age &mdash; plus Shortcuts to automate benchmarks, speed tests, and stats snapshots.</p>
+            </div>
+        </div>
+    </div>
+</section>
+
 <section class="whats-new" id="whats-new">
     <div class="container">
-        <h2 data-i18n="new-in-v1-6.d48735">New in v1.6.0</h2>
-        <p class="subtitle" data-i18n="blip-is-now-scriptable.1ce5c9">Blip is now scriptable from Shortcuts &mdash; and every volume gets a one-click benchmark.</p>
+        <h2 data-i18n="new-in-v2-0.a77b3c">New in v2.0.0</h2>
+        <p class="subtitle" data-i18n="blip-comes-to-iphone.d19c44">Blip comes to iPhone and iPad &mdash; and Blip Bench scores every device on one scale, Neural Engine included.</p>
         <div class="wn-grid">
 
             <!-- Shortcuts / App Intents workflow demo -->
@@ -1534,8 +1583,12 @@
                 <p data-i18n="yes-open-settings-gear.4601d1">Yes. Open Settings (gear icon in the popover) and toggle individual items: CPU, Memory, Disk, Network dot, and labels. You can also set a custom accent color.</p>
             </details>
             <details class="faq-item">
+                <summary data-i18n="is-there-an-iphone.q77001">Is there an iPhone and iPad app?</summary>
+                <p data-i18n="yes-blip-stats-2.q77002">Yes — Blip Stats 2.0 is one free app across Mac, iPhone, and iPad. The iOS app shows live device stats with drill-in details, runs Blip Bench (including the Neural Engine), tests network and disk speed, does ping and traceroute with an offline hop map, and ships Home Screen widgets and Shortcuts.</p>
+            </details>
+            <details class="faq-item">
                 <summary data-i18n="is-blip-really-free.33988b">Is Blip really free?</summary>
-                <p data-i18n="yes-the-direct-download.655957">Yes. The direct download, the Homebrew cask and the Mac App Store build are all free and identical — there is no paid tier and nothing to unlock. If you'd like to support development, use the links above.</p>
+                <p data-i18n="yes-the-direct-download-v2.q90210">Yes — on every platform. The Mac direct download, the Homebrew cask, the Mac App Store build, and the iPhone/iPad app are all free with no paid tier and nothing to unlock. If you'd like to support development, use the links above.</p>
             </details>
             <details class="faq-item">
                 <summary data-i18n="how-do-i-build.5e186c">How do I build from source?</summary>

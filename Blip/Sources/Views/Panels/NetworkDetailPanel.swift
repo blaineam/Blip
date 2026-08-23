@@ -776,16 +776,13 @@ struct SpeedTestSection: View {
                     resultColumn(icon: "arrow.down", color: .teal, label: String(localized: "Download"), mbps: last.downMbps)
                     resultColumn(icon: "arrow.up", color: .orange, label: String(localized: "Upload"), mbps: last.upMbps)
                     Spacer()
-                    ShareLink(
-                        item: MacSharePayload(
-                            image: MacShareCard.render(MacSpeedShareCardView(result: last)) ?? NSImage(),
-                            text: MacShareCard.speedText(last)),
-                        preview: SharePreview(String(format: "%.0f Mbps", last.downMbps))
-                    ) {
-                        Image(systemName: "square.and.arrow.up").font(.system(size: 10))
-                    }
-                    .buttonStyle(.plain)
-                    .help(String(localized: "Share this result as an image + text"))
+                    MacShareButton(makeItems: {
+                        var items: [Any] = []
+                        if let img = MacShareCard.render(MacSpeedShareCardView(result: last)) { items.append(img) }
+                        items.append(MacShareCard.speedText(last))
+                        return items
+                    }, help: String(localized: "Share this result as an image + text"))
+                    .frame(width: 16, height: 14)
                 }
                 if let ping = last.pingMs {
                     HStack(spacing: 10) {
