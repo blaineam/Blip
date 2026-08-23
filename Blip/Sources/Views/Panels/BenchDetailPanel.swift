@@ -62,6 +62,11 @@ struct BenchDetailPanel: View {
                     .foregroundStyle(LinearGradient(colors: [.purple, .blue],
                                                     startPoint: .topLeading, endPoint: .bottomTrailing))
                     .contentTransition(.numericText())
+                    // Never wrap the digits ("2,31⏎9" — field screenshot); scale down instead
+                    // and outrank the labels in the width fight.
+                    .lineLimit(1)
+                    .minimumScaleFactor(0.6)
+                    .layoutPriority(1)
                 Text("composite")
                     .font(.system(size: 11))
                     .foregroundStyle(.secondary)
@@ -202,8 +207,7 @@ struct BenchDetailPanel: View {
                     .font(.system(size: 11, weight: .semibold))
                 Spacer()
             }
-            BenchHistoryChart(history: engine.history)
-                .frame(height: 56)
+            BenchHistoryChart(history: engine.history, height: 56)
             ForEach(engine.history.suffix(6).reversed()) { r in
                 HStack {
                     Text("\(Int(r.composite.rounded()))")
@@ -236,7 +240,6 @@ struct BenchDetailPanel: View {
 
 struct BenchRunningRows: View {
     @ObservedObject var engine: BenchEngine
-    @State private var pulse = false
 
     private static let legOrder: [(id: String, name: LocalizedStringKey, icon: String, phase: BenchEngine.Phase)] = [
         ("single", "Single-core", "cpu", .singleCore),
@@ -265,7 +268,6 @@ struct BenchRunningRows: View {
         }
         .animation(.spring(duration: 0.45), value: engine.liveLegs)
         .animation(.spring(duration: 0.45), value: engine.phase)
-        .onAppear { pulse = true }
     }
 
     private func finishedRow(_ name: LocalizedStringKey, _ icon: String, _ score: Double) -> some View {
@@ -287,8 +289,7 @@ struct BenchRunningRows: View {
                 .font(.system(size: 10))
                 .foregroundStyle(.purple)
                 .frame(width: 14)
-                .scaleEffect(pulse ? 1.2 : 0.9)
-                .animation(.easeInOut(duration: 0.7).repeatForever(autoreverses: true), value: pulse)
+                .symbolEffect(.pulse, options: .repeating)
             Text(name).font(.system(size: 11, weight: .medium))
             Spacer()
             PanelMeasuringDots()
@@ -302,8 +303,7 @@ struct BenchRunningRows: View {
                     .font(.system(size: 10))
                     .foregroundStyle(.orange)
                     .frame(width: 14)
-                    .scaleEffect(pulse ? 1.2 : 0.9)
-                    .animation(.easeInOut(duration: 0.7).repeatForever(autoreverses: true), value: pulse)
+                    .symbolEffect(.pulse, options: .repeating)
                 Text("Sustained + thermals").font(.system(size: 11, weight: .medium))
                 Spacer()
                 if let sVal = engine.liveLegs.first(where: { $0.id == "sustained" }) {

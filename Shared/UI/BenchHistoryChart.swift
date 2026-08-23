@@ -4,6 +4,7 @@ import Charts
 /// Bench history as a bar chart — full runs solid, quick runs hollow (QA, not measurements).
 struct BenchHistoryChart: View {
     let history: [BenchResult]
+    var height: CGFloat = 90
 
     var body: some View {
         // Index-based x. Date-based BarMarks with `unit: .second` made each bar 1 second
@@ -18,7 +19,7 @@ struct BenchHistoryChart: View {
         }
         .chartXAxis(.hidden)
         .chartXScale(domain: -0.5...(Double(max(history.count, 1)) - 0.5))
-        .frame(height: 90)
+        .frame(height: height)
         .clipped()
     }
 }
