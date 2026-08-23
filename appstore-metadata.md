@@ -72,8 +72,8 @@ https://wemiller.com/privacy
 
 ## availability
 <!-- Store policy — applied by: rocket territories "Blip" --apply   (_shared/rocket/docs/compliance.md)
-     free app, no IAP — stays in the EU as a non-trader; France (ANSSI crypto filing) and China (ICP filing) are out -->
-exclude: france, china
+     free app, no IAP — stays in the EU as a non-trader; France (ANSSI crypto filing) is out -->
+exclude: france
 new_territories: yes
 
 ## price
