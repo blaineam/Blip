@@ -43,7 +43,7 @@ const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 const summary = (line) => { if (process.env.GITHUB_STEP_SUMMARY) appendFileSync(process.env.GITHUB_STEP_SUMMARY, line + '\n'); };
 
 function parseArgs(argv) {
-	const a = { bundleId: 'com.blaineam.kith', platforms: ['IOS', 'MAC_OS'], waitBuild: 120, waitProcess: 45, notesDir: '.', submit: true, dryRun: false };
+	const a = { bundleId: 'com.blaineam.kith', platforms: ['IOS', 'MAC_OS'], waitBuild: 120, waitProcess: 45, notesDir: '.', submit: true, dryRun: false, testflightOnly: false };
 	for (let i = 2; i < argv.length; i++) {
 		switch (argv[i]) {
 			case '--bundle-id': a.bundleId = argv[++i]; break;
@@ -53,6 +53,7 @@ function parseArgs(argv) {
 			case '--platforms': a.platforms = argv[++i].split(',').map((s) => s.trim().toUpperCase()).filter(Boolean); break;
 			case '--wait-build': a.waitBuild = Number(argv[++i]); break;
 			case '--wait-process': a.waitProcess = Number(argv[++i]); break;
+			case '--testflight-only': a.testflightOnly = true; break;
 			case '--notes-dir': a.notesDir = argv[++i]; break;
 			case '--no-submit': a.submit = false; break;
 			case '--dry-run': a.dryRun = true; break;
@@ -432,6 +433,14 @@ async function main() {
 		if (!b) die(`run #${run.attributes.number} has no ${p} build (got: ${builds.map((x) => `${x.platform} ${x.number}`).join(', ') || 'none'})`);
 		byPlatform[p] = await waitValid(b, args.waitProcess);
 		log(`${p}: build ${byPlatform[p].number} VALID`);
+	}
+
+	// RC path: the build reaching VALID *is* the deliverable — Xcode Cloud's post-action has
+	// already handed it to TestFlight, and a VALID build is TestFlight-installable. No App Store
+	// version, no notes, no review submission.
+	if (args.testflightOnly) {
+		ok(`TestFlight-only: ${args.platforms.map((p) => `${p} build ${byPlatform[p].number}`).join(', ')} VALID — testers have it. Stopping before any App Store version.`);
+		process.exit(0);
 	}
 
 	// 3 + 4. per platform

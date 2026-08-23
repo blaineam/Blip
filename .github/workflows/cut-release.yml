@@ -64,8 +64,5 @@ jobs:
         run: |
           set -euo pipefail
           gh workflow run release.yml --ref "refs/tags/$TAG"
-          if [ -z "$RC" ]; then
-            gh workflow run apple-store.yml --ref "refs/tags/$TAG" -f version="$V"
-          else
-            echo "::notice::rc — Mac App Store submission skipped (TestFlight has every push)"
-          fi
+          gh workflow run apple-store.yml --ref "refs/tags/$TAG"
+          # rc tags run apple-store in TestFlight-only mode; full tags submit for review.

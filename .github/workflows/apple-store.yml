@@ -14,8 +14,8 @@ on:
   workflow_dispatch:
     inputs:
       version:
-        description: "X.Y.Z to submit (must equal the Info.plist CFBundleShortVersionString)"
-        required: true
+        description: "X.Y.Z or X.Y.Z-rc.N (blank when dispatched at a tag ref — the tag carries it)"
+        required: false
       commit:
         description: "Full commit sha the release was tagged at (blank = this ref)"
         required: false
@@ -67,7 +67,8 @@ jobs:
 
   submit:
     needs: meta
-    if: needs.meta.outputs.is_rc == 'false'
+    # rc → TestFlight-only: ensure the Xcode Cloud build of the tagged commit exists and reaches
+    # VALID (testers have it); no App Store version or review. Full releases submit as before.
     runs-on: ubuntu-latest
     timeout-minutes: 240
     steps:
@@ -97,6 +98,7 @@ jobs:
           ASC_API_KEY_P8: ${{ secrets.ASC_API_KEY_P8 }}
           VERSION: ${{ needs.meta.outputs.version }}
           COMMIT: ${{ needs.meta.outputs.commit }}
+          IS_RC: ${{ needs.meta.outputs.is_rc }}
           DRY_RUN: ${{ github.event.inputs.dry_run }}
           SUBMIT_FLAG: ${{ vars.APPLE_STORE_SUBMIT }}
         run: |
@@ -104,6 +106,7 @@ jobs:
           extra=()
           [ "${DRY_RUN:-false}" = "true" ] && extra+=(--dry-run)
           [ "${SUBMIT_FLAG:-true}" = "false" ] && extra+=(--no-submit)
+          [ "${IS_RC:-false}" = "true" ] && extra+=(--testflight-only)
           node Scripts/asc-autosubmit.mjs --version "$VERSION" --commit "$COMMIT" --tag "v$VERSION" \
             --bundle-id com.blainemiller.Blip --platforms MAC_OS \
             --wait-build 120 --wait-process 45 --notes-dir . "${extra[@]}"
