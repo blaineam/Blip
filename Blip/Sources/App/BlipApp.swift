@@ -705,19 +705,25 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
             self?.closeAll()
         }
 
+        // Observer closures are @Sendable; they run on .main, so assumeIsolated is the
+        // honest bridge back to this main-actor object (store target builds Swift-6-strict).
         NotificationCenter.default.addObserver(forName: .blipShareHoldBegan, object: nil, queue: .main) { [weak self] _ in
-            guard let self else { return }
-            self.shareHoldActive = true
-            self.dismissWorkItem?.cancel()
-            self.dismissWorkItem = nil
-            // The transient popover would ALSO auto-close on the picker click (AppKit-level,
-            // below our monitor) — suspend that while the share is in flight.
-            self.popover.behavior = .applicationDefined
+            MainActor.assumeIsolated {
+                guard let self else { return }
+                self.shareHoldActive = true
+                self.dismissWorkItem?.cancel()
+                self.dismissWorkItem = nil
+                // The transient popover would ALSO auto-close on the picker click (AppKit-
+                // level, below our monitor) — suspend that while the share is in flight.
+                self.popover.behavior = .applicationDefined
+            }
         }
         NotificationCenter.default.addObserver(forName: .blipShareHoldEnded, object: nil, queue: .main) { [weak self] _ in
-            guard let self else { return }
-            self.shareHoldActive = false
-            self.popover.behavior = .transient
+            MainActor.assumeIsolated {
+                guard let self else { return }
+                self.shareHoldActive = false
+                self.popover.behavior = .transient
+            }
         }
     }
 }

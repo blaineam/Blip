@@ -335,6 +335,7 @@ struct MacShareButton: NSViewRepresentable {
         context.coordinator.makeItems = makeItems
     }
 
+    @MainActor
     final class Coordinator: NSObject, NSSharingServicePickerDelegate {
         var makeItems: () -> [Any]
         private var picker: NSSharingServicePicker?
@@ -348,11 +349,13 @@ struct MacShareButton: NSViewRepresentable {
             picker.show(relativeTo: sender.bounds, of: sender, preferredEdge: .minY)
         }
 
-        func sharingServicePicker(_ picker: NSSharingServicePicker, didChoose service: NSSharingService?) {
+        // Delegate requirement is nonisolated; AppKit calls it on main — hop back in.
+        nonisolated func sharingServicePicker(_ picker: NSSharingServicePicker, didChoose service: NSSharingService?) {
             // Fires on choice AND on cancel (nil). Give a chosen service a beat to take
             // over presentation before the panels are allowed to dismiss again.
-            self.picker = nil
-            DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
+            Task { @MainActor in
+                self.picker = nil
+                try? await Task.sleep(nanoseconds: 500_000_000)
                 NotificationCenter.default.post(name: .blipShareHoldEnded, object: nil)
             }
         }
