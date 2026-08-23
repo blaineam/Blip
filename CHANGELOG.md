@@ -2,6 +2,21 @@
 
 ## Unreleased
 
+### Added — Blip for iOS field-feedback wave 2
+- **Neural benchmark leg.** Blip Bench gains a fifth category: Vision feature-print inference throughput, routed to the Neural Engine on hardware that has one (Vision decides — there is no public force-ANE switch, so the leg honestly measures what the OS's ML stack delivers). New frozen reference unit `npu.featureprint`; composites now fold it in; Mac and iOS both run it.
+- **Bench result, redesigned.** Gradient hero score with delta-vs-best, per-category bars scaled against this device's own best full run, the sustained-phase thermal timeline drawn from the run's own samples, device + date footer.
+- **Traceroute hop map.** With the GeoIP database installed, hops render on a MapKit map — numbered markers joined by the route line, destination in green; private-range hops are honestly skipped (the list stays the complete record).
+- **Speed test: download and upload as separate charted series** in complementary colors (teal down, orange up) — live, in the result card, and in the share image, which now embeds the chart.
+- **Latency, idle and under load.** Every speed test measures ping before the transfer and *during* the download (bufferbloat — the number that separates a line that benchmarks well from one that video-calls well). Both appear in results, history, share cards, and the speed widget.
+- **Connection grades.** Each result grades what the line can reliably do — Browsing, HD/4K streaming, Video calls (latency-capped), Cloud gaming (latency-capped), Big uploads — A/B/C/F chips computed from measured throughput + loaded latency, in the result card and share card.
+- **Widgets, polished.** Branded gradient washes per widget (purple bench / orange storage / teal speed), gradient score, complementary down/up colors, the latency pair, and the neural stat on the medium bench widget.
+- **`Scripts/mint-dev-profiles.mjs`** — mints iOS development provisioning profiles (app + widget) via the ASC API and installs them locally, because CLI `xcodebuild` on this Mac can't see accounts. App-group assignment still needs one Xcode Cloud build to register; after that, dev builds carry widgets too.
+- **Bench cold launch shows your last result** instead of an empty pitch (history was already loaded; now `lastResult` seeds from it).
+
+### Fixed — wave 2
+- **Bench history chart rendered nothing.** Two stacked causes: date-x bars with `unit: .second` were sub-pixel wide, and the index-x rewrite used `.ratio` bar width, which needs a band scale — bars now index-x with fixed width.
+- **Speed share text/cards carry idle + loaded latency and grades.**
+
 ### Added — Blip for iOS field-feedback wave
 - **Per-card drill-in details.** Every Overview card (CPU, Memory, Storage, Network, Battery, Thermal, Device) opens a full detail screen; the flat "Details" list is gone. Reference-worthy values (IPs, model identifier, OS) carry tap-to-copy buttons with haptic + checkmark feedback.
 - **Human device names.** "iPhone18,2" now reads "iPhone 17 Pro Max" — a codename→marketing-name table with an honest fallback (unknown ids show the codename; simulators say so).

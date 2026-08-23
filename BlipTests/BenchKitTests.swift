@@ -105,7 +105,7 @@ final class BenchKitTests: XCTestCase {
                         singleCore: .init(name: "s", score: score, results: []),
                         multiCore: .init(name: "m", score: score, results: []),
                         memory: .init(name: "mem", score: score, results: []),
-                        gpu: nil, throttleFactor: nil, thermalSamples: [],
+                        gpu: nil, neural: nil, throttleFactor: nil, thermalSamples: [],
                         composite: score, deviceModel: "test", osVersion: "test")
         }
         for i in 0..<(BenchHistory.maxEntries + 5) {

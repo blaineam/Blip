@@ -22,6 +22,9 @@ enum MobileSharedStore {
         let upMbps: Double?
         let date: Date
         let interface: String
+        // Optional latency pair (second edition — old records decode with nil).
+        var pingMs: Double?
+        var loadedPingMs: Double?
     }
 
     struct DeviceRecord: Codable {

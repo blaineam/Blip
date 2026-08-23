@@ -26,6 +26,7 @@ final class BenchIntentTests: XCTestCase {
                 multiCore: .init(name: "All cores", score: 8000, results: []),
                 memory: .init(name: "Memory", score: 900, results: []),
                 gpu: .init(name: "GPU", score: 2500, results: []),
+                neural: nil,
                 throttleFactor: 0.82, thermalSamples: [],
                 composite: 2100.24, deviceModel: "test", osVersion: "test")
         }

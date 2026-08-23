@@ -17,10 +17,14 @@ struct MobileSpeedResult: Identifiable, Sendable, Codable, Equatable {
     var id = UUID()
     let downMbps: Double
     let upMbps: Double?
-    let pingMs: Double?
+    let pingMs: Double?           // UNLOADED latency (idle line, before the transfer)
     let date: Date
     let interface: String
     let source: String            // "OpenSpeedTest" / server host
+    // Second-edition fields (optional: pre-existing history decodes with nil).
+    var loadedPingMs: Double?     // latency DURING the download — bufferbloat, the honest number
+    var downCurve: [Double]?      // live Mbps samples, downsampled for charts/share cards
+    var upCurve: [Double]?
 }
 
 enum SpeedSource: String, CaseIterable, Identifiable {
@@ -35,6 +39,8 @@ final class MobileSpeedTester: ObservableObject {
 
     @Published private(set) var phase: Phase = .idle
     @Published private(set) var liveMbps: Double = 0
+    @Published private(set) var downCurve: [Double] = []
+    @Published private(set) var upCurve: [Double] = []
     @Published private(set) var lastResult: MobileSpeedResult?
     @Published private(set) var history: [MobileSpeedResult] = []
     @Published var source: SpeedSource {
@@ -64,6 +70,7 @@ final class MobileSpeedTester: ObservableObject {
 
     func cancel() {
         task?.cancel()
+        loadedProbeTask?.cancel(); loadedProbeTask = nil
         publicRunner?.cancel(); publicRunner = nil
         phase = .idle
         liveMbps = 0
@@ -72,10 +79,76 @@ final class MobileSpeedTester: ObservableObject {
     func start(interface: String) {
         guard !isRunning else { return }
         liveMbps = 0
+        downCurve = []
+        upCurve = []
+        unloadedPing = nil
+        loadedSamples = []
         switch source {
         case .publicWidget: startPublic(interface: interface)
         case .custom: startCustom(interface: interface)
         }
+    }
+
+    // MARK: - Latency (unloaded before the run, loaded during the download)
+
+    private var unloadedPing: Double?
+    private var loadedSamples: [Double] = []
+    private var loadedProbeTask: Task<Void, Never>?
+
+    /// Median of a burst of ICMP probes to the ping target — cheap, honest.
+    private static func medianPing(count: Int, spacingMs: UInt64) async -> Double? {
+        guard let addr = try? ICMPProbe.resolveIPv4(NetworkTargets.ping) else { return nil }
+        var rtts: [Double] = []
+        for i in 0..<count {
+            if Task.isCancelled { break }
+            if let r = try? ICMPProbe.probe(addr: addr, ttl: nil, sequence: UInt16(4000 + i), timeout: 1) {
+                rtts.append(r.rttMs)
+            }
+            try? await Task.sleep(nanoseconds: spacingMs * 1_000_000)
+        }
+        guard !rtts.isEmpty else { return nil }
+        return rtts.sorted()[rtts.count / 2]
+    }
+
+    private func measureUnloaded() async {
+        unloadedPing = await Self.medianPing(count: 5, spacingMs: 120)
+    }
+
+    /// Sample latency continuously while the transfer saturates the line.
+    private func startLoadedProbes() {
+        loadedProbeTask = Task { [weak self] in
+            guard let addr = try? ICMPProbe.resolveIPv4(NetworkTargets.ping) else { return }
+            var seq: UInt16 = 5000
+            while !Task.isCancelled {
+                seq &+= 1
+                if let r = try? ICMPProbe.probe(addr: addr, ttl: nil, sequence: seq, timeout: 1) {
+                    await MainActor.run { [weak self] in self?.loadedSamples.append(r.rttMs) }
+                }
+                try? await Task.sleep(nanoseconds: 400_000_000)
+            }
+        }
+    }
+
+    private func stopLoadedProbes() {
+        loadedProbeTask?.cancel(); loadedProbeTask = nil
+    }
+
+    private var loadedPing: Double? {
+        guard !loadedSamples.isEmpty else { return nil }
+        return loadedSamples.sorted()[loadedSamples.count / 2]
+    }
+
+    private func captureLive(_ mbps: Double, upload: Bool) {
+        liveMbps = mbps
+        if upload { upCurve.append(mbps); if upCurve.count > 240 { upCurve.removeFirst() } }
+        else { downCurve.append(mbps); if downCurve.count > 240 { downCurve.removeFirst() } }
+    }
+
+    private static func downsample(_ values: [Double], to target: Int = 80) -> [Double]? {
+        guard !values.isEmpty else { return nil }
+        guard values.count > target else { return values }
+        let stride = Double(values.count) / Double(target)
+        return (0..<target).map { values[min(values.count - 1, Int(Double($0) * stride))] }
     }
 
     // MARK: - Public widget (ported runner)
@@ -86,14 +159,21 @@ final class MobileSpeedTester: ObservableObject {
         publicRunner = runner
         task = Task { [weak self] in
             do {
+                await self?.measureUnloaded()
+                self?.startLoadedProbes()
                 let r = try await runner.run { isUpload, mbps in
                     guard let self else { return }
+                    if isUpload && self.phase != .upload { self.stopLoadedProbes() }
                     self.phase = isUpload ? .upload : .download
-                    if let mbps { self.liveMbps = mbps }
+                    if let mbps { self.captureLive(mbps, upload: isUpload) }
                 }
                 await MainActor.run {
-                    self?.record(down: r.down, up: r.up, ping: r.ping,
-                                 interface: interface, source: "OpenSpeedTest")
+                    guard let self else { return }
+                    self.stopLoadedProbes()
+                    // Prefer our own idle measurement; the widget's ping (taken by the page
+                    // pre-transfer) is the fallback.
+                    self.record(down: r.down, up: r.up, ping: self.unloadedPing ?? r.ping,
+                                interface: interface, source: "OpenSpeedTest")
                 }
             } catch is CancellationError {
             } catch {
@@ -126,21 +206,24 @@ final class MobileSpeedTester: ObservableObject {
         while base.hasSuffix("/") { base.removeLast() }
         guard let baseURL = URL(string: base) else { phase = .failed("That server address isn't a URL."); return }
 
-        phase = .download
+        phase = .connecting
         task = Task { [weak self] in
             do {
+                await self?.measureUnloaded()
+                await MainActor.run { self?.phase = .download; self?.startLoadedProbes() }
                 let down = try await ThroughputRun.download(baseURL: baseURL, seconds: 8, streams: 4) { mbps in
-                    Task { @MainActor in self?.liveMbps = mbps }
+                    Task { @MainActor in self?.captureLive(mbps, upload: false) }
                 }
                 guard !Task.isCancelled else { return }
-                await MainActor.run { self?.phase = .upload; self?.liveMbps = 0 }
+                await MainActor.run { self?.stopLoadedProbes(); self?.phase = .upload; self?.liveMbps = 0 }
                 let up = try await ThroughputRun.upload(baseURL: baseURL, seconds: 8, streams: 3) { mbps in
-                    Task { @MainActor in self?.liveMbps = mbps }
+                    Task { @MainActor in self?.captureLive(mbps, upload: true) }
                 }
                 guard !Task.isCancelled else { return }
                 await MainActor.run {
-                    self?.record(down: down, up: up, ping: nil,
-                                 interface: interface, source: baseURL.host ?? "custom")
+                    guard let self else { return }
+                    self.record(down: down, up: up, ping: self.unloadedPing,
+                                interface: interface, source: baseURL.host ?? "custom")
                 }
             } catch is CancellationError {
             } catch {
@@ -152,15 +235,19 @@ final class MobileSpeedTester: ObservableObject {
     // MARK: - Result plumbing
 
     private func record(down: Double, up: Double?, ping: Double?, interface: String, source: String) {
-        let result = MobileSpeedResult(downMbps: down, upMbps: up, pingMs: ping,
+        var result = MobileSpeedResult(downMbps: down, upMbps: up, pingMs: ping,
                                        date: Date(), interface: interface, source: source)
+        result.loadedPingMs = loadedPing
+        result.downCurve = Self.downsample(downCurve)
+        result.upCurve = Self.downsample(upCurve)
         lastResult = result
         phase = .done
         liveMbps = 0
         history.append(result)
         if history.count > Self.maxHistory { history.removeFirst(history.count - Self.maxHistory) }
         Self.saveHistory(history)
-        MobileSharedStore.write(speed: .init(downMbps: down, upMbps: up, date: result.date, interface: interface))
+        MobileSharedStore.write(speed: .init(downMbps: down, upMbps: up, date: result.date, interface: interface,
+                                             pingMs: result.pingMs, loadedPingMs: result.loadedPingMs))
     }
 
     private static func loadHistory() -> [MobileSpeedResult] {

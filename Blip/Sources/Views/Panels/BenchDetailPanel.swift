@@ -82,6 +82,7 @@ struct BenchDetailPanel: View {
                 categoryRow("All cores", r.multiCore.score, "square.grid.3x3")
                 categoryRow("Memory", r.memory.score, "memorychip")
                 if let gpu = r.gpu { categoryRow("GPU", gpu.score, "cube.transparent") }
+                if let neural = r.neural { categoryRow("Neural", neural.score, "brain") }
             }
 
             if let lost = r.throttlePercentLost {

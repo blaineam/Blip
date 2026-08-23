@@ -7,7 +7,6 @@ import SwiftUI
 struct SpeedScreen: View {
     @ObservedObject var tester: MobileSpeedTester
     @ObservedObject var stats: DeviceStats
-    @State private var liveCurve: [Double] = []
 
     var body: some View {
         NavigationStack {
@@ -16,11 +15,16 @@ struct SpeedScreen: View {
                     pathBanner
                     sourceMenu
                     gauge
-                    if tester.isRunning || !liveCurve.isEmpty {
-                        Sparkline(values: liveCurve, tint: .teal, height: 60)
-                            .onChange(of: tester.phase) { _, phase in
-                                if phase == .download { liveCurve = [] }
+                    if tester.isRunning || !tester.downCurve.isEmpty {
+                        VStack(alignment: .leading, spacing: 4) {
+                            DualCurveChart(down: tester.downCurve, up: tester.upCurve, height: 64)
+                            HStack(spacing: 12) {
+                                Label("download", systemImage: "arrow.down").foregroundStyle(.teal)
+                                Label("upload", systemImage: "arrow.up").foregroundStyle(.orange)
+                                Spacer()
                             }
+                            .font(.caption2)
+                        }
                     }
                     runButton
                     if let r = tester.lastResult, !tester.isRunning {
@@ -110,11 +114,6 @@ struct SpeedScreen: View {
         }
         .frame(maxWidth: .infinity)
         .padding(.vertical, 12)
-        .onChange(of: tester.liveMbps) { _, mbps in
-            guard tester.isRunning, mbps > 0 else { return }
-            liveCurve.append(mbps)
-            if liveCurve.count > 120 { liveCurve.removeFirst() }
-        }
     }
 
     private var phaseLabel: String {
@@ -155,36 +154,74 @@ struct SpeedScreen: View {
     }
 
     private func resultCard(_ r: MobileSpeedResult, isLatest: Bool) -> some View {
-        HStack(spacing: 16) {
-            VStack(alignment: .leading, spacing: 2) {
-                Label(String(format: "%.0f Mbps", r.downMbps), systemImage: "arrow.down")
-                if let up = r.upMbps {
-                    Label(String(format: "%.0f Mbps", up), systemImage: "arrow.up")
+        VStack(alignment: .leading, spacing: 10) {
+            HStack(spacing: 16) {
+                VStack(alignment: .leading, spacing: 2) {
+                    Label(String(format: "%.0f Mbps", r.downMbps), systemImage: "arrow.down")
+                        .foregroundStyle(isLatest ? .teal : .primary)
+                    if let up = r.upMbps {
+                        Label(String(format: "%.0f Mbps", up), systemImage: "arrow.up")
+                            .foregroundStyle(isLatest ? .orange : .primary)
+                    }
                 }
-                if let ping = r.pingMs {
-                    Label(String(format: "%.0f ms", ping), systemImage: "clock")
-                        .font(.caption).foregroundStyle(.secondary)
+                .font(isLatest ? .system(.body, design: .rounded).weight(.semibold)
+                               : .system(.subheadline, design: .rounded))
+                Spacer()
+                VStack(alignment: .trailing, spacing: 2) {
+                    Text(r.date.formatted(date: .abbreviated, time: .shortened))
+                    Text("\(r.source) · \(r.interface)").lineLimit(1)
                 }
+                .font(.caption).foregroundStyle(.secondary)
+                ShareLink(
+                    item: SharePayload(image: ShareCard.render(SpeedShareCardView(result: r)) ?? UIImage(),
+                                       text: ShareCard.speedText(r)),
+                    preview: SharePreview(String(format: "%.0f Mbps", r.downMbps),
+                                          image: Image(uiImage: ShareCard.render(SpeedShareCardView(result: r)) ?? UIImage()))
+                ) {
+                    Image(systemName: "square.and.arrow.up").font(.callout)
+                }
+                .buttonStyle(.borderless)
             }
-            .font(isLatest ? .system(.body, design: .rounded).weight(.semibold)
-                           : .system(.subheadline, design: .rounded))
-            Spacer()
-            VStack(alignment: .trailing, spacing: 2) {
-                Text(r.date.formatted(date: .abbreviated, time: .shortened))
-                Text("\(r.source) · \(r.interface)").lineLimit(1)
+            if let ping = r.pingMs {
+                HStack(spacing: 14) {
+                    Label(String(format: "%.0f ms idle", ping), systemImage: "clock")
+                    if let loaded = r.loadedPingMs {
+                        Label(String(format: "%.0f ms under load", loaded), systemImage: "clock.badge.exclamationmark")
+                            .foregroundStyle(loaded - ping > 100 ? .orange : .secondary)
+                    }
+                }
+                .font(.caption).foregroundStyle(.secondary)
             }
-            .font(.caption).foregroundStyle(.secondary)
-            ShareLink(
-                item: SharePayload(image: ShareCard.render(SpeedShareCardView(result: r)) ?? UIImage(),
-                                   text: ShareCard.speedText(r)),
-                preview: SharePreview(String(format: "%.0f Mbps", r.downMbps),
-                                      image: Image(uiImage: ShareCard.render(SpeedShareCardView(result: r)) ?? UIImage()))
-            ) {
-                Image(systemName: "square.and.arrow.up").font(.callout)
+            if isLatest, let down = r.downCurve, !down.isEmpty {
+                DualCurveChart(down: down, up: r.upCurve ?? [], height: 44)
             }
-            .buttonStyle(.borderless)
+            if isLatest {
+                gradeGrid(ConnectionGrades.evaluate(down: r.downMbps, up: r.upMbps,
+                                                    unloadedMs: r.pingMs, loadedMs: r.loadedPingMs))
+            }
         }
         .padding(12)
         .background(.quaternary.opacity(isLatest ? 0.5 : 0.3), in: RoundedRectangle(cornerRadius: 12))
+    }
+
+    /// "What can you actually do with this connection" — one graded chip per activity.
+    private func gradeGrid(_ grades: [CategoryGrade]) -> some View {
+        VStack(alignment: .leading, spacing: 6) {
+            Text("Reliably good for").font(.caption.weight(.semibold)).foregroundStyle(.secondary)
+            LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible())], spacing: 6) {
+                ForEach(grades) { g in
+                    HStack(spacing: 6) {
+                        Text(g.grade.rawValue)
+                            .font(.caption.weight(.bold))
+                            .frame(width: 20, height: 20)
+                            .background(g.grade.tint.opacity(0.2), in: Circle())
+                            .foregroundStyle(g.grade.tint)
+                        Image(systemName: g.icon).font(.caption2).foregroundStyle(.secondary)
+                        Text(g.name).font(.caption)
+                        Spacer(minLength: 0)
+                    }
+                }
+            }
+        }
     }
 }

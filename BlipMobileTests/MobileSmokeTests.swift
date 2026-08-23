@@ -55,7 +55,7 @@ final class MobileSmokeTests: XCTestCase {
                                singleCore: .init(name: "s", score: 1, results: []),
                                multiCore: .init(name: "m", score: 2, results: []),
                                memory: .init(name: "mem", score: 1, results: []),
-                               gpu: nil, throttleFactor: nil, thermalSamples: [],
+                               gpu: nil, neural: nil, throttleFactor: nil, thermalSamples: [],
                                composite: 1, deviceModel: "test", osVersion: "test")
         BenchHistory.append(fake, defaults: MobileSharedStore.defaults)
         XCTAssertEqual(BenchHistory.load(defaults: MobileSharedStore.defaults).count,

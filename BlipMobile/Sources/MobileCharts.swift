@@ -73,13 +73,55 @@ struct BenchHistoryChart: View {
     let history: [BenchResult]
 
     var body: some View {
-        Chart(history) { r in
-            BarMark(x: .value("run", r.date, unit: .second),
-                    y: .value("score", r.composite))
+        // Index-based x. Date-based BarMarks with `unit: .second` made each bar 1 second
+        // wide on an axis spanning the whole history — sub-pixel, i.e. an empty chart
+        // (field-reported: "the history chart doesn't render anything").
+        Chart(Array(history.enumerated()), id: \.offset) { index, r in
+            BarMark(x: .value("run", index),
+                    y: .value("score", r.composite),
+                    width: .fixed(14))   // fixed: .ratio needs a band scale; index-x is continuous → zero-width bars
                 .foregroundStyle(r.profile == .full ? Color.purple : Color.purple.opacity(0.35))
-                .cornerRadius(2)
+                .cornerRadius(3)
         }
         .chartXAxis(.hidden)
+        .chartXScale(domain: -0.5...(Double(max(history.count, 1)) - 0.5))
         .frame(height: 90)
+        .clipped()
+    }
+}
+
+/// Download + upload as two distinct series in complementary colors — teal for down,
+/// coral/orange for up — instead of one undifferentiated line.
+struct DualCurveChart: View {
+    let down: [Double]
+    let up: [Double]
+    var height: CGFloat = 70
+
+    var body: some View {
+        Chart {
+            ForEach(Array(down.enumerated()), id: \.offset) { i, v in
+                LineMark(x: .value("t", i), y: .value("Mbps", v), series: .value("dir", "down"))
+                    .foregroundStyle(Color.teal)
+                    .lineStyle(StrokeStyle(lineWidth: 1.6))
+                    .interpolationMethod(.monotone)
+                AreaMark(x: .value("t", i), y: .value("Mbps", v), series: .value("adir", "down"))
+                    .foregroundStyle(Color.teal.opacity(0.14))
+                    .interpolationMethod(.monotone)
+            }
+            ForEach(Array(up.enumerated()), id: \.offset) { i, v in
+                LineMark(x: .value("t", down.count + i), y: .value("Mbps", v), series: .value("dir", "up"))
+                    .foregroundStyle(Color.orange)
+                    .lineStyle(StrokeStyle(lineWidth: 1.6))
+                    .interpolationMethod(.monotone)
+                AreaMark(x: .value("t", down.count + i), y: .value("Mbps", v), series: .value("adir", "up"))
+                    .foregroundStyle(Color.orange.opacity(0.14))
+                    .interpolationMethod(.monotone)
+            }
+        }
+        .chartXAxis(.hidden)
+        .chartYAxis(.hidden)
+        .frame(height: height)
+        .clipped()
+        .accessibilityHidden(true)
     }
 }

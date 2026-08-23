@@ -1,4 +1,5 @@
 import SwiftUI
+import MapKit
 
 // Ping + traceroute, ported from the Mac's network tools to what iOS grants (ICMP datagram
 // sockets — see PingTrace.swift). Targets are configurable in Settings; hops get city/country
@@ -103,10 +104,13 @@ struct NetworkToolsScreen: View {
             }
             if !geo.isReady && !trace.hops.isEmpty {
                 NavigationLink { SettingsScreen() } label: {
-                    Label("Download the GeoIP database in Settings to see hop locations",
+                    Label("Download the GeoIP database in Settings to see hop locations & map",
                           systemImage: "globe")
                         .font(.footnote)
                 }
+            }
+            if geo.isReady {
+                TraceHopMap(hops: trace.hops, geo: geo)
             }
 
             ForEach(trace.hops) { hop in
@@ -173,5 +177,66 @@ struct NetworkToolsScreen: View {
         }
         .padding(.horizontal, 10).padding(.vertical, 6)
         .background(.quaternary.opacity(0.5), in: RoundedRectangle(cornerRadius: 10))
+    }
+}
+
+
+// MARK: - The hop map (#feedback: "trace route must use mapkit to show the hops visually")
+
+/// Geolocated hops on a real map: numbered markers joined by the route line. Private-range
+/// hops (your router, CGNAT innards) have no location and are honestly skipped — the list
+/// below remains the complete record.
+struct TraceHopMap: View {
+    let hops: [TraceHop]
+    @ObservedObject var geo: GeoIPDatabase
+    @State private var position: MapCameraPosition = .automatic
+
+    private struct Placed: Identifiable {
+        let id: Int          // ttl
+        let coordinate: CLLocationCoordinate2D
+        let label: String
+        let isDestination: Bool
+    }
+
+    private var placed: [Placed] {
+        hops.compactMap { hop in
+            guard let addr = hop.address, let loc = geo.lookup(addr) else { return nil }
+            let place = [loc.city, loc.countryCode].compactMap { $0 }.joined(separator: ", ")
+            return Placed(id: hop.ttl,
+                          coordinate: CLLocationCoordinate2D(latitude: loc.latitude, longitude: loc.longitude),
+                          label: place.isEmpty ? addr : place,
+                          isDestination: hop.isDestination)
+        }
+    }
+
+    var body: some View {
+        let points = placed
+        if points.isEmpty {
+            EmptyView()
+        } else {
+            Map(position: $position) {
+                if points.count > 1 {
+                    MapPolyline(coordinates: points.map(\.coordinate))
+                        .stroke(.indigo.opacity(0.75),
+                                style: StrokeStyle(lineWidth: 2.5, lineCap: .round, dash: [6, 5]))
+                }
+                ForEach(points) { p in
+                    Annotation(p.label, coordinate: p.coordinate) {
+                        ZStack {
+                            Circle()
+                                .fill(p.isDestination ? Color.green : Color.indigo)
+                                .frame(width: 22, height: 22)
+                                .shadow(radius: 2)
+                            Text("\(p.id)")
+                                .font(.caption2.weight(.bold))
+                                .foregroundStyle(.white)
+                        }
+                    }
+                }
+            }
+            .frame(height: 230)
+            .clipShape(RoundedRectangle(cornerRadius: 14))
+            .onChange(of: hops.count) { _, _ in position = .automatic }
+        }
     }
 }

@@ -13,6 +13,19 @@ import SwiftUI
 //   5. The app pushes reloads on every new fact (MobileSharedStore); timelines refresh
 //      lazily (30 min) otherwise, which respects the widget budget.
 
+// MARK: - Shared look
+
+/// The widgets' shared visual identity: a quiet dark-tinted gradient wash of the widget's
+/// accent over the system container — branded at a glance, never loud, correct in both
+/// appearances (the wash sits on the adaptive background rather than replacing it).
+struct BlipWidgetBackground: View {
+    let tint: Color
+    var body: some View {
+        LinearGradient(colors: [tint.opacity(0.22), tint.opacity(0.05), .clear],
+                       startPoint: .topLeading, endPoint: .bottomTrailing)
+    }
+}
+
 // MARK: - Bench score
 
 struct BenchEntry: TimelineEntry {
@@ -47,7 +60,7 @@ struct BenchWidgetView: View {
         Group {
             if let r = entry.result { filled(r) } else { empty }
         }
-        .containerBackground(.fill.tertiary, for: .widget)
+        .containerBackground(for: .widget) { BlipWidgetBackground(tint: .purple) }
         .widgetURL(URL(string: "blip://bench"))
     }
 
@@ -73,6 +86,8 @@ struct BenchWidgetView: View {
             }
             Text("\(Int(r.composite.rounded()))")
                 .font(.system(size: family == .systemSmall ? 34 : 40, weight: .bold, design: .rounded))
+                .foregroundStyle(LinearGradient(colors: [.purple, .blue],
+                                                startPoint: .topLeading, endPoint: .bottomTrailing))
                 .minimumScaleFactor(0.6)
             if family != .systemSmall {
                 HStack(spacing: 10) {
@@ -80,6 +95,7 @@ struct BenchWidgetView: View {
                     stat("all", r.multiCore.score)
                     stat("mem", r.memory.score)
                     if let gpu = r.gpu { stat("gpu", gpu.score) }
+                    if let neural = r.neural { stat("neural", neural.score) }
                 }
                 if let lost = r.throttlePercentLost, lost > 0 {
                     Label("sustained −\(lost)%", systemImage: "flame")
@@ -138,12 +154,19 @@ struct StorageWidgetView: View {
                 VStack(alignment: .leading, spacing: 4) {
                     Label("Storage", systemImage: "internaldrive")
                         .font(.caption2.weight(.semibold)).foregroundStyle(.orange)
-                    Gauge(value: used) { EmptyView() } currentValueLabel: {
-                        Text("\(Int(used * 100))%")
+                    Spacer(minLength: 2)
+                    HStack {
+                        Spacer(minLength: 0)
+                        Gauge(value: used) { EmptyView() } currentValueLabel: {
+                            Text("\(Int(used * 100))%")
+                                .font(.system(.body, design: .rounded).weight(.bold))
+                        }
+                        .gaugeStyle(.accessoryCircularCapacity)
+                        .tint(used > 0.9 ? .red : .orange)
+                        .scaleEffect(1.15)
+                        Spacer(minLength: 0)
                     }
-                    .gaugeStyle(.accessoryCircularCapacity)
-                    .tint(used > 0.9 ? .red : .orange)
-                    Spacer(minLength: 0)
+                    Spacer(minLength: 2)
                     Text("\(ByteCountFormatter.string(fromByteCount: d.storageFree, countStyle: .file)) free")
                         .font(.caption2).foregroundStyle(.secondary)
                 }
@@ -151,7 +174,7 @@ struct StorageWidgetView: View {
                 Label("Open Blip once", systemImage: "internaldrive").font(.caption2)
             }
         }
-        .containerBackground(.fill.tertiary, for: .widget)
+        .containerBackground(for: .widget) { BlipWidgetBackground(tint: .orange) }
         .widgetURL(URL(string: "blip://overview"))
     }
 }
@@ -202,6 +225,7 @@ struct SpeedWidgetView: View {
                         VStack(alignment: .leading, spacing: 0) {
                             Text("\(Int(r.downMbps))")
                                 .font(.system(size: 30, weight: .bold, design: .rounded))
+                                .foregroundStyle(.teal)
                             Label("Mbps down", systemImage: "arrow.down")
                                 .font(.caption2).foregroundStyle(.secondary)
                         }
@@ -209,7 +233,17 @@ struct SpeedWidgetView: View {
                             VStack(alignment: .leading, spacing: 0) {
                                 Text("\(Int(up))")
                                     .font(.system(size: 30, weight: .bold, design: .rounded))
+                                    .foregroundStyle(.orange)
                                 Label("Mbps up", systemImage: "arrow.up")
+                                    .font(.caption2).foregroundStyle(.secondary)
+                            }
+                        }
+                        if let ping = r.pingMs {
+                            VStack(alignment: .leading, spacing: 0) {
+                                Text("\(Int(ping))")
+                                    .font(.system(size: 30, weight: .bold, design: .rounded))
+                                Label(r.loadedPingMs != nil ? "ms idle · \(Int(r.loadedPingMs!)) loaded" : "ms ping",
+                                      systemImage: "clock")
                                     .font(.caption2).foregroundStyle(.secondary)
                             }
                         }
@@ -224,7 +258,7 @@ struct SpeedWidgetView: View {
                 Label("Run a speed test in Blip", systemImage: "speedometer").font(.caption2)
             }
         }
-        .containerBackground(.fill.tertiary, for: .widget)
+        .containerBackground(for: .widget) { BlipWidgetBackground(tint: .teal) }
         .widgetURL(URL(string: "blip://speed"))
     }
 }

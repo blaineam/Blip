@@ -110,6 +110,7 @@ struct BenchRunningView: View {
         ("multi", "All cores", "square.grid.3x3", .multiCore),
         ("memory", "Memory", "memorychip", .memory),
         ("gpu", "GPU", "cube.transparent", .gpu),
+        ("neural", "Neural", "brain", .neural),
     ]
 
     var body: some View {
@@ -211,29 +212,92 @@ struct ScoreCard: View {
     let history: [BenchResult]
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 10) {
+        VStack(alignment: .leading, spacing: 14) {
+            // Hero: the composite, big, with how it sits against this device's best.
             HStack(alignment: .firstTextBaseline) {
                 Text("\(Int(result.composite.rounded()))")
-                    .font(.system(size: 44, weight: .bold, design: .rounded))
-                Text("composite").foregroundStyle(.secondary)
+                    .font(.system(size: 54, weight: .bold, design: .rounded))
+                    .foregroundStyle(LinearGradient(colors: [.purple, .blue],
+                                                    startPoint: .topLeading, endPoint: .bottomTrailing))
+                    .contentTransition(.numericText())
+                VStack(alignment: .leading, spacing: 0) {
+                    Text("composite").font(.subheadline).foregroundStyle(.secondary)
+                    Text(result.profile == .quick ? "quick run" : "full run")
+                        .font(.caption).foregroundStyle(.tertiary)
+                }
                 Spacer()
                 delta
             }
-            row("Single-core", result.singleCore.score, "cpu")
-            row("All cores", result.multiCore.score, "square.grid.3x3")
-            row("Memory", result.memory.score, "memorychip")
-            if let gpu = result.gpu { row("GPU", gpu.score, "cube.transparent") }
+
+            // Category bars, each scaled against this device's own best — the comparison
+            // that diagnoses something (reference units already handle cross-device).
+            VStack(spacing: 8) {
+                categoryBar("Single-core", "cpu", result.singleCore.score, best(\.singleCore))
+                categoryBar("All cores", "square.grid.3x3", result.multiCore.score, best(\.multiCore))
+                categoryBar("Memory", "memorychip", result.memory.score, best(\.memory))
+                if let gpu = result.gpu {
+                    categoryBar("GPU", "cube.transparent", gpu.score, bestOptional(\.gpu))
+                }
+                if let neural = result.neural {
+                    categoryBar("Neural", "brain", neural.score, bestOptional(\.neural))
+                }
+            }
+
             if let lost = result.throttlePercentLost {
                 Divider()
-                Label(lost == 0 ? "No throttling under sustained load"
-                                : "Sustained load loses \(lost)%",
-                      systemImage: lost > 15 ? "flame.fill" : "flame")
-                    .font(.footnote)
-                    .foregroundStyle(lost > 15 ? .orange : .secondary)
+                VStack(alignment: .leading, spacing: 6) {
+                    Label(lost == 0 ? "No throttling under sustained load"
+                                    : "Sustained load loses \(lost)%",
+                          systemImage: lost > 15 ? "flame.fill" : "flame")
+                        .font(.footnote)
+                        .foregroundStyle(lost > 15 ? .orange : .secondary)
+                    if result.thermalSamples.count > 2 {
+                        ThermalSteps(values: result.thermalSamples.map { Double($0.thermalState) }, height: 26)
+                    }
+                }
             }
+
+            HStack {
+                Text(DeviceNames.name(for: result.deviceModel))
+                Spacer()
+                Text(result.date.formatted(date: .abbreviated, time: .shortened))
+            }
+            .font(.caption).foregroundStyle(.tertiary)
         }
-        .padding(14)
+        .padding(16)
         .background(.quaternary.opacity(0.5), in: RoundedRectangle(cornerRadius: 16))
+    }
+
+    /// Best full-run score for a category across history (including this run).
+    private func best(_ path: KeyPath<BenchResult, BenchCategoryScore>) -> Double {
+        max(history.filter { $0.profile == .full }.map { $0[keyPath: path].score }.max() ?? 0,
+            result[keyPath: path].score)
+    }
+    private func bestOptional(_ path: KeyPath<BenchResult, BenchCategoryScore?>) -> Double {
+        max(history.filter { $0.profile == .full }.compactMap { $0[keyPath: path]?.score }.max() ?? 0,
+            result[keyPath: path]?.score ?? 0)
+    }
+
+    private func categoryBar(_ name: String, _ icon: String, _ score: Double, _ best: Double) -> some View {
+        VStack(alignment: .leading, spacing: 3) {
+            HStack {
+                Label(name, systemImage: icon).font(.subheadline)
+                Spacer()
+                Text("\(Int(score.rounded()))")
+                    .font(.system(.subheadline, design: .rounded).weight(.semibold))
+                    .contentTransition(.numericText())
+            }
+            GeometryReader { proxy in
+                ZStack(alignment: .leading) {
+                    Capsule().fill(.quaternary)
+                    Capsule()
+                        .fill(LinearGradient(colors: [.purple, .blue],
+                                             startPoint: .leading, endPoint: .trailing))
+                        .frame(width: proxy.size.width * max(0.04, best > 0 ? score / best : 0))
+                }
+            }
+            .frame(height: 5)
+        }
     }
 
     private var delta: some View {
@@ -241,19 +305,13 @@ struct ScoreCard: View {
             let previous = history.dropLast().filter { $0.profile == .full }.map(\.composite).max()
             if result.profile == .full, let best = previous, best > 0 {
                 let pct = Int(((result.composite - best) / best * 100).rounded())
-                Text(pct >= 0 ? "+\(pct)%" : "\(pct)%")
-                    .font(.headline)
-                    .foregroundStyle(pct >= -3 ? Color.green : Color.orange)
+                VStack(spacing: 0) {
+                    Text(pct >= 0 ? "+\(pct)%" : "\(pct)%")
+                        .font(.headline)
+                        .foregroundStyle(pct >= -3 ? Color.green : Color.orange)
+                    Text("vs best").font(.caption2).foregroundStyle(.tertiary)
+                }
             }
-        }
-    }
-
-    private func row(_ name: String, _ score: Double, _ icon: String) -> some View {
-        HStack {
-            Label(name, systemImage: icon).font(.subheadline)
-            Spacer()
-            Text("\(Int(score.rounded()))")
-                .font(.system(.subheadline, design: .rounded).weight(.semibold))
         }
     }
 }

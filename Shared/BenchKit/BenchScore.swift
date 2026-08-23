@@ -21,6 +21,7 @@ public enum BenchReference {
         "mem.bandwidth": 60,       // GB/s
         "mem.latency": 100,        // ns — lower is better
         "gpu.matmul": 2000,        // GFLOPS
+        "npu.featureprint": 50,    // inferences/s (Vision feature print — ANE where present)
     ]
     public static let lowerIsBetter: Set<String> = ["mem.latency"]
 }
@@ -53,6 +54,10 @@ public struct BenchResult: Codable, Sendable, Equatable, Identifiable {
     public let multiCore: BenchCategoryScore
     public let memory: BenchCategoryScore
     public let gpu: BenchCategoryScore?
+    /// Core ML/Vision inference throughput — routed to the Neural Engine on hardware that
+    /// has one (Vision decides; there is no public "force ANE" switch, so this honestly
+    /// measures *ML inference* rather than claiming raw NPU FLOPS). nil on old results.
+    public let neural: BenchCategoryScore?
     /// Sustained multicore composite ÷ burst multicore composite. 1.0 = no throttle;
     /// 0.75 = the machine loses a quarter of itself under sustained load.
     public let throttleFactor: Double?

@@ -18,6 +18,7 @@ public enum BenchUnit: String, Codable, Sendable {
     case fftPerSec = "kFFT/s"
     case nsPerAccess = "ns"       // memory latency — LOWER is better; score math inverts it
     case gflops = "GFLOPS"
+    case opsPerSec = "ops/s"      // neural leg — inference calls per second
 }
 
 public struct WorkloadResult: Codable, Sendable, Equatable {
@@ -208,3 +209,60 @@ public enum BenchWorkloads {
         Double(bytes) / max(seconds, 0.001) / 1_000_000
     }
 }
+
+#if canImport(Vision)
+import Vision
+import CoreGraphics
+
+extension BenchWorkloads {
+    /// Neural leg: Vision's image feature-print — the OS's own embedding model, dispatched
+    /// through Core ML. On hardware with a Neural Engine, Vision routes it there; elsewhere
+    /// it runs on GPU/CPU. There is no public "force ANE" switch, so this leg honestly
+    /// measures *what the OS's ML stack delivers on this device*, which is also the number
+    /// that predicts real app behavior. Deterministic input (fixed procedural pattern), no
+    /// network, no bundled model — same OS-frameworks-only rule as every other leg.
+    public static func neuralInference(seconds: Double, cancelled: () -> Bool) -> WorkloadResult? {
+        guard let image = makePatternImage(side: 224) else { return nil }
+        // Warm-up: first request compiles/loads the model — that's setup, not throughput.
+        let warm = VNGenerateImageFeaturePrintRequest()
+        try? VNImageRequestHandler(cgImage: image, options: [:]).perform([warm])
+        guard warm.results?.isEmpty == false else { return nil }   // stack unavailable → leg drops out
+
+        var count = 0
+        let start = CFAbsoluteTimeGetCurrent()
+        while CFAbsoluteTimeGetCurrent() - start < seconds {
+            if cancelled() { break }
+            let request = VNGenerateImageFeaturePrintRequest()
+            guard (try? VNImageRequestHandler(cgImage: image, options: [:]).perform([request])) != nil,
+                  request.results?.isEmpty == false else { break }
+            count += 1
+        }
+        let elapsed = CFAbsoluteTimeGetCurrent() - start
+        guard count > 0, elapsed > 0.05 else { return nil }
+        return WorkloadResult(id: "npu.featureprint", value: Double(count) / elapsed, unit: .opsPerSec)
+    }
+
+    /// Deterministic RGBA test card (gradients + concentric rings) — enough structure that
+    /// the model does real work, zero randomness so every run sees the same input.
+    private static func makePatternImage(side: Int) -> CGImage? {
+        var pixels = [UInt8](repeating: 0, count: side * side * 4)
+        for y in 0..<side {
+            for x in 0..<side {
+                let i = (y * side + x) * 4
+                let dx = Double(x - side / 2), dy = Double(y - side / 2)
+                let ring = UInt8((sin(sqrt(dx * dx + dy * dy) / 6) * 0.5 + 0.5) * 255)
+                pixels[i] = UInt8(x * 255 / side)
+                pixels[i + 1] = ring
+                pixels[i + 2] = UInt8(y * 255 / side)
+                pixels[i + 3] = 255
+            }
+        }
+        let data = Data(pixels)
+        guard let provider = CGDataProvider(data: data as CFData) else { return nil }
+        return CGImage(width: side, height: side, bitsPerComponent: 8, bitsPerPixel: 32,
+                       bytesPerRow: side * 4, space: CGColorSpace(name: CGColorSpace.sRGB)!,
+                       bitmapInfo: CGBitmapInfo(rawValue: CGImageAlphaInfo.premultipliedLast.rawValue),
+                       provider: provider, decode: nil, shouldInterpolate: false, intent: .defaultIntent)
+    }
+}
+#endif

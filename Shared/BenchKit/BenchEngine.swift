@@ -25,7 +25,7 @@ public struct NullThermalSource: ThermalSource {
 @MainActor
 public final class BenchEngine: ObservableObject {
     public enum Phase: String, Sendable {
-        case idle, singleCore, multiCore, memory, gpu, sustained, done
+        case idle, singleCore, multiCore, memory, gpu, neural, sustained, done
         public var label: String {
             switch self {
             case .idle: return "Idle"
@@ -33,6 +33,7 @@ public final class BenchEngine: ObservableObject {
             case .multiCore: return "CPU · all cores"
             case .memory: return "Memory"
             case .gpu: return "GPU"
+            case .neural: return "Neural"
             case .sustained: return "Sustained + thermals"
             case .done: return "Done"
             }
@@ -60,6 +61,9 @@ public final class BenchEngine: ObservableObject {
         self.thermal = thermal
         self.defaults = defaults
         self.history = BenchHistory.load(defaults: defaults)
+        // Cold launch shows the latest stored result, not an empty pitch — the run is
+        // durable state, and "your last score" is the screen's whole point.
+        self.lastResult = self.history.last
     }
 
     public func toggle(profile: BenchProfile = .full) {
@@ -135,7 +139,7 @@ public final class BenchEngine: ObservableObject {
 
         // Weights for the progress bar: legs aren't equal-length.
         let sustainedWeight = profile.sustainedSeconds > 0 ? 0.45 : 0
-        let legWeight = (1 - sustainedWeight) / 4
+        let legWeight = (1 - sustainedWeight) / 5
 
         return await Task.detached(priority: .userInitiated) { () -> BenchResult? in
             var progressSoFar = 0.0
@@ -187,7 +191,17 @@ public final class BenchEngine: ObservableObject {
             let gpu = BenchGPU.matmul(seconds: t * 2, cancelled: cancelled)
             if cancelled() { return nil }
             let gpuCat = gpu.map { BenchScore.category("GPU", [$0]) }
-            step(.sustained, legWeight, gpuCat.map { BenchLiveLeg(id: "gpu", name: "GPU", score: $0.score) })
+            step(.neural, legWeight, gpuCat.map { BenchLiveLeg(id: "gpu", name: "GPU", score: $0.score) })
+
+            // 5. Neural (may be unavailable — category drops out, never zeroes).
+            #if canImport(Vision)
+            let neural = BenchWorkloads.neuralInference(seconds: t * 2, cancelled: cancelled)
+            #else
+            let neural: WorkloadResult? = nil
+            #endif
+            if cancelled() { return nil }
+            let neuralCat = neural.map { BenchScore.category("Neural", [$0]) }
+            step(.sustained, legWeight, neuralCat.map { BenchLiveLeg(id: "neural", name: "Neural", score: $0.score) })
 
             // 5. Sustained (full profile): repeat the multicore mix in buckets, sampling thermals.
             var throttle: Double?
@@ -229,7 +243,7 @@ public final class BenchEngine: ObservableObject {
                 }
             }
 
-            let composite = BenchScore.overall([singleCat, multiScaled, memCat, gpuCat])
+            let composite = BenchScore.overall([singleCat, multiScaled, memCat, gpuCat, neuralCat])
             var sysinfo = utsname(); uname(&sysinfo)
             let model = withUnsafeBytes(of: &sysinfo.machine) { raw in
                 String(decoding: raw.prefix(while: { $0 != 0 }), as: UTF8.self)
@@ -237,6 +251,7 @@ public final class BenchEngine: ObservableObject {
             return BenchResult(
                 date: Date(), profile: profile,
                 singleCore: singleCat, multiCore: multiScaled, memory: memCat, gpu: gpuCat,
+                neural: neuralCat,
                 throttleFactor: throttle, thermalSamples: samples,
                 composite: composite,
                 deviceModel: model,

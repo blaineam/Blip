@@ -17,6 +17,7 @@ enum ShareCard {
                      "Composite \(Int(r.composite.rounded())) (\(r.profile == .quick ? "quick" : "full") run)",
                      "Single-core \(Int(r.singleCore.score.rounded())) · All cores \(Int(r.multiCore.score.rounded())) · Memory \(Int(r.memory.score.rounded()))"]
         if let gpu = r.gpu { lines[2] += " · GPU \(Int(gpu.score.rounded()))" }
+        if let neural = r.neural { lines[2] += " · Neural " + String(Int(neural.score.rounded())) }
         if let lost = r.throttlePercentLost {
             lines.append(lost == 0 ? "No throttling under sustained load" : "Sustained load loses \(lost)%")
         }
@@ -27,8 +28,10 @@ enum ShareCard {
     static func speedText(_ r: MobileSpeedResult) -> String {
         var l = "Network speed — \(String(format: "%.0f", r.downMbps)) Mbps down"
         if let up = r.upMbps { l += " · \(String(format: "%.0f", up)) Mbps up" }
-        if let ping = r.pingMs { l += " · \(String(format: "%.0f", ping)) ms ping" }
-        return l + "\nvia \(r.source) on \(r.interface)\nMeasured with Blip · blip.wemiller.com"
+        if let ping = r.pingMs { l += " · \(String(format: "%.0f", ping)) ms idle" }
+        if let loaded = r.loadedPingMs { l += " · \(String(format: "%.0f", loaded)) ms loaded" }
+        let grades = ConnectionGrades.evaluate(down: r.downMbps, up: r.upMbps, unloadedMs: r.pingMs, loadedMs: r.loadedPingMs)
+        return l + "\n" + ConnectionGrades.shareLines(grades) + "\nvia \(r.source) on \(r.interface)\nMeasured with Blip · blip.wemiller.com"
     }
 }
 
@@ -59,6 +62,7 @@ struct BenchShareCardView: View {
                 pill("square.grid.3x3", "Multi", result.multiCore.score)
                 pill("memorychip", "Memory", result.memory.score)
                 if let gpu = result.gpu { pill("cube.transparent", "GPU", gpu.score) }
+                if let neural = result.neural { pill("brain", "Neural", neural.score) }
             }
             HStack {
                 if let lost = result.throttlePercentLost {
@@ -106,10 +110,26 @@ struct SpeedShareCardView: View {
                     metric("arrow.up", String(format: "%.0f", up), "Mbps up", .blue)
                 }
                 if let ping = result.pingMs {
-                    metric("clock", String(format: "%.0f", ping), "ms ping", .secondary)
+                    metric("clock", String(format: "%.0f", ping), "ms idle", .secondary)
                 }
                 Spacer()
             }
+            if let down = result.downCurve, !down.isEmpty {
+                VStack(alignment: .leading, spacing: 4) {
+                    DualCurveChart(down: down, up: result.upCurve ?? [], height: 80)
+                    HStack(spacing: 12) {
+                        Label("download", systemImage: "arrow.down").foregroundStyle(.teal)
+                        Label("upload", systemImage: "arrow.up").foregroundStyle(.orange)
+                        Spacer()
+                        if let ping = result.pingMs, let loaded = result.loadedPingMs {
+                            Text(String(format: "%.0f ms idle → %.0f ms loaded", ping, loaded))
+                                .foregroundStyle(loaded - ping > 100 ? .orange : .secondary)
+                        }
+                    }
+                    .font(.caption2)
+                }
+            }
+            gradeRow
             HStack {
                 Text("via \(result.source)").font(.footnote).foregroundStyle(.secondary)
                 Spacer()
@@ -120,6 +140,25 @@ struct SpeedShareCardView: View {
         .padding(28)
         .background(Color(red: 0.07, green: 0.11, blue: 0.13))
         .foregroundStyle(.white)
+    }
+
+    /// Per-activity grades, compact — the "so what does this mean" row.
+    private var gradeRow: some View {
+        let grades = ConnectionGrades.evaluate(down: result.downMbps, up: result.upMbps,
+                                               unloadedMs: result.pingMs, loadedMs: result.loadedPingMs)
+        return HStack(spacing: 8) {
+            ForEach(grades) { g in
+                VStack(spacing: 3) {
+                    Text(g.grade.rawValue)
+                        .font(.system(.callout, design: .rounded).weight(.bold))
+                        .foregroundStyle(g.grade.tint)
+                    Image(systemName: g.icon).font(.caption2).foregroundStyle(.secondary)
+                }
+                .frame(maxWidth: .infinity)
+                .padding(.vertical, 8)
+                .background(.white.opacity(0.06), in: RoundedRectangle(cornerRadius: 10))
+            }
+        }
     }
 
     private func metric(_ icon: String, _ value: String, _ unit: String, _ tint: Color) -> some View {
