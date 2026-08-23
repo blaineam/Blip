@@ -55,6 +55,22 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
     // dismissed and reopened, and so interval runs continue while panels are closed.
     private let netSpeedTester = SpeedTester()
     private let diskSpeedTester = DiskSpeedTester()
+    /// Blip Bench. The thermal box is refreshed from the monitor's own 2 s snapshot tick, so the
+    /// sustained phase reads real SMC temps/fans without touching main-actor state off-thread.
+    let benchThermalBox = LatestThermalBox()
+    private(set) lazy var benchEngine = BenchEngine(thermal: benchThermalBox)
+
+    func wireBench() {
+        monitor.onThermalSample = { [benchThermalBox] temp, rpm in
+            benchThermalBox.update(temperatureC: temp, fanRPM: rpm)
+        }
+        // Intent runs flow through the SHARED engine so they land in the panel history and
+        // respect "one benchmark at a time" — mirrors how the disk intent wraps its tester.
+        AppIntentsEnvironment.benchRunner = { [weak self] profile in
+            guard let self else { return nil }
+            return await self.benchEngine.runAwaiting(profile: profile)
+        }
+    }
     private var hostingView: NSHostingView<StatusItemView>?
     private var eventMonitor: Any?
     private var detailPanel: NSPanel?
@@ -71,6 +87,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
     private var processListFrozen = false
 
     func applicationDidFinishLaunching(_ notification: Notification) {
+        wireBench()
         Self.shared = self
 
         // Unit tests host this app: skip the menu-bar UI, monitors, and timers
@@ -177,7 +194,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
         if let section = BlipScreenshotMode.section {
             inner = AnyView(detailContent(for: section).frame(width: 260))
         } else {
-            inner = AnyView(PopoverView(monitor: monitor, onHoverSection: nil, onOpenSettings: nil).frame(width: 260))
+            inner = AnyView(PopoverView(monitor: monitor, onHoverSection: nil, benchEngine: benchEngine, onOpenSettings: nil).frame(width: 260))
         }
         let card = inner
             .background(Color(white: 0.13))
@@ -247,6 +264,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
             onHoverSection: { [weak self] section in
                 self?.handleSectionHover(section)
             },
+            benchEngine: benchEngine,
             onOpenSettings: { [weak self] in
                 self?.openSettings()
             },
@@ -432,6 +450,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
                 stats: monitor.snapshot.gpu,
                 history: monitor.gpuHistory.values
             )
+        case .bench:
+            BenchDetailPanel(engine: benchEngine)
         case .thermal:
             ThermalDetailPanel(
                 thermalLevel: monitor.snapshot.system.thermalLevel,

@@ -12,6 +12,8 @@ import SwiftUI
 @MainActor
 final class SystemMonitor: ObservableObject {
     @Published var snapshot = SystemSnapshot()
+    /// Sink for (cpuTempC, firstFanRPM) on every sample — set by the app to feed Blip Bench.
+    var onThermalSample: ((Double?, Double?) -> Void)?
     @Published var cpuHistory = HistoryBuffer<Double>(capacity: 60, defaultValue: 0)
     @Published var memoryHistory = HistoryBuffer<Double>(capacity: 60, defaultValue: 0)
     @Published var gpuHistory = HistoryBuffer<Double>(capacity: 60, defaultValue: 0)
@@ -324,6 +326,9 @@ final class SystemMonitor: ObservableObject {
         newSnapshot.timestamp = Date()
 
         snapshot = newSnapshot
+        // Blip Bench's sustained phase reads thermals off-thread; hand it the freshest values
+        // through its lock-guarded box rather than letting it touch main-actor state.
+        onThermalSample?(fans.cpuTemperature, fans.fans.first.map { Double($0.currentRPM) })
         hasSampled = true
         recommendations = RecommendationsEngine.analyze(newSnapshot).filter { !isDismissed($0.id) }
         cpuHistory.append(cpu.totalUsage)

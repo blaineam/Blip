@@ -13,6 +13,13 @@ struct PopoverView: View {
 
     /// Callback when a section is hovered — AppDelegate handles showing the detail window.
     var onHoverSection: ((PopoverSection?) -> Void)?
+    @ObservedObject var benchEngine: BenchEngine
+
+    private var benchScoreLabel: String {
+        if benchEngine.isRunning { return "running…" }
+        if let r = benchEngine.lastResult { return "\(Int(r.composite.rounded()))" }
+        return "run"
+    }
     var onOpenSettings: (() -> Void)?
     /// Opens Settings (where the support rows live) via AppDelegate, which
     /// also closes this popover on the way.
@@ -36,6 +43,7 @@ struct PopoverView: View {
             }
             #endif
             overviewRow(.thermal)
+            overviewRow(.bench)
 
             if monitor.snapshot.battery.isPresent {
                 overviewRow(.battery)
@@ -220,6 +228,14 @@ struct PopoverView: View {
                     percent: monitor.snapshot.gpu.utilization,
                     color: .purple
                 )
+            case .bench:
+                OverviewRow(
+                    icon: "gauge.with.needle",
+                    label: "Bench",
+                    value: benchScoreLabel,
+                    percent: 0,
+                    color: .purple
+                )
             case .thermal:
                 HStack(spacing: 8) {
                     Image(systemName: "thermometer.medium")
@@ -327,5 +343,5 @@ struct PopoverView: View {
 // MARK: - Section Enum (shared with AppDelegate)
 
 enum PopoverSection: String, CaseIterable {
-    case cpu, memory, disk, network, gpu, thermal, battery
+    case cpu, memory, disk, network, gpu, thermal, battery, bench
 }

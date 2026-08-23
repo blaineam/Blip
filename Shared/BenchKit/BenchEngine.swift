@@ -99,6 +99,15 @@ public final class BenchEngine: ObservableObject {
         }
     }
 
+    /// Run through the SHARED engine (published state + history) and return the result —
+    /// what the Run Benchmark intent uses so Shortcuts runs land in the panel like any other.
+    public func runAwaiting(profile: BenchProfile) async -> BenchResult? {
+        guard !isRunning else { return nil }   // one benchmark at a time
+        start(profile: profile)
+        _ = await task?.value
+        return phase == .done ? lastResult : nil
+    }
+
     /// One-shot run for intents/QA — no published state needed, returns the result directly.
     public static func runOnce(profile: BenchProfile, thermal: ThermalSource = NullThermalSource()) async -> BenchResult? {
         await run(profile: profile, thermal: thermal, flag: CancelFlag()) { _, _, _ in }
@@ -233,4 +242,18 @@ final class CancelFlag: @unchecked Sendable {
     var isSet: Bool { lock.lock(); defer { lock.unlock() }; return value }
     func set() { lock.lock(); value = true; lock.unlock() }
     func reset() { lock.lock(); value = false; lock.unlock() }
+}
+
+/// Thread-safe latest-thermal reading, refreshed by whoever already polls the sensors (the
+/// app's 2 s snapshot tick on macOS) and read by the bench's sustained phase off-thread.
+public final class LatestThermalBox: ThermalSource, @unchecked Sendable {
+    private let lock = NSLock()
+    private var temp: Double?
+    private var rpm: Double?
+    public init() {}
+    public func update(temperatureC: Double?, fanRPM: Double?) {
+        lock.lock(); temp = temperatureC; rpm = fanRPM; lock.unlock()
+    }
+    public func temperatureC() -> Double? { lock.lock(); defer { lock.unlock() }; return temp }
+    public func fanRPM() -> Double? { lock.lock(); defer { lock.unlock() }; return rpm }
 }

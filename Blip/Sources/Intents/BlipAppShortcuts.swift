@@ -17,6 +17,16 @@ struct BlipAppShortcuts: AppShortcutsProvider {
             systemImageName: "gauge.with.dots.needle.50percent"
         )
         AppShortcut(
+            intent: RunBenchmarkIntent(),
+            phrases: [
+                "Run a benchmark in \(.applicationName)",
+                "Benchmark my Mac with \(.applicationName)",
+                "How fast is my Mac in \(.applicationName)",
+            ],
+            shortTitle: "Run Benchmark",
+            systemImageName: "gauge.with.needle"
+        )
+        AppShortcut(
             intent: RunDriveSpeedTestIntent(),
             phrases: [
                 "Run a drive speed test in \(.applicationName)",
