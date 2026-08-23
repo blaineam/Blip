@@ -724,6 +724,15 @@
         .cta p { color: var(--text-secondary); margin-bottom: 28px; font-size: 16px; }
         .cta-buttons { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; }
 
+        /* Support */
+        .support { padding: 0 0 40px; }
+        .support-card { padding: 48px 40px; }
+        .support h2 { font-size: 28px; }
+        .support-card p { max-width: 600px; margin-left: auto; margin-right: auto; }
+        .cta .support-more { margin: 20px auto 0; font-size: 14px; }
+        .support-more a { color: var(--accent); text-decoration: none; font-weight: 600; }
+        .support-more a:hover { text-decoration: underline; }
+
         /* Footer */
         footer { padding: 40px 0; text-align: center; border-top: 1px solid var(--glass-border); }
         footer p { font-size: 13px; color: var(--text-secondary); }
@@ -1482,6 +1491,20 @@
     </div>
 </section>
 
+<section class="cta support" id="support">
+    <div class="container">
+        <div class="cta-card support-card">
+            <h2 data-i18n="support-future-development.921741">Support future development</h2>
+            <p data-i18n="blip-is-free-no.661bdc">Blip is free — no ads, no tracking, no subscription. If it earns a place on your Mac, you can help fund what comes next.</p>
+            <div class="cta-buttons">
+                <a href="https://github.com/sponsors/blaineam" class="btn btn-primary" target="_blank" rel="noopener" data-i18n="sponsor-on-github.f22fdf">Sponsor on GitHub</a>
+                <a href="https://ko-fi.com/wemiller" class="btn btn-secondary" target="_blank" rel="noopener" data-i18n="buy-me-a-coffee.149bea">Buy me a coffee on Ko-fi</a>
+            </div>
+            <p class="support-more"><a href="https://wemiller.com/support/" target="_blank" rel="noopener" data-i18n="all-the-ways-to.53ba1c">All the ways to support →</a></p>
+        </div>
+    </div>
+</section>
+
 <section class="faq" id="faq">
     <div class="container">
         <h2 data-i18n="questions-answers.8ae3d7">Questions &amp; Answers</h2>
@@ -1511,8 +1534,8 @@
                 <p data-i18n="yes-open-settings-gear.4601d1">Yes. Open Settings (gear icon in the popover) and toggle individual items: CPU, Memory, Disk, Network dot, and labels. You can also set a custom accent color.</p>
             </details>
             <details class="faq-item">
-                <summary data-i18n="why-does-the-app.76850d">Why does the App Store version cost $2.99?</summary>
-                <p data-i18n="the-direct-download-and.d5908a">The direct download and Homebrew versions are free and always will be. The $2.99 App Store price helps cover Apple Developer Program costs and supports ongoing development and maintenance. If you'd rather not pay, grab the identical free version from GitHub Releases or Homebrew.</p>
+                <summary data-i18n="is-blip-really-free.33988b">Is Blip really free?</summary>
+                <p data-i18n="yes-the-direct-download.655957">Yes. The direct download, the Homebrew cask and the Mac App Store build are all free and identical — there is no paid tier and nothing to unlock. If you'd like to support development, use the links above.</p>
             </details>
             <details class="faq-item">
                 <summary data-i18n="how-do-i-build.5e186c">How do I build from source?</summary>

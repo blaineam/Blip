@@ -45,7 +45,7 @@ Plus:
 
 ### Mac App Store
 
-Blip is available on the Mac App Store as **Blip Stats** for $2.99.
+Blip is available free on the Mac App Store as **Blip Stats** — the same app as the direct download and Homebrew builds.
 
 [![Download on the Mac App Store](https://toolbox.marketingtools.apple.com/api/badges/download-on-the-mac-app-store/black/en-us)](https://apps.apple.com/us/app/blip-stats/id6762329495)
 
@@ -92,6 +92,14 @@ chmod +x Scripts/build-dmg.sh
 ./Scripts/build-dmg.sh              # full build + notarize
 ./Scripts/build-dmg.sh --skip-notarize  # unsigned local build
 ```
+
+## ❤️ Support future development
+
+Blip is free — no ads, no tracking, no subscription. If it earns a place on your Mac, you can help fund what comes next.
+
+[**Sponsor on GitHub**](https://github.com/sponsors/blaineam) · [**Buy me a coffee on Ko-fi**](https://ko-fi.com/wemiller)
+
+[All the ways to support →](https://wemiller.com/support/)
 
 ## 🔧 How It Works
 
@@ -205,9 +213,9 @@ Typically around 42 MB physical footprint. Blip shows its own memory usage in th
 </details>
 
 <details>
-<summary><strong>Why does the App Store version cost $2.99?</strong></summary>
+<summary><strong>Is Blip really free?</strong></summary>
 <br>
-The direct download and Homebrew versions are free and always will be. The $2.99 App Store price helps cover Apple Developer Program costs and supports ongoing development and maintenance. If you'd rather not pay, grab the identical free version from GitHub Releases or Homebrew.
+Yes. The direct download, the Homebrew cask and the Mac App Store build are all free and identical — there is no paid tier and nothing to unlock. If you'd like to support development, use the links in the Support future development section above.
 </details>
 
 ## 📄 License
