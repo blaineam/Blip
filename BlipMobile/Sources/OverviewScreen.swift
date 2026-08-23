@@ -6,13 +6,22 @@ import SwiftUI
 
 struct OverviewScreen: View {
     @ObservedObject var stats: DeviceStats
+    @Environment(\.horizontalSizeClass) private var hSize
+
+    /// iPhone portrait (compact width): the classic two-up. iPad / regular width:
+    /// adaptive so the grid fills wide canvases (4-up on a 13" iPad).
+    /// (.adaptive(minimum: 240) alone collapsed iPhone portrait to ONE column —
+    /// 408pt of content can't fit two 240pt minimums. Field-caught.)
+    private var columns: [GridItem] {
+        hSize == .regular ? [GridItem(.adaptive(minimum: 240), spacing: 12)]
+                          : [GridItem(.flexible()), GridItem(.flexible())]
+    }
 
     var body: some View {
         NavigationStack {
             ScrollView {
                 suggestions
-                // Adaptive: two columns on iPhone, three-plus on iPad — the grid fills the canvas.
-                LazyVGrid(columns: [GridItem(.adaptive(minimum: 240), spacing: 12)], spacing: 12) {
+                LazyVGrid(columns: columns, spacing: 12) {
                     card(cpuCard) { CPUDetailScreen(stats: stats) }
                     card(memoryCard) { MemoryDetailScreen(stats: stats) }
                     card(storageCard) { StorageDetailScreen(stats: stats) }
