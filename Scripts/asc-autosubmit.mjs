@@ -439,7 +439,7 @@ async function main() {
 	// already handed it to TestFlight, and a VALID build is TestFlight-installable. No App Store
 	// version, no notes, no review submission.
 	if (args.testflightOnly) {
-		ok(`TestFlight-only: ${args.platforms.map((p) => `${p} build ${byPlatform[p].number}`).join(', ')} VALID — testers have it. Stopping before any App Store version.`);
+		console.log(`✓ TestFlight-only: ${args.platforms.map((p) => `${p} build ${byPlatform[p].number}`).join(', ')} VALID — testers have it. Stopping before any App Store version.`);
 		process.exit(0);
 	}
 
