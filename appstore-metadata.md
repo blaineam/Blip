@@ -54,12 +54,15 @@ system monitor,cpu usage,memory pressure,menu bar,activity monitor,gpu,battery h
 See your Mac's vitals at a glance. CPU, memory, disk, GPU, network, battery, fans, and thermals — all live in your menu bar. Tiny footprint. Zero dependencies.
 
 ## whats_new
-One window, not two.
+2.0.0 — Blip comes to iPhone and iPad, and Blip Bench arrives everywhere.
 
-+ Fixed: Blip opened a second, empty "Support" window at launch and left it there for the whole session. It's gone — Blip is a menu bar app again, with no window until you open Settings.
-+ Settings no longer offers "Open Support in Its Own Window". The support and feedback options were already on that same screen; the button just re-opened them somewhere else.
-* The version shown in Settings and in the popover footer is now read from the app itself, so it can't drift from the version you actually installed.
-
++ New: Blip for iOS/iPadOS — live CPU, memory, storage, battery, thermal and network cards with drill-in details, tap-to-copy, and honest suggestions.
++ New: Blip Bench — CPU, memory, GPU and Neural Engine throughput in fixed reference units, comparable across every Mac, iPhone and iPad running Blip, with a sustained phase that measures thermal throttling.
++ New: Speed tests with download and upload charted separately, idle vs under-load latency (bufferbloat), per-activity connection grades, history, and share cards.
++ New: Ping and traceroute on iOS, with an offline GeoIP hop map.
++ New: Disk speed tests on iOS — internal storage or any volume in Files.
++ New: Home Screen widgets (bench score, storage, last speed test) and Shortcuts support.
+* Mac: device names now always read as the marketing name on Apple Silicon.
 
 ## marketing_url
 https://wemiller.com/apps/blip/
