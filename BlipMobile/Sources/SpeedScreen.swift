@@ -1,16 +1,20 @@
 import SwiftUI
 
+// The Speed tab, second edition. Source menu chooses the public OpenSpeedTest service or
+// your own server (address lives in Settings, with a link straight to it); results keep a
+// capped history; any result can go out the share sheet as an image + text.
+
 struct SpeedScreen: View {
     @ObservedObject var tester: MobileSpeedTester
     @ObservedObject var stats: DeviceStats
     @State private var liveCurve: [Double] = []
-    @FocusState private var serverFocused: Bool
 
     var body: some View {
         NavigationStack {
             ScrollView {
                 VStack(alignment: .leading, spacing: 16) {
                     pathBanner
+                    sourceMenu
                     gauge
                     if tester.isRunning || !liveCurve.isEmpty {
                         Sparkline(values: liveCurve, tint: .teal, height: 60)
@@ -18,13 +22,20 @@ struct SpeedScreen: View {
                                 if phase == .download { liveCurve = [] }
                             }
                     }
-                    serverField
                     runButton
-                    if let r = tester.lastResult { resultCard(r) }
+                    if let r = tester.lastResult, !tester.isRunning {
+                        resultCard(r, isLatest: true)
+                    }
+                    historySection
                 }
                 .padding()
             }
             .navigationTitle("Speed")
+            .toolbar {
+                ToolbarItem(placement: .topBarTrailing) {
+                    NavigationLink { SettingsScreen() } label: { Image(systemName: "gearshape") }
+                }
+            }
         }
     }
 
@@ -41,6 +52,52 @@ struct SpeedScreen: View {
         .font(.footnote)
         .foregroundStyle(.secondary)
     }
+
+    // MARK: - Source (#feedback: dropdown for public vs configured, with a configure link)
+
+    private var sourceMenu: some View {
+        HStack {
+            Menu {
+                Picker("Source", selection: $tester.source) {
+                    ForEach(SpeedSource.allCases) { source in
+                        if source == .custom && MobileSpeedTester.customServer.isEmpty {
+                            // still selectable — the run button explains what's missing
+                            Label(source.label, systemImage: "exclamationmark.circle").tag(source)
+                        } else {
+                            Text(sourceTitle(source)).tag(source)
+                        }
+                    }
+                }
+            } label: {
+                HStack(spacing: 6) {
+                    Image(systemName: tester.source == .publicWidget ? "globe" : "server.rack")
+                    Text(sourceTitle(tester.source))
+                    Image(systemName: "chevron.up.chevron.down").font(.caption2)
+                }
+                .font(.callout.weight(.medium))
+                .padding(.horizontal, 12).padding(.vertical, 8)
+                .background(.quaternary.opacity(0.5), in: Capsule())
+            }
+            .disabled(tester.isRunning)
+            Spacer()
+            NavigationLink { SettingsScreen() } label: {
+                Text(MobileSpeedTester.customServer.isEmpty && tester.source == .custom
+                     ? "Set server…" : "Configure")
+                    .font(.footnote)
+            }
+        }
+    }
+
+    private func sourceTitle(_ source: SpeedSource) -> String {
+        switch source {
+        case .publicWidget: return "OpenSpeedTest (public)"
+        case .custom:
+            let server = MobileSpeedTester.customServer
+            return server.isEmpty ? "My server (not set)" : server
+        }
+    }
+
+    // MARK: - Gauge
 
     private var gauge: some View {
         VStack(spacing: 4) {
@@ -63,6 +120,7 @@ struct SpeedScreen: View {
     private var phaseLabel: String {
         switch tester.phase {
         case .idle: return "Mbps"
+        case .connecting: return "Connecting…"
         case .download: return "Mbps · downloading"
         case .upload: return "Mbps · uploading"
         case .done: return "Mbps · down"
@@ -70,23 +128,8 @@ struct SpeedScreen: View {
         }
     }
 
-    private var serverField: some View {
-        VStack(alignment: .leading, spacing: 4) {
-            Text("OpenSpeedTest server").font(.caption).foregroundStyle(.secondary)
-            TextField("192.168.1.50:3000", text: $tester.serverBase)
-                .textFieldStyle(.roundedBorder)
-                .keyboardType(.URL)
-                .textInputAutocapitalization(.never)
-                .autocorrectionDisabled()
-                .focused($serverFocused)
-            Text("Self-hosted OpenSpeedTest (Docker) or any compatible server — same rule as Blip for Mac: open-source endpoints only, nothing reverse-engineered.")
-                .font(.caption2).foregroundStyle(.tertiary)
-        }
-    }
-
     private var runButton: some View {
         Button {
-            serverFocused = false
             tester.toggle(interface: stats.snapshot.interfaceType)
         } label: {
             Text(tester.isRunning ? "Cancel" : "Run Speed Test")
@@ -96,20 +139,52 @@ struct SpeedScreen: View {
         .tint(tester.isRunning ? .red : .teal)
     }
 
-    private func resultCard(_ r: MobileSpeedResult) -> some View {
-        HStack(spacing: 20) {
-            VStack(alignment: .leading) {
+    // MARK: - Results + history
+
+    @ViewBuilder
+    private var historySection: some View {
+        let older = tester.history.dropLast()
+        if !older.isEmpty {
+            VStack(alignment: .leading, spacing: 6) {
+                Text("History").font(.headline)
+                ForEach(older.reversed()) { r in
+                    resultCard(r, isLatest: false)
+                }
+            }
+        }
+    }
+
+    private func resultCard(_ r: MobileSpeedResult, isLatest: Bool) -> some View {
+        HStack(spacing: 16) {
+            VStack(alignment: .leading, spacing: 2) {
                 Label(String(format: "%.0f Mbps", r.downMbps), systemImage: "arrow.down")
                 if let up = r.upMbps {
                     Label(String(format: "%.0f Mbps", up), systemImage: "arrow.up")
                 }
+                if let ping = r.pingMs {
+                    Label(String(format: "%.0f ms", ping), systemImage: "clock")
+                        .font(.caption).foregroundStyle(.secondary)
+                }
             }
-            .font(.system(.body, design: .rounded).weight(.semibold))
+            .font(isLatest ? .system(.body, design: .rounded).weight(.semibold)
+                           : .system(.subheadline, design: .rounded))
             Spacer()
-            Text(r.date.formatted(date: .omitted, time: .shortened))
-                .font(.caption).foregroundStyle(.secondary)
+            VStack(alignment: .trailing, spacing: 2) {
+                Text(r.date.formatted(date: .abbreviated, time: .shortened))
+                Text("\(r.source) · \(r.interface)").lineLimit(1)
+            }
+            .font(.caption).foregroundStyle(.secondary)
+            ShareLink(
+                item: SharePayload(image: ShareCard.render(SpeedShareCardView(result: r)) ?? UIImage(),
+                                   text: ShareCard.speedText(r)),
+                preview: SharePreview(String(format: "%.0f Mbps", r.downMbps),
+                                      image: Image(uiImage: ShareCard.render(SpeedShareCardView(result: r)) ?? UIImage()))
+            ) {
+                Image(systemName: "square.and.arrow.up").font(.callout)
+            }
+            .buttonStyle(.borderless)
         }
         .padding(12)
-        .background(.quaternary.opacity(0.5), in: RoundedRectangle(cornerRadius: 12))
+        .background(.quaternary.opacity(isLatest ? 0.5 : 0.3), in: RoundedRectangle(cornerRadius: 12))
     }
 }

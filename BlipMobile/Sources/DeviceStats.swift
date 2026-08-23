@@ -1,5 +1,8 @@
 import Foundation
 import Network
+#if canImport(CoreTelephony)
+import CoreTelephony
+#endif
 #if canImport(UIKit)
 import UIKit
 #endif
@@ -54,11 +57,16 @@ struct DeviceSnapshot: Sendable, Equatable {
     var storageOpportunistic: Int64 = 0 // free if the system purges caches — the optimistic tier
     var localIPs: [String] = []        // per-interface IPv4, "en0 192.168.1.7" style
     var radioTech: String?             // 5G / LTE / … on cellular devices
+    var vpnActive = false              // a utun/ipsec interface carries an address
 
     var storageUsed: Int64 { max(0, storageTotal - storageFree) }
     var storagePercentUsed: Double {
         storageTotal > 0 ? Double(storageUsed) / Double(storageTotal) * 100 : 0
     }
+    /// Human name for the hardware, mapped from the identifier; falls back to the codename.
+    var marketingName: String { DeviceNames.name(for: model) }
+    /// Wall-clock uptime derived from kern.boottime — includes time asleep, unlike systemUptime.
+    var bootUptime: TimeInterval? { bootDate.map { Date().timeIntervalSince($0) } }
     var thermalLabel: String {
         switch thermalState {
         case 0: return "Nominal"
@@ -78,6 +86,28 @@ final class DeviceStats: ObservableObject {
     @Published private(set) var thermalHistory = SampleRing(capacity: 90)
     private var lastCPUTicks: (user: UInt64, system: UInt64, idle: UInt64, nice: UInt64)?
 
+    @Published private(set) var wanIP: String?
+    @Published private(set) var wanIPLoading = false
+
+    /// Tap-to-reveal, same as the Mac panel: never fetched until asked (the fetch itself
+    /// discloses your address to a third-party service — that should be a choice).
+    func revealWANIP() {
+        guard !wanIPLoading else { return }
+        wanIPLoading = true
+        Task { [weak self] in
+            defer { Task { @MainActor in self?.wanIPLoading = false } }
+            guard let url = URL(string: "https://api.ipify.org") else { return }
+            if let (data, _) = try? await URLSession.shared.data(from: url),
+               let ip = String(data: data, encoding: .utf8)?.trimmingCharacters(in: .whitespacesAndNewlines),
+               !ip.isEmpty {
+                await MainActor.run { [weak self] in self?.wanIP = ip }
+            }
+        }
+    }
+
+    #if canImport(CoreTelephony)
+    private static let telephony = CTTelephonyNetworkInfo()
+    #endif
     private let pathMonitor = NWPathMonitor()
     private var timer: Timer?
     private var lastPath: NWPath?
@@ -197,7 +227,25 @@ final class DeviceStats: ObservableObject {
                 }
             }
             s.localIPs = seen
+            s.vpnActive = seen.contains { $0.hasPrefix("utun") || $0.hasPrefix("ipsec") || $0.hasPrefix("tun") }
         }
+
+        #if canImport(CoreTelephony)
+        // Current radio access technology (5G/LTE/…) — carrier NAMES are gone since iOS 16,
+        // but the radio generation is still public signal. One cached instance: constructing
+        // CTTelephonyNetworkInfo per tick opens a fresh XPC connection (log-spams simulators,
+        // wastes work on device).
+        let radio = Self.telephony.serviceCurrentRadioAccessTechnology?.values.first
+        s.radioTech = radio.map { raw in
+            switch raw {
+            case CTRadioAccessTechnologyNR, CTRadioAccessTechnologyNRNSA: return "5G"
+            case CTRadioAccessTechnologyLTE: return "LTE"
+            case CTRadioAccessTechnologyWCDMA, CTRadioAccessTechnologyHSDPA, CTRadioAccessTechnologyHSUPA: return "3G"
+            case CTRadioAccessTechnologyEdge, CTRadioAccessTechnologyGPRS: return "2G"
+            default: return raw.replacingOccurrences(of: "CTRadioAccessTechnology", with: "")
+            }
+        }
+        #endif
     }
 
     func sample() {

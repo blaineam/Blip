@@ -27,6 +27,7 @@ struct Sparkline: View {
         .chartYAxis(.hidden)
         .chartYScale(domain: fixedDomain ?? autoDomain)
         .frame(height: height)
+        .clipped()
         .accessibilityHidden(true)
     }
 
@@ -53,6 +54,7 @@ struct ThermalSteps: View {
         .chartYAxis(.hidden)
         .chartYScale(domain: -0.2...3.2)
         .frame(height: height)
+        .clipped()
         .accessibilityHidden(true)
     }
 

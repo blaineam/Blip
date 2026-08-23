@@ -41,6 +41,21 @@ Plus:
 - **Launch at login** — one toggle in settings
 - **Shortcuts support (App Intents)** — automate Blip from the Shortcuts app: **Get System Metric** (37 metrics, chainable numeric results, optional 2-minute average/min/max for charted metrics), **Run Drive Speed Test** on any mounted volume, **Run Network Speed Test** (public or self-hosted OpenSpeedTest), **Run/Stop Traceroute** with an MTR summary, **Open Traceroute Map**, and **Get/Set Setting** over a curated, validated settings catalog
 
+## 📱 Blip for iOS / iPadOS
+
+Blip 2.0 brings a native companion app (`BlipMobile/`) to iPhone and iPad — the honest subset of what iOS exposes to a sandboxed app, plus the things a phone does best:
+
+- **Overview** — CPU, memory, storage, battery, thermal, network and device cards, each opening a full detail screen; tap-to-copy on reference values, tap-to-reveal WAN IP, VPN + radio (5G/LTE) awareness, boot-derived uptime, human device names, and honest suggestions when a real signal fires (storage nearly full, throttling, Low Data Mode…)
+- **Blip Bench** — the same fixed-reference-unit benchmark as the Mac (scores are comparable across every device running Blip), with an animated running view and sustained-phase throttle measurement
+- **Speed** — public OpenSpeedTest service or your own server, live curve, capped history, share cards
+- **Network** — ping and traceroute over sandbox-legal ICMP datagram sockets, with offline GeoIP hop annotations (same DB-IP database as the Mac)
+- **Storage** — disk speed tests on internal storage or any Files-accessible external volume
+- **Widgets** — bench score, storage, last speed test; every fact stamped with its age
+- **Shortcuts** — Run Benchmark, Run Speed Test, Get Device Snapshot (Markdown)
+- **Snapshot export** — one file with everything Blip knows, ready for the share sheet
+
+Same repo, same `xcodegen` project: build the `BlipMobile` scheme. Ships on the App Store as **Blip Stats** for iOS.
+
 ## 📦 Install
 
 ### Mac App Store

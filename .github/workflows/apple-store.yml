@@ -1,6 +1,8 @@
 name: apple-store
 
-# Ship a tagged release to the Mac App Store — ported from Haven's pipeline (same script).
+# Ship a tagged release to the App Store — ported from Haven's pipeline (same script).
+# Two lanes, one workflow: Blip for Mac (com.blainemiller.Blip / MAC_OS) and Blip for
+# iOS (com.blainemiller.BlipMobile / IOS) — each with its own ASC app + Xcode Cloud product.
 #   vX.Y.Z      → find/start the Xcode Cloud build of this commit, wait, create the ASC version,
 #                 set What's New from appstore-metadata*.md (all locales), attach, submit.
 #   vX.Y.Z-rc.N → nothing (TestFlight already gets every push).
@@ -65,7 +67,7 @@ jobs:
           echo "is_rc=$is_rc" >> "$GITHUB_OUTPUT"
           echo "commit=$commit" >> "$GITHUB_OUTPUT"
 
-  submit:
+  submit-mac:
     needs: meta
     # rc → TestFlight-only: ensure the Xcode Cloud build of the tagged commit exists and reaches
     # VALID (testers have it); no App Store version or review. Full releases submit as before.
@@ -90,7 +92,7 @@ jobs:
       - uses: actions/setup-node@v4
         if: steps.gate.outputs.ready == 'true'
         with: { node-version: "22" }
-      - name: Submit to the App Store
+      - name: Submit Blip for Mac
         if: steps.gate.outputs.ready == 'true'
         env:
           ASC_API_KEY_ID: ${{ secrets.ASC_API_KEY_ID }}
@@ -109,4 +111,49 @@ jobs:
           [ "${IS_RC:-false}" = "true" ] && extra+=(--testflight-only)
           node Scripts/asc-autosubmit.mjs --version "$VERSION" --commit "$COMMIT" --tag "v$VERSION" \
             --bundle-id com.blainemiller.Blip --platforms MAC_OS \
+            --wait-build 120 --wait-process 45 --notes-dir . "${extra[@]}"
+
+  submit-ios:
+    needs: meta
+    # The iOS twin of submit-mac — Blip for iOS ships from the same tag.
+    runs-on: ubuntu-latest
+    timeout-minutes: 240
+    steps:
+      - uses: actions/checkout@v4
+        with: { fetch-depth: 0 }
+      - name: Gate on the ASC API secrets
+        id: gate
+        env:
+          KEY_ID: ${{ secrets.ASC_API_KEY_ID }}
+          ISSUER: ${{ secrets.ASC_API_ISSUER_ID }}
+          P8: ${{ secrets.ASC_API_KEY_P8 }}
+        run: |
+          if [ -z "$KEY_ID" ] || [ -z "$ISSUER" ] || [ -z "$P8" ]; then
+            echo "::notice title=apple-store skipped::ASC API secrets not set — add ASC_API_KEY_ID / ASC_API_ISSUER_ID / ASC_API_KEY_P8 (the same App Manager key Haven uses works account-wide)"
+            echo "ready=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "ready=true" >> "$GITHUB_OUTPUT"
+          fi
+      - uses: actions/setup-node@v4
+        if: steps.gate.outputs.ready == 'true'
+        with: { node-version: "22" }
+      - name: Submit Blip for iOS
+        if: steps.gate.outputs.ready == 'true'
+        env:
+          ASC_API_KEY_ID: ${{ secrets.ASC_API_KEY_ID }}
+          ASC_API_ISSUER_ID: ${{ secrets.ASC_API_ISSUER_ID }}
+          ASC_API_KEY_P8: ${{ secrets.ASC_API_KEY_P8 }}
+          VERSION: ${{ needs.meta.outputs.version }}
+          COMMIT: ${{ needs.meta.outputs.commit }}
+          IS_RC: ${{ needs.meta.outputs.is_rc }}
+          DRY_RUN: ${{ github.event.inputs.dry_run }}
+          SUBMIT_FLAG: ${{ vars.APPLE_STORE_SUBMIT }}
+        run: |
+          set -euo pipefail
+          extra=()
+          [ "${DRY_RUN:-false}" = "true" ] && extra+=(--dry-run)
+          [ "${SUBMIT_FLAG:-true}" = "false" ] && extra+=(--no-submit)
+          [ "${IS_RC:-false}" = "true" ] && extra+=(--testflight-only)
+          node Scripts/asc-autosubmit.mjs --version "$VERSION" --commit "$COMMIT" --tag "v$VERSION" \
+            --bundle-id com.blainemiller.BlipMobile --platforms IOS \
             --wait-build 120 --wait-process 45 --notes-dir . "${extra[@]}"

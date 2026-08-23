@@ -1,29 +1,37 @@
 import SwiftUI
 
+// The Overview grid: each card is a summary AND a door — tap for the full detail screen
+// (field feedback: details grouped under each tile, not one flat list). The gear opens
+// Settings; the doc button exports a one-file snapshot of everything.
+
 struct OverviewScreen: View {
     @ObservedObject var stats: DeviceStats
 
     var body: some View {
         NavigationStack {
             ScrollView {
+                suggestions
                 LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible())], spacing: 12) {
-                    cpuCard
-                    storageCard
-                    batteryCard
-                    thermalCard
-                    memoryCard
-                    networkCard
-                    systemCard
+                    card(cpuCard) { CPUDetailScreen(stats: stats) }
+                    card(memoryCard) { MemoryDetailScreen(stats: stats) }
+                    card(storageCard) { StorageDetailScreen(stats: stats) }
+                    card(networkCard) { NetworkDetailScreen(stats: stats) }
+                    card(batteryCard) { BatteryDetailScreen(stats: stats) }
+                    card(thermalCard) { ThermalDetailScreen(stats: stats) }
+                    card(systemCard) { DeviceDetailScreen(stats: stats) }
                 }
                 .padding()
-                detailsSection
-                    .padding(.horizontal)
-                    .padding(.bottom, 24)
             }
             .navigationTitle("Blip")
             .toolbar {
                 ToolbarItem(placement: .topBarTrailing) {
-                    NavigationLink { AboutScreen() } label: {
+                    ShareLink(item: SnapshotExport.file(for: stats.snapshot, speedHistory: nil),
+                              preview: SharePreview("Blip Snapshot", image: Image(systemName: "doc.text"))) {
+                        Image(systemName: "square.and.arrow.up.on.square")
+                    }
+                }
+                ToolbarItem(placement: .topBarTrailing) {
+                    NavigationLink { SettingsScreen() } label: {
                         Image(systemName: "gearshape")
                     }
                 }
@@ -32,13 +40,42 @@ struct OverviewScreen: View {
         }
     }
 
+    private func card<D: View>(_ content: some View, @ViewBuilder destination: () -> D) -> some View {
+        NavigationLink { destination() } label: { content }
+            .buttonStyle(.plain)
+    }
+
     private var s: DeviceSnapshot { stats.snapshot }
+
+    // MARK: - Honest, actionable suggestions (only ever shown when one actually applies)
+
+    @ViewBuilder
+    private var suggestions: some View {
+        let items = Suggestions.evaluate(s)
+        if !items.isEmpty {
+            VStack(alignment: .leading, spacing: 8) {
+                ForEach(items) { item in
+                    HStack(alignment: .top, spacing: 8) {
+                        Image(systemName: item.icon).foregroundStyle(item.tint)
+                        Text(item.text).font(.footnote)
+                        Spacer(minLength: 0)
+                    }
+                }
+            }
+            .padding(12)
+            .background(.quaternary.opacity(0.5), in: RoundedRectangle(cornerRadius: 14))
+            .padding(.horizontal)
+            .padding(.top, 4)
+        }
+    }
+
+    // MARK: - Cards
 
     private var cpuCard: some View {
         StatCard(icon: "cpu", tint: .blue, title: "CPU") {
             Text("\(Int(s.cpuUsagePercent))%")
                 .font(.system(size: 28, weight: .bold, design: .rounded))
-            Sparkline(values: stats.cpuHistory.values, tint: .blue, fixedDomain: 0...100)
+            Sparkline(values: stats.cpuHistory.values, tint: .blue, height: 24, fixedDomain: 0...100)
         }
     }
 
@@ -105,47 +142,15 @@ struct OverviewScreen: View {
 
     private var systemCard: some View {
         StatCard(icon: "iphone.gen3", tint: .purple, title: "Device") {
-            Text(s.model)
+            Text(s.marketingName)
                 .font(.system(size: 18, weight: .bold, design: .rounded))
                 .lineLimit(1).minimumScaleFactor(0.6)
-            Text("Up \(Fmt.uptime(s.uptime))")
+            Text("Up \(Fmt.uptime(s.bootUptime ?? s.uptime))")
                 .font(.caption2).foregroundStyle(.secondary)
         }
     }
 
-    /// The "as many stats as possible" section — every row a public API tells the truth about.
-    private var detailsSection: some View {
-        VStack(alignment: .leading, spacing: 6) {
-            Text("Details").font(.headline).padding(.bottom, 2)
-            detailRow("Memory free", Fmt.bytes(Int64(s.memFree)))
-            detailRow("Memory active", Fmt.bytes(Int64(s.memActive)))
-            detailRow("Memory wired", Fmt.bytes(Int64(s.memWired)))
-            detailRow("Memory compressed", Fmt.bytes(Int64(s.memCompressed)))
-            detailRow("This app's footprint", Fmt.bytes(Int64(s.appFootprint)))
-            detailRow("Load average", String(format: "%.2f · %.2f · %.2f", s.load1, s.load5, s.load15))
-            detailRow("Cores", s.coresPerformance > 0
-                      ? "\(s.coresTotal) (\(s.coresPerformance)P + \(s.coresEfficiency)E)"
-                      : "\(s.coresTotal)")
-            if let boot = s.bootDate {
-                detailRow("Booted", boot.formatted(date: .abbreviated, time: .shortened))
-            }
-            detailRow("Storage (if caches purge)", Fmt.bytes(s.storageOpportunistic))
-            if let radio = s.radioTech { detailRow("Radio", radio) }
-            ForEach(s.localIPs, id: \.self) { ip in
-                detailRow("IP", ip)
-            }
-            detailRow("OS", s.osVersion)
-        }
-    }
-
-    private func detailRow(_ name: String, _ value: String) -> some View {
-        HStack {
-            Text(name).font(.caption).foregroundStyle(.secondary)
-            Spacer()
-            Text(value).font(.caption.weight(.medium)).textSelection(.enabled)
-        }
-        .padding(.vertical, 2)
-    }
+    // MARK: - Icons/tints
 
     private var batteryIcon: String {
         guard let level = s.batteryLevel else { return "battery.100" }
@@ -178,6 +183,7 @@ struct OverviewScreen: View {
         var notes: [String] = []
         if s.isExpensivePath { notes.append("metered") }
         if s.isConstrainedPath { notes.append("low data mode") }
+        if s.vpnActive { notes.append("VPN") }
         return notes.isEmpty ? "Current route" : notes.joined(separator: " · ")
     }
 }
@@ -190,15 +196,22 @@ struct StatCard<Content: View>: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
-            Label(title, systemImage: icon)
-                .font(.caption.weight(.semibold))
-                .foregroundStyle(tint)
+            HStack {
+                Label(title, systemImage: icon)
+                    .font(.caption.weight(.semibold))
+                    .foregroundStyle(tint)
+                Spacer()
+                Image(systemName: "chevron.right")
+                    .font(.caption2.weight(.semibold))
+                    .foregroundStyle(.tertiary)
+            }
             content
                 .frame(maxWidth: .infinity, alignment: .leading)
         }
         .padding(12)
         .frame(maxWidth: .infinity, minHeight: 110, alignment: .topLeading)
         .background(.quaternary.opacity(0.5), in: RoundedRectangle(cornerRadius: 14))
+        .contentShape(RoundedRectangle(cornerRadius: 14))
     }
 }
 
@@ -211,5 +224,42 @@ enum Fmt {
         if days > 0 { return "\(days)d \(hours)h" }
         if hours > 0 { return "\(hours)h \(mins)m" }
         return "\(mins)m"
+    }
+}
+
+// MARK: - Suggestions (#feedback: "if we can genuinely make useful suggestions, do")
+// Every rule keys off a signal iOS actually reports; nothing speculative, nothing scolding.
+
+enum Suggestions {
+    struct Item: Identifiable {
+        let id: String
+        let icon: String
+        let tint: Color
+        let text: String
+    }
+
+    static func evaluate(_ s: DeviceSnapshot) -> [Item] {
+        var out: [Item] = []
+        if s.storagePercentUsed > 92 {
+            out.append(.init(id: "storage", icon: "internaldrive", tint: .red,
+                             text: "Storage is nearly full (\(Fmt.bytes(s.storageFree)) left). iOS slows down and updates fail below ~1 GB — offload unused apps or large videos in Settings → General → iPhone Storage."))
+        }
+        if s.thermalState >= 2 {
+            out.append(.init(id: "thermal", icon: "thermometer.high", tint: .orange,
+                             text: "The device is running \(s.thermalLabel.lowercased()) — performance is being throttled. Take it off the charger or out of the sun; skip benchmarking until nominal."))
+        }
+        if s.lowPowerMode && s.batteryState == "Charging", let l = s.batteryLevel, l > 0.8 {
+            out.append(.init(id: "lpm", icon: "battery.100.bolt", tint: .yellow,
+                             text: "Low Power Mode is still on while charging above 80% — background refresh and performance stay reduced until you switch it off."))
+        }
+        if s.isConstrainedPath {
+            out.append(.init(id: "lowdata", icon: "arrow.down.circle", tint: .teal,
+                             text: "Low Data Mode is active on this connection — app downloads, quality, and sync are being limited. Intentional? It's per-network in Wi-Fi/Cellular settings."))
+        }
+        if s.memoryAppAvailable > 0 && s.memoryAppAvailable < 500 << 20 {
+            out.append(.init(id: "mem", icon: "memorychip", tint: .blue,
+                             text: "Memory available to apps is low (\(Fmt.bytes(Int64(s.memoryAppAvailable)))). Heavy apps may relaunch from scratch; closing camera- and game-class apps you're done with helps."))
+        }
+        return out
     }
 }

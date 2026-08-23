@@ -45,6 +45,10 @@ public final class BenchEngine: ObservableObject {
     @Published public private(set) var lastResult: BenchResult?
     @Published public private(set) var history: [BenchResult] = []
     @Published public private(set) var liveThermal: BenchThermalSample?
+    /// Category scores as each leg finishes mid-run — what lets the UI animate results in
+    /// as they land instead of sitting blank until the end. id "sustained" updates in place
+    /// each bucket with the CURRENT bucket's score relative to the first (percent).
+    @Published public private(set) var liveLegs: [BenchLiveLeg] = []
     @Published public private(set) var lastError: String?
 
     private let thermal: ThermalSource
@@ -73,16 +77,21 @@ public final class BenchEngine: ObservableObject {
         lastError = nil
         phase = .singleCore
         progress = 0
+        liveLegs = []
         cancelledFlag.reset()
         let flag = cancelledFlag
         let thermal = self.thermal
         task = Task { [weak self] in
-            let result = await Self.run(profile: profile, thermal: thermal, flag: flag) { [weak self] phase, progress, sample in
+            let result = await Self.run(profile: profile, thermal: thermal, flag: flag) { [weak self] phase, progress, sample, leg in
                 Task { @MainActor in
                     guard let self else { return }
                     self.phase = phase
                     self.progress = progress
                     if let sample { self.liveThermal = sample }
+                    if let leg {
+                        if let i = self.liveLegs.firstIndex(where: { $0.id == leg.id }) { self.liveLegs[i] = leg }
+                        else { self.liveLegs.append(leg) }
+                    }
                 }
             }
             await MainActor.run { [weak self] in
@@ -110,7 +119,7 @@ public final class BenchEngine: ObservableObject {
 
     /// One-shot run for intents/QA — no published state needed, returns the result directly.
     public static func runOnce(profile: BenchProfile, thermal: ThermalSource = NullThermalSource()) async -> BenchResult? {
-        await run(profile: profile, thermal: thermal, flag: CancelFlag()) { _, _, _ in }
+        await run(profile: profile, thermal: thermal, flag: CancelFlag()) { _, _, _, _ in }
     }
 
     // MARK: - The measurement itself (off the main actor)
@@ -119,7 +128,7 @@ public final class BenchEngine: ObservableObject {
         profile: BenchProfile,
         thermal: ThermalSource,
         flag: CancelFlag,
-        report: @escaping @Sendable (Phase, Double, BenchThermalSample?) -> Void
+        report: @escaping @Sendable (Phase, Double, BenchThermalSample?, BenchLiveLeg?) -> Void
     ) async -> BenchResult? {
         let cancelled: @Sendable () -> Bool = { flag.isSet || Task.isCancelled }
         let t = profile.perWorkloadSeconds
@@ -130,16 +139,17 @@ public final class BenchEngine: ObservableObject {
 
         return await Task.detached(priority: .userInitiated) { () -> BenchResult? in
             var progressSoFar = 0.0
-            func step(_ phase: Phase, _ weight: Double) {
+            func step(_ phase: Phase, _ weight: Double, _ leg: BenchLiveLeg? = nil) {
                 progressSoFar += weight
-                report(phase, min(progressSoFar, 1), nil)
+                report(phase, min(progressSoFar, 1), nil, leg)
             }
 
             // 1. Single-core mix.
-            report(.singleCore, 0, nil)
+            report(.singleCore, 0, nil, nil)
             let single = BenchWorkloads.cpuMix(seconds: t * 4, cancelled: cancelled)
             if cancelled() { return nil }
-            step(.multiCore, legWeight)
+            let singleCat = BenchScore.category("Single-core", single)
+            step(.multiCore, legWeight, BenchLiveLeg(id: "single", name: "Single-core", score: singleCat.score))
 
             // 2. Multicore: every core runs the mix concurrently; throughputs sum.
             let cores = max(2, Foundation.ProcessInfo.processInfo.activeProcessorCount)
@@ -156,7 +166,13 @@ public final class BenchEngine: ObservableObject {
                     .sorted { $0.id < $1.id }
             }
             if cancelled() { return nil }
-            step(.memory, legWeight)
+            let multiCat = BenchScore.category("All cores", multi.map {
+                WorkloadResult(id: "cpu." + $0.id.dropFirst(6), value: $0.value / Double(cores), unit: $0.unit)
+            })
+            // Multicore normalizes per-core against the same references, scaled back up: the
+            // category score then reflects total throughput relative to reference-per-core.
+            let multiScaled = BenchCategoryScore(name: multiCat.name, score: multiCat.score * Double(cores), results: multi)
+            step(.memory, legWeight, BenchLiveLeg(id: "multi", name: "All cores", score: multiScaled.score))
 
             // 3. Memory.
             let mem = [
@@ -164,12 +180,14 @@ public final class BenchEngine: ObservableObject {
                 BenchWorkloads.memoryLatency(seconds: t, cancelled: cancelled),
             ]
             if cancelled() { return nil }
-            step(.gpu, legWeight)
+            let memCat = BenchScore.category("Memory", mem)
+            step(.gpu, legWeight, BenchLiveLeg(id: "memory", name: "Memory", score: memCat.score))
 
             // 4. GPU (may be unavailable — category drops out, never zeroes).
             let gpu = BenchGPU.matmul(seconds: t * 2, cancelled: cancelled)
             if cancelled() { return nil }
-            step(.sustained, legWeight)
+            let gpuCat = gpu.map { BenchScore.category("GPU", [$0]) }
+            step(.sustained, legWeight, gpuCat.map { BenchLiveLeg(id: "gpu", name: "GPU", score: $0.score) })
 
             // 5. Sustained (full profile): repeat the multicore mix in buckets, sampling thermals.
             var throttle: Double?
@@ -199,7 +217,9 @@ public final class BenchEngine: ObservableObject {
                         fanRPM: thermal.fanRPM(),
                         thermalState: Foundation.ProcessInfo.processInfo.thermalState.rawValue)
                     samples.append(sample)
-                    report(.sustained, min(progressSoFar + sustainedWeight * Double(i + 1) / Double(buckets), 1), sample)
+                    let relative = bucketScores.first.map { $0 > 0 ? bucketScores[bucketScores.count - 1] / $0 * 100 : 100 }
+                    report(.sustained, min(progressSoFar + sustainedWeight * Double(i + 1) / Double(buckets), 1), sample,
+                           relative.map { BenchLiveLeg(id: "sustained", name: "Sustained", score: $0) })
                 }
                 if let first = bucketScores.first, first > 0, let last = bucketScores.last {
                     // Mean of the back half ÷ the first bucket: robust to a noisy single bucket.
@@ -208,16 +228,6 @@ public final class BenchEngine: ObservableObject {
                     _ = last
                 }
             }
-
-            let singleCat = BenchScore.category("Single-core", single)
-            let multiCat = BenchScore.category("All cores", multi.map {
-                WorkloadResult(id: "cpu." + $0.id.dropFirst(6), value: $0.value / Double(cores), unit: $0.unit)
-            })
-            // Multicore normalizes per-core against the same references, scaled back up: the
-            // category score then reflects total throughput relative to reference-per-core.
-            let multiScaled = BenchCategoryScore(name: multiCat.name, score: multiCat.score * Double(cores), results: multi)
-            let memCat = BenchScore.category("Memory", mem)
-            let gpuCat = gpu.map { BenchScore.category("GPU", [$0]) }
 
             let composite = BenchScore.overall([singleCat, multiScaled, memCat, gpuCat])
             var sysinfo = utsname(); uname(&sysinfo)
@@ -256,4 +266,14 @@ public final class LatestThermalBox: ThermalSource, @unchecked Sendable {
     }
     public func temperatureC() -> Double? { lock.lock(); defer { lock.unlock() }; return temp }
     public func fanRPM() -> Double? { lock.lock(); defer { lock.unlock() }; return rpm }
+}
+
+/// A category score surfaced mid-run, as its leg completes.
+public struct BenchLiveLeg: Sendable, Equatable, Identifiable {
+    public let id: String        // "single" / "multi" / "memory" / "gpu" / "sustained"
+    public let name: String
+    public let score: Double     // category units; for "sustained", percent of first bucket
+    public init(id: String, name: String, score: Double) {
+        self.id = id; self.name = name; self.score = score
+    }
 }

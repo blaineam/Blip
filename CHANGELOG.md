@@ -2,6 +2,29 @@
 
 ## Unreleased
 
+### Added — Blip for iOS field-feedback wave
+- **Per-card drill-in details.** Every Overview card (CPU, Memory, Storage, Network, Battery, Thermal, Device) opens a full detail screen; the flat "Details" list is gone. Reference-worthy values (IPs, model identifier, OS) carry tap-to-copy buttons with haptic + checkmark feedback.
+- **Human device names.** "iPhone18,2" now reads "iPhone 17 Pro Max" — a codename→marketing-name table with an honest fallback (unknown ids show the codename; simulators say so).
+- **Uptime derived from boot.** The Device card and detail screen show wall-clock uptime from `kern.boottime` (includes sleep) alongside awake time.
+- **WAN IP, tap-to-reveal.** The Network detail screen fetches your public address from api.ipify.org **only when you tap reveal** — checking your public IP necessarily tells that service your IP, so Blip never does it unprompted. VPN presence is detected from utun/ipsec interfaces; cellular devices show the radio generation (5G/LTE).
+- **Ping + Traceroute on iOS** — a new Network tab. ICMP datagram sockets (the sandbox-legal mechanism): live RTT sparkline, loss/avg/min–max stats, per-hop traceroute with timeout rows and a checkered flag at the destination. Targets configurable in Settings; hops get city/country annotations once the offline GeoIP database (DB-IP Lite, same one as the Mac) is downloaded in Settings.
+- **Speed test, second edition.** The 25 Mbps ceiling is fixed — byte counting moved from a per-byte `AsyncBytes` loop into a `URLSession` delegate that sees whole buffers, the same way the Mac counts. The Speed tab gains a source menu (public OpenSpeedTest service via an invisible-WebKit port of the Mac's widget runner, or your own server), a capped 10-run history, and per-result share buttons. The server address lives in Settings now, with a "Configure" link from the tab.
+- **Disk speed tests on iOS.** Storage detail hosts sequential write/read tests with caching disabled and the flush included — internal storage, or any folder you pick in Files (USB-C drives, SMB shares).
+- **Animated bench running state.** The Bench tab narrates the run: each leg's score animates in with a checkmark the moment it lands, the active leg pulses with breathing dots, and the sustained phase shows live "% held" plus thermal state. No more blank screen with a progress bar.
+- **Share cards.** Benchmark and speed results share as a rendered image + accompanying text (ImageRenderer, dark branded card) anywhere iOS shares go.
+- **Snapshot export.** One toolbar button writes everything Blip knows — device, CPU, memory, storage, network, recent speed tests — to a timestamped Markdown file for the share sheet.
+- **Shortcuts support on iOS**: Run Benchmark (quick/full), Run Speed Test, and Get Device Snapshot (returns the Markdown) — all registered as App Shortcuts.
+- **Honest suggestions.** The Overview surfaces actionable advice only when a real signal fires: storage nearly full, thermal throttling, Low Power Mode while charged, Low Data Mode active, low app-available memory.
+- **MillerKit settings.** The iOS Settings screen now uses the suite's shared Support/About/rating sections, plus Blip-specific knobs (speed server, ping/traceroute targets, GeoIP database).
+- **App icon for iOS** — the Mac's sonar-and-bars artwork, flattened opaque at 1024 for the iOS squircle.
+- **CI: `apple-store` grew a second lane** — Blip for iOS (com.blainemiller.BlipMobile) submits/TestFlights alongside the Mac app from the same tag.
+
+### Fixed
+- **Memory card sparkline bled past the card's bottom edge** — compact charts now clip to their frames (Swift Charts paints marks outside the plot with hidden axes).
+- **Traceroute never saw its echo reply** — XNU delivers the full IP datagram on ICMP datagram sockets (unlike Linux), so the ICMP type must be read past the IP header. Field-caught: hops kept probing past the destination.
+- **CoreTelephony XPC spam** — one cached `CTTelephonyNetworkInfo` instead of a fresh XPC connection every 2-second sample tick.
+- **Bench history test polluted the real store** — the app-group round-trip test now snapshots and restores `benchHistory.v1`, so fake composite-1 entries no longer linger in the visible history after a test run.
+
 ### Added
 - **Settings → "Support Future Development"** (MillerKit 1.2.0): a heart row in the *Enjoying Blip?* block that opens wemiller.com/support — GitHub Sponsors, Ko-fi, a one-time tip. Blip is free on every channel, so the ask lives where the rating ask already does.
 
