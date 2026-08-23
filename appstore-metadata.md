@@ -51,12 +51,12 @@ Measure what your machine can actually do. Blip Bench scores CPU (single and all
 
 Now on iPhone and iPad:
 
-Blip Stats 2.0 is a universal purchase — the same app on your Mac, iPhone, and iPad. The iOS app brings live device cards with drill-in details, Blip Bench, dual-curve speed tests with idle vs under-load latency and per-activity connection grades, ping and traceroute with an offline GeoIP hop map, disk speed tests, Home Screen widgets, Shortcuts, and one-file stats snapshots.
+Blip Stats 2.0 is one free app across your Mac, iPhone, and iPad. The iOS app brings live device cards with drill-in details, Blip Bench, dual-curve speed tests with idle vs under-load latency and per-activity connection grades, ping and traceroute with an offline GeoIP hop map, disk speed tests, Home Screen widgets, Shortcuts, and one-file stats snapshots.
 
 If you've been looking for a system monitor that's fast, accurate, beautiful, and respectful of your Mac's resources, Blip is it.
 
 ## description_ios
-Blip puts honest device stats, a real benchmark, and serious network tools on your iPhone and iPad — the same featherlight philosophy as Blip for Mac, in one universal purchase.
+Blip puts honest device stats, a real benchmark, and serious network tools on your iPhone and iPad — the same featherlight philosophy as Blip for Mac — free, in one app.
 
 Overview — live cards for CPU, memory, storage, battery, thermal state, and network. Tap any card for full details: memory breakdown, load averages, core counts, boot-derived uptime, local IPs with tap-to-copy, tap-to-reveal public IP, VPN and radio awareness. Honest suggestions appear only when a real signal fires.
 
@@ -76,7 +76,7 @@ No accounts, no ads, no tracking. Everything Blip shows is what iOS honestly exp
 system monitor,cpu usage,memory pressure,menu bar,activity monitor,gpu,battery health,fan speed,mac
 
 ## promotional_text
-Now on iPhone and iPad too. Live vitals, Blip Bench with Neural Engine scoring, graded speed tests, traceroute with a hop map — one universal purchase across Mac and iOS.
+Now on iPhone and iPad too. Live vitals, Blip Bench with Neural Engine scoring, graded speed tests, traceroute with a hop map — one free app across Mac and iOS.
 
 ## whats_new
 2.0.0 — Blip comes to iPhone and iPad, and Blip Bench arrives everywhere.

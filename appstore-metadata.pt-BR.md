@@ -53,12 +53,12 @@ Meça o que sua máquina realmente consegue. O Blip Bench pontua CPU (núcleo ú
 
 Agora no iPhone e no iPad:
 
-O Blip Stats 2.0 é uma compra universal — o mesmo app no seu Mac, iPhone e iPad. O app de iOS traz cartões ao vivo com detalhes, Blip Bench, testes de velocidade com curvas separadas, latência ociosa e sob carga com notas por atividade, ping e traceroute com mapa GeoIP off-line, testes de disco, widgets, Atalhos e instantâneos de um arquivo.
+O Blip Stats 2.0 é um único app gratuito no seu Mac, iPhone e iPad. O app de iOS traz cartões ao vivo com detalhes, Blip Bench, testes de velocidade com curvas separadas, latência ociosa e sob carga com notas por atividade, ping e traceroute com mapa GeoIP off-line, testes de disco, widgets, Atalhos e instantâneos de um arquivo.
 
 Se você procurava um monitor de sistema rápido, preciso, bonito e respeitoso com os recursos do seu Mac, o Blip é ele.
 
 ## description_ios
-O Blip traz estatísticas honestas, um benchmark de verdade e ferramentas de rede sérias para seu iPhone e iPad — a mesma filosofia leve do Blip para Mac, em uma compra universal.
+O Blip traz estatísticas honestas, um benchmark de verdade e ferramentas de rede sérias para seu iPhone e iPad — a mesma filosofia leve do Blip para Mac — grátis, em um único app.
 
 Visão geral — cartões ao vivo de CPU, memória, armazenamento, bateria, estado térmico e rede. Toque em um cartão para todos os detalhes: detalhamento de memória, cargas médias, núcleos, tempo ativo desde a inicialização, IPs locais com copiar ao toque, IP público sob demanda, detecção de VPN e rádio. Sugestões honestas só aparecem com um sinal real.
 
@@ -78,7 +78,7 @@ Sem contas, sem anúncios, sem rastreamento. O Blip mostra apenas o que o iOS ex
 monitor de sistema,cpu,uso de memória,barra de menus,gpu,bateria,ventoinha,temperatura,mac
 
 ## promotional_text
-Agora também no iPhone e iPad. Dados ao vivo, Blip Bench com Neural Engine, testes com nota, traceroute com mapa — uma compra universal para Mac e iOS.
+Agora também no iPhone e iPad. Dados ao vivo, Blip Bench com Neural Engine, testes com nota, traceroute com mapa — um único app gratuito para Mac e iOS.
 
 
 ## whats_new

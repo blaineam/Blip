@@ -53,12 +53,12 @@ Blip Bench：
 
 现已登陆 iPhone 和 iPad：
 
-Blip Stats 2.0 为跨平台统一购买 —— 在 Mac、iPhone、iPad 上使用同一个 App。iOS 版带来可深入查看的实时卡片、Blip Bench、双曲线速度测试（含空闲/负载延迟与用途分级）、带离线 GeoIP 地图的 Ping 和路由跟踪、磁盘速度测试、主屏幕小组件、快捷指令，以及一键导出的全量快照。
+Blip Stats 2.0 是一款免费 App —— 在 Mac、iPhone、iPad 上使用同一个 App。iOS 版带来可深入查看的实时卡片、Blip Bench、双曲线速度测试（含空闲/负载延迟与用途分级）、带离线 GeoIP 地图的 Ping 和路由跟踪、磁盘速度测试、主屏幕小组件、快捷指令，以及一键导出的全量快照。
 
 如果你一直想找一款快速、精准、美观又珍惜 Mac 资源的系统监控工具，就是 Blip 了。
 
 ## description_ios
-Blip 将诚实的设备统计、真正的基准测试和专业的网络工具带到 iPhone 和 iPad —— 与 Mac 版 Blip 一样的轻量哲学，一次购买全平台通用。
+Blip 将诚实的设备统计、真正的基准测试和专业的网络工具带到 iPhone 和 iPad —— 与 Mac 版 Blip 一样的轻量哲学 —— 免费，一个 App 全平台通用。
 
 概览 — CPU、内存、存储、电池、温度、网络的实时卡片。轻点任意卡片查看全部细节：内存明细、平均负载、核心数、按开机时间计算的运行时长、可轻点拷贝的本地 IP、按需显示的公网 IP、VPN 与蜂窝制式感知。只有出现真实信号时才会给出建议。
 
@@ -78,7 +78,7 @@ Blip Bench — 以 Blip 的固定基准单位衡量 CPU、内存、GPU 和神经
 系统监控,CPU占用,内存占用,菜单栏,活动监视器,电池健康度,风扇转速,显卡,温度监控,状态栏,硬件监测,内存清理
 
 ## promotional_text
-现已登陆 iPhone 和 iPad。实时数据、含神经网络引擎的 Blip Bench、分级速度测试、带地图的路由跟踪 —— Mac 与 iOS 一次购买通用。
+现已登陆 iPhone 和 iPad。实时数据、含神经网络引擎的 Blip Bench、分级速度测试、带地图的路由跟踪 —— Mac 与 iOS 通用的免费 App。
 
 
 ## whats_new

@@ -53,14 +53,14 @@ Miss, was deine Maschine wirklich leistet. Blip Bench bewertet CPU (Single- und 
 
 Jetzt auf iPhone und iPad:
 
-Blip Stats 2.0 ist ein Universalkauf — dieselbe App auf Mac, iPhone und iPad. Die iOS-App bringt Live-Gerätekarten mit Detailansichten, Blip Bench, Speedtests mit zwei Kurven, Latenz im Leerlauf und unter Last sowie Verbindungsnoten pro Aktivität, Ping und Traceroute mit Offline-GeoIP-Karte, Festplattentests, Home-Bildschirm-Widgets, Kurzbefehle und Ein-Datei-Schnappschüsse aller Werte.
+Blip Stats 2.0 ist eine kostenlose App für Mac, iPhone und iPad — überall dieselbe. Die iOS-App bringt Live-Gerätekarten mit Detailansichten, Blip Bench, Speedtests mit zwei Kurven, Latenz im Leerlauf und unter Last sowie Verbindungsnoten pro Aktivität, Ping und Traceroute mit Offline-GeoIP-Karte, Festplattentests, Home-Bildschirm-Widgets, Kurzbefehle und Ein-Datei-Schnappschüsse aller Werte.
 
 
 
 Du suchst einen Systemmonitor, der schnell, präzise, schön und schonend zu deinem Mac ist? Das ist Blip.
 
 ## description_ios
-Blip bringt ehrliche Gerätewerte, einen echten Benchmark und ernsthafte Netzwerk-Tools auf iPhone und iPad — dieselbe federleichte Philosophie wie Blip für Mac, in einem Universalkauf.
+Blip bringt ehrliche Gerätewerte, einen echten Benchmark und ernsthafte Netzwerk-Tools auf iPhone und iPad — dieselbe federleichte Philosophie wie Blip für Mac — kostenlos, in einer App.
 
 Übersicht — Live-Karten für CPU, Speicher, Festplatte, Batterie, Thermik und Netzwerk. Tippe auf eine Karte für alle Details: Speicheraufschlüsselung, Load Averages, Kernanzahl, Laufzeit seit Boot, lokale IPs mit Tap-to-Copy, öffentliche IP auf Wunsch, VPN- und Mobilfunk-Erkennung. Ehrliche Hinweise erscheinen nur, wenn wirklich etwas ansteht.
 
@@ -80,7 +80,7 @@ Keine Konten, keine Werbung, kein Tracking. Blip zeigt nur, was iOS einer wohler
 systemmonitor,cpu auslastung,arbeitsspeicher,menüleiste,aktivitätsanzeige,gpu,akku,lüfter,mac
 
 ## promotional_text
-Jetzt auch auf iPhone und iPad. Live-Werte, Blip Bench mit Neural-Engine-Score, benotete Speedtests, Traceroute mit Hop-Karte — ein Universalkauf für Mac und iOS.
+Jetzt auch auf iPhone und iPad. Live-Werte, Blip Bench mit Neural-Engine-Score, benotete Speedtests, Traceroute mit Hop-Karte — eine kostenlose App für Mac und iOS.
 
 
 ## whats_new

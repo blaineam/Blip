@@ -53,12 +53,12 @@ Blip Bench:
 
 이제 iPhone과 iPad에서도:
 
-Blip Stats 2.0은 유니버설 구입입니다 — Mac, iPhone, iPad에서 같은 앱을 사용합니다. iOS 앱은 상세 화면으로 이어지는 라이브 카드, Blip Bench, 두 곡선과 유휴/부하 지연·용도별 등급이 있는 속도 테스트, 오프라인 GeoIP 지도가 있는 Ping·트레이스라우트, 디스크 속도 테스트, 홈 화면 위젯, 단축어, 한 파일 스냅샷을 제공합니다.
+Blip Stats 2.0은 Mac, iPhone, iPad에서 같은 앱을 쓰는 무료 앱입니다. iOS 앱은 상세 화면으로 이어지는 라이브 카드, Blip Bench, 두 곡선과 유휴/부하 지연·용도별 등급이 있는 속도 테스트, 오프라인 GeoIP 지도가 있는 Ping·트레이스라우트, 디스크 속도 테스트, 홈 화면 위젯, 단축어, 한 파일 스냅샷을 제공합니다.
 
 빠르고 정확하며 아름답고 Mac의 자원을 아끼는 시스템 모니터를 찾고 있었다면, 바로 Blip입니다.
 
 ## description_ios
-Blip이 정직한 기기 통계, 진짜 벤치마크, 본격적인 네트워크 도구를 iPhone과 iPad로 가져옵니다 — Mac용 Blip과 같은 초경량 철학, 하나의 유니버설 구입으로.
+Blip이 정직한 기기 통계, 진짜 벤치마크, 본격적인 네트워크 도구를 iPhone과 iPad로 가져옵니다 — Mac용 Blip과 같은 초경량 철학 — 무료, 하나의 앱으로.
 
 개요 — CPU, 메모리, 저장 공간, 배터리, 온도, 네트워크의 라이브 카드. 카드를 탭하면 전체 세부 정보로: 메모리 내역, 부하 평균, 코어 수, 부팅 기준 가동 시간, 탭하여 복사하는 로컬 IP, 원할 때만 표시하는 공용 IP, VPN·무선 방식 감지. 제안은 실제 신호가 있을 때만 나타납니다.
 
@@ -78,7 +78,7 @@ Blip Bench — CPU, 메모리, GPU, Neural Engine 처리량을 Blip의 고정 �
 시스템 모니터,CPU 사용량,메모리,메뉴 막대,활성 상태 보기,GPU,배터리 성능,팬 속도,맥,시스템 정보,온도
 
 ## promotional_text
-이제 iPhone과 iPad에서도. 라이브 통계, Neural Engine을 포함한 Blip Bench, 등급이 있는 속도 테스트, 지도가 있는 트레이스라우트 — Mac과 iOS 유니버설 구입.
+이제 iPhone과 iPad에서도. 라이브 통계, Neural Engine을 포함한 Blip Bench, 등급이 있는 속도 테스트, 지도가 있는 트레이스라우트 — Mac과 iOS에서 쓰는 무료 앱.
 
 
 ## whats_new

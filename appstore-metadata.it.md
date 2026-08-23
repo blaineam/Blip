@@ -53,12 +53,12 @@ Misura cosa può fare davvero la tua macchina. Blip Bench valuta CPU (single e m
 
 Ora su iPhone e iPad:
 
-Blip Stats 2.0 è un acquisto universale: la stessa app su Mac, iPhone e iPad. L'app iOS porta schede in tempo reale con dettagli, Blip Bench, test di velocità a due curve con latenza a riposo e sotto carico e voti per attività, ping e traceroute con mappa GeoIP offline, test del disco, widget, Comandi Rapidi e istantanee in un file.
+Blip Stats 2.0 è un'unica app gratuita su Mac, iPhone e iPad. L'app iOS porta schede in tempo reale con dettagli, Blip Bench, test di velocità a due curve con latenza a riposo e sotto carico e voti per attività, ping e traceroute con mappa GeoIP offline, test del disco, widget, Comandi Rapidi e istantanee in un file.
 
 Se cercavi un monitor di sistema veloce, preciso, bello e rispettoso delle risorse del tuo Mac, Blip è quello giusto.
 
 ## description_ios
-Blip porta statistiche oneste, un benchmark vero e seri strumenti di rete su iPhone e iPad — la stessa filosofia leggerissima di Blip per Mac, in un acquisto universale.
+Blip porta statistiche oneste, un benchmark vero e seri strumenti di rete su iPhone e iPad — la stessa filosofia leggerissima di Blip per Mac — gratis, in un'unica app.
 
 Panoramica — schede live per CPU, memoria, archiviazione, batteria, stato termico e rete. Tocca una scheda per tutti i dettagli: ripartizione della memoria, carichi medi, core, tempo dall'avvio, IP locali con copia al tocco, IP pubblico su richiesta, rilevamento VPN e radio. I suggerimenti onesti appaiono solo con un segnale reale.
 
@@ -78,7 +78,7 @@ Niente account, niente pubblicità, niente tracciamento. Blip mostra solo ciò c
 monitor sistema,cpu,ram,memoria,batteria,ventole,gpu,barra menu,temperatura,monitoraggio attività
 
 ## promotional_text
-Ora anche su iPhone e iPad. Dati live, Blip Bench con Neural Engine, test con voto, traceroute con mappa — un acquisto universale per Mac e iOS.
+Ora anche su iPhone e iPad. Dati live, Blip Bench con Neural Engine, test con voto, traceroute con mappa — un'unica app gratuita per Mac e iOS.
 
 
 ## whats_new
