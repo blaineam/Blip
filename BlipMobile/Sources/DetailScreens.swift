@@ -96,7 +96,7 @@ struct MemoryDetailScreen: View {
         List {
             Section {
                 VStack(alignment: .leading, spacing: 8) {
-                    Text(Fmt.bytes(Int64(s.memoryPhysical)))
+                    Text(Fmt.memory(Int64(s.memoryPhysical)))
                         .font(.system(size: 40, weight: .bold, design: .rounded))
                     if stats.memoryHistory.values.count > 2 {
                         Sparkline(values: stats.memoryHistory.values, tint: .blue, height: 70)
@@ -107,15 +107,15 @@ struct MemoryDetailScreen: View {
                 Text("Chart: memory available to apps this session (os_proc_available_memory).")
             }
             Section("Breakdown") {
-                PlainRow(name: "Available to apps", value: Fmt.bytes(Int64(s.memoryAppAvailable)))
-                PlainRow(name: "Free", value: Fmt.bytes(Int64(s.memFree)))
-                PlainRow(name: "Active", value: Fmt.bytes(Int64(s.memActive)))
-                PlainRow(name: "Inactive", value: Fmt.bytes(Int64(s.memInactive)))
-                PlainRow(name: "Wired", value: Fmt.bytes(Int64(s.memWired)))
-                PlainRow(name: "Compressed", value: Fmt.bytes(Int64(s.memCompressed)))
+                PlainRow(name: "Available to apps", value: Fmt.memory(Int64(s.memoryAppAvailable)))
+                PlainRow(name: "Free", value: Fmt.memory(Int64(s.memFree)))
+                PlainRow(name: "Active", value: Fmt.memory(Int64(s.memActive)))
+                PlainRow(name: "Inactive", value: Fmt.memory(Int64(s.memInactive)))
+                PlainRow(name: "Wired", value: Fmt.memory(Int64(s.memWired)))
+                PlainRow(name: "Compressed", value: Fmt.memory(Int64(s.memCompressed)))
             }
             Section("This App") {
-                PlainRow(name: "Blip's footprint", value: Fmt.bytes(Int64(s.appFootprint)))
+                PlainRow(name: "Blip's footprint", value: Fmt.memory(Int64(s.appFootprint)))
             }
         }
         .navigationTitle("Memory")

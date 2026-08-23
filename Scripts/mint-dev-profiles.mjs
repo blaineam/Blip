@@ -27,8 +27,8 @@ const log = (m) => console.log(`• ${m}`);
 const b64url = (b) => Buffer.from(b).toString('base64').replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
 
 const FORCE = process.argv.includes('--force');
-const APP_BUNDLE = 'com.blainemiller.BlipMobile';
-const WIDGET_BUNDLE = 'com.blainemiller.BlipMobile.widgets';
+const APP_BUNDLE = 'com.blainemiller.Blip';           // universal purchase — iOS shares the Mac app's id
+const WIDGET_BUNDLE = 'com.blainemiller.Blip.widgets';
 const PROFILES = [
   { name: 'Blip iOS Dev App', bundle: APP_BUNDLE },
   { name: 'Blip iOS Dev Widgets', bundle: WIDGET_BUNDLE },

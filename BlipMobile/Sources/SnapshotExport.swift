@@ -31,14 +31,14 @@ enum SnapshotExport {
         ## Memory
         | | |
         |---|---|
-        | Physical | \(Fmt.bytes(Int64(s.memoryPhysical))) |
-        | Available to apps | \(Fmt.bytes(Int64(s.memoryAppAvailable))) |
-        | Free | \(Fmt.bytes(Int64(s.memFree))) |
-        | Active | \(Fmt.bytes(Int64(s.memActive))) |
-        | Inactive | \(Fmt.bytes(Int64(s.memInactive))) |
-        | Wired | \(Fmt.bytes(Int64(s.memWired))) |
-        | Compressed | \(Fmt.bytes(Int64(s.memCompressed))) |
-        | Blip's footprint | \(Fmt.bytes(Int64(s.appFootprint))) |
+        | Physical | \(Fmt.memory(Int64(s.memoryPhysical))) |
+        | Available to apps | \(Fmt.memory(Int64(s.memoryAppAvailable))) |
+        | Free | \(Fmt.memory(Int64(s.memFree))) |
+        | Active | \(Fmt.memory(Int64(s.memActive))) |
+        | Inactive | \(Fmt.memory(Int64(s.memInactive))) |
+        | Wired | \(Fmt.memory(Int64(s.memWired))) |
+        | Compressed | \(Fmt.memory(Int64(s.memCompressed))) |
+        | Blip's footprint | \(Fmt.memory(Int64(s.appFootprint))) |
 
         ## Storage
         | | |

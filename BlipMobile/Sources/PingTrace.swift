@@ -148,6 +148,9 @@ final class PingRunner: ObservableObject {
     func toggle(host: String) { isRunning ? stop() : start(host: host) }
     func stop() { task?.cancel(); isRunning = false }
 
+    /// Screenshot demo mode: adopt canned samples without touching the network.
+    func seedDemo(_ demo: [PingSample]) { samples = demo }
+
     func start(host: String) {
         guard !isRunning, !host.isEmpty else { return }
         samples = []
@@ -188,6 +191,9 @@ final class TraceRunner: ObservableObject {
 
     func toggle(host: String) { isRunning ? stop() : start(host: host) }
     func stop() { task?.cancel(); isRunning = false }
+
+    /// Screenshot demo mode: adopt canned hops without touching the network.
+    func seedDemo(_ demo: [TraceHop]) { hops = demo }
 
     func start(host: String, maxHops: Int = 30) {
         guard !isRunning, !host.isEmpty else { return }

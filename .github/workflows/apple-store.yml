@@ -2,7 +2,7 @@ name: apple-store
 
 # Ship a tagged release to the App Store — ported from Haven's pipeline (same script).
 # Two lanes, one workflow: Blip for Mac (com.blainemiller.Blip / MAC_OS) and Blip for
-# iOS (com.blainemiller.BlipMobile / IOS) — each with its own ASC app + Xcode Cloud product.
+# iOS (also com.blainemiller.Blip / IOS) — ONE universal-purchase app record for both.
 #   vX.Y.Z      → find/start the Xcode Cloud build of this commit, wait, create the ASC version,
 #                 set What's New from appstore-metadata*.md (all locales), attach, submit.
 #   vX.Y.Z-rc.N → nothing (TestFlight already gets every push).
@@ -155,5 +155,5 @@ jobs:
           [ "${SUBMIT_FLAG:-true}" = "false" ] && extra+=(--no-submit)
           [ "${IS_RC:-false}" = "true" ] && extra+=(--testflight-only)
           node Scripts/asc-autosubmit.mjs --version "$VERSION" --commit "$COMMIT" --tag "v$VERSION" \
-            --bundle-id com.blainemiller.BlipMobile --platforms IOS \
+            --bundle-id com.blainemiller.Blip --platforms IOS \
             --wait-build 120 --wait-process 45 --notes-dir . "${extra[@]}"

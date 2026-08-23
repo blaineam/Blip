@@ -9,7 +9,8 @@ struct NetworkToolsScreen: View {
     @StateObject private var ping = PingRunner()
     @StateObject private var trace = TraceRunner()
     @StateObject private var geo = GeoIPDatabase.shared
-    @State private var mode: Mode = .ping
+    @State private var mode: Mode =
+        UserDefaults.standard.string(forKey: "blip.demoNetworkMode") == "trace" ? .trace : .ping
 
     enum Mode: String, CaseIterable, Identifiable {
         case ping, trace
@@ -39,7 +40,13 @@ struct NetworkToolsScreen: View {
                     NavigationLink { SettingsScreen() } label: { Image(systemName: "gearshape") }
                 }
             }
-            .onAppear { geo.loadIfPresent() }
+            .onAppear {
+                geo.loadIfPresent()
+                if DemoSeed.active, ping.samples.isEmpty {
+                    ping.seedDemo(DemoSeed.pingSamples)
+                    trace.seedDemo(DemoSeed.traceHops)
+                }
+            }
         }
     }
 
@@ -102,14 +109,14 @@ struct NetworkToolsScreen: View {
                 Label(err, systemImage: "exclamationmark.triangle")
                     .font(.footnote).foregroundStyle(.orange)
             }
-            if !geo.isReady && !trace.hops.isEmpty {
+            if !geo.isReady && !trace.hops.isEmpty && !DemoSeed.active {
                 NavigationLink { SettingsScreen() } label: {
                     Label("Download the GeoIP database in Settings to see hop locations & map",
                           systemImage: "globe")
                         .font(.footnote)
                 }
             }
-            if geo.isReady {
+            if geo.isReady || DemoSeed.active {
                 TraceHopMap(hops: trace.hops, geo: geo)
             }
 
@@ -200,7 +207,13 @@ struct TraceHopMap: View {
 
     private var placed: [Placed] {
         hops.compactMap { hop in
-            guard let addr = hop.address, let loc = geo.lookup(addr) else { return nil }
+            guard let addr = hop.address else { return nil }
+            if DemoSeed.active, let demo = DemoSeed.geoTable[addr] {
+                return Placed(id: hop.ttl,
+                              coordinate: CLLocationCoordinate2D(latitude: demo.lat, longitude: demo.lon),
+                              label: demo.label, isDestination: hop.isDestination)
+            }
+            guard let loc = geo.lookup(addr) else { return nil }
             let place = [loc.city, loc.countryCode].compactMap { $0 }.joined(separator: ", ")
             return Placed(id: hop.ttl,
                           coordinate: CLLocationCoordinate2D(latitude: loc.latitude, longitude: loc.longitude),

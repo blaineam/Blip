@@ -1,4 +1,5 @@
 import SwiftUI
+import WidgetKit
 
 // Blip for iOS / iPadOS — the honest subset (see DeviceStats) plus the things a phone
 // does BETTER than a Mac here: Blip Bench on Apple's phone silicon, speed tests from
@@ -12,15 +13,21 @@ struct BlipMobileApp: App {
                                                  defaults: MobileSharedStore.defaults)
     @StateObject private var speed = MobileSpeedTester()
     @StateObject private var router = TabRouter()
+    @Environment(\.scenePhase) private var scenePhase
 
     enum Tab: String { case overview, bench, speed, network }
 
     @MainActor
     final class TabRouter: ObservableObject {
-        @Published var tab: Tab = .overview
+        // Screenshot tooling: `simctl launch <udid> <bundle> -blip.route bench` lands on a
+        // tab. Resolved HERE (not App.init) — @StateObject state mutated during App.init is
+        // discarded when SwiftUI installs the wrapper; the object's own init survives.
+        @Published var tab: Tab =
+            UserDefaults.standard.string(forKey: "blip.route").flatMap(Tab.init(rawValue:)) ?? .overview
     }
 
     init() {
+        DemoSeed.applyIfRequested()
         wireIntents()
     }
 
@@ -39,6 +46,11 @@ struct BlipMobileApp: App {
                 NetworkToolsScreen()
                     .tabItem { Label("Network", systemImage: "point.3.connected.trianglepath.dotted") }
                     .tag(Tab.network)
+            }
+            .onChange(of: scenePhase) { _, phase in
+                // Foregrounding is when widget facts go stale-adjacent (a bench may have
+                // landed via Shortcuts, storage moved) — one cheap reload keeps them honest.
+                if phase == .active { WidgetCenter.shared.reloadAllTimelines() }
             }
             .onOpenURL { url in
                 // Widget deep links: blip://bench, blip://speed, blip://network, blip://overview.

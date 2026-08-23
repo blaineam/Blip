@@ -11,7 +11,8 @@ struct OverviewScreen: View {
         NavigationStack {
             ScrollView {
                 suggestions
-                LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible())], spacing: 12) {
+                // Adaptive: two columns on iPhone, three-plus on iPad — the grid fills the canvas.
+                LazyVGrid(columns: [GridItem(.adaptive(minimum: 240), spacing: 12)], spacing: 12) {
                     card(cpuCard) { CPUDetailScreen(stats: stats) }
                     card(memoryCard) { MemoryDetailScreen(stats: stats) }
                     card(storageCard) { StorageDetailScreen(stats: stats) }
@@ -119,10 +120,10 @@ struct OverviewScreen: View {
 
     private var memoryCard: some View {
         StatCard(icon: "memorychip", tint: .blue, title: "Memory") {
-            Text(Fmt.bytes(Int64(s.memoryPhysical)))
+            Text(Fmt.memory(Int64(s.memoryPhysical)))
                 .font(.system(size: 22, weight: .bold, design: .rounded))
             Text(s.memoryAppAvailable > 0
-                 ? "\(Fmt.bytes(Int64(s.memoryAppAvailable))) available to apps"
+                 ? "\(Fmt.memory(Int64(s.memoryAppAvailable))) available to apps"
                  : "Physical memory")
                 .font(.caption2).foregroundStyle(.secondary)
             if stats.memoryHistory.values.count > 2 {
@@ -218,6 +219,11 @@ struct StatCard<Content: View>: View {
 enum Fmt {
     static func bytes(_ n: Int64) -> String {
         ByteCountFormatter.string(fromByteCount: n, countStyle: .file)
+    }
+    /// RAM uses the binary style — 12 GiB reads "12 GB" the way Apple markets it,
+    /// not "12.88 GB" (decimal .file style applied to a binary quantity).
+    static func memory(_ n: Int64) -> String {
+        ByteCountFormatter.string(fromByteCount: n, countStyle: .memory)
     }
     static func uptime(_ t: TimeInterval) -> String {
         let days = Int(t) / 86400, hours = (Int(t) % 86400) / 3600, mins = (Int(t) % 3600) / 60

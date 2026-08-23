@@ -5,7 +5,8 @@ import Foundation
 enum DeviceNames {
     static func name(for identifier: String) -> String {
         if identifier == "arm64" || identifier.hasPrefix("x86") {
-            // Simulator reports the HOST architecture.
+            // Only unresolvable host arches land here now (DeviceStats prefers
+            // SIMULATOR_MODEL_IDENTIFIER, so simulators show their simulated device).
             return "Simulator (\(identifier))"
         }
         return table[identifier] ?? identifier
@@ -34,5 +35,14 @@ enum DeviceNames {
         "iPad14,10": "iPad Air 13\" (M2)", "iPad14,11": "iPad Air 13\" (M2)",
         "iPad15,3": "iPad Air 11\" (M3)", "iPad15,4": "iPad Air 11\" (M3)",
         "iPad15,5": "iPad Air 13\" (M3)", "iPad15,6": "iPad Air 13\" (M3)",
+        // M5 generation (verified: the 13" M5 simulator reports iPad17,4)
+        "iPad17,1": "iPad Pro 11\" (M5)", "iPad17,2": "iPad Pro 11\" (M5)",
+        "iPad17,3": "iPad Pro 13\" (M5)", "iPad17,4": "iPad Pro 13\" (M5)",
+        // iPad mini
+        "iPad14,1": "iPad mini (6th gen)", "iPad14,2": "iPad mini (6th gen)",
+        "iPad16,1": "iPad mini (A17 Pro)", "iPad16,2": "iPad mini (A17 Pro)",
+        // Base iPad
+        "iPad13,18": "iPad (10th gen)", "iPad13,19": "iPad (10th gen)",
+        "iPad15,7": "iPad (A16)", "iPad15,8": "iPad (A16)",
     ]
 }

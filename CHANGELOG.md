@@ -2,6 +2,13 @@
 
 ## Unreleased
 
+### Added — iOS listing pipeline & store safety (wave 3)
+- **Universal purchase wiring.** Blip for iOS ships as `com.blainemiller.Blip` — the SAME app record as the Mac App Store build (the iOS platform was added to the existing Blip Stats app). Widget extension is `com.blainemiller.Blip.widgets`; the apple-store CI iOS lane and dev-profile mint script follow.
+- **App Store screenshot pipeline for iOS + iPadOS.** `Tools/capture_screenshots.sh` (+ `.local-screenshots.conf`) captures the required 6.9" iPhone (1320×2868) and 13" iPad (2064×2752) canvases from the iPhone 17 Pro Max / iPad Pro 13" (M5) simulators, alternating dark and light scenes so the set itself demonstrates dark-mode support; `docs/appstore-screenshots/Blip-{iphone,ipad}.monkr` hold the Deep Current-branded frame designs (iPhone 17 Pro Max deep-blue / iPad Pro 13" space-black) for the shared Monkr render + ASC upload pipeline.
+- **Screenshot demo mode** (`blip.demoSeed`): curated PII-free data through the app's real types — trending bench history, dual-curve speed results with latency pair and grades, and network-tools scenes built on RFC 5737 documentation addresses (192.0.2.x et al., addresses that by definition belong to no one) with a canned SF→London hop map.
+- **Simulators now identify as the simulated device** (`SIMULATOR_MODEL_IDENTIFIER`) — the Device card says "iPhone 17 Pro Max," not "Simulator (arm64)."
+- **MillerKit 1.2.1**: the "Support Future Development" funding link now auto-hides in App Store and TestFlight builds (receipt-based `Distribution` detection) — Guideline 3.1.1 risk eliminated without losing the row in direct-download builds.
+
 ### Added — Blip for iOS field-feedback wave 2
 - **Neural benchmark leg.** Blip Bench gains a fifth category: Vision feature-print inference throughput, routed to the Neural Engine on hardware that has one (Vision decides — there is no public force-ANE switch, so the leg honestly measures what the OS's ML stack delivers). New frozen reference unit `npu.featureprint`; composites now fold it in; Mac and iOS both run it.
 - **Bench result, redesigned.** Gradient hero score with delta-vs-best, per-category bars scaled against this device's own best full run, the sustained-phase thermal timeline drawn from the run's own samples, device + date footer.

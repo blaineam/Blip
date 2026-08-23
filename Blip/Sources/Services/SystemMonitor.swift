@@ -1,6 +1,7 @@
 import Foundation
 import Combine
 import Darwin
+import IOKit
 import SwiftUI
 
 /// Central coordinator that polls all hardware monitors on a timer
@@ -438,6 +439,21 @@ final class SystemMonitor: ObservableObject {
             // Fall through to sysctl fallback
         }
         #endif
+        // IORegistry product-name — public IOKit, App-Store-safe, and on Apple Silicon
+        // it carries the CURRENT marketing string ("MacBook Pro (14-inch, Nov 2024)")
+        // with no table to go stale. Intel Macs lack the key and fall through.
+        let pe = IOServiceGetMatchingService(kIOMainPortDefault, IOServiceMatching("IOPlatformExpertDevice"))
+        if pe != 0 {
+            defer { IOObjectRelease(pe) }
+            if let raw = IORegistryEntryCreateCFProperty(pe, "product-name" as CFString, kCFAllocatorDefault, 0)?
+                .takeRetainedValue() as? Data,
+               let name = String(data: raw, encoding: .utf8)?
+                .trimmingCharacters(in: CharacterSet(charactersIn: "\0").union(.whitespacesAndNewlines)),
+               !name.isEmpty {
+                return name
+            }
+        }
+
         // hw.model via sysctl (public API, safe for App Store)
         var size = 0
         sysctlbyname("hw.model", nil, &size, nil, 0)

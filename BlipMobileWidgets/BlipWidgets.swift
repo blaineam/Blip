@@ -36,8 +36,18 @@ struct BenchEntry: TimelineEntry {
 
 struct BenchProvider: TimelineProvider {
     func placeholder(in context: Context) -> BenchEntry {
-        .init(date: .now, result: nil, best: nil)
+        // Sample data for the gallery — real entries replace it the moment the timeline loads.
+        .init(date: .now, result: BenchProvider.sample, best: BenchProvider.sample.composite)
     }
+    static let sample = BenchResult(
+        date: .now, profile: .full,
+        singleCore: .init(name: "Single-core", score: 690, results: []),
+        multiCore: .init(name: "All cores", score: 6300, results: []),
+        memory: .init(name: "Memory", score: 1000, results: []),
+        gpu: .init(name: "GPU", score: 650, results: []),
+        neural: .init(name: "Neural", score: 800, results: []),
+        throttleFactor: 0.95, thermalSamples: [], composite: 1300,
+        deviceModel: "iPhone", osVersion: "iOS")
     func getSnapshot(in context: Context, completion: @escaping (BenchEntry) -> Void) {
         completion(load())
     }
@@ -134,7 +144,10 @@ struct StorageEntry: TimelineEntry {
 }
 
 struct StorageProvider: TimelineProvider {
-    func placeholder(in context: Context) -> StorageEntry { .init(date: .now, record: nil) }
+    func placeholder(in context: Context) -> StorageEntry {
+        .init(date: .now, record: .init(storageTotal: 512_000_000_000, storageFree: 128_000_000_000,
+                                        thermalState: 0, batteryLevel: 0.8, date: .now))
+    }
     func getSnapshot(in context: Context, completion: @escaping (StorageEntry) -> Void) {
         completion(.init(date: .now, record: MobileSharedStore.readDevice()))
     }
@@ -198,7 +211,10 @@ struct SpeedEntry: TimelineEntry {
 }
 
 struct SpeedProvider: TimelineProvider {
-    func placeholder(in context: Context) -> SpeedEntry { .init(date: .now, record: nil) }
+    func placeholder(in context: Context) -> SpeedEntry {
+        .init(date: .now, record: .init(downMbps: 940, upMbps: 850, date: .now, interface: "Wi-Fi",
+                                        pingMs: 12, loadedPingMs: 31))
+    }
     func getSnapshot(in context: Context, completion: @escaping (SpeedEntry) -> Void) {
         completion(.init(date: .now, record: MobileSharedStore.readSpeed()))
     }

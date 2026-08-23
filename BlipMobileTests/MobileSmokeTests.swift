@@ -1,4 +1,5 @@
 import XCTest
+import Vision
 @testable import BlipMobile
 
 // The iOS gate Soren runs on a simulator: BenchKit executes on the iOS runtime (real workloads,
@@ -149,5 +150,41 @@ final class FeedbackWaveTests: XCTestCase {
         s.thermalState = 3
         let items = Suggestions.evaluate(s)
         XCTAssertEqual(Set(items.map(\.id)), ["storage", "thermal"])
+    }
+}
+
+final class NeuralLegTests: XCTestCase {
+    static func probeImage() -> CGImage {
+        let side = 64
+        var pixels = [UInt8](repeating: 128, count: side * side * 4)
+        for i in stride(from: 3, to: pixels.count, by: 4) { pixels[i] = 255 }
+        let provider = CGDataProvider(data: Data(pixels) as CFData)!
+        return CGImage(width: side, height: side, bitsPerComponent: 8, bitsPerPixel: 32,
+                       bytesPerRow: side * 4, space: CGColorSpace(name: CGColorSpace.sRGB)!,
+                       bitmapInfo: CGBitmapInfo(rawValue: CGImageAlphaInfo.premultipliedLast.rawValue),
+                       provider: provider, decode: nil, shouldInterpolate: false, intent: .defaultIntent)!
+    }
+
+    func testNeuralInferenceProducesThroughput() throws {
+        // The neural leg must run on the iOS runtime (ANE on device, CPU/GPU on sim) —
+        // if Vision can't deliver here, we want the reason in a test log, not a silently
+        // missing category in the field.
+        // Direct probe first so a failure names the actual Vision error. Simulators can't
+        // create an espresso (Core ML inference) context at all — diagnosed live:
+        // NSOSStatusErrorDomain -1 "Failed to create espresso context". On sim the leg
+        // honestly drops out (same contract as GPU-unavailable); devices + Macs run it.
+        do {
+            let req = VNGenerateImageFeaturePrintRequest()
+            try VNImageRequestHandler(cgImage: Self.probeImage(), options: [:]).perform([req])
+            XCTAssertFalse(req.results?.isEmpty ?? true, "feature print returned no results")
+        } catch {
+            throw XCTSkip("Vision inference unavailable on this runtime (expected on simulators): \(error)")
+        }
+        let result = BenchWorkloads.neuralInference(seconds: 0.4, cancelled: { false })
+        XCTAssertNotNil(result, "neural leg returned nil on a runtime where Vision works")
+        if let r = result {
+            XCTAssertEqual(r.id, "npu.featureprint")
+            XCTAssertGreaterThan(r.value, 1, "throughput implausibly low: \(r.value)")
+        }
     }
 }

@@ -108,6 +108,47 @@ final class DeviceStats: ObservableObject {
     #if canImport(CoreTelephony)
     private static let telephony = CTTelephonyNetworkInfo()
     #endif
+    /// Screenshot demo mode: the simulator leaks its HOST through several channels — Mac
+    /// RAM (51 GB "iPhone"), the Mac's 4 TB volume, Wired+VPN interfaces, batteryless
+    /// battery. Overlay device-plausible, PII-free values so listing shots read true.
+    nonisolated static func applyDemoOverlay(_ s: inout DeviceSnapshot) {
+        let isPad = s.model.hasPrefix("iPad")
+        let gib = 1024.0 * 1024 * 1024
+        func g(_ v: Double) -> UInt64 { UInt64(v * gib) }
+        s.memoryPhysical = g(isPad ? 16 : 12)
+        s.memoryAppAvailable = g(isPad ? 9.2 : 6.8)
+        s.memFree = g(isPad ? 3.1 : 2.2)
+        s.memActive = g(isPad ? 6.4 : 4.9)
+        s.memInactive = g(isPad ? 2.9 : 2.1)
+        s.memWired = g(isPad ? 2.4 : 1.9)
+        s.memCompressed = g(isPad ? 1.2 : 1.0)
+        s.appFootprint = g(0.061)
+        s.storageTotal = Int64((isPad ? 1024 : 512) * 1_000_000_000)
+        s.storageFree = Int64(Double(s.storageTotal) * 0.38)
+        s.storageOpportunistic = Int64(Double(s.storageTotal) * 0.44)
+        s.batteryLevel = 0.87
+        s.batteryState = "On battery"
+        s.lowPowerMode = false
+        s.interfaceType = "Wi-Fi"
+        s.vpnActive = false
+        s.radioTech = nil
+        s.isExpensivePath = false
+        s.isConstrainedPath = false
+        s.localIPs = ["en0 192.0.2.24"]   // RFC 5737 documentation address — nobody's LAN
+    }
+
+    /// Hardware identifier — on the simulator, the SIMULATED device's identifier
+    /// (uname reports the host's arch, which told users they own a "Simulator (arm64)").
+    nonisolated static func currentModelIdentifier() -> String {
+        if let simulated = Foundation.ProcessInfo.processInfo.environment["SIMULATOR_MODEL_IDENTIFIER"] {
+            return simulated
+        }
+        var sysinfo = utsname(); uname(&sysinfo)
+        return withUnsafeBytes(of: &sysinfo.machine) { raw in
+            String(decoding: raw.prefix(while: { $0 != 0 }), as: UTF8.self)
+        }
+    }
+
     private let pathMonitor = NWPathMonitor()
     private var timer: Timer?
     private var lastPath: NWPath?
@@ -279,10 +320,8 @@ final class DeviceStats: ObservableObject {
         s.uptime = ProcessInfo.processInfo.systemUptime
         s.osVersion = ProcessInfo.processInfo.operatingSystemVersionString
 
-        var sysinfo = utsname(); uname(&sysinfo)
-        s.model = withUnsafeBytes(of: &sysinfo.machine) { raw in
-            String(decoding: raw.prefix(while: { $0 != 0 }), as: UTF8.self)
-        }
+        s.model = Self.currentModelIdentifier()
+
 
         if let path = lastPath {
             if path.status != .satisfied { s.interfaceType = "Offline" }
@@ -296,6 +335,9 @@ final class DeviceStats: ObservableObject {
 
         collectExtended(into: &s)
         s.cpuUsagePercent = sampleCPU() ?? snapshot.cpuUsagePercent
+        // Overlay must be the LAST writer — the path/VPN fields above would otherwise
+        // clobber the stubs (field-caught: "Wired · VPN" survived into the shots).
+        if UserDefaults.standard.bool(forKey: "blip.demoSeed") { Self.applyDemoOverlay(&s) }
         snapshot = s
         cpuHistory.append(s.cpuUsagePercent)
         if s.memoryAppAvailable > 0 { memoryHistory.append(Double(s.memoryAppAvailable) / 1_073_741_824) }

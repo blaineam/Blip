@@ -22,7 +22,7 @@
 	<array>
 		<dict>
 			<key>CFBundleURLName</key>
-			<string>com.blainemiller.BlipMobile</string>
+			<string>com.blainemiller.Blip</string>
 			<key>CFBundleURLSchemes</key>
 			<array>
 				<string>blip</string>
