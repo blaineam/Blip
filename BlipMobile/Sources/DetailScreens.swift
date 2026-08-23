@@ -8,7 +8,7 @@ import SwiftUI
 
 /// A labeled value with a tap-to-copy affordance (#feedback: copy buttons on useful fields).
 struct CopyRow: View {
-    let name: String
+    let name: LocalizedStringKey
     let value: String
     var monospaced = false
     @State private var copied = false
@@ -38,7 +38,7 @@ struct CopyRow: View {
 }
 
 struct PlainRow: View {
-    let name: String
+    let name: LocalizedStringKey
     let value: String
     var body: some View {
         HStack {
@@ -111,7 +111,7 @@ struct MemoryDetailScreen: View {
                 PlainRow(name: "Free", value: Fmt.memory(Int64(s.memFree)))
                 PlainRow(name: "Active", value: Fmt.memory(Int64(s.memActive)))
                 PlainRow(name: "Inactive", value: Fmt.memory(Int64(s.memInactive)))
-                PlainRow(name: "Wired", value: Fmt.memory(Int64(s.memWired)))
+                PlainRow(name: "Wired memory", value: Fmt.memory(Int64(s.memWired)))
                 PlainRow(name: "Compressed", value: Fmt.memory(Int64(s.memCompressed)))
             }
             Section("This App") {
@@ -192,7 +192,7 @@ struct NetworkDetailScreen: View {
                 } else {
                     ForEach(s.localIPs, id: \.self) { entry in
                         let parts = entry.split(separator: " ", maxSplits: 1).map(String.init)
-                        CopyRow(name: parts.first ?? "if",
+                        CopyRow(name: LocalizedStringKey(parts.first ?? "if"),
                                 value: parts.count > 1 ? parts[1] : entry,
                                 monospaced: true)
                     }

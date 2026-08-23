@@ -177,7 +177,7 @@ struct NetworkToolsScreen: View {
         .foregroundStyle(.secondary)
     }
 
-    private func statPill(_ name: String, _ value: String, tint: Color = .primary) -> some View {
+    private func statPill(_ name: LocalizedStringKey, _ value: String, tint: Color = .primary) -> some View {
         VStack(spacing: 1) {
             Text(value).font(.callout.monospacedDigit().weight(.semibold)).foregroundStyle(tint)
             Text(name).font(.caption2).foregroundStyle(.secondary)

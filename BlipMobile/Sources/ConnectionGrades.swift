@@ -16,7 +16,7 @@ struct CategoryGrade: Identifiable {
             switch self { case .a: return .green; case .b: return .mint; case .c: return .orange; case .f: return .red }
         }
         var word: String {
-            switch self { case .a: return "great"; case .b: return "good"; case .c: return "struggles"; case .f: return "won't work" }
+            switch self { case .a: return String(localized: "great"); case .b: return String(localized: "good"); case .c: return String(localized: "struggles"); case .f: return String(localized: "won't work") }
         }
     }
     let id: String
@@ -43,21 +43,21 @@ enum ConnectionGrades {
         }
 
         var out: [CategoryGrade] = []
-        out.append(.init(id: "browse", name: "Browsing", icon: "safari",
+        out.append(.init(id: "browse", name: String(localized: "Browsing"), icon: "safari",
                          grade: throughputGrade(down, a: 25, b: 10, c: 3)))
-        out.append(.init(id: "hd", name: "HD streaming", icon: "play.rectangle",
+        out.append(.init(id: "hd", name: String(localized: "HD streaming"), icon: "play.rectangle",
                          grade: throughputGrade(down, a: 15, b: 8, c: 5)))
-        out.append(.init(id: "4k", name: "4K streaming", icon: "4k.tv",
+        out.append(.init(id: "4k", name: String(localized: "4K streaming"), icon: "4k.tv",
                          grade: throughputGrade(down, a: 50, b: 25, c: 15)))
         // Calls need BOTH directions + stable latency.
         let callThroughput = min(throughputGrade(down, a: 10, b: 4, c: 1.5),
                                  throughputGrade(upv, a: 5, b: 2.5, c: 1))
-        out.append(.init(id: "calls", name: "Video calls", icon: "video",
+        out.append(.init(id: "calls", name: String(localized: "Video calls"), icon: "video",
                          grade: latencyCap(callThroughput)))
         // Cloud gaming: heavy down + latency is everything.
-        out.append(.init(id: "gaming", name: "Cloud gaming", icon: "gamecontroller",
+        out.append(.init(id: "gaming", name: String(localized: "Cloud gaming"), icon: "gamecontroller",
                          grade: latencyCap(throughputGrade(down, a: 45, b: 25, c: 10))))
-        out.append(.init(id: "uploads", name: "Big uploads", icon: "icloud.and.arrow.up",
+        out.append(.init(id: "uploads", name: String(localized: "Big uploads"), icon: "icloud.and.arrow.up",
                          grade: throughputGrade(upv, a: 100, b: 30, c: 10)))
         return out
     }

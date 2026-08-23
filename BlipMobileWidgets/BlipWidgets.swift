@@ -117,7 +117,7 @@ struct BenchWidgetView: View {
         }
     }
 
-    private func stat(_ label: String, _ value: Double) -> some View {
+    private func stat(_ label: LocalizedStringKey, _ value: Double) -> some View {
         VStack(alignment: .leading, spacing: 0) {
             Text("\(Int(value.rounded()))").font(.caption.weight(.semibold))
             Text(label).font(.caption2).foregroundStyle(.secondary)

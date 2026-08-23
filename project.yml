@@ -153,7 +153,13 @@ targets:
       # GeoIP: the Mac app's Foundation-only MMDB reader + DB-IP downloader, shared verbatim.
       - path: Blip/Sources/Services/MMDB.swift
       - path: Blip/Sources/Services/GeoIPDatabase.swift
-      - path: BlipMobile/Resources/Assets.xcassets
+      # Whole Resources folder (assets + string catalog). Listing the catalog by bare
+      # file path made xcodegen dedupe it against the Mac catalog of the same basename
+      # and silently drop it — no lproj ever shipped. A folder path groups correctly.
+      - path: BlipMobile/Resources
+        excludes:
+          - "Info.plist"
+          - "*.entitlements"
     dependencies:
       - target: BlipMobileWidgets
         embed: true

@@ -109,14 +109,14 @@ struct OverviewScreen: View {
             } else {
                 Text("—").font(.system(size: 28, weight: .bold, design: .rounded))
             }
-            Text(s.lowPowerMode ? "\(s.batteryState) · Low Power" : s.batteryState)
+            Text(LocalizedStringKey(s.batteryState)) + Text(s.lowPowerMode ? " · " : "") + (s.lowPowerMode ? Text("Low Power") : Text(""))
                 .font(.caption2).foregroundStyle(.secondary)
         }
     }
 
     private var thermalCard: some View {
         StatCard(icon: "thermometer.medium", tint: thermalTint, title: "Thermal") {
-            Text(s.thermalLabel)
+            Text(LocalizedStringKey(s.thermalLabel))
                 .font(.system(size: 22, weight: .bold, design: .rounded))
                 .foregroundStyle(thermalTint)
             Text("System thermal state")
@@ -132,8 +132,8 @@ struct OverviewScreen: View {
             Text(Fmt.memory(Int64(s.memoryPhysical)))
                 .font(.system(size: 22, weight: .bold, design: .rounded))
             Text(s.memoryAppAvailable > 0
-                 ? "\(Fmt.memory(Int64(s.memoryAppAvailable))) available to apps"
-                 : "Physical memory")
+                 ? LocalizedStringKey("\(Fmt.memory(Int64(s.memoryAppAvailable))) available to apps")
+                 : LocalizedStringKey("Physical memory"))
                 .font(.caption2).foregroundStyle(.secondary)
             if stats.memoryHistory.values.count > 2 {
                 Sparkline(values: stats.memoryHistory.values, tint: .blue, height: 24)
@@ -143,7 +143,7 @@ struct OverviewScreen: View {
 
     private var networkCard: some View {
         StatCard(icon: networkIcon, tint: .teal, title: "Network") {
-            Text(s.interfaceType)
+            Text(LocalizedStringKey(s.interfaceType))
                 .font(.system(size: 22, weight: .bold, design: .rounded))
             Text(pathNote)
                 .font(.caption2).foregroundStyle(.secondary)
@@ -189,19 +189,19 @@ struct OverviewScreen: View {
         }
     }
 
-    private var pathNote: String {
+    private var pathNote: LocalizedStringKey {
         var notes: [String] = []
-        if s.isExpensivePath { notes.append("metered") }
-        if s.isConstrainedPath { notes.append("low data mode") }
+        if s.isExpensivePath { notes.append(String(localized: "metered")) }
+        if s.isConstrainedPath { notes.append(String(localized: "low data mode")) }
         if s.vpnActive { notes.append("VPN") }
-        return notes.isEmpty ? "Current route" : notes.joined(separator: " · ")
+        return notes.isEmpty ? LocalizedStringKey("Current route") : LocalizedStringKey(notes.joined(separator: " · "))
     }
 }
 
 struct StatCard<Content: View>: View {
     let icon: String
     let tint: Color
-    let title: String
+    let title: LocalizedStringKey
     @ViewBuilder var content: Content
 
     var body: some View {
@@ -257,23 +257,23 @@ enum Suggestions {
         var out: [Item] = []
         if s.storagePercentUsed > 92 {
             out.append(.init(id: "storage", icon: "internaldrive", tint: .red,
-                             text: "Storage is nearly full (\(Fmt.bytes(s.storageFree)) left). iOS slows down and updates fail below ~1 GB — offload unused apps or large videos in Settings → General → iPhone Storage."))
+                             text: String(localized: "Storage is nearly full (\(Fmt.bytes(s.storageFree)) left). iOS slows down and updates fail below ~1 GB — offload unused apps or large videos in Settings → General → iPhone Storage.")))
         }
         if s.thermalState >= 2 {
             out.append(.init(id: "thermal", icon: "thermometer.high", tint: .orange,
-                             text: "The device is running \(s.thermalLabel.lowercased()) — performance is being throttled. Take it off the charger or out of the sun; skip benchmarking until nominal."))
+                             text: String(localized: "The device is running \(s.thermalLabel.lowercased()) — performance is being throttled. Take it off the charger or out of the sun; skip benchmarking until nominal.")))
         }
         if s.lowPowerMode && s.batteryState == "Charging", let l = s.batteryLevel, l > 0.8 {
             out.append(.init(id: "lpm", icon: "battery.100.bolt", tint: .yellow,
-                             text: "Low Power Mode is still on while charging above 80% — background refresh and performance stay reduced until you switch it off."))
+                             text: String(localized: "Low Power Mode is still on while charging above 80% — background refresh and performance stay reduced until you switch it off.")))
         }
         if s.isConstrainedPath {
             out.append(.init(id: "lowdata", icon: "arrow.down.circle", tint: .teal,
-                             text: "Low Data Mode is active on this connection — app downloads, quality, and sync are being limited. Intentional? It's per-network in Wi-Fi/Cellular settings."))
+                             text: String(localized: "Low Data Mode is active on this connection — app downloads, quality, and sync are being limited. Intentional? It's per-network in Wi-Fi/Cellular settings.")))
         }
         if s.memoryAppAvailable > 0 && s.memoryAppAvailable < 500 << 20 {
             out.append(.init(id: "mem", icon: "memorychip", tint: .blue,
-                             text: "Memory available to apps is low (\(Fmt.bytes(Int64(s.memoryAppAvailable)))). Heavy apps may relaunch from scratch; closing camera- and game-class apps you're done with helps."))
+                             text: String(localized: "Memory available to apps is low (\(Fmt.bytes(Int64(s.memoryAppAvailable)))). Heavy apps may relaunch from scratch; closing camera- and game-class apps you're done with helps.")))
         }
         return out
     }

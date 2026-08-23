@@ -47,7 +47,7 @@ struct SpeedScreen: View {
         HStack(spacing: 6) {
             Image(systemName: stats.snapshot.interfaceType == "Cellular"
                   ? "antenna.radiowaves.left.and.right" : "wifi")
-            Text("Testing over \(stats.snapshot.interfaceType)")
+            Text("Testing over \(String(localized: String.LocalizationValue(stats.snapshot.interfaceType)))")
             if stats.snapshot.isExpensivePath {
                 Text("· metered").foregroundStyle(.orange)
             }
@@ -94,10 +94,10 @@ struct SpeedScreen: View {
 
     private func sourceTitle(_ source: SpeedSource) -> String {
         switch source {
-        case .publicWidget: return "OpenSpeedTest (public)"
+        case .publicWidget: return String(localized: "OpenSpeedTest (public)")
         case .custom:
             let server = MobileSpeedTester.customServer
-            return server.isEmpty ? "My server (not set)" : server
+            return server.isEmpty ? String(localized: "My server (not set)") : server
         }
     }
 
@@ -116,14 +116,14 @@ struct SpeedScreen: View {
         .padding(.vertical, 12)
     }
 
-    private var phaseLabel: String {
+    private var phaseLabel: LocalizedStringKey {
         switch tester.phase {
         case .idle: return "Mbps"
         case .connecting: return "Connecting…"
         case .download: return "Mbps · downloading"
         case .upload: return "Mbps · uploading"
         case .done: return "Mbps · down"
-        case .failed(let why): return why
+        case .failed(let why): return LocalizedStringKey(why)
         }
     }
 

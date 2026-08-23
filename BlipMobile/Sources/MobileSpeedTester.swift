@@ -30,7 +30,7 @@ struct MobileSpeedResult: Identifiable, Sendable, Codable, Equatable {
 enum SpeedSource: String, CaseIterable, Identifiable {
     case publicWidget, custom
     var id: String { rawValue }
-    var label: String { self == .publicWidget ? "OpenSpeedTest (public)" : "My server" }
+    var label: String { self == .publicWidget ? String(localized: "OpenSpeedTest (public)") : String(localized: "My server") }
 }
 
 @MainActor

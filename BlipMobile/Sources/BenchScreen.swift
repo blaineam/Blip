@@ -117,11 +117,11 @@ struct BenchRunningView: View {
         VStack(alignment: .leading, spacing: 10) {
             ForEach(Self.legOrder, id: \.id) { leg in
                 if let done = engine.liveLegs.first(where: { $0.id == leg.id }) {
-                    finishedRow(leg.name, leg.icon, done.score)
+                    finishedRow(LocalizedStringKey(leg.name), leg.icon, done.score)
                         .transition(.asymmetric(insertion: .move(edge: .leading).combined(with: .opacity),
                                                 removal: .opacity))
                 } else if engine.phase == leg.phase {
-                    activeRow(leg.name, leg.icon)
+                    activeRow(LocalizedStringKey(leg.name), leg.icon)
                 }
             }
             if engine.phase == .sustained { sustainedRow }
@@ -136,7 +136,7 @@ struct BenchRunningView: View {
         .onAppear { pulse = true }
     }
 
-    private func finishedRow(_ name: String, _ icon: String, _ score: Double) -> some View {
+    private func finishedRow(_ name: LocalizedStringKey, _ icon: String, _ score: Double) -> some View {
         HStack {
             Image(systemName: icon).foregroundStyle(.purple).frame(width: 26)
             Text(name).font(.subheadline)
@@ -149,7 +149,7 @@ struct BenchRunningView: View {
         }
     }
 
-    private func activeRow(_ name: String, _ icon: String) -> some View {
+    private func activeRow(_ name: LocalizedStringKey, _ icon: String) -> some View {
         HStack {
             Image(systemName: icon)
                 .foregroundStyle(.purple)
@@ -278,7 +278,7 @@ struct ScoreCard: View {
             result[keyPath: path]?.score ?? 0)
     }
 
-    private func categoryBar(_ name: String, _ icon: String, _ score: Double, _ best: Double) -> some View {
+    private func categoryBar(_ name: LocalizedStringKey, _ icon: String, _ score: Double, _ best: Double) -> some View {
         VStack(alignment: .leading, spacing: 3) {
             HStack {
                 Label(name, systemImage: icon).font(.subheadline)

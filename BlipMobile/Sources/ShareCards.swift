@@ -81,7 +81,7 @@ struct BenchShareCardView: View {
         .foregroundStyle(.white)
     }
 
-    private func pill(_ icon: String, _ name: String, _ score: Double) -> some View {
+    private func pill(_ icon: String, _ name: LocalizedStringKey, _ score: Double) -> some View {
         VStack(spacing: 4) {
             Image(systemName: icon).font(.callout)
             Text("\(Int(score.rounded()))")
@@ -161,7 +161,7 @@ struct SpeedShareCardView: View {
         }
     }
 
-    private func metric(_ icon: String, _ value: String, _ unit: String, _ tint: Color) -> some View {
+    private func metric(_ icon: String, _ value: String, _ unit: LocalizedStringKey, _ tint: Color) -> some View {
         VStack(alignment: .leading, spacing: 2) {
             Image(systemName: icon).font(.callout).foregroundStyle(tint)
             Text(value).font(.system(size: 44, weight: .bold, design: .rounded))

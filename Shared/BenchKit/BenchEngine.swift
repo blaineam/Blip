@@ -28,14 +28,14 @@ public final class BenchEngine: ObservableObject {
         case idle, singleCore, multiCore, memory, gpu, neural, sustained, done
         public var label: String {
             switch self {
-            case .idle: return "Idle"
-            case .singleCore: return "CPU · single-core"
-            case .multiCore: return "CPU · all cores"
-            case .memory: return "Memory"
-            case .gpu: return "GPU"
-            case .neural: return "Neural"
-            case .sustained: return "Sustained + thermals"
-            case .done: return "Done"
+            case .idle: return String(localized: "Idle")
+            case .singleCore: return String(localized: "CPU · single-core")
+            case .multiCore: return String(localized: "CPU · all cores")
+            case .memory: return String(localized: "Memory")
+            case .gpu: return String(localized: "GPU")
+            case .neural: return String(localized: "Neural")
+            case .sustained: return String(localized: "Sustained + thermals")
+            case .done: return String(localized: "Done")
             }
         }
     }
