@@ -12,6 +12,12 @@ final class HelperClient: @unchecked Sendable {
     private var _isConnected = false
     private var _latestSnapshot: HelperSnapshot?
     private var helperPort: UInt16?
+    /// Consecutive failed polls. One miss is noise (a fresh TCP fetch every 2s can lose
+    /// the 3s window while a benchmark saturates the machine) — the GPU row was strobing
+    /// in and out of the popover on every blip (field-reported). Disconnection is only
+    /// declared after several misses in a row; one success reconnects instantly.
+    private var consecutiveFailures = 0
+    private static let disconnectThreshold = 3
 
     @MainActor var isConnected: Bool { _isConnected }
     @MainActor var latestSnapshot: HelperSnapshot? { _latestSnapshot }
@@ -40,11 +46,17 @@ final class HelperClient: @unchecked Sendable {
         }
         await MainActor.run {
             if let snapshot {
+                consecutiveFailures = 0
                 _isConnected = true
                 _latestSnapshot = snapshot
             } else {
-                _isConnected = false
-                helperPort = nil
+                consecutiveFailures += 1
+                // Debounced: keep the connected state (and the last snapshot's rows) through
+                // transient misses; only a sustained run of failures means the helper's gone.
+                if consecutiveFailures >= Self.disconnectThreshold {
+                    _isConnected = false
+                    helperPort = nil     // force a port-file re-read on the next attempt
+                }
             }
         }
     }
