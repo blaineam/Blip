@@ -4,6 +4,7 @@ on:
   push:
     tags:
       - 'v*'
+  workflow_dispatch: {}   # cut-release dispatches this AT the tag ref (token-pushed tags don't auto-trigger)
 
 permissions:
   contents: write
@@ -278,3 +279,4 @@ jobs:
             dist/Blip.dmg
             dist/BlipHelper.dmg
           generate_release_notes: true
+          prerelease: ${{ contains(github.ref, '-rc') }}

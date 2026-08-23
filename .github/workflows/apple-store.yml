@@ -1,0 +1,109 @@
+name: apple-store
+
+# Ship a tagged release to the Mac App Store — ported from Haven's pipeline (same script).
+#   vX.Y.Z      → find/start the Xcode Cloud build of this commit, wait, create the ASC version,
+#                 set What's New from appstore-metadata*.md (all locales), attach, submit.
+#   vX.Y.Z-rc.N → nothing (TestFlight already gets every push).
+# Gated on the ASC API secrets; skips green with a notice until they exist.
+#   ASC_API_KEY_ID / ASC_API_ISSUER_ID / ASC_API_KEY_P8   (App Manager key)
+# Optional variable: APPLE_STORE_SUBMIT="false" → attach but don't press submit.
+
+on:
+  push:
+    tags: ["v*"]
+  workflow_dispatch:
+    inputs:
+      version:
+        description: "X.Y.Z to submit (must equal the Info.plist CFBundleShortVersionString)"
+        required: true
+      commit:
+        description: "Full commit sha the release was tagged at (blank = this ref)"
+        required: false
+      dry_run:
+        description: "Read-only: find the run + builds, check the notes, write nothing"
+        type: boolean
+        default: false
+
+permissions:
+  contents: read
+
+concurrency:
+  group: apple-store
+  cancel-in-progress: false
+
+jobs:
+  meta:
+    runs-on: ubuntu-latest
+    outputs:
+      version: ${{ steps.v.outputs.version }}
+      is_rc: ${{ steps.v.outputs.is_rc }}
+      commit: ${{ steps.v.outputs.commit }}
+    steps:
+      - uses: actions/checkout@v4
+      - id: v
+        env:
+          INPUT_VERSION: ${{ github.event.inputs.version }}
+          INPUT_COMMIT: ${{ github.event.inputs.commit }}
+          REF_NAME: ${{ github.ref_name }}
+          REF_TYPE: ${{ github.ref_type }}
+        run: |
+          set -euo pipefail
+          asc="$(python3 -c "import plistlib; print(plistlib.load(open('Blip/Resources/Info.plist','rb'))['CFBundleShortVersionString'])")"
+          raw="${INPUT_VERSION:-}"
+          if [ -z "$raw" ]; then
+            [ "$REF_TYPE" = "tag" ] || { echo "::error::run this from a v* tag, or pass a version"; exit 1; }
+            raw="$REF_NAME"
+          fi
+          version="${raw#v}"
+          core="${version%%-rc.*}"
+          is_rc=false; [ "$core" != "$version" ] && is_rc=true
+          printf '%s' "$core" | grep -Eq '^[0-9]+\.[0-9]+\.[0-9]+$' || { echo "::error::'$raw' is not X.Y.Z (optionally -rc.N)"; exit 1; }
+          [ "$core" = "$asc" ] || { echo "::error::Version drift: tag says '$core' but Info.plist says '$asc'."; exit 1; }
+          commit="${INPUT_COMMIT:-}"
+          if [ -z "$commit" ]; then commit="$(git rev-parse "${GITHUB_SHA}^{commit}")"; fi
+          echo "version=$core" >> "$GITHUB_OUTPUT"
+          echo "is_rc=$is_rc" >> "$GITHUB_OUTPUT"
+          echo "commit=$commit" >> "$GITHUB_OUTPUT"
+
+  submit:
+    needs: meta
+    if: needs.meta.outputs.is_rc == 'false'
+    runs-on: ubuntu-latest
+    timeout-minutes: 240
+    steps:
+      - uses: actions/checkout@v4
+        with: { fetch-depth: 0 }
+      - name: Gate on the ASC API secrets
+        id: gate
+        env:
+          KEY_ID: ${{ secrets.ASC_API_KEY_ID }}
+          ISSUER: ${{ secrets.ASC_API_ISSUER_ID }}
+          P8: ${{ secrets.ASC_API_KEY_P8 }}
+        run: |
+          if [ -z "$KEY_ID" ] || [ -z "$ISSUER" ] || [ -z "$P8" ]; then
+            echo "::notice title=apple-store skipped::ASC API secrets not set — add ASC_API_KEY_ID / ASC_API_ISSUER_ID / ASC_API_KEY_P8 (the same App Manager key Haven uses works account-wide)"
+            echo "ready=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "ready=true" >> "$GITHUB_OUTPUT"
+          fi
+      - uses: actions/setup-node@v4
+        if: steps.gate.outputs.ready == 'true'
+        with: { node-version: "22" }
+      - name: Submit to the App Store
+        if: steps.gate.outputs.ready == 'true'
+        env:
+          ASC_API_KEY_ID: ${{ secrets.ASC_API_KEY_ID }}
+          ASC_API_ISSUER_ID: ${{ secrets.ASC_API_ISSUER_ID }}
+          ASC_API_KEY_P8: ${{ secrets.ASC_API_KEY_P8 }}
+          VERSION: ${{ needs.meta.outputs.version }}
+          COMMIT: ${{ needs.meta.outputs.commit }}
+          DRY_RUN: ${{ github.event.inputs.dry_run }}
+          SUBMIT_FLAG: ${{ vars.APPLE_STORE_SUBMIT }}
+        run: |
+          set -euo pipefail
+          extra=()
+          [ "${DRY_RUN:-false}" = "true" ] && extra+=(--dry-run)
+          [ "${SUBMIT_FLAG:-true}" = "false" ] && extra+=(--no-submit)
+          node Scripts/asc-autosubmit.mjs --version "$VERSION" --commit "$COMMIT" --tag "v$VERSION" \
+            --bundle-id com.blainemiller.Blip --platforms MAC_OS \
+            --wait-build 120 --wait-process 45 --notes-dir . "${extra[@]}"
