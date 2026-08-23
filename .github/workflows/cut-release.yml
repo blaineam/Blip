@@ -56,6 +56,23 @@ jobs:
           fi
           git tag "$TAG" && git push origin "$TAG"
           echo "tag=$TAG" >> "$GITHUB_OUTPUT"
+          # After a FULL release, main moves to the NEXT patch immediately: Apple closes the
+          # released train once approved, and Xcode Cloud builds every main push — a
+          # same-version delivery then bounces (ITMS-90062/90186; bit Blip 1.8.0 build 94).
+          # rc tags keep the version (the train is still open). Ported from Haven.
+          if [ -z "$RC" ]; then
+            NEXT="${V%.*}.$(( ${V##*.} + 1 ))"
+            python3 - <<PY
+          import plistlib
+          for p in ('Blip/Resources/Info.plist', 'BlipHelper/Resources/Info.plist',
+                    'BlipMobile/Resources/Info.plist', 'BlipMobileWidgets/Resources/Info.plist'):
+              d = plistlib.load(open(p, 'rb'))
+              d['CFBundleShortVersionString'] = "$NEXT"
+              plistlib.dump(d, open(p, 'wb'))
+          print("main -> $NEXT")
+          PY
+            git add -A && git commit -m "back to development: $NEXT (the $V train closes on approval)" && git push origin HEAD:main
+          fi
       - name: Fan out pipelines at the tag ref
         env:
           GH_TOKEN: ${{ github.token }}
