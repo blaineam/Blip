@@ -6,8 +6,8 @@
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/blaineam/MillerKit",
       "state" : {
-        "revision" : "0e9b4646fdc5d874f9f5cc325567c8802a1b3222",
-        "version" : "1.2.1"
+        "revision" : "35c946fdc6fdfe5754d055f4679b80d64110081f",
+        "version" : "1.2.2"
       }
     }
   ],

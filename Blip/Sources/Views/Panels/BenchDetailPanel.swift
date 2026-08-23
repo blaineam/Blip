@@ -23,7 +23,9 @@ struct BenchDetailPanel: View {
             if !engine.history.isEmpty { historySection }
         }
         .padding(12)
-        .frame(width: 300)
+        // 260 like every other detail panel — the hover host sizes for that width, and a
+        // wider view gets edge-clipped (field-caught: the intro text lost its first column).
+        .frame(width: 260)
     }
 
     private var header: some View {

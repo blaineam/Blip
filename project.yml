@@ -27,7 +27,7 @@ packages:
   # publish step; swap `path` for `url`+`from` if it ever moves to GitHub.
   MillerKit:
     url: https://github.com/blaineam/MillerKit
-    from: "1.2.1"   # 1.2.1: funding links auto-hidden in App Store/TestFlight builds (3.1.1)
+    from: "1.2.2"   # 1.2.2: structural funding-link gate (iOS never; macOS by code signature — TF-receipt heuristic leaked)
 
 targets:
 

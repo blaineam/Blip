@@ -20,6 +20,11 @@
 - **`Scripts/mint-dev-profiles.mjs`** — mints iOS development provisioning profiles (app + widget) via the ASC API and installs them locally, because CLI `xcodebuild` on this Mac can't see accounts. App-group assignment still needs one Xcode Cloud build to register; after that, dev builds carry widgets too.
 - **Bench cold launch shows your last result** instead of an empty pitch (history was already loaded; now `lastResult` seeds from it).
 
+### Fixed — wave 3
+- **Mac Bench panel clipped its content** — it declared 300pt in a 260pt hover host; now 260 like every other panel.
+- **"Support Future Development" leaked into the macOS TestFlight build** — MillerKit 1.2.2 makes the gate structural: iOS-family builds never show external funding links, macOS decides by its own code signature (Apple-signed hides; Developer ID/dev-signed is direct), receipt presence only as a fast path.
+- **iOS App Store upload validation**: `LSRequiresIPhoneOS` added to the hand-written Info.plist (required for iOS store bundles) and `ITSAppUsesNonExemptEncryption=false` declared on app + widget, matching the Mac.
+
 ### Fixed — wave 2
 - **Bench history chart rendered nothing.** Two stacked causes: date-x bars with `unit: .second` were sub-pixel wide, and the index-x rewrite used `.ratio` bar width, which needs a band scale — bars now index-x with fixed width.
 - **Speed share text/cards carry idle + loaded latency and grades.**
