@@ -369,7 +369,15 @@ async function submit(appId, platform, versionId) {
 			try {
 				await api('POST', '/v1/reviewSubmissionItems', { data: { type: 'reviewSubmissionItems', relationships: { reviewSubmission: { data: { type: 'reviewSubmissions', id: sub.id } }, appStoreVersion: { data: { type: 'appStoreVersions', id: versionId } } } } });
 				break;
-			} catch (e) { if (e.status === 409 && i < 5) { log(`${platform}: item add 409 — retrying in 60s (${i + 1}/5): ${e.message.split(':').slice(-1)[0].trim()}`); await sleep(60_000); continue; } throw e; }
+			} catch (e) {
+				// The add can land while its RESPONSE is lost (seen on Haven 1.7.0's resubmit):
+				// every retry then 409s "state does not allow adding more items" even though
+				// the item exists and the submission is fine. Re-check membership before
+				// treating any 409 as fatal — presence means the add already succeeded.
+				if (e.status === 409 && (await itemsOf(sub)).has(versionId)) { log(`${platform}: item already present — continuing`); break; }
+				if (e.status === 409 && i < 5) { log(`${platform}: item add 409 — retrying in 60s (${i + 1}/5): ${e.message.split(':').slice(-1)[0].trim()}`); await sleep(60_000); continue; }
+				throw e;
+			}
 		}
 		log(`${platform}: version added to submission`);
 	}
