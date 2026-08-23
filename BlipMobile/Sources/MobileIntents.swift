@@ -38,7 +38,7 @@ enum BenchProfileOption: String, AppEnum {
 struct RunBenchmarkIntent: AppIntent {
     static let title: LocalizedStringResource = "Run Benchmark"
     static let description = IntentDescription(
-        "Runs Blip Bench — CPU, memory, and GPU against Blip's fixed reference units, comparable with any Mac or iPhone running Blip. Returns the composite score; the detailed result lands in the Bench tab's history.",
+        "Runs Blip Bench — CPU, memory, GPU, and Neural Engine against Blip's fixed reference units, comparable across every device running Blip. Returns the composite score; the detailed result lands in the Bench tab's history.",
         categoryName: "Benchmarks"
     )
     static let openAppWhenRun = true   // benchmarks deserve the foreground: full clock speeds, no background kill
