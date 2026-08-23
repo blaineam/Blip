@@ -163,10 +163,6 @@ targets:
         # Universal purchase: the iOS app IS Blip Stats — same app record, same bundle id
         # as the Mac App Store build (the user added the iOS platform to the existing app).
         PRODUCT_BUNDLE_IDENTIFIER: com.blainemiller.Blip
-        # Local device builds: `xcodebuild ... CODE_SIGN_STYLE=Manual CODE_SIGN_IDENTITY="Apple Development"`
-        # picks these up (profiles minted by Scripts/mint-dev-profiles.mjs). Automatic (default)
-        # and Xcode Cloud signing ignore them.
-        PROVISIONING_PROFILE_SPECIFIER: "Blip iOS Dev App"
         ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
         ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME: AccentColor
         INFOPLIST_FILE: BlipMobile/Resources/Info.plist
@@ -174,6 +170,13 @@ targets:
         TARGETED_DEVICE_FAMILY: "1,2"
         GENERATE_INFOPLIST_FILE: NO
         SWIFT_TREAT_WARNINGS_AS_ERRORS: YES
+      configs:
+        # DEBUG-ONLY: local device builds pass CODE_SIGN_STYLE=Manual and pick these up
+        # (profiles minted by Scripts/mint-dev-profiles.mjs). Release must NOT carry them —
+        # Xcode Cloud's export resolves a pinned specifier instead of managing signing
+        # (field-proven: runs 104/105 died on "No profiles for …widgets were found").
+        Debug:
+          PROVISIONING_PROFILE_SPECIFIER: "Blip iOS Dev App"
 
   BlipMobileWidgets:
     type: app-extension
@@ -188,11 +191,13 @@ targets:
     settings:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: com.blainemiller.Blip.widgets
-        PROVISIONING_PROFILE_SPECIFIER: "Blip iOS Dev Widgets"
         INFOPLIST_FILE: BlipMobileWidgets/Resources/Info.plist
         CODE_SIGN_ENTITLEMENTS: BlipMobileWidgets/Resources/BlipMobileWidgets.entitlements
         GENERATE_INFOPLIST_FILE: NO
         SWIFT_TREAT_WARNINGS_AS_ERRORS: YES
+      configs:
+        Debug:
+          PROVISIONING_PROFILE_SPECIFIER: "Blip iOS Dev Widgets"
 
   BlipMobileTests:
     type: bundle.unit-test
