@@ -65,7 +65,7 @@ enum SnapshotExport {
                 md += "- \(r.date.formatted(date: .abbreviated, time: .shortened)): \(String(format: "%.0f", r.downMbps)) Mbps down\(up) — \(r.source) on \(r.interface)\n"
             }
         }
-        md += "\n---\n_Captured by Blip · blip.wemiller.com_\n"
+        md += "\n---\n_Captured by Blip · [wemiller.com/apps/blip](https://wemiller.com/apps/blip/)_\n"
         return md
     }
 

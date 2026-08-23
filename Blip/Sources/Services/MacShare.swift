@@ -38,7 +38,7 @@ enum MacShareCard {
         if let lost = r.throttlePercentLost {
             lines.append(lost == 0 ? "No throttling under sustained load" : "Sustained load loses \(lost)%")
         }
-        lines.append("Measured with Blip · blip.wemiller.com")
+        lines.append("Measured with Blip · wemiller.com/apps/blip")
         return lines.joined(separator: "\n")
     }
 
@@ -49,7 +49,7 @@ enum MacShareCard {
         if let loaded = r.loadedPingMs { l += " · \(String(format: "%.0f", loaded)) ms loaded" }
         let grades = ConnectionGrades.evaluate(down: r.downMbps, up: r.upMbps,
                                                unloadedMs: r.pingMs, loadedMs: r.loadedPingMs)
-        return l + "\n" + ConnectionGrades.shareLines(grades) + "\nMeasured with Blip · blip.wemiller.com"
+        return l + "\n" + ConnectionGrades.shareLines(grades) + "\nMeasured with Blip · wemiller.com/apps/blip"
     }
 }
 
@@ -266,7 +266,7 @@ enum MacSnapshotExport {
                 md += "- \(r.timestamp.formatted(date: .abbreviated, time: .shortened)): \(String(format: "%.0f", r.downMbps)) Mbps down\(up)\n"
             }
         }
-        md += "\n---\n_Captured by Blip · blip.wemiller.com_\n"
+        md += "\n---\n_Captured by Blip · [wemiller.com/apps/blip](https://wemiller.com/apps/blip/)_\n"
         return md
     }
 

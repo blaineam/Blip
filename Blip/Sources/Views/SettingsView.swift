@@ -212,7 +212,7 @@ struct SettingsView: View {
                         .monospacedDigit()
                 }
                 LabeledContent("Website") {
-                    Link("blip.wemiller.com", destination: URL(string: "https://blip.wemiller.com")!)
+                    Link("wemiller.com/apps/blip", destination: URL(string: "https://wemiller.com/apps/blip/")!)
                         .font(.system(size: 12))
                 }
                 LabeledContent("GitHub") {

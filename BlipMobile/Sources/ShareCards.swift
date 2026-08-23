@@ -21,7 +21,7 @@ enum ShareCard {
         if let lost = r.throttlePercentLost {
             lines.append(lost == 0 ? "No throttling under sustained load" : "Sustained load loses \(lost)%")
         }
-        lines.append("Measured with Blip · blip.wemiller.com")
+        lines.append("Measured with Blip · wemiller.com/apps/blip")
         return lines.joined(separator: "\n")
     }
 
@@ -31,7 +31,7 @@ enum ShareCard {
         if let ping = r.pingMs { l += " · \(String(format: "%.0f", ping)) ms idle" }
         if let loaded = r.loadedPingMs { l += " · \(String(format: "%.0f", loaded)) ms loaded" }
         let grades = ConnectionGrades.evaluate(down: r.downMbps, up: r.upMbps, unloadedMs: r.pingMs, loadedMs: r.loadedPingMs)
-        return l + "\n" + ConnectionGrades.shareLines(grades) + "\nvia \(r.source) on \(r.interface)\nMeasured with Blip · blip.wemiller.com"
+        return l + "\n" + ConnectionGrades.shareLines(grades) + "\nvia \(r.source) on \(r.interface)\nMeasured with Blip · wemiller.com/apps/blip"
     }
 }
 
