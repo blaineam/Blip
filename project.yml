@@ -142,6 +142,52 @@ targets:
       - sdk: AppKit.framework
       - sdk: ServiceManagement.framework
 
+  # ---------- iOS / iPadOS app (Blip 2.0) ----------
+  BlipMobile:
+    type: application
+    platform: iOS
+    deploymentTarget: "17.0"
+    sources:
+      - path: BlipMobile/Sources
+      - path: Shared/BenchKit
+    dependencies:
+      - target: BlipMobileWidgets
+        embed: true
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.blainemiller.BlipMobile
+        INFOPLIST_FILE: BlipMobile/Resources/Info.plist
+        CODE_SIGN_ENTITLEMENTS: BlipMobile/Resources/BlipMobile.entitlements
+        TARGETED_DEVICE_FAMILY: "1,2"
+        GENERATE_INFOPLIST_FILE: NO
+        SWIFT_TREAT_WARNINGS_AS_ERRORS: YES
+
+  BlipMobileWidgets:
+    type: app-extension
+    platform: iOS
+    deploymentTarget: "17.0"
+    sources:
+      - path: BlipMobileWidgets
+      - path: Shared/BenchKit
+      - path: BlipMobile/Sources/MobileSharedStore.swift
+      - path: BlipMobile/Sources/DeviceStats.swift
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.blainemiller.BlipMobile.widgets
+        INFOPLIST_FILE: BlipMobileWidgets/Resources/Info.plist
+        CODE_SIGN_ENTITLEMENTS: BlipMobileWidgets/Resources/BlipMobileWidgets.entitlements
+        GENERATE_INFOPLIST_FILE: NO
+        SWIFT_TREAT_WARNINGS_AS_ERRORS: YES
+
+  BlipMobileTests:
+    type: bundle.unit-test
+    platform: iOS
+    deploymentTarget: "17.0"
+    sources:
+      - path: BlipMobileTests
+    dependencies:
+      - target: BlipMobile
+
 schemes:
   Blip:
     build:
@@ -155,6 +201,18 @@ schemes:
       gatherCoverageData: true
       targets:
         - BlipTests
+
+  BlipMobile:
+    build:
+      targets:
+        BlipMobile: all
+        BlipMobileTests: [test]
+    run:
+      config: Debug
+    test:
+      config: Debug
+      targets:
+        - BlipMobileTests
 
   BlipAppStore:
     build:

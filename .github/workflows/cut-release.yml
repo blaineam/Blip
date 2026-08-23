@@ -42,7 +42,8 @@ jobs:
           fi
           python3 - <<PY
           import plistlib
-          for p in ('Blip/Resources/Info.plist', 'BlipHelper/Resources/Info.plist'):
+          for p in ('Blip/Resources/Info.plist', 'BlipHelper/Resources/Info.plist',
+                    'BlipMobile/Resources/Info.plist', 'BlipMobileWidgets/Resources/Info.plist'):
               d = plistlib.load(open(p, 'rb'))
               d['CFBundleShortVersionString'] = "$V"
               plistlib.dump(d, open(p, 'wb'))

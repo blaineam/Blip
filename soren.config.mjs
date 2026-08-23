@@ -32,6 +32,20 @@ export default {
       tags: ['regression'],
     },
 
+    // ── Blip 2.0's iOS/iPadOS app + widget extension (the widgets build as an embedded
+    //    dependency of the app scheme, so one suite gates both). Runs MobileSmokeTests on a
+    //    simulator — including a REAL BenchKit quick run on the iOS runtime, which is the
+    //    cross-platform promise ("one score scale, Mac and iPhone") actually being exercised.
+    mobile: {
+      type: 'xcodebuild-test',
+      platform: 'ios',
+      project: 'Blip.xcodeproj',
+      scheme: 'BlipMobile',
+      destination: 'platform=iOS Simulator,name=iPhone 17 Pro',
+      description: 'BlipMobile app + widgets (iOS simulator, MobileSmokeTests)',
+      tags: ['regression'],
+    },
+
     // ── The Mac App Store variant is a SEPARATE target compiled with
     //    SWIFT_ACTIVE_COMPILATION_CONDITIONS=APPSTORE and the sandboxed
     //    entitlements file. It shares Blip/Sources but the `#if APPSTORE`
