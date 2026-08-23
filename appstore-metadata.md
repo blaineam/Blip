@@ -72,6 +72,28 @@ Widgets — bench score, storage, and last speed test on your Home Screen, each 
 
 No accounts, no ads, no tracking. Everything Blip shows is what iOS honestly exposes to a well-behaved app.
 
+## review_notes_ios
+<!-- App Review Information → Notes for the IOS platform version (set via API 2026-08-23).
+     The Mac version keeps its own notes (Blip Helper explanation); these replace the
+     inherited Mac copy, which described features that don't exist on iOS. -->
+Blip Stats for iOS is a self-contained device-stats, benchmark, and network-tools app. No account, no login, no tracking — a demo account is not applicable.
+
+What the reviewer will see, and the network/system behavior behind it:
+
+1. OVERVIEW: live device cards (CPU, memory, storage, battery, thermal, network) using only public APIs (host_processor_info, host_statistics64, getifaddrs, NWPathMonitor, etc.). The "WAN IP" row in Network details contacts api.ipify.org ONLY when the user taps "Tap to reveal" — never automatically.
+
+2. BENCH: Blip Bench runs CPU/memory/GPU/Neural Engine workloads on-device (full profile ~90 seconds, including a sustained thermal phase). High CPU/GPU usage during a run is the feature, not a defect. No network use.
+
+3. SPEED: network speed test against either (a) OpenSpeedTest's public service, driven through their own embeddable widget — their sanctioned integration path — or (b) a user-configured self-hosted OpenSpeedTest server. Sustained high throughput during a test is intentional. Latency is measured with a handful of ICMP echoes (standard SOCK_DGRAM/IPPROTO_ICMP datagram sockets, no special entitlements) to a user-configurable target (default 1.1.1.1).
+
+4. NETWORK tab: classic ping and traceroute using the same ICMP datagram sockets, to a user-configurable target (default 1.1.1.1). The optional offline GeoIP database (DB-IP Lite, ~100 MB, attributed in-app) downloads once from db-ip.com on explicit user request in Settings; all lookups happen on-device and no addresses are ever sent anywhere.
+
+5. STORAGE: the disk speed test writes a large temporary file (caching disabled), reads it back, and deletes it. External-volume tests use the standard Files document picker with security-scoped access.
+
+6. Home Screen widgets (bench score, storage, last speed test) populate after the app has been opened once. Shortcuts expose Run Benchmark / Run Speed Test / Get Device Snapshot.
+
+Note: the Mac App Store listing for this universal app mentions an optional "Blip Helper" companion for Mac-only hardware metrics. That is macOS-only and does not exist on iOS — the iOS app is fully self-contained.
+
 ## keywords
 system monitor,cpu usage,memory pressure,menu bar,activity monitor,gpu,battery health,fan speed,mac
 
