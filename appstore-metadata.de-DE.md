@@ -84,7 +84,7 @@ Jetzt auch auf iPhone und iPad. Live-Werte, Blip Bench mit Neural-Engine-Score, 
 
 
 ## whats_new
-2.0.0 — Blip kommt auf iPhone und iPad, und Blip Bench erscheint überall.
+2.0.1 — Blip kommt auf iPhone und iPad, und Blip Bench erscheint überall.
 
 + Neu: Blip für iOS/iPadOS — Live-Karten für CPU, Speicher, Festplatte, Batterie, Thermik und Netzwerk mit Detailansichten, Tap-to-Copy und ehrlichen Hinweisen.
 + Neu: Blip Bench — CPU-, Speicher-, GPU- und Neural-Engine-Durchsatz in festen Referenzeinheiten, vergleichbar über jeden Mac, jedes iPhone und iPad mit Blip, inklusive Dauerlastphase für thermisches Throttling.

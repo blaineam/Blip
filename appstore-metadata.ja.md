@@ -82,7 +82,7 @@ iPhoneとiPadにも登場。ライブ統計、Neural Engine対応のBlip Bench�
 
 
 ## whats_new
-2.0.0 — BlipがiPhoneとiPadに登場。Blip Benchはすべてのデバイスへ。
+2.0.1 — BlipがiPhoneとiPadに登場。Blip Benchはすべてのデバイスへ。
 
 + 新機能：iOS/iPadOS版Blip — CPU・メモリ・ストレージ・バッテリー・温度・ネットワークのライブカード。詳細表示、タップでコピー、正直な提案つき。
 + 新機能：Blip Bench — CPU・メモリ・GPU・Neural Engineを固定基準単位で採点。Blipを搭載したどのMac・iPhone・iPadとも比較でき、持続負荷フェーズで熱スロットリングも測定。

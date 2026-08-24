@@ -101,7 +101,7 @@ system monitor,cpu usage,memory pressure,menu bar,activity monitor,gpu,battery h
 Now on iPhone and iPad too. Live vitals, Blip Bench with Neural Engine scoring, graded speed tests, traceroute with a hop map — one free app across Mac and iOS.
 
 ## whats_new
-2.0.0 — Blip comes to iPhone and iPad, and Blip Bench arrives everywhere.
+2.0.1 — Blip comes to iPhone and iPad, and Blip Bench arrives everywhere.
 
 + New: Blip for iOS/iPadOS — live CPU, memory, storage, battery, thermal and network cards with drill-in details, tap-to-copy, and honest suggestions.
 + New: Blip Bench — CPU, memory, GPU and Neural Engine throughput in fixed reference units, comparable across every Mac, iPhone and iPad running Blip, with a sustained phase that measures thermal throttling.

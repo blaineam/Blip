@@ -82,7 +82,7 @@ Blip Bench — CPU, 메모리, GPU, Neural Engine 처리량을 Blip의 고정 �
 
 
 ## whats_new
-2.0.0 — Blip이 iPhone과 iPad에 등장하고, Blip Bench가 모든 기기로 옵니다.
+2.0.1 — Blip이 iPhone과 iPad에 등장하고, Blip Bench가 모든 기기로 옵니다.
 
 + 신규: iOS/iPadOS용 Blip — CPU·메모리·저장 공간·배터리·온도·네트워크 라이브 카드, 상세 화면, 탭 복사, 정직한 제안.
 + 신규: Blip Bench — CPU·메모리·GPU·Neural Engine을 고정 기준 단위로 채점, Blip을 실행하는 모든 Mac·iPhone·iPad와 비교 가능, 열 스로틀링을 재는 지속 부하 단계 포함.

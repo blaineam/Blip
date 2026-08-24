@@ -82,7 +82,7 @@ Blip Bench — 以 Blip 的固定基准单位衡量 CPU、内存、GPU 和神经
 
 
 ## whats_new
-2.0.0 — Blip 登陆 iPhone 和 iPad，Blip Bench 覆盖所有设备。
+2.0.1 — Blip 登陆 iPhone 和 iPad，Blip Bench 覆盖所有设备。
 
 + 新增：iOS/iPadOS 版 Blip — CPU、内存、存储、电池、温度、网络实时卡片，支持详情页、轻点拷贝与诚实建议。
 + 新增：Blip Bench — 以固定基准单位衡量 CPU、内存、GPU 和神经网络引擎，可与所有运行 Blip 的 Mac、iPhone、iPad 比较，并含测量热降频的持续负载阶段。

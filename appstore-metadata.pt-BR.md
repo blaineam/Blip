@@ -82,7 +82,7 @@ Agora também no iPhone e iPad. Dados ao vivo, Blip Bench com Neural Engine, tes
 
 
 ## whats_new
-2.0.0 — O Blip chega ao iPhone e ao iPad, e o Blip Bench chega a todo lugar.
+2.0.1 — O Blip chega ao iPhone e ao iPad, e o Blip Bench chega a todo lugar.
 
 + Novo: Blip para iOS/iPadOS — cartões ao vivo (CPU, memória, armazenamento, bateria, térmico, rede) com detalhes, copiar ao toque e sugestões honestas.
 + Novo: Blip Bench — CPU, memória, GPU e Neural Engine em unidades de referência fixas, comparável entre cada Mac, iPhone e iPad com o Blip, com fase sustentada para throttling térmico.

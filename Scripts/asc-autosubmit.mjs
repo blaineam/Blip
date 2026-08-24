@@ -43,7 +43,7 @@ const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 const summary = (line) => { if (process.env.GITHUB_STEP_SUMMARY) appendFileSync(process.env.GITHUB_STEP_SUMMARY, line + '\n'); };
 
 function parseArgs(argv) {
-	const a = { bundleId: 'com.blaineam.kith', platforms: ['IOS', 'MAC_OS'], waitBuild: 120, waitProcess: 45, notesDir: '.', submit: true, dryRun: false, testflightOnly: false };
+	const a = { bundleId: 'com.blaineam.kith', platforms: ['IOS', 'MAC_OS'], waitBuild: 120, waitProcess: 45, notesDir: '.', submit: true, dryRun: false, testflightOnly: false, resubmit: false };
 	for (let i = 2; i < argv.length; i++) {
 		switch (argv[i]) {
 			case '--bundle-id': a.bundleId = argv[++i]; break;
@@ -57,6 +57,7 @@ function parseArgs(argv) {
 			case '--notes-dir': a.notesDir = argv[++i]; break;
 			case '--no-submit': a.submit = false; break;
 			case '--dry-run': a.dryRun = true; break;
+			case '--resubmit': a.resubmit = true; break;
 			default: die(`unknown arg ${argv[i]}`);
 		}
 	}
@@ -223,10 +224,37 @@ async function waitValid(build, minutes) {
 const EDITABLE = new Set(['PREPARE_FOR_SUBMISSION', 'DEVELOPER_REJECTED', 'REJECTED', 'METADATA_REJECTED', 'INVALID_BINARY']);
 const LIVE_OR_QUEUED = new Set(['WAITING_FOR_REVIEW', 'IN_REVIEW', 'PENDING_DEVELOPER_RELEASE', 'READY_FOR_SALE', 'READY_FOR_DISTRIBUTION', 'PROCESSING_FOR_DISTRIBUTION']);
 
-async function ensureVersion(appId, platform, version, { dryRun }) {
+async function ensureVersion(appId, platform, version, opts) {
+	const { dryRun } = opts;
 	const versions = (await api('GET', `/v1/apps/${appId}/appStoreVersions?filter[platform]=${platform}&limit=50&fields[appStoreVersions]=versionString,appStoreState`)).data || [];
 	const same = versions.find((v) => v.attributes.versionString === version);
-	if (same && LIVE_OR_QUEUED.has(same.attributes.appStoreState)) return { version: same, state: same.attributes.appStoreState, done: true };
+	if (same && LIVE_OR_QUEUED.has(same.attributes.appStoreState)) {
+		// --resubmit: the SAME version is queued (not live) — pull it back so a fixed build can
+		// replace the queued one. Never touches live/pending-release states, and the platform
+		// filter keeps the other platform's queued submission untouched.
+		const RESUBMITTABLE = new Set(['WAITING_FOR_REVIEW', 'READY_FOR_REVIEW', 'IN_REVIEW']);
+		if (!(opts.resubmit && RESUBMITTABLE.has(same.attributes.appStoreState)))
+			return { version: same, state: same.attributes.appStoreState, done: true };
+		log(`${platform}: --resubmit — canceling the queued review of ${version} (${same.attributes.appStoreState})`);
+		if (!dryRun) {
+			const subs = (await api('GET', `/v1/reviewSubmissions?filter[app]=${appId}&filter[platform]=${platform}&filter[state]=READY_FOR_REVIEW,WAITING_FOR_REVIEW,IN_REVIEW&fields[reviewSubmissions]=state&limit=10`)).data || [];
+			for (const sub of subs) {
+				await api('PATCH', `/v1/reviewSubmissions/${sub.id}`, { data: { type: 'reviewSubmissions', id: sub.id, attributes: { canceled: true } } })
+					.catch((e) => log(`${platform}: cancel of submission ${sub.id} → ${e.message || e} (continuing)`));
+			}
+			let st = same.attributes.appStoreState;
+			for (let i = 0; i < 24; i++) {
+				await new Promise((r) => setTimeout(r, 5000));
+				const fresh = await api('GET', `/v1/appStoreVersions/${same.id}?fields[appStoreVersions]=appStoreState`).catch(() => null);
+				st = fresh?.data?.attributes?.appStoreState || st;
+				if (EDITABLE.has(st)) break;
+			}
+			if (!EDITABLE.has(st)) die(`${platform}: canceled the review but ${version} is still ${st} after 2min — check App Store Connect and re-run`);
+			log(`${platform}: ${version} back to ${st} — the new build will be attached`);
+			return { version: same, state: st };
+		}
+		return { version: same, state: 'PREPARE_FOR_SUBMISSION' };
+	}
 	if (same && EDITABLE.has(same.attributes.appStoreState)) return { version: same, state: same.attributes.appStoreState };
 	if (same) die(`${platform} ${version} exists but is ${same.attributes.appStoreState} — neither editable nor shipping; sort it out in App Store Connect`);
 	// One editable slot per platform. A stale draft with a different number that has no
@@ -469,7 +497,7 @@ async function main() {
 	const results = [];
 	for (const platform of args.platforms) {
 		const build = byPlatform[platform];
-		const { version, state, done } = await ensureVersion(app.id, platform, args.version, { dryRun: args.dryRun });
+		const { version, state, done } = await ensureVersion(app.id, platform, args.version, { dryRun: args.dryRun, resubmit: args.resubmit });
 		if (done) { log(`${platform} ${args.version} is already ${state} — nothing to do`); results.push(`${platform} ${args.version}: already ${state}`); continue; }
 		log(`${platform}: editable version ${args.version} (${state})`);
 		if (!args.dryRun) {
