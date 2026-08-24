@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+### Fixed — iOS shows English again for English users
+- **The iOS app rendered entirely in German on English devices.** The 2.0 localization wave shipped 8 translated lprojs (de first alphabetically) but no `en.lproj` — String Catalogs with source-language-only English emit no en table — and the iOS Info.plist lacked `CFBundleDevelopmentRegion`, so iOS had no idea the unlocalized strings were English and fell back to the first localization on disk: German. Fixed by declaring `CFBundleDevelopmentRegion = en` in the iOS app and widget Info.plists (the Mac app already had it, which is why only iOS was affected). Verified on an en-US simulator; German/Spanish/… translations are untouched.
+- **Local device builds un-broke.** The widget target's Debug config gained the missing signing identity/team, both iOS targets got a strip-xattrs build phase, and the repo's iCloud-synced location means device DerivedData must live outside the tree (codesign "detritus" otherwise).
+
 ### Added — iOS listing pipeline & store safety (wave 3)
 - **Universal purchase wiring.** Blip for iOS ships as `com.blainemiller.Blip` — the SAME app record as the Mac App Store build (the iOS platform was added to the existing Blip Stats app). Widget extension is `com.blainemiller.Blip.widgets`; the apple-store CI iOS lane and dev-profile mint script follow.
 - **App Store screenshot pipeline for iOS + iPadOS.** `Tools/capture_screenshots.sh` (+ `.local-screenshots.conf`) captures the required 6.9" iPhone (1320×2868) and 13" iPad (2064×2752) canvases from the iPhone 17 Pro Max / iPad Pro 13" (M5) simulators, alternating dark and light scenes so the set itself demonstrates dark-mode support; `docs/appstore-screenshots/Blip-{iphone,ipad}.monkr` hold the Deep Current-branded frame designs (iPhone 17 Pro Max deep-blue / iPad Pro 13" space-black) for the shared Monkr render + ASC upload pipeline.
