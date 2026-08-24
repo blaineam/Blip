@@ -167,6 +167,10 @@ targets:
       - target: BlipMobileWidgets
         embed: true
       - package: MillerKit
+    postBuildScripts:
+      - name: Strip xattrs (iCloud Documents detritus)
+        script: 'xattr -cr "${CODESIGNING_FOLDER_PATH}" || true'
+        basedOnDependencyAnalysis: false
     settings:
       base:
         # Universal purchase: the iOS app IS Blip Stats — same app record, same bundle id
@@ -186,9 +190,15 @@ targets:
         # (field-proven: runs 104/105 died on "No profiles for …widgets were found").
         Debug:
           PROVISIONING_PROFILE_SPECIFIER: "Blip iOS Dev App"
+          CODE_SIGN_IDENTITY: "iPhone Developer"
+          DEVELOPMENT_TEAM: 8ZVSPZYSVF
 
   BlipMobileWidgets:
     type: app-extension
+    postBuildScripts:
+      - name: Strip xattrs (iCloud Documents detritus)
+        script: 'xattr -cr "${CODESIGNING_FOLDER_PATH}" || true'
+        basedOnDependencyAnalysis: false
     platform: iOS
     deploymentTarget: "17.0"
     sources:
@@ -207,6 +217,8 @@ targets:
       configs:
         Debug:
           PROVISIONING_PROFILE_SPECIFIER: "Blip iOS Dev Widgets"
+          CODE_SIGN_IDENTITY: "iPhone Developer"
+          DEVELOPMENT_TEAM: 8ZVSPZYSVF
 
   BlipMobileTests:
     type: bundle.unit-test
