@@ -17,6 +17,7 @@ Existing system monitors are either bloated, expensive, or missing key features.
 - **Fast** — async/await throughout, polls every 2 seconds
 - **Pretty** — clean layout, smooth charts, hover detail panels
 - **Focused** — system metrics only, no weather or clock widgets
+- **Localized** — English plus German, Spanish, French, Italian, Japanese, Korean, Brazilian Portuguese, and Simplified Chinese
 - **Free** — open source under MIT, notarized releases on GitHub
 
 ## ✨ Features
@@ -28,7 +29,7 @@ Existing system monitors are either bloated, expensive, or missing key features.
 | **Disk** | Usage bar + percentage | All mounted volumes with space used/free, real-time read/write speeds, total data read/written since boot, I/O history chart with Y-axis labels, **S.M.A.R.T. drive health** — SSD life remaining, available spare, drive temperature, lifetime bytes written/read, power-on hours, power cycles, unsafe shutdowns (NVMe health log, internal + NVMe enclosures), **disk speed test** — uncached sequential write/read + random IOPS benchmark with optional interval testing, runnable on any volume in one click via its gauge button |
 | **Network** | Connectivity dot | Upload/download speeds, accurate session totals up/down (64-bit, wrap-corrected), WAN and router ping latency (configurable target), bandwidth history chart with Y-axis labels, all active interfaces (Wi-Fi + Ethernet), IPv4/IPv6, LAN IP, router IP, MAC address, WAN IP reveal, VPN detection (Tailscale, WireGuard), click-to-copy addresses, **live Traceroute / MTR** with per-hop loss & latency, **multi-gig speed test** (download/upload throughput against Cloudflare or a self-hosted OpenSpeedTest LAN server) with optional interval testing |
 | **Processes** | — | Top processes by CPU and memory with app icons; **kill a process** right from the list (user-owned processes; routed through the helper when sandboxed) |
-| **GPU** | — | Apple Silicon GPU utilization, renderer name, GPU core count, historical usage chart |
+| **GPU** | Usage bar + percentage *(optional, off by default)* | Apple Silicon GPU utilization, renderer name, GPU core count, historical usage chart |
 | **Battery** | — | Charge %, health %, cycle count, temperature, time remaining, charging status |
 | **Fans** | — | RPM per fan with min/max range bars, CPU and GPU temperatures |
 | **System** | — | Mac model, macOS version, uptime, thermal state, Blip's own memory usage |
@@ -225,6 +226,12 @@ Blip reads hardware sensors (SMC for fans, IOKit for GPU/disk I/O, process list 
 <summary><strong>How much memory does Blip use?</strong></summary>
 <br>
 Typically around 42 MB physical footprint. Blip shows its own memory usage in the popover footer so you can always verify.
+</details>
+
+<details>
+<summary><strong>Why does the menu bar readout look blurry on one of my displays?</strong></summary>
+<br>
+When two displays run at different pixel densities (a Retina MacBook next to a standard-DPI external, say), macOS renders a status item once — at the scale of the display whose menu bar is currently active — and mirrors a scaled copy to the other display. Every menu bar app with a custom view behaves this way; it isn't something Blip can override. The workaround is to run both displays at the same backing scale: give the external a HiDPI ("Retina") scaled resolution in System Settings → Displays, or with a tool like BetterDisplay.
 </details>
 
 <details>

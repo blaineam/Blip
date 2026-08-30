@@ -23,7 +23,7 @@ CPU — Barra de uso total na barra de menus. Clique para ver o uso por núcleo,
 Memória — Percentual de uso num relance. Detalhe a RAM total, a divisão ativa/reservada/comprimida/apps, o uso de swap e o nível de pressão de memória.
 Rede — Indicador de conectividade ao vivo na barra de menus. Toque para ver velocidades de envio/recebimento, tráfego total desde o boot, interfaces ativas com IPs, detecção de VPN para Tailscale e WireGuard e o IP público revelado com um toque. Gráfico de histórico com escala automática.
 Disco — Todos os volumes montados com espaço usado e livre. Velocidades de leitura/gravação em tempo real, total transferido desde o boot e gráfico de histórico de I/O com eixo Y em escala automática.*
-GPU — Uso da GPU Apple Silicon, nome do renderizador, número de núcleos e gráfico histórico.*
+GPU — Uso da GPU Apple Silicon, nome do renderizador, número de núcleos e gráfico histórico. Leitura opcional na barra de menus.*
 Bateria — Nível de carga, saúde, ciclos, temperatura, tempo restante, status de carregamento, fonte de energia e condição da bateria.*
 Ventoinhas e Temperatura — RPM por ventoinha com faixas mín./máx., além das temperaturas de CPU e GPU lidas direto do SMC. Mostra "Mac sem ventoinha" com elegância no MacBook Air.*
 Processos — Os 5 maiores por CPU e memória, com ícones e medições precisas que batem com o Monitor de Atividade.*
@@ -82,16 +82,11 @@ Agora também no iPhone e iPad. Dados ao vivo, Blip Bench com Neural Engine, tes
 
 
 ## whats_new
-2.0.1 — O Blip chega ao iPhone e ao iPad, e o Blip Bench chega a todo lugar.
+2.0.2 — GPU na barra de menus, e o app do Mac agora fala seu idioma em todos os cantos.
 
-+ Novo: Blip para iOS/iPadOS — cartões ao vivo (CPU, memória, armazenamento, bateria, térmico, rede) com detalhes, copiar ao toque e sugestões honestas.
-+ Novo: Blip Bench — CPU, memória, GPU e Neural Engine em unidades de referência fixas, comparável entre cada Mac, iPhone e iPad com o Blip, com fase sustentada para throttling térmico.
-+ Novo: testes de velocidade com curvas separadas, latência ociosa e sob carga (bufferbloat), notas por atividade, histórico e cartões de compartilhamento.
-+ Novo: ping e traceroute no iOS com mapa GeoIP off-line.
-+ Novo: testes de velocidade de disco no iOS — armazenamento interno ou qualquer volume do Arquivos.
-+ Novo: widgets na tela de início (pontuação Bench, armazenamento, último teste) e suporte a Atalhos.
-* Mac: nomes de dispositivos agora sempre aparecem como nome comercial no Apple Silicon.
-
++ Novo (Mac): leitura opcional de uso da GPU na barra de menus — Ajustes → Itens Visíveis → GPU, nos dois layouts. Obrigado ao impiri pela primeira contribuição externa ao Blip!
+* Mac: 79 textos que permaneciam em inglês — recomendações, estado térmico, estado do helper, rótulos do bench e nomes de ajustes dos Atalhos — agora estão localizados nos 8 idiomas.
+* Mac: os controles de itens visíveis agora seguem a ordem da barra de menus.
 
 ## marketing_url
 https://wemiller.com/apps/blip/

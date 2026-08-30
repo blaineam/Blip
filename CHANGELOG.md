@@ -2,6 +2,19 @@
 
 ## Unreleased
 
+### Added — GPU in the menu bar (Blip's first outside contribution 🎉)
+- **Optional GPU utilization row in the menu bar** — contributed by [@impiri](https://github.com/impiri) in [#4](https://github.com/blaineam/Blip/pull/4). Settings → Visible Items → GPU (off by default), rendered in both stacked and horizontal layouts in the popover's purple, with a `showGPU` setting descriptor so Shortcuts can drive it. In the App Store build the row appears once the helper connects (GPU utilization is helper-only there); the direct download always shows it. Their parallel Swift 6.2 `DiskSpeedTester` fix had independently landed on main, so that commit merged superseded — the feature merged as authored.
+- Visible-item toggles now list in menu-bar order (CPU, Memory, Disk, GPU, then the network dot).
+
+### Fixed — the Mac app now fully speaks all 8 languages
+- **79 user-visible strings had drifted out of the string catalog and rendered in English everywhere** — the entire Recommendations engine, thermal state names and descriptions, helper status ("Connected", "Update available", …), the bench panel and its Shortcuts intent, share-card labels, settings validators, and the Shortcuts setting titles ("Show GPU in Menu Bar", …) which were plain strings never routed through localization. All are now translated into German, Spanish, French, Italian, Japanese, Korean, Brazilian Portuguese, and Simplified Chinese, keyed off a stringsdata extraction diff so nothing else is missing.
+- Thermal level names render via a `localizedName` (previously raw enum values reached the UI), and Swift Charts series identifiers (`dir`, `adir`, `t`) are excluded from translation so localization can never merge chart series.
+- Still English on purpose: the Copy Stats / share report text (`MacShare`), and brand names (Blip Bench, Blip Speed).
+
+### Notes
+- **Menu-bar icon sharpness on mixed-DPI dual monitors** ([#3](https://github.com/blaineam/Blip/issues/3), thanks @jentor): root-caused to macOS rendering a status item once — at the active display's scale — and mirroring a scaled copy to the other display. Not something an app can override; documented in the README FAQ with the same-backing-scale workaround.
+- Cleaned iCloud-sync duplicate detritus out of the tree (stray `* 2.xcodeproj` bundles, empty `* 2.entitlements`, duplicate screenshots, and a broken `origin/main 2` git ref that failed every fetch).
+
 ### Fixed — iOS shows English again for English users
 - **The iOS app rendered entirely in German on English devices.** The 2.0 localization wave shipped 8 translated lprojs (de first alphabetically) but no `en.lproj` — String Catalogs with source-language-only English emit no en table — and the iOS Info.plist lacked `CFBundleDevelopmentRegion`, so iOS had no idea the unlocalized strings were English and fell back to the first localization on disk: German. Fixed by declaring `CFBundleDevelopmentRegion = en` in the iOS app and widget Info.plists (the Mac app already had it, which is why only iOS was affected). Verified on an en-US simulator; German/Spanish/… translations are untouched.
 - **Local device builds un-broke.** The widget target's Debug config gained the missing signing identity/team, both iOS targets got a strip-xattrs build phase, and the repo's iCloud-synced location means device DerivedData must live outside the tree (codesign "detritus" otherwise).

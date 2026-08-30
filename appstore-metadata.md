@@ -21,7 +21,7 @@ CPU — Total usage bar in your menu bar. Click to see per-core utilization, use
 Memory — Usage percentage at a glance. Drill into total RAM, active/wired/compressed/app breakdown, swap usage, and memory pressure level.
 Network — Live connectivity indicator in the menu bar. Tap to see upload/download speeds, total bandwidth since boot, all active interfaces listed with IPs, VPN detection for Tailscale and WireGuard, and a tap-to-reveal public IP. Bandwidth history chart with auto-scaled speed labels.
 Disk — All mounted volumes with space used and free. Real-time read/write speeds, total data transferred since boot, and a live I/O history chart with auto-scaled Y-axis labels.*
-GPU — Apple Silicon GPU utilization, renderer name, core count, and a historical usage chart.*
+GPU — Apple Silicon GPU utilization, renderer name, core count, and a historical usage chart. Optional menu bar readout.*
 Battery — Charge level, health percentage, cycle count, temperature, time remaining, charging status, power source, and battery condition.*
 Fans & Thermals — RPM per fan with min/max ranges, plus CPU and GPU temperatures read directly from the SMC. Shows "fanless Mac" gracefully on MacBook Air.*
 Top Processes — See the top 5 processes by CPU and memory with app icons and accurate, delta-based measurements that match Activity Monitor.*
@@ -101,15 +101,11 @@ system monitor,cpu usage,memory pressure,menu bar,activity monitor,gpu,battery h
 Now on iPhone and iPad too. Live vitals, Blip Bench with Neural Engine scoring, graded speed tests, traceroute with a hop map — one free app across Mac and iOS.
 
 ## whats_new
-2.0.1 — Blip comes to iPhone and iPad, and Blip Bench arrives everywhere.
+2.0.2 — GPU in the menu bar, and every corner of the Mac app now speaks your language.
 
-+ New: Blip for iOS/iPadOS — live CPU, memory, storage, battery, thermal and network cards with drill-in details, tap-to-copy, and honest suggestions.
-+ New: Blip Bench — CPU, memory, GPU and Neural Engine throughput in fixed reference units, comparable across every Mac, iPhone and iPad running Blip, with a sustained phase that measures thermal throttling.
-+ New: Speed tests with download and upload charted separately, idle vs under-load latency (bufferbloat), per-activity connection grades, history, and share cards.
-+ New: Ping and traceroute on iOS, with an offline GeoIP hop map.
-+ New: Disk speed tests on iOS — internal storage or any volume in Files.
-+ New: Home Screen widgets (bench score, storage, last speed test) and Shortcuts support.
-* Mac: device names now always read as the marketing name on Apple Silicon.
++ New (Mac): optional GPU utilization readout in the menu bar — Settings → Visible Items → GPU, in both layouts. Thanks to impiri for Blip's first outside contribution!
+* Mac: 79 strings that had slipped through in English — recommendations, thermal status, helper status, bench labels, and Shortcuts setting names — are now properly localized into all 8 supported languages.
+* Mac: visible-item toggles now match the menu bar's order.
 
 ## marketing_url
 https://wemiller.com/apps/blip/
