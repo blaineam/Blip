@@ -425,9 +425,9 @@ struct SettingsView: View {
     private var helperStatusText: String {
         if helperConnected {
             let v = helperVersion.map { " · v\($0)" } ?? ""
-            return helperOutdated ? "Update available\(v)" : "Connected\(v)"
+            return helperOutdated ? String(localized: "Update available") + v : String(localized: "Connected") + v
         }
-        return helperInstalled ? "Not Running" : "Not Installed"
+        return helperInstalled ? String(localized: "Not Running") : String(localized: "Not Installed")
     }
 
     /// The connected helper is outdated if it reports no version (a pre-versioning
@@ -464,8 +464,8 @@ struct SettingsView: View {
                 Toggle("CPU", isOn: $showCPU)
                 Toggle("Memory", isOn: $showMemory)
                 Toggle("Disk", isOn: $showDisk)
-                Toggle("Network Indicator", isOn: $showNetworkDot)
                 Toggle("GPU", isOn: $showGPU)
+                Toggle("Network Indicator", isOn: $showNetworkDot)
             }
             Section("Layout") {
                 Picker("Menu Bar Style", selection: $menuBarLayout) {

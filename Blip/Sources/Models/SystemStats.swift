@@ -217,6 +217,16 @@ enum ThermalLevel: String, Sendable {
     case fair = "Fair"
     case serious = "Serious"
     case critical = "Critical"
+
+    /// Display name via the string catalog — rawValue stays English (storage + helper protocol).
+    var localizedName: String {
+        switch self {
+        case .nominal: String(localized: "Nominal")
+        case .fair: String(localized: "Fair")
+        case .serious: String(localized: "Serious")
+        case .critical: String(localized: "Critical")
+        }
+    }
 }
 
 // MARK: - Optimization Recommendations
@@ -243,46 +253,46 @@ enum RecommendationsEngine {
             $0.cpu > 85 && $0.isUserOwned && !isSystemProcess($0.name)
         }) {
             recs.append(.init(id: "cpu-hog", severity: .warning, icon: "cpu",
-                title: "\(p.name) is using \(Int(p.cpu))% CPU",
-                detail: "Quitting or restarting it would cut heat, fan noise, and battery drain."))
+                title: String(localized: "\(p.name) is using \(Int(p.cpu))% CPU"),
+                detail: String(localized: "Quitting or restarting it would cut heat, fan noise, and battery drain.")))
         }
 
         // Memory pressure / swap
         if s.memory.pressureLevel >= 2 {
             recs.append(.init(id: "mem-pressure", severity: .critical, icon: "memorychip",
-                title: "Memory pressure is high",
-                detail: "Close some apps or browser tabs — heavy swapping wears the SSD and slows things down."))
+                title: String(localized: "Memory pressure is high"),
+                detail: String(localized: "Close some apps or browser tabs — heavy swapping wears the SSD and slows things down.")))
         } else if s.memory.swapUsed > 3_000_000_000 {
             recs.append(.init(id: "mem-swap", severity: .warning, icon: "memorychip",
-                title: "\(Fmtish.gb(s.memory.swapUsed)) of swap in use",
-                detail: "Frequent swapping adds SSD writes. Closing memory-hungry apps helps."))
+                title: String(localized: "\(Fmtish.gb(s.memory.swapUsed)) of swap in use"),
+                detail: String(localized: "Frequent swapping adds SSD writes. Closing memory-hungry apps helps.")))
         }
 
         // Thermals
         if s.system.thermalLevel == .critical || s.system.thermalLevel == .serious {
             recs.append(.init(id: "thermal", severity: s.system.thermalLevel == .critical ? .critical : .warning,
                 icon: "thermometer.high",
-                title: "Your Mac is running hot (\(s.system.thermalLevel.rawValue))",
-                detail: "Reduce load, improve airflow, or move off soft surfaces to avoid throttling."))
+                title: String(localized: "Your Mac is running hot (\(s.system.thermalLevel.localizedName))"),
+                detail: String(localized: "Reduce load, improve airflow, or move off soft surfaces to avoid throttling.")))
         }
 
         // Disk nearly full
         if let root = s.disk.volumes.first(where: { $0.mountPoint == "/" }), root.usagePercent > 90 {
             recs.append(.init(id: "disk-full", severity: .warning, icon: "internaldrive",
-                title: "Startup disk is \(Int(root.usagePercent))% full",
-                detail: "Free up space — a nearly-full SSD slows down and has less room for wear-leveling."))
+                title: String(localized: "Startup disk is \(Int(root.usagePercent))% full"),
+                detail: String(localized: "Free up space — a nearly-full SSD slows down and has less room for wear-leveling.")))
         }
 
         // Drive S.M.A.R.T. / endurance
         for d in s.disk.drives {
             if !d.isHealthy {
                 recs.append(.init(id: "smart-\(d.id)", severity: .critical, icon: "exclamationmark.triangle",
-                    title: "\(d.name) reports a S.M.A.R.T. warning",
-                    detail: "Back up this drive now — it may be failing."))
+                    title: String(localized: "\(d.name) reports a S.M.A.R.T. warning"),
+                    detail: String(localized: "Back up this drive now — it may be failing.")))
             } else if let life = d.lifeRemaining, life < 20 {
                 recs.append(.init(id: "ssd-life-\(d.id)", severity: .warning, icon: "internaldrive",
-                    title: "\(d.name) is at \(life)% life remaining",
-                    detail: "The SSD is wearing out — keep backups and plan a replacement."))
+                    title: String(localized: "\(d.name) is at \(life)% life remaining"),
+                    detail: String(localized: "The SSD is wearing out — keep backups and plan a replacement.")))
             }
         }
 
@@ -290,13 +300,13 @@ enum RecommendationsEngine {
         if s.battery.isPresent {
             if s.battery.health > 0 && s.battery.health < 80 {
                 recs.append(.init(id: "batt-health", severity: .info, icon: "battery.25",
-                    title: "Battery health is \(Int(s.battery.health))%",
-                    detail: "Capacity has dropped — a battery service would restore runtime."))
+                    title: String(localized: "Battery health is \(Int(s.battery.health))%"),
+                    detail: String(localized: "Capacity has dropped — a battery service would restore runtime.")))
             }
             if s.battery.condition.localizedCaseInsensitiveContains("service") {
                 recs.append(.init(id: "batt-service", severity: .warning, icon: "battery.25",
-                    title: "Battery needs service",
-                    detail: "macOS flagged the battery condition — consider a replacement."))
+                    title: String(localized: "Battery needs service"),
+                    detail: String(localized: "macOS flagged the battery condition — consider a replacement.")))
             }
         }
 

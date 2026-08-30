@@ -43,7 +43,7 @@ enum Fmt {
     }
 
     static func timeRemaining(_ minutes: Int) -> String {
-        guard minutes > 0 else { return "Calculating..." }
+        guard minutes > 0 else { return String(localized: "Calculating...") }
         let h = minutes / 60
         let m = minutes % 60
         if h > 0 { return "\(h)h \(m)m" }

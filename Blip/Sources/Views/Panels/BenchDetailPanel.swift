@@ -228,10 +228,10 @@ struct BenchDetailPanel: View {
 
     private func thermalStateLabel(_ raw: Int) -> String {
         switch raw {
-        case 0: return "Nominal"
-        case 1: return "Fair"
-        case 2: return "Serious"
-        default: return "Critical"
+        case 0: return String(localized: "Nominal")
+        case 1: return String(localized: "Fair")
+        case 2: return String(localized: "Serious")
+        default: return String(localized: "Critical")
         }
     }
 }

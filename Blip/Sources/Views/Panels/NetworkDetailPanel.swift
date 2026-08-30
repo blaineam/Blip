@@ -388,7 +388,7 @@ struct NetworkDetailPanel: View {
                 }
             } catch {
                 await MainActor.run {
-                    wanIP = "Unavailable"
+                    wanIP = String(localized: "Unavailable")
                     showWAN = true
                     loadingWAN = false
                 }

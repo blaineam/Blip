@@ -13,7 +13,7 @@ struct ThermalDetailPanel: View {
                 Text("Thermal")
                     .font(.system(size: 13, weight: .semibold))
                 Spacer()
-                Text(thermalLevel.rawValue)
+                Text(thermalLevel.localizedName)
                     .font(.system(size: 13, weight: .bold))
                     .foregroundStyle(thermalColor)
             }
@@ -124,10 +124,10 @@ struct ThermalDetailPanel: View {
 
     private var thermalDescription: String {
         switch thermalLevel {
-        case .nominal: return "System is running within normal thermal limits."
-        case .fair: return "System is slightly warm. Performance is not affected."
-        case .serious: return "System is warm. Performance may be throttled."
-        case .critical: return "System is overheating. Performance is being reduced."
+        case .nominal: return String(localized: "System is running within normal thermal limits.")
+        case .fair: return String(localized: "System is slightly warm. Performance is not affected.")
+        case .serious: return String(localized: "System is warm. Performance may be throttled.")
+        case .critical: return String(localized: "System is overheating. Performance is being reduced.")
         }
     }
 }

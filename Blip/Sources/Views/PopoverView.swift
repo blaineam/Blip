@@ -18,9 +18,9 @@ struct PopoverView: View {
     var speedHistory: [NetSpeedResult] = []
 
     private var benchScoreLabel: String {
-        if benchEngine.isRunning { return "running…" }
+        if benchEngine.isRunning { return String(localized: "running…") }
         if let r = benchEngine.lastResult { return "\(Int(r.composite.rounded()))" }
-        return "run"
+        return String(localized: "run")
     }
     var onOpenSettings: (() -> Void)?
     /// Opens Settings (where the support rows live) via AppDelegate, which
@@ -254,7 +254,7 @@ struct PopoverView: View {
                     Text("Thermal")
                         .font(.system(size: 11, weight: .medium))
                         .frame(width: 60, alignment: .leading)
-                    Text(monitor.snapshot.system.thermalLevel.rawValue)
+                    Text(monitor.snapshot.system.thermalLevel.localizedName)
                         .font(.system(size: 10, design: .monospaced))
                         .foregroundStyle(thermalColor)
                         .frame(width: 108, alignment: .leading)

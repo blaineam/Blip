@@ -27,30 +27,30 @@ struct BlipSettingDescriptor: Sendable {
 
     static let hostValidator: @Sendable (String) -> String? = { value in
         if value.isEmpty { return nil }  // empty clears the target
-        return HostValidation.isValid(value) ? nil : "must be a hostname or IP address"
+        return HostValidation.isValid(value) ? nil : String(localized: "must be a hostname or IP address")
     }
 
     static let urlValidator: @Sendable (String) -> String? = { value in
         if value.isEmpty { return nil }  // empty reverts to the public test
         let server = SpeedTestServer.openSpeedTest(baseURL: value)
-        return server.openSpeedTestBase == nil ? "must be a server address like http://192.168.1.50:3000" : nil
+        return server.openSpeedTestBase == nil ? String(localized: "must be a server address like http://192.168.1.50:3000") : nil
     }
 
     static let catalog: [BlipSettingDescriptor] = [
-        .init(key: "showCPU", title: "Show CPU in Menu Bar", kind: .boolean, defaultValue: "true", isSecret: false),
-        .init(key: "showMemory", title: "Show Memory in Menu Bar", kind: .boolean, defaultValue: "true", isSecret: false),
-        .init(key: "showDisk", title: "Show Disk in Menu Bar", kind: .boolean, defaultValue: "true", isSecret: false),
-        .init(key: "showNetworkDot", title: "Show Network Dot in Menu Bar", kind: .boolean, defaultValue: "true", isSecret: false),
-        .init(key: "showGPU", title: "Show GPU in Menu Bar", kind: .boolean, defaultValue: "false", isSecret: false),
-        .init(key: "showMeasurementLabels", title: "Show Measurement Labels", kind: .boolean, defaultValue: "true", isSecret: false),
-        .init(key: "showValueLabels", title: "Show Value Labels", kind: .boolean, defaultValue: "true", isSecret: false),
-        .init(key: "colorizeUtilization", title: "Colorize Utilization", kind: .boolean, defaultValue: "true", isSecret: false),
-        .init(key: "showRecommendations", title: "Show Recommendations", kind: .boolean, defaultValue: "true", isSecret: false),
-        .init(key: "menuBarLayout", title: "Menu Bar Style", kind: .choice(allowed: ["horizontal", "stacked"]), defaultValue: "horizontal", isSecret: false),
-        .init(key: "pingTarget", title: "Ping Target", kind: .string(validate: hostValidator), defaultValue: "1.1.1.1", isSecret: false),
-        .init(key: "tracerouteTarget", title: "Traceroute Target", kind: .string(validate: hostValidator), defaultValue: "", isSecret: false),
-        .init(key: "speedTestOpenSpeedTestURL", title: "Self-Hosted Speed Test Server", kind: .string(validate: urlValidator), defaultValue: "", isSecret: false),
-        .init(key: "geoipAutoUpdate", title: "Auto-Update Location Database", kind: .boolean, defaultValue: "false", isSecret: false),
+        .init(key: "showCPU", title: String(localized: "Show CPU in Menu Bar"), kind: .boolean, defaultValue: "true", isSecret: false),
+        .init(key: "showMemory", title: String(localized: "Show Memory in Menu Bar"), kind: .boolean, defaultValue: "true", isSecret: false),
+        .init(key: "showDisk", title: String(localized: "Show Disk in Menu Bar"), kind: .boolean, defaultValue: "true", isSecret: false),
+        .init(key: "showGPU", title: String(localized: "Show GPU in Menu Bar"), kind: .boolean, defaultValue: "false", isSecret: false),
+        .init(key: "showNetworkDot", title: String(localized: "Show Network Dot in Menu Bar"), kind: .boolean, defaultValue: "true", isSecret: false),
+        .init(key: "showMeasurementLabels", title: String(localized: "Show Measurement Labels"), kind: .boolean, defaultValue: "true", isSecret: false),
+        .init(key: "showValueLabels", title: String(localized: "Show Value Labels"), kind: .boolean, defaultValue: "true", isSecret: false),
+        .init(key: "colorizeUtilization", title: String(localized: "Colorize Utilization"), kind: .boolean, defaultValue: "true", isSecret: false),
+        .init(key: "showRecommendations", title: String(localized: "Show Recommendations"), kind: .boolean, defaultValue: "true", isSecret: false),
+        .init(key: "menuBarLayout", title: String(localized: "Menu Bar Style"), kind: .choice(allowed: ["horizontal", "stacked"]), defaultValue: "horizontal", isSecret: false),
+        .init(key: "pingTarget", title: String(localized: "Ping Target"), kind: .string(validate: hostValidator), defaultValue: "1.1.1.1", isSecret: false),
+        .init(key: "tracerouteTarget", title: String(localized: "Traceroute Target"), kind: .string(validate: hostValidator), defaultValue: "", isSecret: false),
+        .init(key: "speedTestOpenSpeedTestURL", title: String(localized: "Self-Hosted Speed Test Server"), kind: .string(validate: urlValidator), defaultValue: "", isSecret: false),
+        .init(key: "geoipAutoUpdate", title: String(localized: "Auto-Update Location Database"), kind: .boolean, defaultValue: "false", isSecret: false),
         // SECRETS RULE: anything marked isSecret: true is settable but never
         // gettable through Shortcuts. (No secret settings exist yet.)
     ]
