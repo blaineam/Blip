@@ -233,6 +233,14 @@ Typically around 42 MB physical footprint. Blip shows its own memory usage in th
 Yes. The direct download, the Homebrew cask and the Mac App Store build are all free and identical — there is no paid tier and nothing to unlock. If you'd like to support development, use the links in the Support future development section above.
 </details>
 
+## 🤝 Contributors
+
+Blip is better because people send patches — thank you!
+
+[![Contributors](https://contrib.rocks/image?repo=blaineam/Blip)](https://github.com/blaineam/Blip/graphs/contributors)
+
+Made with [contrib.rocks](https://contrib.rocks); updates automatically as PRs land.
+
 ## 📄 License
 
 MIT — free as in beer and free as in freedom. See [LICENSE](LICENSE) for details.
