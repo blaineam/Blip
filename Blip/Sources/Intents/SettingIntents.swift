@@ -41,6 +41,7 @@ struct BlipSettingDescriptor: Sendable {
         .init(key: "showMemory", title: "Show Memory in Menu Bar", kind: .boolean, defaultValue: "true", isSecret: false),
         .init(key: "showDisk", title: "Show Disk in Menu Bar", kind: .boolean, defaultValue: "true", isSecret: false),
         .init(key: "showNetworkDot", title: "Show Network Dot in Menu Bar", kind: .boolean, defaultValue: "true", isSecret: false),
+        .init(key: "showGPU", title: "Show GPU in Menu Bar", kind: .boolean, defaultValue: "false", isSecret: false),
         .init(key: "showMeasurementLabels", title: "Show Measurement Labels", kind: .boolean, defaultValue: "true", isSecret: false),
         .init(key: "showValueLabels", title: "Show Value Labels", kind: .boolean, defaultValue: "true", isSecret: false),
         .init(key: "colorizeUtilization", title: "Colorize Utilization", kind: .boolean, defaultValue: "true", isSecret: false),

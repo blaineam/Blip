@@ -8,6 +8,7 @@ struct StatusItemView: View {
     @AppStorage("showMemory") private var showMemory = true
     @AppStorage("showDisk") private var showDisk = true
     @AppStorage("showNetworkDot") private var showNetworkDot = true
+    @AppStorage("showGPU") private var showGPU = false
     @AppStorage("showMeasurementLabels") private var showMeasurementLabels = true
     @AppStorage("showValueLabels") private var showValueLabels = true
     @AppStorage("menuBarLayout") private var menuBarLayout: String = "horizontal"
@@ -26,6 +27,17 @@ struct StatusItemView: View {
         .fixedSize()
     }
 
+    /// GPU utilization is helper-only in the App Store build (the in-process
+    /// GPUMonitor can't read it there), so mirror the popover: hide the row
+    /// until the helper connects. The direct-download build always has it.
+    private var showGPURow: Bool {
+        #if APPSTORE
+        return showGPU && monitor.helperClient.isConnected
+        #else
+        return showGPU
+        #endif
+    }
+
     // MARK: - Stacked Layout (compact vertical bars)
 
     private var stackedLayout: some View {
@@ -35,6 +47,7 @@ struct StatusItemView: View {
                     if showCPU { stackedLabel("CPU", color: .blue) }
                     if showMemory { stackedLabel("MEM", color: .green) }
                     if showDisk { stackedLabel(" HD", color: .orange) }
+                    if showGPURow { stackedLabel("GPU", color: .purple) }
                 }
             }
 
@@ -42,6 +55,7 @@ struct StatusItemView: View {
                 if showCPU { tinyBar(value: monitor.snapshot.cpu.totalUsage, color: .blue) }
                 if showMemory { tinyBar(value: monitor.snapshot.memory.usagePercent, color: .green) }
                 if showDisk { tinyBar(value: monitor.snapshot.disk.primaryUsagePercent, color: .orange) }
+                if showGPURow { tinyBar(value: monitor.snapshot.gpu.utilization, color: .purple) }
             }
 
             if showValueLabels {
@@ -49,6 +63,7 @@ struct StatusItemView: View {
                     if showCPU { tinyPercent(monitor.snapshot.cpu.totalUsage, color: .blue) }
                     if showMemory { tinyPercent(monitor.snapshot.memory.usagePercent, color: .green) }
                     if showDisk { tinyPercent(monitor.snapshot.disk.primaryUsagePercent, color: .orange) }
+                    if showGPURow { tinyPercent(monitor.snapshot.gpu.utilization, color: .purple) }
                 }
             }
 
@@ -63,6 +78,7 @@ struct StatusItemView: View {
             if showCPU { horizontalItem(label: "CPU", value: monitor.snapshot.cpu.totalUsage, color: .blue) }
             if showMemory { horizontalItem(label: "MEM", value: monitor.snapshot.memory.usagePercent, color: .green) }
             if showDisk { horizontalItem(label: "HD", value: monitor.snapshot.disk.primaryUsagePercent, color: .orange) }
+            if showGPURow { horizontalItem(label: "GPU", value: monitor.snapshot.gpu.utilization, color: .purple) }
             networkDot
         }
     }
