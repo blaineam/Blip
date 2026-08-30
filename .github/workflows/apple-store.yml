@@ -25,6 +25,10 @@ on:
         description: "Read-only: find the run + builds, check the notes, write nothing"
         type: boolean
         default: false
+      platforms:
+        description: "Which lanes to run: mac, ios, or mac,ios (blank = both). Lets a Mac-only fix ship without superseding an iOS version already waiting in review."
+        required: false
+        default: ""
 
 permissions:
   contents: read
@@ -71,6 +75,7 @@ jobs:
     needs: meta
     # rc → TestFlight-only: ensure the Xcode Cloud build of the tagged commit exists and reaches
     # VALID (testers have it); no App Store version or review. Full releases submit as before.
+    if: ${{ github.event.inputs.platforms == '' || github.event.inputs.platforms == null || contains(github.event.inputs.platforms, 'mac') }}
     runs-on: ubuntu-latest
     timeout-minutes: 240
     steps:
@@ -116,6 +121,7 @@ jobs:
   submit-ios:
     needs: meta
     # The iOS twin of submit-mac — Blip for iOS ships from the same tag.
+    if: ${{ github.event.inputs.platforms == '' || github.event.inputs.platforms == null || contains(github.event.inputs.platforms, 'ios') }}
     runs-on: ubuntu-latest
     timeout-minutes: 240
     steps:

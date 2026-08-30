@@ -14,6 +14,10 @@ on:
         description: "RC number — leave empty for a full release"
         required: false
         default: ""
+      platforms:
+        description: "App Store lanes: mac, ios, or blank for both (a Mac-only cut leaves an in-review iOS version untouched)"
+        required: false
+        default: ""
 
 permissions:
   contents: write
@@ -79,8 +83,9 @@ jobs:
           TAG: ${{ steps.cut.outputs.tag }}
           RC: ${{ inputs.rc }}
           V: ${{ inputs.version }}
+          PLATFORMS: ${{ inputs.platforms }}
         run: |
           set -euo pipefail
           gh workflow run release.yml --ref "refs/tags/$TAG"
-          gh workflow run apple-store.yml --ref "refs/tags/$TAG"
+          gh workflow run apple-store.yml --ref "refs/tags/$TAG" -f platforms="${PLATFORMS}"
           # rc tags run apple-store in TestFlight-only mode; full tags submit for review.
