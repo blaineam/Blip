@@ -2,6 +2,12 @@
 
 ## Unreleased
 
+### Fixed
+- **macOS app icon background is navy again.** The Icon Composer fill had drifted to a
+  near-black `#0D111F`, so the Mac icon rendered on a black plate while iOS kept the navy
+  gradient. The fill is now the same `#101936 → #162244` gradient sampled from the iOS
+  icon, so both platforms match.
+
 ### Added — GPU in the menu bar (Blip's first outside contribution 🎉)
 - **Optional GPU utilization row in the menu bar** — contributed by [@impiri](https://github.com/impiri) in [#4](https://github.com/blaineam/Blip/pull/4). Settings → Visible Items → GPU (off by default), rendered in both stacked and horizontal layouts in the popover's purple, with a `showGPU` setting descriptor so Shortcuts can drive it. In the App Store build the row appears once the helper connects (GPU utilization is helper-only there); the direct download always shows it. Their parallel Swift 6.2 `DiskSpeedTester` fix had independently landed on main, so that commit merged superseded — the feature merged as authored.
 - Visible-item toggles now list in menu-bar order (CPU, Memory, Disk, GPU, then the network dot).
