@@ -75,7 +75,9 @@ No accounts, no ads, no tracking. Everything Blip shows is what iOS honestly exp
 ## review_notes_ios
 <!-- App Review Information → Notes for the IOS platform version (set via API 2026-08-23).
      The Mac version keeps its own notes (Blip Helper explanation); these replace the
-     inherited Mac copy, which described features that don't exist on iOS. -->
+     inherited Mac copy, which described features that don't exist on iOS.
+     2026-08-31: SPEED item now spells out the connection grades (Guideline 2.1 info
+     request on 2.0.1 (124) asked whether the app provides game streaming services). -->
 Blip Stats for iOS is a self-contained device-stats, benchmark, and network-tools app. No account, no login, no tracking — a demo account is not applicable.
 
 What the reviewer will see, and the network/system behavior behind it:
@@ -84,7 +86,7 @@ What the reviewer will see, and the network/system behavior behind it:
 
 2. BENCH: Blip Bench runs CPU/memory/GPU/Neural Engine workloads on-device (full profile ~90 seconds, including a sustained thermal phase). High CPU/GPU usage during a run is the feature, not a defect. No network use.
 
-3. SPEED: network speed test against either (a) OpenSpeedTest's public service, driven through their own embeddable widget — their sanctioned integration path — or (b) a user-configured self-hosted OpenSpeedTest server. Sustained high throughput during a test is intentional. Latency is measured with a handful of ICMP echoes (standard SOCK_DGRAM/IPPROTO_ICMP datagram sockets, no special entitlements) to a user-configurable target (default 1.1.1.1).
+3. SPEED: network speed test against either (a) OpenSpeedTest's public service, driven through their own embeddable widget — their sanctioned integration path — or (b) a user-configured self-hosted OpenSpeedTest server. Sustained high throughput during a test is intentional. Latency is measured with a handful of ICMP echoes (standard SOCK_DGRAM/IPPROTO_ICMP datagram sockets, no special entitlements) to a user-configurable target (default 1.1.1.1). After a test, the result screen shows a "Reliably good for" grid: letter grades (A/B/C/F) computed on-device from the measured throughput and latency, rating the user's own connection for six everyday activities — browsing, HD streaming, 4K streaming, video calls, cloud gaming, big uploads. These are informational labels in the style of other speed-test utilities. The app does NOT provide game streaming (or video streaming) services: it contains no games, streams no game or video content, and never connects to any gaming service.
 
 4. NETWORK tab: classic ping and traceroute using the same ICMP datagram sockets, to a user-configurable target (default 1.1.1.1). The optional offline GeoIP database (DB-IP Lite, ~100 MB, attributed in-app) downloads once from db-ip.com on explicit user request in Settings; all lookups happen on-device and no addresses are ever sent anywhere.
 
