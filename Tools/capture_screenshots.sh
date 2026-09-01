@@ -99,6 +99,23 @@ for entry in "${DEVICES[@]}"; do
     launch "network";  shot "05-traceroute"
 
     appearance light
+
+    # Localized hero captures for the OS 27 creative-asset variants
+    # (CAP_LOCALES=big8): the banner scenes per listing locale into
+    # <rawKey>/<locale>/ — cap_launch appends CAP_EXTRA_LAUNCH_ARGS.
+    if [[ "$OUTPUT_KEY" == iphone* ]] && [ -n "$(cap_locales)" ]; then
+        for LOCALE in $(cap_locales); do
+            echo "  — locale $LOCALE"
+            mkdir -p "$DEVICE_OUT/$LOCALE"
+            export CAP_EXTRA_LAUNCH_ARGS="$(cap_locale_args "$LOCALE")"
+            appearance dark
+            launch "overview"; sleep 2.6; cap_screenshot "$UDID" "$DEVICE_OUT/$LOCALE/01-overview.png"
+            appearance light
+            launch "bench";    sleep 2.6; cap_screenshot "$UDID" "$DEVICE_OUT/$LOCALE/02-bench.png"
+            unset CAP_EXTRA_LAUNCH_ARGS
+        done
+    fi
+
     cap_teardown "$UDID" "$BUNDLE_ID"
 done
 
