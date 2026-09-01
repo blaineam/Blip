@@ -28,9 +28,12 @@ PROJECT="Blip.xcodeproj"
 ROUTE_FLAG="blip.route"
 
 export CAP_APP_NAME="Blip"
-# iPadOS puts the TAB BAR at the top of the window — the guard's status-bar strip
-# OCRs Blip's own tab labels there. They're ours, not leaks.
-export CAP_STATUSBAR_ALLOW="Overview,Bench,Speed,Network"
+# iPadOS puts Blip's floating tab pill at the top of the window, starting
+# ~3.3% down — inside the guard's default 6% strip. An allow-list of tab
+# labels only worked in English (de-DE "Übersicht" re-tripped it); narrow
+# the strip to the true status bar instead (Kern/Revela precedent) so it
+# stays locale-proof.
+export CAP_STATUSBAR_STRIP=0.03
 
 DEVICES=(
     "iPhone 17 Pro Max:iphone-6.9"
@@ -69,7 +72,7 @@ for entry in "${DEVICES[@]}"; do
 
     appearance() { xcrun simctl ui "$UDID" appearance "$1"; sleep 0.6; }
     launch()     { cap_launch    "$UDID" "$BUNDLE_ID" "$1" "$ROUTE_FLAG"; }
-    shot()       { sleep 2.6; cap_screenshot "$UDID" "$DEVICE_OUT/$1.png"; }
+    shot()       { sleep 2.6; cap_screenshot "$UDID" "$SCENE_OUT/$1.png"; }
 
     # iPadOS prints the FOREGROUND app's name in the status bar — a lingering Files or
     # Settings from a previous boot photobombs scene 1. Clear the stage first.
@@ -78,6 +81,9 @@ for entry in "${DEVICES[@]}"; do
     # Deterministic, PII-free demo content.
     cap_seed_bool "$UDID" "$BUNDLE_ID" "blip.demoSeed" true
 
+    # Full store scene set, replayable per locale (extra launch args ride
+    # via CAP_EXTRA_LAUNCH_ARGS in cap_launch; SCENE_OUT is the output dir).
+    capture_scenes() {
     # 1. Overview — the card grid (dark: Blip's natural habitat)
     appearance dark
     launch "overview"; shot "01-overview"
@@ -99,21 +105,24 @@ for entry in "${DEVICES[@]}"; do
     launch "network";  shot "05-traceroute"
 
     appearance light
+    }
 
-    # Localized hero captures for the OS 27 creative-asset variants
-    # (CAP_LOCALES=big8): the banner scenes per listing locale into
-    # <rawKey>/<locale>/ — cap_launch appends CAP_EXTRA_LAUNCH_ARGS.
-    if [[ "$OUTPUT_KEY" == iphone* ]] && [ -n "$(cap_locales)" ]; then
+    SCENE_OUT="$DEVICE_OUT"
+    capture_scenes
+
+    # Localized store sets (CAP_LOCALES=big8): the FULL scene list per listing
+    # locale into <rawKey>/<locale>/ on every device leg — these become each
+    # locale's App Store screenshots after framing.
+    if [ -n "$(cap_locales)" ]; then
         for LOCALE in $(cap_locales); do
             echo "  — locale $LOCALE"
-            mkdir -p "$DEVICE_OUT/$LOCALE"
             export CAP_EXTRA_LAUNCH_ARGS="$(cap_locale_args "$LOCALE")"
-            appearance dark
-            launch "overview"; sleep 2.6; cap_screenshot "$UDID" "$DEVICE_OUT/$LOCALE/01-overview.png"
-            appearance light
-            launch "bench";    sleep 2.6; cap_screenshot "$UDID" "$DEVICE_OUT/$LOCALE/02-bench.png"
-            unset CAP_EXTRA_LAUNCH_ARGS
+            SCENE_OUT="$DEVICE_OUT/$LOCALE"
+            mkdir -p "$SCENE_OUT"
+            capture_scenes
         done
+        unset CAP_EXTRA_LAUNCH_ARGS
+        SCENE_OUT="$DEVICE_OUT"
     fi
 
     cap_teardown "$UDID" "$BUNDLE_ID"
