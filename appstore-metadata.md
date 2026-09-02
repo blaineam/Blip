@@ -9,51 +9,45 @@ Blip Stats
 System Stats & Bench
 
 ## description
-Blip is a featherlight system monitor that lives in your menu bar. One click shows everything happening inside your Mac — CPU load, memory pressure, disk activity, network speeds, and more. No clutter, no subscriptions, no bloat. Just fast, accurate metrics when you need them.
+Blip is a featherlight system monitor that lives in your menu bar. One click shows everything happening inside your Mac — CPU load, memory pressure, disk activity, network speeds, and more. No clutter, no subscriptions, no bloat.
 
 Why people love Blip:
 
-Your Mac is doing a lot behind the scenes. Blip makes all of it visible without getting in the way. It polls every two seconds, uses about 42 MB of memory, and weighs in at roughly 2 MB on disk. For comparison, most system monitors use 200+ MB and ship dozens of features you'll never touch.
+Blip makes everything your Mac is doing visible without getting in the way. It polls every two seconds, uses about 42 MB of memory, and weighs roughly 2 MB on disk. Most system monitors use 200+ MB and ship features you'll never touch.
 
 What you get:
 
-CPU — Total usage bar in your menu bar. Click to see per-core utilization, user/system/idle split, load averages, and P-core and E-core counts.
-Memory — Usage percentage at a glance. Drill into total RAM, active/wired/compressed/app breakdown, swap usage, and memory pressure level.
-Network — Live connectivity indicator in the menu bar. Tap to see upload/download speeds, total bandwidth since boot, all active interfaces listed with IPs, VPN detection for Tailscale and WireGuard, and a tap-to-reveal public IP. Bandwidth history chart with auto-scaled speed labels.
-Disk — All mounted volumes with space used and free. Real-time read/write speeds, total data transferred since boot, and a live I/O history chart with auto-scaled Y-axis labels.*
-GPU — Apple Silicon GPU utilization, renderer name, core count, and a historical usage chart. Optional menu bar readout.*
-Battery — Charge level, health percentage, cycle count, temperature, time remaining, charging status, power source, and battery condition.*
-Fans & Thermals — RPM per fan with min/max ranges, plus CPU and GPU temperatures read directly from the SMC. Shows "fanless Mac" gracefully on MacBook Air.*
-Top Processes — See the top 5 processes by CPU and memory with app icons and accurate, delta-based measurements that match Activity Monitor.*
-System — Mac model name, macOS version, uptime, thermal state, and Blip's own memory footprint so you can verify it stays tiny.
-Some advanced metrics (disk I/O speeds, GPU utilization, battery health details, thermals, fan speeds, and top processes) require hardware-level access. Install the free Blip Helper companion app to unlock these features. Available at github.com/blaineam/blip.
+CPU — Total usage bar in your menu bar. Click for per-core utilization, user/system/idle split, load averages, and P-core and E-core counts.
+Memory — Usage percentage at a glance. Drill into total RAM, active/wired/compressed/app breakdown, swap, and memory pressure.
+Network — Live connectivity in the menu bar. Tap for up/download speeds, bandwidth since boot, interfaces with IPs, VPN detection (Tailscale, WireGuard), tap-to-reveal public IP, and a history chart.
+Disk — Every mounted volume with space used and free, real-time read/write speeds, data transferred since boot, and a live I/O history chart.*
+GPU — Apple Silicon GPU utilization, renderer name, core count, and a historical chart. Optional menu bar readout.*
+Battery — Charge, health, cycle count, temperature, time remaining, charging status, power source, and condition.*
+Fans & Thermals — RPM per fan with min/max ranges, plus CPU and GPU temperatures read straight from the SMC. Shows "fanless Mac" gracefully on MacBook Air.*
+Top Processes — Top 5 by CPU and memory, with app icons and delta-based measurements that match Activity Monitor.*
+System — Mac model, macOS version, uptime, thermal state, and Blip's own memory footprint so you can verify it stays tiny.
+Metrics marked * need hardware-level access. Install the free Blip Helper companion app to unlock them, at github.com/blaineam/blip.
 
 Test and automate:
 
-Speed tests built in — benchmark any mounted drive (each volume has its own one-click speed test button) with uncached sequential write/read plus random-read IOPS, and measure network throughput against OpenSpeedTest's public test or your own self-hosted server. Run a live traceroute (MTR) with per-hop loss and latency, mapped hop-by-hop.
-Shortcuts support — automate all of it. Get System Metric exposes 37 live metrics (CPU, memory, disk and drive health, GPU, network, battery, temperatures, fans, uptime) as chainable numbers for your own workflows. Run drive and network speed tests, run or stop a traceroute and get a summary, open the Traceroute Map, and read or change Blip's settings — straight from the Shortcuts app.
+Speed tests built in — benchmark any mounted drive with uncached sequential write/read plus random-read IOPS, and measure network throughput against OpenSpeedTest's public server or your own. Run a live traceroute (MTR) with per-hop loss and latency, mapped hop by hop.
+Shortcuts support — Get System Metric exposes 37 live metrics as chainable numbers. Run speed tests, start or stop a traceroute, open the Traceroute Map, and read or change Blip's settings — from the Shortcuts app.
 
 Designed to stay out of your way:
 
-Two menu bar layouts: horizontal (wide side-by-side) or stacked (compact vertical bars)
-Hover any row to reveal a detailed sub-panel that updates in real-time
-Customizable colors: category colors, monochrome to match your menu bar, or pick your own
-Separate toggles for measurement labels and value labels
-Optional utilization colorization at high usage levels
-Launch at login with one toggle
+Two menu bar layouts, horizontal or stacked. Hover any row for a live sub-panel. Customizable colors: category, monochrome, or your own — plus label toggles, optional colorization at high usage, and launch at login.
+
 Built right:
 
-Blip is written in Swift with strict concurrency, async/await throughout, and zero external dependencies. It targets Apple Silicon natively. Every release is notarized by Apple.
+Written in Swift with strict concurrency and zero external dependencies. Apple Silicon native, notarized by Apple.
 
 Blip Bench:
 
-Measure what your machine can actually do. Blip Bench scores CPU (single and all cores), memory bandwidth and latency, GPU, and Neural Engine throughput in fixed reference units — one scale shared by every Mac, iPhone, and iPad running Blip. The full profile adds a sustained phase that shows exactly how much performance thermal limits take back, sampled against live fan and temperature data.
+Measure what your machine can actually do. Blip Bench scores CPU (single and all cores), memory bandwidth and latency, GPU, and Neural Engine throughput in fixed reference units — one scale shared by every Mac, iPhone, and iPad running Blip. The full profile adds a sustained phase showing how much performance thermal limits take back, against live fan and temperature data.
 
 Now on iPhone and iPad:
 
 Blip Stats 2.0 is one free app across your Mac, iPhone, and iPad. The iOS app brings live device cards with drill-in details, Blip Bench, dual-curve speed tests with idle vs under-load latency and per-activity connection grades, ping and traceroute with an offline GeoIP hop map, disk speed tests, Home Screen widgets, Shortcuts, and one-file stats snapshots.
-
-If you've been looking for a system monitor that's fast, accurate, beautiful, and respectful of your Mac's resources, Blip is it.
 
 ## description_ios
 Blip puts honest device stats, a real benchmark, and serious network tools on your iPhone and iPad — the same featherlight philosophy as Blip for Mac — free, in one app.
