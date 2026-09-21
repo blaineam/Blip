@@ -12907,31 +12907,31 @@
         "de" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Diese Einstellung ist privat und kann nicht von Shortcuts gelesen werden."
+            "value" : "Diese Einstellung ist privat und kann nicht aus Kurzbefehlen gelesen werden."
           }
         },
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Ese ajuste es privado y no se puede leer desde Shortcuts."
+            "value" : "Ese ajuste es privado y no se puede leer desde Atajos."
           }
         },
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Ce réglage est privé et ne peut pas être lu depuis Shortcuts."
+            "value" : "Ce réglage est privé et ne peut pas être lu depuis Raccourcis."
           }
         },
         "it" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Questa impostazione è privata e non può essere letta da Shortcuts."
+            "value" : "Questa impostazione è privata e non può essere letta da Comandi rapidi."
           }
         },
         "ja" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "その設定は非公開のため、Shortcuts から読み取れません。"
+            "value" : "この設定は非公開のため、ショートカットからは読み取れません。"
           }
         },
         "ko" : {
@@ -12943,13 +12943,13 @@
         "pt-BR" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Essa configuração é privada e não pode ser lida pelo Shortcuts."
+            "value" : "Essa configuração é privada e não pode ser lida pelos Atalhos."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "该设置为私密设置，无法从 Shortcuts 读取。"
+            "value" : "该设置为私密设置，无法从快捷指令读取。"
           }
         }
       }

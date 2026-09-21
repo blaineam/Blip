@@ -3,6 +3,11 @@
 ## Unreleased
 
 ### Fixed
+- Apple's **Files** and **Shortcuts** apps are now called by their local names in
+  every translation (文件 / Dateien / Fichiers…, 快捷指令 / Kurzbefehle /
+  Raccourcis…). The translation tool had treated both as untranslatable brand
+  names, but Apple ships them translated, so strings like "从 Files 打开" didn't
+  match what people see on their home screen.
 - **macOS app icon background is navy again.** The Icon Composer fill had drifted to a
   near-black `#0D111F`, so the Mac icon rendered on a black plate while iOS kept the navy
   gradient. The fill is now the same `#101936 → #162244` gradient sampled from the iOS
