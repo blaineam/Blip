@@ -2,6 +2,11 @@
 
 ## Unreleased
 
+### Docs — landing page redesign
+- **blip.wemiller.com is now a short magazine page** instead of a feature wall: one promise, one App Store button (direct download and source as quiet links), the live menu-bar demo as the hero, three stories (Blip Bench, graded speed tests, traceroute map), one trust beat, a six-question FAQ and a closing button. The What's New grid, Shortcuts/metric-catalog demos, stats bar, 13-card feature grid and separate support section are gone; the support link lives in the trust beat.
+- **Story images are localized iPad renders** (`docs/assets/screens/<lang>/`, from the `ipad-13` captures via the portfolio's `sync-app-screens.py`), swapped to the reader's language by the updated `docs/i18n/i18n.js` using `docs/assets/screens/manifest.json`. The old English-only `assets/ios-*.png` renders are removed.
+- The demo popover footer no longer claims a stale "v1.6.1".
+
 ### Fixed
 - Apple's **Files** and **Shortcuts** apps are now called by their local names in
   every translation (文件 / Dateien / Fichiers…, 快捷指令 / Kurzbefehle /
