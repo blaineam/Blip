@@ -186,10 +186,10 @@ final class MobileSpeedTester: ObservableObject {
     private static func describe(_ error: Error) -> String {
         if let e = error as? OpenSpeedTestWidgetRunner.RunError {
             switch e {
-            case .loadFailed: return "Couldn't load the OpenSpeedTest widget."
-            case .timedOut: return "The public test timed out."
-            case .noResult: return "The test finished without a result."
-            case .cancelled: return "Cancelled."
+            case .loadFailed: return String(localized: "Couldn't load the OpenSpeedTest widget.")
+            case .timedOut: return String(localized: "The public test timed out.")
+            case .noResult: return String(localized: "The test finished without a result.")
+            case .cancelled: return String(localized: "Cancelled.")
             }
         }
         return (error as NSError).localizedDescription

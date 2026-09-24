@@ -2,6 +2,15 @@
 
 ## Unreleased
 
+### Fixed — iPhone, iPad and widgets speak your language in more places (2.0.3)
+- **iOS strings that never reached the catalog.** A compiler stringsdata harvest of the BlipMobile target found plain-`String` UI that shipped English in every language: speed-test latency ("12 ms idle · 29 ms under load"), the Ping / Traceroute segment, the battery-state and VPN / Low Power values on the detail screens, disk-test MB/s labels, the ping "timeout" row and the public speed-test error messages. All now go through `String(localized:)` and are translated into the 8 languages.
+- **Widgets had no string catalog at all**, so every widget rendered English. `BlipMobileWidgets/Resources/Localizable.xcstrings` now carries all 31 widget strings (29 translated, reusing the app's existing translations; `%lld`-only keys marked no-translate).
+- The iOS App Intents (Run Benchmark, Run Speed Test, Get Device Snapshot) titles, descriptions and category names are now translated; Swift Charts series ids (`t`, `v`, `run`, `score`, …) are marked no-translate.
+
+### Store screenshots — localized, clean, every platform
+- The iPhone captures on disk showed another app's stuck "would like to send you notifications" alert in every frame (a shared simulator). `Tools/capture_screenshots.sh` now uses **dedicated "Blip Shots" simulators**, erases them at the start of each run, and refuses to capture unless Blip is the only third-party app installed. The iPad leg switches the simulator's own language per locale so the status-bar date is localized too, and a stale "traceroute" seed no longer turns the Ping scene into a second traceroute shot.
+- The Mac rig (`Tools/screenshots.sh`) captures every scene per listing locale (`CAP_LOCALES=big8`) with the menu bar in that language and an analog clock. An interrupt now restores the desktop AND exits, and every frame is compared against a reference shot of the clean capture desktop — a frame showing anything else is deleted and the run aborts.
+
 ### Docs — landing page redesign
 - **blip.wemiller.com is now a short magazine page** instead of a feature wall: one promise, one App Store button (direct download and source as quiet links), the live menu-bar demo as the hero, three stories (Blip Bench, graded speed tests, traceroute map), one trust beat, a six-question FAQ and a closing button. The What's New grid, Shortcuts/metric-catalog demos, stats bar, 13-card feature grid and separate support section are gone; the support link lives in the trust beat.
 - **Story images are localized iPad renders** (`docs/assets/screens/<lang>/`, from the `ipad-13` captures via the portfolio's `sync-app-screens.py`), swapped to the reader's language by the updated `docs/i18n/i18n.js` using `docs/assets/screens/manifest.json`. The old English-only `assets/ios-*.png` renders are removed.

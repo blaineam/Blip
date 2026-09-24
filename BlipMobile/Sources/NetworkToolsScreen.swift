@@ -15,7 +15,7 @@ struct NetworkToolsScreen: View {
     enum Mode: String, CaseIterable, Identifiable {
         case ping, trace
         var id: String { rawValue }
-        var label: String { self == .ping ? "Ping" : "Traceroute" }
+        var label: String { self == .ping ? String(localized: "Ping") : String(localized: "Traceroute") }
     }
 
     var body: some View {
@@ -83,7 +83,7 @@ struct NetworkToolsScreen: View {
                     HStack {
                         Text("#\(s.sequence)").font(.caption.monospaced()).foregroundStyle(.secondary)
                         Spacer()
-                        Text(s.rttMs.map { String(format: "%.1f ms", $0) } ?? "timeout")
+                        Text(s.rttMs.map { String(format: "%.1f ms", $0) } ?? String(localized: "timeout"))
                             .font(.callout.monospacedDigit())
                             .foregroundStyle(s.rttMs == nil ? .orange : .primary)
                     }

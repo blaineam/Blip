@@ -17,7 +17,7 @@ Existing system monitors are either bloated, expensive, or missing key features.
 - **Fast** — async/await throughout, polls every 2 seconds
 - **Pretty** — clean layout, smooth charts, hover detail panels
 - **Focused** — system metrics only, no weather or clock widgets
-- **Localized** — English plus German, Spanish, French, Italian, Japanese, Korean, Brazilian Portuguese, and Simplified Chinese
+- **Localized** — English plus German, Spanish, French, Italian, Japanese, Korean, Brazilian Portuguese, and Simplified Chinese, on Mac, iPhone, iPad and in the Home Screen widgets
 - **Free** — open source under MIT, notarized releases on GitHub
 
 ## ✨ Features

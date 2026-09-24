@@ -12,11 +12,22 @@
 #
 # Usage: screenshots.sh [scene ...]   e.g. `screenshots.sh cpu` re-captures only
 # the CPU scene; no args captures all scenes.
+#   CAP_LOCALES=big8 screenshots.sh   also captures every scene per listing
+#   locale into mac/<locale>/ (Blip AND the menu bar — Finder owns it — in that
+#   language; the clock goes analog so no English date shows).
+#
+# Owner-desktop safety (2026-09-23: another rig's interrupted run restored the
+# owner's real desktop mid-loop and captured it): an INT/TERM now restores AND
+# EXITS, and every frame is compared against a reference shot of the clean
+# capture desktop taken before the loop — a frame whose popover-free region
+# differs (real wallpaper, widgets, windows, Dock) is deleted and the run fails.
 #
 # Needs: Screen Recording + Automation permission for the controlling app.
 set -uo pipefail
 cd "$(dirname "$0")/.."
 SHARED="$(cd ../_shared/screenshots && pwd)"
+# shellcheck disable=SC1091
+source "$SHARED/capture-lib.sh"   # cap_locales / cap_locale_args
 OUT="docs/appstore-screenshots/mac"; mkdir -p "$OUT/raw"
 WALL=/tmp/blip-wallpaper.png
 ALL_SCENES=(popover cpu memory disk network)
@@ -88,7 +99,15 @@ echo "• Building Blip…"
 xcodegen generate >/dev/null
 xcodebuild -project Blip.xcodeproj -scheme Blip -destination "platform=macOS" \
   -configuration Debug -derivedDataPath .build-screenshots CODE_SIGNING_ALLOWED=NO build >/dev/null
-BIN="$(find .build-screenshots/Build/Products -name 'Blip.app' -maxdepth 3 | head -1)/Contents/MacOS/Blip"
+BIN="$(cd "$(find .build-screenshots/Build/Products -name 'Blip.app' -maxdepth 3 | head -1)" && pwd)/Contents/MacOS/Blip"
+SHOT_APP=".build-screenshots/Build/Products/Debug/Blip.app/"
+[ -x "$BIN" ] || { echo "✗ no Blip build at $BIN" >&2; exit 1; }
+LOCKED=$(swift - <<'SWIFT' 2>/dev/null
+import CoreGraphics; import Foundation
+if let d = CGSessionCopyCurrentDictionary() as? [String:Any] { print(d["CGSSessionScreenIsLocked"] as? Int ?? 0) } else { print(0) }
+SWIFT
+)
+[ "$LOCKED" = "1" ] && { echo "✗ the Mac session is locked — unlock it and re-run" >&2; exit 1; }
 
 # --- save state ---
 WP_STORE="$HOME/Library/Application Support/com.apple.wallpaper/Store/Index.plist"
@@ -98,23 +117,39 @@ read -r OM_W OM_H _ _ < <(swift "$SHARED/display-mode.swift" current 2>/dev/null
 ORIG_DOCK=$(osascript -e 'tell application "System Events" to get autohide of dock preferences' 2>/dev/null)
 ORIG_WIDG=$(defaults read com.apple.WindowManager StandardHideWidgets 2>/dev/null || echo __M__)
 ORIG_ICON=$(defaults read com.apple.finder CreateDesktop 2>/dev/null || echo __M__)
+ORIG_FINDER_LANGS=$(defaults read com.apple.finder AppleLanguages 2>/dev/null | tr -d ' \n()"' || true)
+[ -n "$ORIG_FINDER_LANGS" ] || ORIG_FINDER_LANGS=__M__
+ORIG_CLOCK_ANALOG=$(defaults read com.apple.menuextra.clock IsAnalog 2>/dev/null || echo __M__)
+REAL_BLIP=$(pgrep -f "/Applications/Blip.app/Contents/MacOS/Blip" >/dev/null 2>&1 && echo /Applications/Blip.app)
 HIDDEN_APPS=$(osascript -e 'tell application "System Events" to get name of (every process whose background only is false and name is not "Blip" and name is not "Finder")' 2>/dev/null)
 
+RESTORED=
 restore() {
+  [ -n "$RESTORED" ] && return 0; RESTORED=1
   echo "• restoring desktop…"
   [ -n "$DND_ENABLED" ] && { echo "• Do Not Disturb off"; shortcuts run "DND Off" >/dev/null 2>&1; }
   if [ -f "$WP_BAK" ]; then cp "$WP_BAK" "$WP_STORE" 2>/dev/null; killall WallpaperAgent 2>/dev/null; fi
   osascript -e "tell application \"System Events\" to set autohide of dock preferences to ${ORIG_DOCK:-false}" 2>/dev/null
   [ "$ORIG_WIDG" = __M__ ] && defaults delete com.apple.WindowManager StandardHideWidgets 2>/dev/null || defaults write com.apple.WindowManager StandardHideWidgets -int "$ORIG_WIDG" 2>/dev/null
   [ "$ORIG_ICON" = __M__ ] && defaults delete com.apple.finder CreateDesktop 2>/dev/null || defaults write com.apple.finder CreateDesktop -int "$ORIG_ICON" 2>/dev/null
+  if [ "$ORIG_FINDER_LANGS" = __M__ ]; then defaults delete com.apple.finder AppleLanguages 2>/dev/null
+  else defaults write com.apple.finder AppleLanguages -array $(echo "$ORIG_FINDER_LANGS" | tr ',' ' ') 2>/dev/null; fi
+  if [ "$ORIG_CLOCK_ANALOG" = __M__ ]; then defaults delete com.apple.menuextra.clock IsAnalog 2>/dev/null
+  else defaults write com.apple.menuextra.clock IsAnalog -int "$ORIG_CLOCK_ANALOG" 2>/dev/null; fi
+  killall ControlCenter 2>/dev/null
   killall WindowManager Finder Dock 2>/dev/null
   [ -n "${OM_W:-}" ] && swift "$SHARED/display-mode.swift" set "$OM_W" "$OM_H" >/dev/null 2>&1
   [ -n "${WEATHER_WAS:-}" ] && open -a WeatherMenu 2>/dev/null
   IFS=',' read -ra A <<< "$HIDDEN_APPS"
   for app in "${A[@]}"; do app="${app## }"; app="${app%% }"; [ -n "$app" ] && osascript -e "tell application \"System Events\" to set visible of process \"$app\" to true" 2>/dev/null; done
-  pkill -f "/Blip.app/" 2>/dev/null
+  pkill -f "$SHOT_APP" 2>/dev/null
+  [ -n "${REAL_BLIP:-}" ] && open -g "$REAL_BLIP" 2>/dev/null
+  [ -n "${CAFF_PID:-}" ] && kill "$CAFF_PID" 2>/dev/null
 }
-trap restore EXIT INT TERM
+# INT/TERM must END the run, not just restore: a loop that keeps going after the
+# restore captures the owner's real desktop.
+trap restore EXIT
+trap 'echo "✗ interrupted — restoring and aborting" >&2; restore; exit 130' INT TERM HUP
 
 # --- clean desktop ---
 if shortcuts list 2>/dev/null | grep -qix "DND On" && shortcuts list 2>/dev/null | grep -qix "DND Off"; then
@@ -128,7 +163,14 @@ osascript -e "tell application \"System Events\" to set picture of desktop 1 to 
 osascript -e 'tell application "System Events" to set autohide of dock preferences to true' 2>/dev/null
 defaults write com.apple.WindowManager StandardHideWidgets -bool true 2>/dev/null
 defaults write com.apple.finder CreateDesktop -bool false 2>/dev/null
+defaults write com.apple.menuextra.clock IsAnalog -bool true 2>/dev/null
+defaults write com.apple.finder AppleLanguages -array en 2>/dev/null
+killall ControlCenter 2>/dev/null
 killall WindowManager Finder 2>/dev/null
+caffeinate -d -i -u -t 1800 >/dev/null 2>&1 &
+CAFF_PID=$!
+# The owner's own Blip would add a second status item — quit it (relaunched by restore).
+osascript -e 'quit app "Blip"' 2>/dev/null; pkill -f "/Applications/Blip.app/Contents/MacOS/Blip" 2>/dev/null
 WEATHER_WAS=$(pgrep -x WeatherMenu 2>/dev/null && echo 1)
 osascript -e 'quit app "WeatherMenu"' 2>/dev/null; pkill -x WeatherMenu 2>/dev/null
 # 16:10 capture mode, biggest first (the available list shifts with OS updates
@@ -147,24 +189,69 @@ sleep 2
 defaults write com.apple.dock autohide -bool true 2>/dev/null; killall Dock 2>/dev/null  # res change re-shows Dock
 sleep 2
 
-for scene in "${SCENES[@]}"; do
-  pkill -f "/Blip.app/" 2>/dev/null; sleep 1
-  "$BIN" -BlipScreenshotMode 1 -BlipScreenshotScene "$scene" >/dev/null 2>&1 &
-  sleep 3
+hide_others() {
+  local A app
   IFS=',' read -ra A <<< "$HIDDEN_APPS"
   for app in "${A[@]}"; do app="${app## }"; app="${app%% }"; [ -n "$app" ] && osascript -e "tell application \"System Events\" to set visible of process \"$app\" to false" 2>/dev/null; done
   # Close any open Finder windows (they show the user's real files = PII).
   osascript -e 'tell application "Finder" to close every window' 2>/dev/null
-  # Deterministic menu bar: whatever app was frontmost before its windows were
-  # hidden still owns the menus (Messages photobombed a capture once). Blip's
-  # screenshot-mode popover is pinned, so handing focus to Finder is safe.
+  # Deterministic menu bar: Finder owns the menus while Blip is background-only.
   osascript -e 'tell application "Finder" to activate' 2>/dev/null
-  sleep 1.5
-  close_banners                                                   # gate: no notification banners in frame
-  printf -v n "%02d" "$(scene_number "$scene")"
-  screencapture -x -t png "$OUT/raw/$n-$scene.png" 2>/dev/null   # full clean-desktop capture (1440x900, popover top-right)
-  cp "$OUT/raw/$n-$scene.png" "$OUT/$n-$scene.png"
-  sips -z 1800 2880 "$OUT/$n-$scene.png" >/dev/null 2>&1          # 2x -> 2880x1800 (16:10, no distortion)
-  echo "  ✓ $n-$scene.png"
+}
+
+# desktop_diff <frame> — RMSE (0..1) between the frame and the clean-desktop
+# reference over the LEFT 55% below the menu bar, where Blip never draws.
+desktop_diff() {
+  magick compare -metric RMSE \
+    \( "$1" -crop 55%x90%+0+0 -gravity south -crop 100%x95%+0+0 +repage -resize 400x \) \
+    \( "$REF" -crop 55%x90%+0+0 -gravity south -crop 100%x95%+0+0 +repage -resize 400x \) \
+    null: 2>&1 | sed -E 's/.*\(([0-9.e-]+)\).*/\1/'
+}
+
+# Reference: the clean capture desktop, no Blip running.
+pkill -f "$SHOT_APP" 2>/dev/null; sleep 1
+hide_others; sleep 1.5; close_banners
+REF=/tmp/blip-mac-ref.png
+screencapture -x -t png "$REF"
+echo "• reference desktop captured"
+
+capture_set() {   # capture_set <outdir> [asc-locale]
+  local dir="$1" loc="${2:-}" extra=() scene n d raw
+  # Base raws stay in mac/raw/ (tracked, as before); locale raws are scratch.
+  raw="$dir/raw"; [ -n "$loc" ] && raw="/tmp/blip-mac-raw/$loc"
+  mkdir -p "$raw" "$dir"
+  if [ -n "$loc" ]; then
+    # shellcheck disable=SC2206
+    extra=($(cap_locale_args "$loc"))
+    defaults write com.apple.finder AppleLanguages -array "$(echo "${extra[1]}" | tr -d '()')" 2>/dev/null
+  else
+    defaults write com.apple.finder AppleLanguages -array en 2>/dev/null
+  fi
+  killall Finder 2>/dev/null; sleep 3
+  for scene in "${SCENES[@]}"; do
+    pkill -f "$SHOT_APP" 2>/dev/null; sleep 1
+    "$BIN" -BlipScreenshotMode 1 -BlipScreenshotScene "$scene" ${extra[@]+"${extra[@]}"} >/dev/null 2>&1 &
+    sleep 3
+    hide_others
+    sleep 1.5
+    close_banners                                                   # gate: no notification banners in frame
+    printf -v n "%02d" "$(scene_number "$scene")"
+    screencapture -x -t png "$raw/$n-$scene.png" 2>/dev/null   # full clean-desktop capture
+    d=$(desktop_diff "$raw/$n-$scene.png")
+    if ! awk -v d="$d" 'BEGIN{exit !(d+0 < 0.04)}'; then
+      rm -f "$raw/$n-$scene.png" "$dir/$n-$scene.png"
+      echo "✗ ${loc:-en-US} $n-$scene: desktop differs from the clean reference (rmse=$d) — NOT the capture setup; aborting" >&2
+      exit 3
+    fi
+    cp "$raw/$n-$scene.png" "$dir/$n-$scene.png"
+    sips -z 1800 2880 "$dir/$n-$scene.png" >/dev/null 2>&1          # 2x -> 2880x1800 (16:10, no distortion)
+    echo "  ✓ ${loc:-en-US} $n-$scene.png (desktop rmse $d)"
+  done
+}
+
+capture_set "$OUT"
+for LOC in $(cap_locales); do
+  echo "— locale $LOC"
+  capture_set "$OUT/$LOC" "$LOC"
 done
 echo "• Done → $OUT"

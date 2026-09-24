@@ -147,8 +147,8 @@ struct MobileDiskBenchSection: View {
                     VStack(alignment: .leading, spacing: 4) {
                         Text(r.volumeName).font(.callout.weight(.semibold))
                         HStack(spacing: 16) {
-                            Label(String(format: "%.0f MB/s write", r.writeMBps), systemImage: "arrow.down.doc")
-                            Label(String(format: "%.0f MB/s read", r.readMBps), systemImage: "arrow.up.doc")
+                            Label(String(localized: "\(Int(r.writeMBps.rounded())) MB/s write"), systemImage: "arrow.down.doc")
+                            Label(String(localized: "\(Int(r.readMBps.rounded())) MB/s read"), systemImage: "arrow.up.doc")
                         }
                         .font(.callout)
                     }

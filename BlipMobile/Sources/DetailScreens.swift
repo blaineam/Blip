@@ -199,7 +199,7 @@ struct NetworkDetailScreen: View {
                 }
             }
             Section {
-                PlainRow(name: "VPN", value: s.vpnActive ? "Active (utun interface up)" : "Not detected")
+                PlainRow(name: "VPN", value: s.vpnActive ? String(localized: "Active (utun interface up)") : String(localized: "Not detected"))
             } footer: {
                 Text("Detected from routing interfaces; a VPN app's own status is authoritative.")
             }
@@ -250,8 +250,8 @@ struct BatteryDetailScreen: View {
                     .padding(.vertical, 4)
             }
             Section {
-                PlainRow(name: "State", value: s.batteryState)
-                PlainRow(name: "Low Power Mode", value: s.lowPowerMode ? "On" : "Off")
+                PlainRow(name: "State", value: String(localized: String.LocalizationValue(s.batteryState)))
+                PlainRow(name: "Low Power Mode", value: s.lowPowerMode ? String(localized: "On") : String(localized: "Off"))
             } footer: {
                 Text("iOS reports level in 1% steps and doesn't expose battery health, cycle count, or wattage to apps — Settings → Battery is the only honest source for those.")
             }
@@ -271,7 +271,7 @@ struct ThermalDetailScreen: View {
         List {
             Section {
                 VStack(alignment: .leading, spacing: 8) {
-                    Text(s.thermalLabel)
+                    Text(LocalizedStringKey(s.thermalLabel))
                         .font(.system(size: 40, weight: .bold, design: .rounded))
                         .foregroundStyle(tint)
                     if stats.thermalHistory.values.count > 2 {

@@ -1,6 +1,18 @@
 {
   "sourceLanguage": "en",
   "strings": {
+    "": {
+      "shouldTranslate": false
+    },
+    " · ": {
+      "shouldTranslate": false
+    },
+    "#%lld": {
+      "shouldTranslate": false
+    },
+    "%@": {
+      "shouldTranslate": false
+    },
     "%@ available to apps": {
       "localizations": {
         "de": {
@@ -157,6 +169,223 @@
         }
       }
     },
+    "%@ · %@": {
+      "shouldTranslate": false
+    },
+    "%lld": {
+      "shouldTranslate": false
+    },
+    "%lld MB/s read": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%lld MB/s Lesen"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%lld MB/s lectura"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%lld Mo/s en lecture"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%lld MB/s lettura"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "読み込み %lld MB/s"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "읽기 %lld MB/s"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%lld MB/s leitura"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "读取 %lld MB/s"
+          }
+        }
+      }
+    },
+    "%lld MB/s write": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%lld MB/s Schreiben"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%lld MB/s escritura"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%lld Mo/s en écriture"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%lld MB/s scrittura"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "書き込み %lld MB/s"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "쓰기 %lld MB/s"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%lld MB/s escrita"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "写入 %lld MB/s"
+          }
+        }
+      }
+    },
+    "%lld ms idle": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%lld ms Leerlauf"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%lld ms en reposo"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%lld ms au repos"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%lld ms a riposo"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%lld ms（アイドル）"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%lld ms 유휴"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%lld ms ocioso"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%lld ms 空闲"
+          }
+        }
+      }
+    },
+    "%lld ms under load": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%lld ms unter Last"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%lld ms bajo carga"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%lld ms en charge"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%lld ms sotto carico"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%lld ms（負荷時）"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%lld ms 부하 시"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%lld ms sob carga"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%lld ms 负载时"
+          }
+        }
+      }
+    },
+    "%lld%%": {
+      "shouldTranslate": false
+    },
     "%lld%% held": {
       "localizations": {
         "de": {
@@ -209,6 +438,12 @@
         }
       }
     },
+    "*": {
+      "shouldTranslate": false
+    },
+    "+%lld%%": {
+      "shouldTranslate": false
+    },
     "1-core": {
       "localizations": {
         "de": {
@@ -260,6 +495,9 @@
           }
         }
       }
+    },
+    "192.168.1.50:3000": {
+      "shouldTranslate": false
     },
     "4K streaming": {
       "localizations": {
@@ -829,6 +1067,110 @@
           "stringUnit": {
             "state": "translated",
             "value": "基准分数"
+          }
+        }
+      }
+    },
+    "Benchmark Profile": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Benchmark-Profil"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Perfil del benchmark"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Profil du benchmark"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Profilo benchmark"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ベンチマークプロファイル"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "벤치마크 프로파일"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Perfil do Benchmark"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "基准测试模式"
+          }
+        }
+      }
+    },
+    "Benchmarks": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Benchmarks"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Benchmarks"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Benchmarks"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Benchmark"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ベンチマーク"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "벤치마크"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Benchmarks"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "基准测试"
           }
         }
       }
@@ -1561,6 +1903,58 @@
         }
       }
     },
+    "Cancelled.": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Abgebrochen."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cancelado."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Annulé."
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Annullato."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "キャンセルしました。"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "취소되었습니다."
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cancelado."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "已取消。"
+          }
+        }
+      }
+    },
     "Cellular": {
       "localizations": {
         "de": {
@@ -2025,6 +2419,58 @@
           "stringUnit": {
             "state": "translated",
             "value": "核心"
+          }
+        }
+      }
+    },
+    "Couldn't load the OpenSpeedTest widget.": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Das OpenSpeedTest-Widget konnte nicht geladen werden."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No se pudo cargar el widget de OpenSpeedTest."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Impossible de charger le widget OpenSpeedTest."
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Impossibile caricare il widget di OpenSpeedTest."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "OpenSpeedTest ウィジェットを読み込めませんでした。"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "OpenSpeedTest 위젯을 불러올 수 없습니다."
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Não foi possível carregar o widget do OpenSpeedTest."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "无法加载 OpenSpeedTest 组件。"
           }
         }
       }
@@ -3017,6 +3463,58 @@
         }
       }
     },
+    "Full (≈90 seconds, sustained + thermals)": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vollständig (≈90 Sekunden, Dauerlast + Thermik)"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Completo (≈90 segundos, carga sostenida + térmica)"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Complet (≈90 secondes, charge soutenue + thermique)"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Completo (≈90 secondi, carico prolungato + termica)"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "フル（≈90秒、持続負荷＋温度測定）"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "전체(≈90초, 지속 부하 + 발열)"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Completo (≈90 segundos, carga sustentada + térmica)"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "完整（≈90 秒，含持续负载与温度）"
+          }
+        }
+      }
+    },
     "Full performance": {
       "localizations": {
         "de": {
@@ -3117,6 +3615,58 @@
           "stringUnit": {
             "state": "translated",
             "value": "GPU"
+          }
+        }
+      }
+    },
+    "Get Device Snapshot": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Geräte-Snapshot abrufen"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Obtener instantánea del dispositivo"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Obtenir un instantané de l’appareil"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ottieni istantanea del dispositivo"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "デバイスのスナップショットを取得"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "기기 스냅샷 가져오기"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Obter instantâneo do dispositivo"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "获取设备快照"
           }
         }
       }
@@ -4993,6 +5543,58 @@
         }
       }
     },
+    "No thermal throttling": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Keine thermische Drosselung"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sin limitación térmica"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Aucun throttling thermique"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nessun throttling termico"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "サーマルスロットリングなし"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "발열로 인한 제한 없음"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sem throttling térmico"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "无温度降频"
+          }
+        }
+      }
+    },
     "No throttling under sustained load": {
       "localizations": {
         "de": {
@@ -5253,6 +5855,58 @@
         }
       }
     },
+    "Off": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Aus"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Desactivado"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Désactivé"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Disattivo"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "オフ"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "끔"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Desativado"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "关闭"
+          }
+        }
+      }
+    },
     "Offline": {
       "localizations": {
         "de": {
@@ -5301,6 +5955,58 @@
           "stringUnit": {
             "state": "translated",
             "value": "离线"
+          }
+        }
+      }
+    },
+    "On": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ein"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Activado"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Activé"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Attivo"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "オン"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "켬"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ativado"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "开启"
           }
         }
       }
@@ -5509,6 +6215,58 @@
           "stringUnit": {
             "state": "translated",
             "value": "OpenSpeedTest（公共）"
+          }
+        }
+      }
+    },
+    "Opens Blip and starts a network speed test using your configured source — the public OpenSpeedTest service or your own server from Settings.": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Öffnet Blip und startet einen Netzwerk-Speedtest mit deiner eingestellten Quelle – dem öffentlichen OpenSpeedTest-Dienst oder deinem eigenen Server aus den Einstellungen."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Abre Blip e inicia una prueba de velocidad de red con la fuente configurada: el servicio público de OpenSpeedTest o tu propio servidor de Ajustes."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ouvre Blip et lance un test de débit réseau avec la source configurée : le service public OpenSpeedTest ou votre propre serveur défini dans les Réglages."
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Apre Blip e avvia un test di velocità della rete con la sorgente configurata: il servizio pubblico OpenSpeedTest o il tuo server indicato nelle Impostazioni."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Blip を開き、設定したソース（公開 OpenSpeedTest サービス、または設定で指定した自分のサーバ）でネットワーク速度テストを開始します。"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Blip을 열고 설정한 소스(공개 OpenSpeedTest 서비스 또는 설정에서 지정한 자체 서버)로 네트워크 속도 테스트를 시작합니다."
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Abre o Blip e inicia um teste de velocidade da rede com a fonte configurada: o serviço público OpenSpeedTest ou seu próprio servidor definido nos Ajustes."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "打开 Blip，并使用你配置的来源（公共 OpenSpeedTest 服务或在设置中指定的自有服务器）开始网络测速。"
           }
         }
       }
@@ -5773,6 +6531,58 @@
         }
       }
     },
+    "Profile": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Profil"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Perfil"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Profil"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Profilo"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "プロファイル"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "프로파일"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Perfil"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "模式"
+          }
+        }
+      }
+    },
     "Public Address": {
       "localizations": {
         "de": {
@@ -5821,6 +6631,58 @@
           "stringUnit": {
             "state": "translated",
             "value": "公网地址"
+          }
+        }
+      }
+    },
+    "Quick (≈6 seconds, no sustained phase)": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Schnell (≈6 Sekunden, ohne Dauerlastphase)"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Rápido (≈6 segundos, sin fase sostenida)"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Rapide (≈6 secondes, sans phase soutenue)"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Rapido (≈6 secondi, senza fase prolungata)"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "クイック（≈6秒、持続負荷なし）"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "빠름(≈6초, 지속 부하 없음)"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Rápido (≈6 segundos, sem fase sustentada)"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "快速（≈6 秒，无持续负载阶段）"
           }
         }
       }
@@ -6029,6 +6891,58 @@
           "stringUnit": {
             "state": "translated",
             "value": "移除数据库"
+          }
+        }
+      }
+    },
+    "Returns Blip's full stats snapshot as Markdown text — device, CPU, memory, storage, network — ready to save to a file, append to a note, or send anywhere.": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Gibt Blips vollständigen Statistik-Snapshot als Markdown-Text zurück – Gerät, CPU, Speicher, Festplatte, Netzwerk – bereit zum Speichern in einer Datei, Anhängen an eine Notiz oder Versenden."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Devuelve la instantánea completa de estadísticas de Blip como texto Markdown (dispositivo, CPU, memoria, almacenamiento, red), lista para guardar en un archivo, añadir a una nota o enviar a donde quieras."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Renvoie l’instantané complet des statistiques de Blip en texte Markdown (appareil, CPU, mémoire, stockage, réseau), prêt à être enregistré dans un fichier, ajouté à une note ou envoyé n’importe où."
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Restituisce l’istantanea completa delle statistiche di Blip come testo Markdown (dispositivo, CPU, memoria, archiviazione, rete), pronta da salvare in un file, aggiungere a una nota o inviare ovunque."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Blip の統計スナップショット全体（デバイス、CPU、メモリ、ストレージ、ネットワーク）を Markdown テキストとして返します。ファイルへの保存やメモへの追記、送信にそのまま使えます。"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Blip의 전체 통계 스냅샷(기기, CPU, 메모리, 저장 공간, 네트워크)을 Markdown 텍스트로 반환합니다. 파일로 저장하거나 메모에 추가하거나 어디로든 보낼 수 있습니다."
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Retorna o instantâneo completo de estatísticas do Blip como texto Markdown (dispositivo, CPU, memória, armazenamento, rede), pronto para salvar em um arquivo, anexar a uma nota ou enviar para qualquer lugar."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "以 Markdown 文本返回 Blip 的完整统计快照（设备、CPU、内存、存储、网络），可直接保存为文件、追加到备忘录或发送到任何地方。"
           }
         }
       }
@@ -6293,6 +7207,58 @@
         }
       }
     },
+    "Run a ${profile} benchmark": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Führe einen ${profile}-Benchmark aus"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ejecuta un benchmark ${profile}"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Lancer un benchmark ${profile}"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Esegui un benchmark ${profile}"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "${profile} ベンチマークを実行"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "${profile} 벤치마크 실행"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Executar um benchmark ${profile}"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "运行 ${profile} 基准测试"
+          }
+        }
+      }
+    },
     "Run a speed test in Blip": {
       "localizations": {
         "de": {
@@ -6393,6 +7359,58 @@
           "stringUnit": {
             "state": "translated",
             "value": "运行你的第一次基准测试"
+          }
+        }
+      }
+    },
+    "Runs Blip Bench — CPU, memory, GPU, and Neural Engine against Blip's fixed reference units, comparable across every device running Blip. Returns the composite score; the detailed result lands in the Bench tab's history.": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Führt Blip Bench aus – CPU, Speicher, GPU und Neural Engine gemessen an Blips festen Referenzeinheiten, vergleichbar über alle Geräte mit Blip. Gibt den Gesamtwert zurück; das detaillierte Ergebnis landet im Verlauf des Bench-Tabs."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ejecuta Blip Bench (CPU, memoria, GPU y Neural Engine) frente a las unidades de referencia fijas de Blip, comparable entre todos los dispositivos con Blip. Devuelve la puntuación global; el resultado detallado queda en el historial de la pestaña Bench."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Exécute Blip Bench (CPU, mémoire, GPU et Neural Engine) par rapport aux unités de référence fixes de Blip, comparable sur tous les appareils exécutant Blip. Renvoie le score global ; le résultat détaillé rejoint l’historique de l’onglet Bench."
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Esegue Blip Bench (CPU, memoria, GPU e Neural Engine) rispetto alle unità di riferimento fisse di Blip, confrontabile su ogni dispositivo con Blip. Restituisce il punteggio complessivo; il risultato dettagliato finisce nella cronologia della scheda Bench."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Blip Bench を実行します。CPU、メモリ、GPU、Neural Engine を Blip の固定基準単位で測定するため、Blip を使うすべてのデバイス間で比較できます。総合スコアを返し、詳細な結果はベンチタブの履歴に保存されます。"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Blip Bench를 실행합니다. CPU, 메모리, GPU, Neural Engine을 Blip의 고정 기준 단위로 측정하므로 Blip을 실행하는 모든 기기와 비교할 수 있습니다. 종합 점수를 반환하며, 자세한 결과는 벤치 탭의 기록에 저장됩니다."
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Executa o Blip Bench (CPU, memória, GPU e Neural Engine) em relação às unidades de referência fixas do Blip, comparável entre todos os dispositivos com o Blip. Retorna a pontuação geral; o resultado detalhado fica no histórico da aba Bench."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "运行 Blip Bench：以 Blip 固定的参考单位测量 CPU、内存、GPU 和神经网络引擎，可在所有运行 Blip 的设备间比较。返回综合分数；详细结果会保存在基准测试标签页的历史记录中。"
           }
         }
       }
@@ -6969,6 +7987,110 @@
         }
       }
     },
+    "Speed Tests": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Speedtests"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pruebas de velocidad"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tests de débit"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Test di velocità"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "速度テスト"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "속도 테스트"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Testes de Velocidade"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "测速"
+          }
+        }
+      }
+    },
+    "Speed test started in Blip.": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Speedtest in Blip gestartet."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Prueba de velocidad iniciada en Blip."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Test de débit lancé dans Blip."
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Test di velocità avviato in Blip."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Blip でスピードテストを開始しました。"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Blip에서 속도 테스트를 시작했습니다."
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Teste de velocidade iniciado no Blip."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "已在 Blip 中开始测速。"
+          }
+        }
+      }
+    },
     "Start Ping": {
       "localizations": {
         "de": {
@@ -7069,6 +8191,58 @@
           "stringUnit": {
             "state": "translated",
             "value": "状态"
+          }
+        }
+      }
+    },
+    "Stats": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Statistiken"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Estadísticas"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Statistiques"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Statistiche"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "統計"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "통계"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Estatísticas"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "统计"
           }
         }
       }
@@ -7437,6 +8611,58 @@
         }
       }
     },
+    "Sustained −%lld%%": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Dauerlast −%lld%%"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sostenida −%lld%%"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Soutenue −%lld%%"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Prolungato −%lld%%"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "持続負荷 −%lld%%"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "지속 부하 −%lld%%"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sustentada −%lld%%"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "持续负载 −%lld%%"
+          }
+        }
+      }
+    },
     "System thermal state": {
       "localizations": {
         "de": {
@@ -7797,6 +9023,110 @@
           "stringUnit": {
             "state": "translated",
             "value": "四种温度状态是 iOS 提供给 App 的唯一温度信号 —— 没有芯片温度 API。「严重」和「危急」表示正在降频。"
+          }
+        }
+      }
+    },
+    "The public test timed out.": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Der öffentliche Test hat das Zeitlimit überschritten."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "La prueba pública superó el tiempo de espera."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Le test public a expiré."
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Il test pubblico è scaduto."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "公開テストがタイムアウトしました。"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "공개 테스트 시간이 초과되었습니다."
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "O teste público excedeu o tempo limite."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "公共测试超时。"
+          }
+        }
+      }
+    },
+    "The test finished without a result.": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Der Test wurde ohne Ergebnis beendet."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "La prueba terminó sin resultado."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Le test s’est terminé sans résultat."
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Il test è terminato senza risultato."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "テストは結果なしで終了しました。"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "테스트가 결과 없이 종료되었습니다."
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "O teste terminou sem resultado."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "测试结束，但没有结果。"
           }
         }
       }
@@ -9101,6 +10431,9 @@
         }
       }
     },
+    "adir": {
+      "shouldTranslate": false
+    },
     "all": {
       "localizations": {
         "de": {
@@ -9308,6 +10641,9 @@
           }
         }
       }
+    },
+    "dir": {
+      "shouldTranslate": false
     },
     "download": {
       "localizations": {
@@ -10401,6 +11737,12 @@
         }
       }
     },
+    "run": {
+      "shouldTranslate": false
+    },
+    "score": {
+      "shouldTranslate": false
+    },
     "sent": {
       "localizations": {
         "de": {
@@ -10505,6 +11847,9 @@
         }
       }
     },
+    "state": {
+      "shouldTranslate": false
+    },
     "struggles": {
       "localizations": {
         "de": {
@@ -10608,6 +11953,9 @@
           }
         }
       }
+    },
+    "t": {
+      "shouldTranslate": false
     },
     "tested %@ ago · tap to retest": {
       "localizations": {
@@ -10764,6 +12112,9 @@
           }
         }
       }
+    },
+    "v": {
+      "shouldTranslate": false
     },
     "via %@": {
       "localizations": {
@@ -10972,6 +12323,9 @@
           }
         }
       }
+    },
+    "—": {
+      "shouldTranslate": false
     }
   },
   "version": "1.0"

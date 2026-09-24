@@ -184,9 +184,9 @@ struct SpeedScreen: View {
             }
             if let ping = r.pingMs {
                 HStack(spacing: 14) {
-                    Label(String(format: "%.0f ms idle", ping), systemImage: "clock")
+                    Label(String(localized: "\(Int(ping.rounded())) ms idle"), systemImage: "clock")
                     if let loaded = r.loadedPingMs {
-                        Label(String(format: "%.0f ms under load", loaded), systemImage: "clock.badge.exclamationmark")
+                        Label(String(localized: "\(Int(loaded.rounded())) ms under load"), systemImage: "clock.badge.exclamationmark")
                             .foregroundStyle(loaded - ping > 100 ? .orange : .secondary)
                     }
                 }

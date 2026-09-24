@@ -95,11 +95,13 @@ system monitor,cpu usage,memory pressure,menu bar,activity monitor,gpu,battery h
 Now on iPhone and iPad too. Live vitals, Blip Bench with Neural Engine scoring, graded speed tests, traceroute with a hop map — one free app across Mac and iOS.
 
 ## whats_new
-2.0.2 — GPU in the menu bar, and every corner of the Mac app now speaks your language.
+2.0.3 — Blip speaks your language in more places.
 
-+ New (Mac): optional GPU utilization readout in the menu bar — Settings → Visible Items → GPU, in both layouts. Thanks to impiri for Blip's first outside contribution!
-* Mac: 79 strings that had slipped through in English — recommendations, thermal status, helper status, bench labels, and Shortcuts setting names — are now properly localized into all 8 supported languages.
-* Mac: visible-item toggles now match the menu bar's order.
+* iPhone and iPad: speed-test latency, the Ping / Traceroute switch, battery and VPN details, disk-test results and speed-test error messages are now translated.
+* Home Screen widgets now appear in your language — they were English-only before.
+* Blip's Shortcuts actions on iPhone and iPad are now translated.
+* The Files and Shortcuts apps are now called by their local names in every translation.
+* Mac: the app icon's background is navy again, matching the iPhone icon.
 
 ## marketing_url
 https://wemiller.com/apps/blip/
