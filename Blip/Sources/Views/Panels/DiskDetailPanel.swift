@@ -289,14 +289,14 @@ struct DiskDetailPanel: View {
 
     private func healthCell(_ label: String, _ value: String) -> some View {
         VStack(alignment: .leading, spacing: 1) {
-            Text(label)
+            Text(LocalizedStringKey(label))
                 .font(.system(size: 9))
                 .foregroundStyle(.secondary)
             Text(value)
                 .font(.system(size: 10, design: .monospaced))
         }
         .frame(maxWidth: .infinity, alignment: .leading)
-        .help(Self.metricHelp[label] ?? "")
+        .help(Self.metricHelp[label].map { String(localized: String.LocalizationValue($0)) } ?? "")
     }
 
     private func lifeColor(_ life: Int) -> Color {
@@ -403,7 +403,8 @@ struct DiskDetailPanel: View {
                 Image(systemName: speedTester.locationLabel == "Boot volume" ? "internaldrive" : "externaldrive")
                     .font(.system(size: 10))
                     .foregroundStyle(.secondary)
-                Text(speedTester.locationLabel)
+                Text(speedTester.locationLabel == "Boot volume"
+                     ? String(localized: "Boot volume") : speedTester.locationLabel)
                     .font(.system(size: 11, weight: .medium))
                     .lineLimit(1)
                     .truncationMode(.middle)

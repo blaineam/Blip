@@ -97,7 +97,7 @@ Now on iPhone and iPad too. Live vitals, Blip Bench with Neural Engine scoring, 
 ## whats_new
 2.0.4 — Blip for Mac speaks your language in more places.
 
-* The Network panel's Download, Upload, Interface and Router labels, and the Blip Helper install and update prompts, are now translated.
+* The CPU, Memory, Disk, Battery and Network detail panels, the disk speed test and the Blip Helper install and update prompts no longer show English labels — about 40 strings are now translated.
 * Long translated labels in the menu-bar popover now stay on one line instead of wrapping.
 * The Files and Shortcuts apps are now called by their local names in every translation.
 * The app icon's background is navy again, matching the iPhone icon.

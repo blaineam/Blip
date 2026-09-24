@@ -123,7 +123,7 @@ struct CPUDetailPanel: View {
         return .blue
     }
 
-    private func statColumn(_ label: String, value: String, secondary: Bool = false) -> some View {
+    private func statColumn(_ label: LocalizedStringKey, value: String, secondary: Bool = false) -> some View {
         VStack(alignment: .leading, spacing: 2) {
             Text(label)
                 .font(.system(size: 10))

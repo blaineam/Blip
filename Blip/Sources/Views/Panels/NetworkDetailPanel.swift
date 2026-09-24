@@ -294,7 +294,7 @@ struct NetworkDetailPanel: View {
         }
     }
 
-    private func revealRow(_ label: String, value: String, revealed: Binding<Bool>) -> some View {
+    private func revealRow(_ label: LocalizedStringKey, value: String, revealed: Binding<Bool>) -> some View {
         HStack {
             Text(label)
                 .font(.system(size: 11))
@@ -983,7 +983,7 @@ struct SpeedTestSection: View {
         }
     }
 
-    private func legendDot(_ color: Color, _ label: String) -> some View {
+    private func legendDot(_ color: Color, _ label: LocalizedStringKey) -> some View {
         HStack(spacing: 3) {
             Circle().fill(color).frame(width: 5, height: 5)
             Text(label).font(.system(size: 9)).foregroundStyle(.secondary)
@@ -1338,7 +1338,7 @@ struct TracerouteWindowView: View {
 /// rebuilt — which the detail panels do every couple of seconds. Drawing the switch
 /// ourselves guarantees it always reflects the bound value.
 struct BlipToggle: View {
-    let title: String
+    let title: LocalizedStringKey
     @Binding var isOn: Bool
     var onChange: ((Bool) -> Void)? = nil
 

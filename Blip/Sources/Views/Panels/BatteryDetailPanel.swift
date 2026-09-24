@@ -31,10 +31,10 @@ struct BatteryDetailPanel: View {
 
                 // Details
                 VStack(alignment: .leading, spacing: 4) {
-                    detailRow("Status", value: stats.isCharging ? "Charging" : "On Battery")
-                    detailRow("Source", value: stats.powerSource)
+                    detailRow("Status", value: stats.isCharging ? String(localized: "Charging") : String(localized: "On Battery"))
+                    detailRow("Source", value: String(localized: String.LocalizationValue(stats.powerSource)))
                     detailRow("Health", value: Fmt.percent(stats.health))
-                    detailRow("Condition", value: stats.condition)
+                    detailRow("Condition", value: String(localized: String.LocalizationValue(stats.condition)))
                     detailRow("Cycle Count", value: "\(stats.cycleCount)")
                     if stats.temperature > 0 {
                         detailRow("Temperature", value: Fmt.temperature(stats.temperature))
@@ -68,7 +68,7 @@ struct BatteryDetailPanel: View {
         return .green
     }
 
-    private func detailRow(_ label: String, value: String) -> some View {
+    private func detailRow(_ label: LocalizedStringKey, value: String) -> some View {
         HStack {
             Text(label)
                 .font(.system(size: 11))

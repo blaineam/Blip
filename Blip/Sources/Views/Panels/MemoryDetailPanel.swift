@@ -132,7 +132,7 @@ struct MemoryDetailPanel: View {
         .onDisappear { onProcessHover?(false) }
     }
 
-    private func memoryRow(_ label: String, value: UInt64, color: Color) -> some View {
+    private func memoryRow(_ label: LocalizedStringKey, value: UInt64, color: Color) -> some View {
         HStack {
             Circle()
                 .fill(color)

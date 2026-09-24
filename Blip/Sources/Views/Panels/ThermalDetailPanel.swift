@@ -94,7 +94,7 @@ struct ThermalDetailPanel: View {
         .frame(width: 260)
     }
 
-    private func tempRow(_ label: String, temp: Double) -> some View {
+    private func tempRow(_ label: LocalizedStringKey, temp: Double) -> some View {
         HStack {
             Text(label)
                 .font(.system(size: 11))
