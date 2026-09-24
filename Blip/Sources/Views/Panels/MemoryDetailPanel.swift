@@ -158,10 +158,10 @@ struct MemoryDetailPanel: View {
 
     private var pressureLabel: String {
         switch stats.pressureLevel {
-        case 1: return "Normal"
-        case 2: return "Warning"
-        case 4: return "Critical"
-        default: return "Normal"
+        case 1: return String(localized: "Normal")
+        case 2: return String(localized: "Warning")
+        case 4: return String(localized: "Critical")
+        default: return String(localized: "Normal")
         }
     }
 

@@ -5,7 +5,7 @@
 ### Fixed — Mac: the last English labels (2.0.4, Mac)
 - The Network detail panel's **Download / Upload** column labels and its **Interface / Router / IPv4 (LAN) / VPN Interface** rows took a plain `String`, so they rendered English in every language; they are now `LocalizedStringKey` with translations (IPv4/IPv6 marked no-translate).
 - The Blip Helper **install / update prompts** and the "Status" label in the App Store build were never in the catalog; now translated into all 8 languages.
-- The CPU (User/System/P-Cores/…/load), Memory (App Memory/Wired/Compressed/…), Battery (Source/Health/Condition/…) and Disk-health (Used/Spare/…) panels used the same plain-`String` label helpers, and the disk speed test's "Boot volume" / "Auto-run on interval" were never extracted; all converted and translated (41 strings, incl. the S.M.A.R.T. hover help). MAC / VPN IP are no-translate.
+- The CPU (User/System/P-Cores/…/load), Memory (App Memory/Wired/Compressed/…), Battery (Source/Health/Condition/…) and Disk-health (Used/Spare/…) panels used the same plain-`String` label helpers, , the disk speed test's "Boot volume" / "Auto-run on interval", the memory-pressure value and the "Usage over time" chart title were never translated; all converted and translated (43 strings, incl. the S.M.A.R.T. hover help). MAC / VPN IP are no-translate.
 - Popover row labels (Network, Thermal) sit in a 60-pt column and wrapped in long translations ("Temperatu-r" in German, "ネットワ…" in Japanese); they now stay on one line and shrink slightly instead.
 - Mac App Store screenshots are now localized for all 9 listing locales (menu bar in the listing's language, analog clock).
 
