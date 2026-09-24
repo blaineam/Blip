@@ -67,9 +67,8 @@ Widgets — bench score, storage, and last speed test on your Home Screen, each 
 No accounts, no ads, no tracking. Everything Blip shows is what iOS honestly exposes to a well-behaved app.
 
 ## review_notes_ios
-<!-- App Review Information → Notes for the IOS platform version (set via API 2026-08-23).
-     The Mac version keeps its own notes (Blip Helper explanation); these replace the
-     inherited Mac copy, which described features that don't exist on iOS. -->
+<!-- App Review Information → Notes for the iOS version, applied by rocket meta Blip.
+     The Mac version has its own (review_notes_macos). This comment is stripped before the push. -->
 Blip Stats for iOS is a self-contained device-stats, benchmark, and network-tools app. No account, no login, no tracking — a demo account is not applicable.
 
 What the reviewer will see, and the network/system behavior behind it:
@@ -87,6 +86,12 @@ What the reviewer will see, and the network/system behavior behind it:
 6. Home Screen widgets (bench score, storage, last speed test) populate after the app has been opened once. Shortcuts expose Run Benchmark / Run Speed Test / Get Device Snapshot.
 
 Note: the Mac App Store listing for this universal app mentions an optional "Blip Helper" companion for Mac-only hardware metrics. That is macOS-only and does not exist on iOS — the iOS app is fully self-contained.
+
+NO VPN FUNCTIONALITY: Blip is a device-statistics utility. The word "VPN" appears only as a read-only network-status indicator — the app enumerates the device's own network interfaces on-device (getifaddrs) and shows a "VPN" badge when a utun/ipsec/tun interface carries an address, i.e. it reports whether a VPN from some other app is currently active. Blip contains no NetworkExtension code, no packet tunnel or proxy, and holds no VPN entitlements (its only entitlement is an app group). It does not collect, store, or transmit any user information, via VPN or otherwise; every statistic shown is computed locally and never leaves the device.
+
+## review_notes_macos
+<!-- App Review Information → Notes for the Mac version, applied by rocket meta Blip. -->
+Blip is a menu bar system monitor. Some advanced metrics (fan speeds, GPU utilization, disk I/O, top processes) require hardware-level access not available in the sandbox. These sections will be hidden without the optional Blip Helper companion app, which is available separately at github.com/blaineam/blip. The core features (CPU, memory, disk space, network, battery level) work fully standalone.
 
 ## keywords
 system monitor,cpu usage,memory pressure,menu bar,activity monitor,gpu,battery health,fan speed,mac
