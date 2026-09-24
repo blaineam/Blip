@@ -1,0 +1,5 @@
+# GitHub Pages builds docs/ with Jekyll. appstore-screenshots/ holds the App Store source
+# captures and .monkr projects (~330 MB) that no page links to; publishing them made every
+# Pages artifact ~200 MB and ran Actions storage over its cap.
+exclude:
+  - appstore-screenshots
