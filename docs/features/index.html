@@ -1,0 +1,296 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Features · Blip</title>
+  <meta name="description" content="Everything Blip does on the Mac, iPhone and iPad: CPU, memory, disk and S.M.A.R.T., network and traceroute, GPU, battery and fans, Blip Bench, speed tests, widgets and Shortcuts.">
+  <link rel="icon" type="image/png" sizes="32x32" href="../assets/favicon.png?v=19bdf06e">
+  <link rel="apple-touch-icon" sizes="180x180" href="../assets/apple-touch-icon.png?v=7638d2ea">
+  <link rel="canonical" href="https://blip.wemiller.com/features/">
+  <meta name="theme-color" content="#101936">
+  <meta property="og:title" content="Features · Blip">
+  <meta property="og:description" content="Everything Blip does on the Mac, iPhone and iPad: CPU, memory, disk and S.M.A.R.T., network and traceroute, GPU, battery and fans, Blip Bench, speed tests, widgets and Shortcuts.">
+  <meta property="og:image" content="https://blip.wemiller.com/assets/og-poster.png">
+  <meta property="og:url" content="https://blip.wemiller.com/features/">
+  <meta property="og:type" content="website">
+  <style>
+    /* Blip depth pages (features/, faq/): the landing page's navy-and-green tokens and
+       the portfolio's depth-page layout (docs/app-page-design.md §4), inlined because
+       this site is served on its own domain as well as mirrored under /apps/blip/. */
+    :root {
+      --bl-night: linear-gradient(172deg, #0B1128 0%, #101936 48%, #162244 100%);
+      --bl-sans: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Helvetica Neue", "Segoe UI", sans-serif;
+      --bl-mono: ui-monospace, "SF Mono", SFMono-Regular, Menlo, monospace;
+      --bl-paper: #F6F7FB;
+      --bl-paper-2: #ECEFF6;
+      --bl-card: #FFFFFF;
+      --bl-ink: #13204A;
+      --bl-body: #3A4258;
+      --bl-quiet: #5A6280;
+      --bl-green: #1E7B3A;
+      --bl-rule: rgba(19, 32, 74, 0.13);
+      --bl-measure: 1120px;
+      --accent-cyan: #0b7fb3;
+    }
+    @media (prefers-color-scheme: dark) {
+      :root {
+        --bl-paper: #0A0E1C;
+        --bl-paper-2: #0F1528;
+        --bl-card: #111831;
+        --bl-ink: #EEF1FA;
+        --bl-body: #C9CEDD;
+        --bl-quiet: #979FB6;
+        --bl-green: #30D158;
+        --bl-rule: rgba(238, 241, 250, 0.12);
+        --accent-cyan: #64d2ff;
+      }
+    }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+    body { font-family: var(--bl-sans); background: var(--bl-paper); color: var(--bl-body); line-height: 1.6; -webkit-font-smoothing: antialiased; }
+    a:focus-visible, summary:focus-visible { outline: 3px solid #30d158; outline-offset: 3px; border-radius: 6px; }
+    .bl-mono { font-family: var(--bl-mono); }
+
+    /* ---- Nav: the night band, with the app's pages ------------------------ */
+    .bl-nav { position: sticky; top: 0; z-index: 20; background: var(--bl-night); color: #fff; }
+    .bl-nav-row { max-width: var(--bl-measure); margin: 0 auto; padding: 12px 16px; display: flex; align-items: center; flex-wrap: wrap; gap: 8px 16px; }
+    .bl-logo { display: inline-flex; align-items: center; gap: 8px; color: #fff; text-decoration: none; font-weight: 700; font-size: 1.1rem; }
+    .bl-logo-dot { width: 9px; height: 9px; border-radius: 50%; background: #30d158; box-shadow: 0 0 10px rgba(48, 209, 88, 0.8); }
+    .bl-nav-links { display: flex; gap: 4px 18px; list-style: none; margin-left: auto; }
+    .bl-nav-links a { color: rgba(255, 255, 255, 0.78); text-decoration: none; font-size: 0.95rem; padding: 0.3rem 0; border-bottom: 2px solid transparent; }
+    .bl-nav-links a:hover { color: #fff; }
+    .bl-nav-links a[aria-current="page"] { color: #fff; font-weight: 600; border-bottom-color: #30d158; }
+    .bl-nav-store { color: #fff; text-decoration: none; font-size: 0.9rem; font-weight: 600; padding: 0.45rem 0.95rem; border-radius: 999px; border: 1px solid rgba(255, 255, 255, 0.28); white-space: nowrap; }
+    .bl-nav-store:hover { background: rgba(255, 255, 255, 0.08); }
+    @media (max-width: 560px) {
+      .bl-nav-links { order: 3; width: 100%; margin: 0; justify-content: center; }
+      .bl-nav-store { margin-left: auto; }
+    }
+
+    /* ---- Header ------------------------------------------------------------ */
+    .dp-header { max-width: var(--bl-measure); margin: 0 auto; padding: clamp(3rem, 8vw, 5.5rem) 16px clamp(2rem, 5vw, 3.5rem); text-align: center; }
+    .dp-eyebrow { margin: 0 0 0.9rem; font-size: 0.8rem; font-weight: 600; letter-spacing: 0.2em; text-transform: uppercase; color: var(--bl-green); }
+    .dp-header h1 { margin: 0 auto; max-width: 18ch; font-size: clamp(2.3rem, 6vw, 4.2rem); line-height: 1.05; letter-spacing: -0.03em; color: var(--bl-ink); text-wrap: balance; word-break: auto-phrase; }
+    :lang(ja) .dp-header h1, :lang(zh) .dp-header h1, :lang(ko) .dp-header h1 { max-width: 12em; }
+    .dp-standfirst { margin: 1.1rem auto 0; max-width: 42rem; font-size: clamp(1.08rem, 1.8vw, 1.3rem); line-height: 1.6; color: var(--bl-body); text-wrap: pretty; }
+    .dp-jumps { display: flex; flex-wrap: wrap; justify-content: center; gap: 0.5rem; margin: 1.6rem 0 0; list-style: none; }
+    .dp-jumps a { display: inline-block; padding: 0.45rem 0.9rem; border: 1px solid var(--bl-rule); border-radius: 999px; font-size: 0.9rem; color: var(--bl-body); text-decoration: none; }
+    .dp-jumps a:hover, .dp-jumps a:focus-visible { color: var(--bl-ink); border-color: var(--bl-green); }
+
+    /* ---- Sections, cards, lists -------------------------------------------- */
+    .dp-section { max-width: var(--bl-measure); margin: 0 auto; padding: clamp(3rem, 7vw, 5rem) 16px; border-top: 1px solid var(--bl-rule); scroll-margin-top: 70px; }
+    .dp-section > h2 { margin: 0 0 0.6rem; font-size: clamp(1.7rem, 3.6vw, 2.5rem); line-height: 1.12; letter-spacing: -0.02em; color: var(--bl-ink); text-wrap: balance; }
+    .dp-lede { margin: 0 0 2rem; max-width: 44rem; font-size: 1.08rem; line-height: 1.6; color: var(--bl-body); }
+    .dp-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 16rem), 1fr)); gap: 1rem; list-style: none; }
+    .dp-card { padding: 1.35rem 1.35rem 1.45rem; border: 1px solid var(--bl-rule); border-radius: 18px; background: var(--bl-card); }
+    .dp-card-icon { display: block; font-size: 1.5rem; line-height: 1; margin-bottom: 0.8rem; }
+    .dp-card h3 { margin: 0 0 0.45rem; font-size: 1.08rem; line-height: 1.3; color: var(--bl-ink); }
+    .dp-card p { font-size: 0.96rem; line-height: 1.55; color: var(--bl-body); }
+    .dp-list { columns: 14rem auto; column-gap: 2rem; list-style: none; }
+    .dp-list li { break-inside: avoid; padding: 0.45rem 0; border-bottom: 1px solid var(--bl-rule); color: var(--bl-body); }
+    .sc-chip-dot { display: inline-block; width: 7px; height: 7px; margin-right: 0.6em; border-radius: 50%; background: #30d158; vertical-align: middle; }
+    .dp-fine { margin: 1.4rem 0 0; font-size: 0.92rem; line-height: 1.55; color: var(--bl-quiet); }
+    .dp-fine a { color: var(--bl-green); }
+    .dp-stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(12rem, 1fr)); border-top: 1px solid var(--bl-rule); }
+    .dp-stats > div { display: flex; flex-direction: column; gap: 0.2rem; padding: 1.2rem 0.4rem; border-bottom: 1px solid var(--bl-rule); color: var(--bl-body); }
+    .dp-stats .bl-mono { font-size: 1.8rem; font-weight: 600; color: var(--bl-green); }
+
+    /* ---- FAQ ---------------------------------------------------------------- */
+    .dp-faq-group + .dp-faq-group { margin-top: 2.5rem; }
+    .dp-faq-group > h2 { margin: 0 0 1rem; font-size: clamp(1.35rem, 2.6vw, 1.8rem); color: var(--bl-ink); }
+    .bl-faq-item { border-top: 1px solid var(--bl-rule); }
+    .bl-faq-list .bl-faq-item:last-child { border-bottom: 1px solid var(--bl-rule); }
+    .bl-faq-item summary { list-style: none; cursor: pointer; display: flex; justify-content: space-between; align-items: center; gap: 1rem; font-size: 1.1rem; font-weight: 600; color: var(--bl-ink); padding: 1.25rem 0; }
+    .bl-faq-item summary::-webkit-details-marker { display: none; }
+    .bl-faq-item summary::after { content: "+"; font: 400 1.4rem/1 var(--bl-mono); color: var(--bl-green); flex: none; transition: transform 0.2s ease; }
+    .bl-faq-item[open] summary::after { transform: rotate(45deg); }
+    .bl-faq-answer { padding: 0 0 1.4rem; font-size: 1rem; line-height: 1.68; color: var(--bl-body); }
+    .bl-faq-answer a { color: var(--bl-green); }
+    .bl-faq-answer code { font-family: var(--bl-mono); font-size: 0.92em; }
+
+    /* ---- Closing: every depth page ends on the download -------------------- */
+    .dp-closing { text-align: center; padding: clamp(3.5rem, 8vw, 6rem) 16px; background: var(--bl-paper-2); border-top: 1px solid var(--bl-rule); }
+    .dp-closing h2 { margin: 0 auto 1.4rem; max-width: 20ch; font-size: clamp(1.8rem, 4vw, 2.8rem); letter-spacing: -0.02em; color: var(--bl-ink); text-wrap: balance; }
+    .bl-btn { display: inline-flex; align-items: center; justify-content: center; min-height: 48px; padding: 0.8rem 1.6rem; border-radius: 999px; font: 600 1.02rem/1.2 var(--bl-sans); text-decoration: none; background: #30d158; color: #04210D; box-shadow: 0 10px 28px rgba(48, 209, 88, 0.28); }
+    .dp-alt { display: flex; flex-wrap: wrap; justify-content: center; gap: 0.3rem 0.7rem; margin: 1.1rem 0 0; font-size: 0.95rem; color: var(--bl-quiet); }
+    .dp-alt a { color: var(--bl-body); }
+    footer { text-align: center; padding: 2rem 16px 3rem; font-size: 0.9rem; color: var(--bl-quiet); }
+    footer a { color: var(--bl-body); }
+    @media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } .bl-faq-item summary::after { transition: none; } }
+
+  </style>
+  <link rel="alternate" hreflang="x-default" href="https://blip.wemiller.com/features/">
+  <link rel="alternate" hreflang="en" href="https://blip.wemiller.com/features/">
+  <link rel="alternate" hreflang="zh-Hans" href="https://blip.wemiller.com/features/?lang=zh-Hans">
+  <link rel="alternate" hreflang="ja" href="https://blip.wemiller.com/features/?lang=ja">
+  <link rel="alternate" hreflang="de" href="https://blip.wemiller.com/features/?lang=de">
+  <link rel="alternate" hreflang="fr" href="https://blip.wemiller.com/features/?lang=fr">
+  <link rel="alternate" hreflang="es" href="https://blip.wemiller.com/features/?lang=es">
+  <link rel="alternate" hreflang="ko" href="https://blip.wemiller.com/features/?lang=ko">
+  <link rel="alternate" hreflang="pt-BR" href="https://blip.wemiller.com/features/?lang=pt-BR">
+  <link rel="alternate" hreflang="it" href="https://blip.wemiller.com/features/?lang=it">
+  <script src="../i18n/i18n.js?v=9b769779" defer data-page="features" data-pos="bottom-left"></script>
+</head>
+<body>
+<nav class="bl-nav">
+    <div class="bl-nav-row">
+        <a href="../" class="bl-logo"><span class="bl-logo-dot"></span> Blip</a>
+        <ul class="bl-nav-links">
+            <li><a href="../" data-i18n="overview.0efc2e">Overview</a></li>
+            <li><a href="../features/" aria-current="page" data-i18n="features.fc338f">Features</a></li>
+            <li><a href="../faq/" data-i18n="faq.03688b">FAQ</a></li>
+        </ul>
+        <a href="https://apps.apple.com/us/app/blip-stats/id6762329495" class="bl-nav-store" target="_blank" rel="noopener noreferrer">App Store</a>
+    </div>
+</nav>
+
+<main>
+<header class="dp-header">
+    <p class="dp-eyebrow">Blip</p>
+    <h1 data-i18n="everything-blip-does.ea491d">Everything Blip does</h1>
+    <p class="dp-standfirst" data-i18n="one-free-app-across.s8b174">One free app across Mac, iPhone, and iPad. Live device cards with drill-in details, Blip Bench with Neural Engine scoring, graded speed tests, ping and traceroute with an offline hop map, disk speed tests, widgets, and Shortcuts.</p>
+    <ul class="dp-jumps">
+        <li><a href="#mac" data-i18n="mac.08bce2">Mac</a></li>
+        <li><a href="#ios" data-i18n="iphone-ipad.4b5a2f">iPhone &amp; iPad</a></li>
+        <li><a href="#shortcuts" data-i18n="shortcuts.90c935">Shortcuts</a></li>
+        <li><a href="#numbers" data-i18n="by-the-numbers.58c761">By the numbers</a></li>
+    </ul>
+</header>
+
+<section class="dp-section" id="mac">
+    <h2 data-i18n="everything-you-need-nothing.82ffca">Everything you need, nothing you don't.</h2>
+    <p class="dp-lede" data-i18n="blip-monitors-what-matters.1b2428">Blip monitors what matters and stays out of your way.</p>
+    <ul class="dp-grid">
+            <li class="dp-card">
+                <span class="dp-card-icon" aria-hidden="true">⚡</span>
+                <h3 data-i18n="cpu-monitoring.7edd74">CPU Monitoring</h3>
+                <p data-i18n="total-and-per-core.b102a8">Total and per-core usage, user/system/idle breakdown, load averages (1m/5m/15m), P-core and E-core counts. Accurate delta-based CPU per process with app icons.</p>
+            </li>
+            <li class="dp-card">
+                <span class="dp-card-icon" aria-hidden="true">🧠</span>
+                <h3 data-i18n="memory.89c8a2">Memory</h3>
+                <p data-i18n="app-memory-wired-compressed.7b586f">App memory, wired, compressed breakdown matching Activity Monitor. Swap usage, cached files, kernel-level pressure indicator. Accurate phys_footprint memory per process.</p>
+            </li>
+            <li class="dp-card">
+                <span class="dp-card-icon" aria-hidden="true">💾</span>
+                <h3 data-i18n="disk.ef9952">Disk</h3>
+                <p data-i18n="space-on-every-volume.db083c">Space on every volume, live read and write speeds, and full S.M.A.R.T. health (SSD life, temperature, lifetime writes, power-on hours), external SSDs included. A built-in speed test benchmarks any volume in one click.</p>
+            </li>
+            <li class="dp-card">
+                <span class="dp-card-icon" aria-hidden="true">🌐</span>
+                <h3 data-i18n="network.53ebc5">Network</h3>
+                <p data-i18n="live-upload-and-download.e54d66">Live upload and download, session totals, every interface, router and WAN ping, IPv4 and IPv6, VPN detection, a live traceroute with per-hop loss and latency on an offline map, and a multi-gigabit speed test against a public server or your own.</p>
+            </li>
+            <li class="dp-card">
+                <span class="dp-card-icon" aria-hidden="true">⏻</span>
+                <h3 data-i18n="processes.ed7308">Processes</h3>
+                <p data-i18n="the-top-cpu-and.a5b3cc">The top CPU and memory users, with their app icons and accurate per-process numbers. Hover a process to quit it right from the panel.</p>
+            </li>
+            <li class="dp-card">
+                <span class="dp-card-icon" aria-hidden="true">💡</span>
+                <h3 data-i18n="optimization-advisor.7e11ca">Optimization Advisor</h3>
+                <p data-i18n="a-dismissable-suggestion-points.300ca8">A dismissable suggestion points out what's slowing your Mac down or wearing it out: runaway apps, memory pressure, heavy swap, thermal throttling, a nearly full disk, low SSD life or weak battery health.</p>
+            </li>
+            <li class="dp-card">
+                <span class="dp-card-icon" aria-hidden="true">🎮</span>
+                <h3 data-i18n="gpu.a6a631">GPU</h3>
+                <p data-i18n="apple-silicon-gpu-utilization.1dced7">Apple Silicon GPU utilization percentage with renderer name. Historical usage chart shows GPU load over time with smooth monotone interpolation.</p>
+            </li>
+            <li class="dp-card">
+                <span class="dp-card-icon" aria-hidden="true">🔋</span>
+                <h3 data-i18n="battery-fans.acaea9">Battery &amp; Fans</h3>
+                <p data-i18n="charge-level-health-matching.ef367e">Charge level, health matching Settings app, battery condition, cycle count, temperature, charging status. Fan RPM with min/max ranges.</p>
+            </li>
+            <li class="dp-card">
+                <span class="dp-card-icon" aria-hidden="true">📊</span>
+                <h3 data-i18n="beautiful-charts.c5c99b">Beautiful Charts</h3>
+                <p data-i18n="historical-sparklines-for-cpu.66aab6">Historical sparklines for CPU, memory, and GPU. Bandwidth and disk I/O charts with auto-scaled Y-axis labels. Detail panels live-refresh as data changes.</p>
+            </li>
+            <li class="dp-card">
+                <span class="dp-card-icon" aria-hidden="true">🪶</span>
+                <h3 data-i18n="featherlight.7f901f">Featherlight</h3>
+                <p data-i18n="2-mb-binary-zero.8da17e">~2 MB binary. Zero external dependencies. Polls every 2 seconds with efficient ring buffers. Shows its own memory usage in the footer.</p>
+            </li>
+            <li class="dp-card">
+                <span class="dp-card-icon" aria-hidden="true">🎨</span>
+                <h3 data-i18n="customizable.6d072c">Customizable</h3>
+                <p data-i18n="category-colors-monochrome-or.e91d91">Category colors, monochrome, or custom color via picker. Optional utilization colorization. Two layouts (horizontal/stacked). Toggle individual items and labels. Launch at login.</p>
+            </li>
+            <li class="dp-card">
+                <span class="dp-card-icon" aria-hidden="true">🔒</span>
+                <h3 data-i18n="private-secure.2f1e67">Private &amp; Secure</h3>
+                <p data-i18n="no-telemetry-no-tracking.dc76f0">No telemetry, no tracking, no analytics and no servers. Traceroute locations come from an optional database on your own device, and the only connections Blip makes are the ones you start.</p>
+            </li>
+    </ul>
+    <p class="dp-fine" data-i18n-html="optional-download-blip-helper.57ce2c">Optional: <a href="https://github.com/blaineam/blip/releases/latest/download/BlipHelper.dmg" style="color:var(--accent-cyan)">Download Blip Helper</a> for fan speeds, temperatures, GPU utilization, disk I/O, battery health, and process monitoring when using the App Store version.</p>
+</section>
+
+<section class="dp-section" id="ios">
+    <h2 data-i18n="now-on-iphone-ipad.h2a933">Now on iPhone &amp; iPad</h2>
+    <p class="dp-lede" data-i18n="blip-comes-to-iphone.d19c44">Blip comes to iPhone and iPad — and Blip Bench scores every device on one scale, Neural Engine included.</p>
+    <ul class="dp-grid">
+            <li class="dp-card">
+                <h3 data-i18n="blip-bench-everywhere.p1a001">🔥 Blip Bench, everywhere</h3>
+                <p data-i18n="cpu-memory-gpu-and.p1b002">CPU, memory, GPU, and Neural Engine throughput in fixed reference units — one scale for every Mac, iPhone, and iPad running Blip, with a sustained phase that measures thermal throttling.</p>
+            </li>
+            <li class="dp-card">
+                <h3 data-i18n="speed-tests-with-grades.p2a003">📈 Speed tests with grades</h3>
+                <p data-i18n="download-and-upload-draw.p2b004">Download and upload draw as separate curves, latency is measured idle and under load, and every result is graded per activity — from video calls to cloud gaming.</p>
+            </li>
+            <li class="dp-card">
+                <h3 data-i18n="network-tools-with-a.p3a005">🗺 Network tools with a map</h3>
+                <p data-i18n="ping-and-traceroute-over.p3b006">Ping and traceroute with per-hop latency and an offline GeoIP map of the route. The location database downloads once; lookups never leave the device.</p>
+            </li>
+            <li class="dp-card">
+                <h3 data-i18n="widgets-and-shortcuts.p4a007">📱 Widgets &amp; Shortcuts</h3>
+                <p data-i18n="bench-score-storage-and.p4b008">Bench score, storage, and your last speed test on the Home Screen — each stamped with its age — plus Shortcuts to automate benchmarks, speed tests, and stats snapshots.</p>
+            </li>
+    </ul>
+</section>
+
+<section class="dp-section" id="shortcuts">
+    <h2 data-i18n="shortcuts-and-siri.745079">Shortcuts and Siri</h2>
+    <p class="dp-lede" data-i18n="eight-actions-put-blip.7cef12">Eight actions put Blip's numbers and tests into your own automations, with 37 live metrics you can chain on the Mac.</p>
+    <p class="dp-eyebrow" data-i18n="all-eight-actions.fb6e30">ALL EIGHT ACTIONS</p>
+    <ul class="dp-list">
+        <li data-i18n-html="get-system-metric.20656d"><span class="sc-chip-dot"></span>Get System Metric</li>
+        <li data-i18n-html="run-drive-speed-test.9c0f82"><span class="sc-chip-dot"></span>Run Drive Speed Test</li>
+        <li data-i18n-html="run-network-speed-test.d594e2"><span class="sc-chip-dot"></span>Run Network Speed Test</li>
+        <li data-i18n-html="run-traceroute.c83cb0"><span class="sc-chip-dot"></span>Run Traceroute</li>
+        <li data-i18n-html="stop-traceroute.627851"><span class="sc-chip-dot"></span>Stop Traceroute</li>
+        <li data-i18n-html="open-traceroute-map.58a1f3"><span class="sc-chip-dot"></span>Open Traceroute Map</li>
+        <li data-i18n-html="get-blip-setting.4386c6"><span class="sc-chip-dot"></span>Get Blip Setting</li>
+        <li data-i18n-html="set-blip-setting.8cc75a"><span class="sc-chip-dot"></span>Set Blip Setting</li>
+    </ul>
+    <p class="dp-fine" data-i18n="five-zero-setup-app.b51c76">Five zero-setup App Shortcut phrases — say them to Siri or type them into Spotlight, no setup required.</p>
+</section>
+
+<section class="dp-section" id="numbers">
+    <h2 data-i18n="by-the-numbers.58c761">By the numbers</h2>
+    <div class="dp-stats">
+        <div><span class="bl-mono" data-i18n="2-mb.536c2c">~2 MB</span><span data-i18n="binary-size.433ae4">Binary size</span></div>
+        <div><span class="bl-mono">0</span><span data-i18n="dependencies.0562f3">Dependencies</span></div>
+        <div><span class="bl-mono" data-i18n="42-mb.675afc">~42 MB</span><span data-i18n="memory-footprint.fc7dc9">Memory footprint</span></div>
+        <div><span class="bl-mono" data-i18n="mit.89690a">MIT</span><span data-i18n="license.322960">License</span></div>
+    </div>
+</section>
+</main>
+
+<section class="dp-closing">
+    <h2 data-i18n="your-devices-vitals-at.cb380c">Your devices' vitals, at a glance.</h2>
+    <a href="https://apps.apple.com/us/app/blip-stats/id6762329495" class="bl-btn" target="_blank" rel="noopener noreferrer" data-i18n="download-on-the-app.a9096a">Download on the App Store</a>
+    <p class="dp-alt">
+        <a href="https://github.com/blaineam/blip/releases/latest/download/Blip.dmg" data-i18n="direct-download-for-mac.1c7de5">Direct download for Mac</a>
+        <span aria-hidden="true">·</span>
+        <a href="https://github.com/blaineam/blip" target="_blank" rel="noopener noreferrer" data-i18n="source-on-github.c60f2f">Source on GitHub</a>
+        <span aria-hidden="true">·</span>
+        <a href="../" data-i18n="back-to-the-overview.e274c2">Back to the overview</a>
+    </p>
+</section>
+
+<footer>
+    <p data-i18n-html="built-by-blaine-miller.9d6375">Built by <a href="https://github.com/blaineam">Blaine Miller</a> &middot; <a href="https://github.com/blaineam/blip">Open Source</a> under MIT License</p>
+</footer>
+</body>
+</html>

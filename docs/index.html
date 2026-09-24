@@ -240,6 +240,24 @@
         .bl-trust-link a { color: #30d158; text-decoration: none; border-bottom: 1px solid rgba(48, 209, 88, 0.4); }
         .bl-trust-link a:hover { border-bottom-color: #30d158; }
 
+        /* ---- The app's pages, and the way into them ------------------------ */
+        .bl-nav-links { display: flex; gap: 4px 18px; list-style: none; margin: 0 0 0 auto; padding: 0; }
+        .bl-nav-links a { color: rgba(255, 255, 255, 0.78); text-decoration: none; font-size: 0.95rem; padding: 0.3rem 0; border-bottom: 2px solid transparent; }
+        .bl-nav-links a:hover { color: #fff; }
+        .bl-nav-links a[aria-current="page"] { color: #fff; font-weight: 600; border-bottom-color: #30d158; }
+        .bl-nav-links + .bl-nav-store { margin-left: 0; }
+        @media (max-width: 560px) {
+            .bl-nav-row { flex-wrap: wrap; }
+            .bl-nav-links { order: 3; width: 100%; margin: 0; justify-content: center; }
+            .bl-nav-links + .bl-nav-store { margin-left: auto; }
+            .bl-hero { padding-top: calc(100px + clamp(2.5rem, 7vw, 5.5rem)); }
+        }
+        .learn-more { display: inline-flex; align-items: center; gap: 0.35em; font-weight: 600; color: var(--bl-green); text-decoration: none; }
+        .learn-more::after { content: "→"; transition: transform 0.15s ease; }
+        .learn-more:hover::after { transform: translateX(3px); }
+        .bl-faq-more { margin: 1.6rem 0 0; text-align: center; }
+        @media (prefers-reduced-motion: reduce) { .learn-more::after { transition: none; } }
+
         /* ---- FAQ ------------------------------------------------------------ */
         .bl-faq { max-width: 820px; margin: 0 auto; padding: clamp(4rem, 9vw, 6rem) 16px; }
         .bl-faq .bl-eyebrow, .bl-faq h2 { text-align: center; }
@@ -646,7 +664,12 @@
 
 <nav class="bl-nav">
     <div class="bl-nav-row">
-        <a href="#" class="bl-logo"><span class="bl-logo-dot"></span> Blip</a>
+        <a href="./" class="bl-logo"><span class="bl-logo-dot"></span> Blip</a>
+        <ul class="bl-nav-links">
+            <li><a href="./" aria-current="page" data-i18n="overview.0efc2e">Overview</a></li>
+            <li><a href="features/" data-i18n="features.fc338f">Features</a></li>
+            <li><a href="faq/" data-i18n="faq.03688b">FAQ</a></li>
+        </ul>
         <a href="https://apps.apple.com/us/app/blip-stats/id6762329495" class="bl-nav-store" target="_blank" rel="noopener noreferrer">App Store</a>
     </div>
 </nav>
@@ -1175,6 +1198,7 @@
                 <p class="bl-eyebrow"><span class="bl-num">01</span><span data-i18n="blip-bench.4b6462">Blip Bench</span></p>
                 <h2 class="bl-display" data-i18n="one-score-for-every.823cca">One score for every device</h2>
                 <p class="bl-lede" data-i18n="blip-bench-measures-cpu.5a1a6b">Blip Bench measures CPU, memory, GPU and Neural Engine in fixed units, so your Mac, iPhone and iPad land on one scale. A sustained run shows how much heat takes back.</p>
+                <a class="learn-more" href="features/#ios" data-i18n="learn-more.824d76">Learn more</a>
             </div>
             <figure class="bl-figure" data-reveal>
                 <img src="assets/screens/en/02-bench-1120.webp?v=b622f17e"
@@ -1191,6 +1215,7 @@
                 <p class="bl-eyebrow"><span class="bl-num">02</span><span data-i18n="speed.2d2cb0">Speed</span></p>
                 <h2 class="bl-display" data-i18n="know-what-your-connection.9e9fc6">Know what your connection can really do</h2>
                 <p class="bl-lede" data-i18n="download-and-upload-draw.fc6945">Download and upload draw as separate curves, latency is measured idle and under load, and every result is graded for calls, streaming and gaming.</p>
+                <a class="learn-more" href="features/#ios" data-i18n="learn-more.824d76">Learn more</a>
             </div>
             <figure class="bl-figure" data-reveal>
                 <img src="assets/screens/en/03-speed-1120.webp?v=0f16fa5b"
@@ -1207,6 +1232,7 @@
                 <p class="bl-eyebrow"><span class="bl-num">03</span><span data-i18n="network.53ebc5">Network</span></p>
                 <h2 class="bl-display" data-i18n="follow-the-route-hop.527e29">Follow the route, hop by hop</h2>
                 <p class="bl-lede" data-i18n="ping-and-traceroute-draw.4789fb">Ping and traceroute draw your route on an offline map. The location database downloads once, and lookups never leave your device.</p>
+                <a class="learn-more" href="features/#mac" data-i18n="learn-more.824d76">Learn more</a>
             </div>
             <figure class="bl-figure" data-reveal>
                 <img src="assets/screens/en/04-ping-1120.webp?v=b6fd9d82"
@@ -1263,7 +1289,12 @@
             <summary data-i18n="can-i-install-it.9ac23d">Can I install it with Homebrew?</summary>
             <p class="bl-faq-answer" data-i18n-html="yes-brew-install-cask.730725">Yes: <code>brew install --cask blaineam/tap/blip</code> installs the direct-download Mac app.</p>
         </details>
+        <details class="bl-faq-item">
+            <summary data-i18n="is-blip-available-in.3bdff6">Is Blip available in the European Union?</summary>
+            <p class="bl-faq-answer" data-i18n="yes-blip-is-on.991f87">Yes. Blip is on the App Store everywhere in the European Union, France included, and the direct download and Homebrew cask work everywhere.</p>
+        </details>
     </div>
+    <p class="bl-faq-more"><a class="learn-more" href="faq/" data-i18n="see-all-questions.237fee">See all questions</a></p>
 </section>
 
 <!-- Closing: the promise again, and the one button. -->

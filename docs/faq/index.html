@@ -1,0 +1,238 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>FAQ · Blip</title>
+  <meta name="description" content="Every question about Blip: what it needs, Intel Macs, the iPhone and iPad app, Homebrew, Blip Helper, memory use, privacy, price and availability.">
+  <link rel="icon" type="image/png" sizes="32x32" href="../assets/favicon.png?v=19bdf06e">
+  <link rel="apple-touch-icon" sizes="180x180" href="../assets/apple-touch-icon.png?v=7638d2ea">
+  <link rel="canonical" href="https://blip.wemiller.com/faq/">
+  <meta name="theme-color" content="#101936">
+  <meta property="og:title" content="FAQ · Blip">
+  <meta property="og:description" content="Every question about Blip: what it needs, Intel Macs, the iPhone and iPad app, Homebrew, Blip Helper, memory use, privacy, price and availability.">
+  <meta property="og:image" content="https://blip.wemiller.com/assets/og-poster.png">
+  <meta property="og:url" content="https://blip.wemiller.com/faq/">
+  <meta property="og:type" content="website">
+  <style>
+    /* Blip depth pages (features/, faq/): the landing page's navy-and-green tokens and
+       the portfolio's depth-page layout (docs/app-page-design.md §4), inlined because
+       this site is served on its own domain as well as mirrored under /apps/blip/. */
+    :root {
+      --bl-night: linear-gradient(172deg, #0B1128 0%, #101936 48%, #162244 100%);
+      --bl-sans: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Helvetica Neue", "Segoe UI", sans-serif;
+      --bl-mono: ui-monospace, "SF Mono", SFMono-Regular, Menlo, monospace;
+      --bl-paper: #F6F7FB;
+      --bl-paper-2: #ECEFF6;
+      --bl-card: #FFFFFF;
+      --bl-ink: #13204A;
+      --bl-body: #3A4258;
+      --bl-quiet: #5A6280;
+      --bl-green: #1E7B3A;
+      --bl-rule: rgba(19, 32, 74, 0.13);
+      --bl-measure: 1120px;
+      --accent-cyan: #0b7fb3;
+    }
+    @media (prefers-color-scheme: dark) {
+      :root {
+        --bl-paper: #0A0E1C;
+        --bl-paper-2: #0F1528;
+        --bl-card: #111831;
+        --bl-ink: #EEF1FA;
+        --bl-body: #C9CEDD;
+        --bl-quiet: #979FB6;
+        --bl-green: #30D158;
+        --bl-rule: rgba(238, 241, 250, 0.12);
+        --accent-cyan: #64d2ff;
+      }
+    }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+    body { font-family: var(--bl-sans); background: var(--bl-paper); color: var(--bl-body); line-height: 1.6; -webkit-font-smoothing: antialiased; }
+    a:focus-visible, summary:focus-visible { outline: 3px solid #30d158; outline-offset: 3px; border-radius: 6px; }
+    .bl-mono { font-family: var(--bl-mono); }
+
+    /* ---- Nav: the night band, with the app's pages ------------------------ */
+    .bl-nav { position: sticky; top: 0; z-index: 20; background: var(--bl-night); color: #fff; }
+    .bl-nav-row { max-width: var(--bl-measure); margin: 0 auto; padding: 12px 16px; display: flex; align-items: center; flex-wrap: wrap; gap: 8px 16px; }
+    .bl-logo { display: inline-flex; align-items: center; gap: 8px; color: #fff; text-decoration: none; font-weight: 700; font-size: 1.1rem; }
+    .bl-logo-dot { width: 9px; height: 9px; border-radius: 50%; background: #30d158; box-shadow: 0 0 10px rgba(48, 209, 88, 0.8); }
+    .bl-nav-links { display: flex; gap: 4px 18px; list-style: none; margin-left: auto; }
+    .bl-nav-links a { color: rgba(255, 255, 255, 0.78); text-decoration: none; font-size: 0.95rem; padding: 0.3rem 0; border-bottom: 2px solid transparent; }
+    .bl-nav-links a:hover { color: #fff; }
+    .bl-nav-links a[aria-current="page"] { color: #fff; font-weight: 600; border-bottom-color: #30d158; }
+    .bl-nav-store { color: #fff; text-decoration: none; font-size: 0.9rem; font-weight: 600; padding: 0.45rem 0.95rem; border-radius: 999px; border: 1px solid rgba(255, 255, 255, 0.28); white-space: nowrap; }
+    .bl-nav-store:hover { background: rgba(255, 255, 255, 0.08); }
+    @media (max-width: 560px) {
+      .bl-nav-links { order: 3; width: 100%; margin: 0; justify-content: center; }
+      .bl-nav-store { margin-left: auto; }
+    }
+
+    /* ---- Header ------------------------------------------------------------ */
+    .dp-header { max-width: var(--bl-measure); margin: 0 auto; padding: clamp(3rem, 8vw, 5.5rem) 16px clamp(2rem, 5vw, 3.5rem); text-align: center; }
+    .dp-eyebrow { margin: 0 0 0.9rem; font-size: 0.8rem; font-weight: 600; letter-spacing: 0.2em; text-transform: uppercase; color: var(--bl-green); }
+    .dp-header h1 { margin: 0 auto; max-width: 18ch; font-size: clamp(2.3rem, 6vw, 4.2rem); line-height: 1.05; letter-spacing: -0.03em; color: var(--bl-ink); text-wrap: balance; word-break: auto-phrase; }
+    :lang(ja) .dp-header h1, :lang(zh) .dp-header h1, :lang(ko) .dp-header h1 { max-width: 12em; }
+    .dp-standfirst { margin: 1.1rem auto 0; max-width: 42rem; font-size: clamp(1.08rem, 1.8vw, 1.3rem); line-height: 1.6; color: var(--bl-body); text-wrap: pretty; }
+    .dp-jumps { display: flex; flex-wrap: wrap; justify-content: center; gap: 0.5rem; margin: 1.6rem 0 0; list-style: none; }
+    .dp-jumps a { display: inline-block; padding: 0.45rem 0.9rem; border: 1px solid var(--bl-rule); border-radius: 999px; font-size: 0.9rem; color: var(--bl-body); text-decoration: none; }
+    .dp-jumps a:hover, .dp-jumps a:focus-visible { color: var(--bl-ink); border-color: var(--bl-green); }
+
+    /* ---- Sections, cards, lists -------------------------------------------- */
+    .dp-section { max-width: var(--bl-measure); margin: 0 auto; padding: clamp(3rem, 7vw, 5rem) 16px; border-top: 1px solid var(--bl-rule); scroll-margin-top: 70px; }
+    .dp-section > h2 { margin: 0 0 0.6rem; font-size: clamp(1.7rem, 3.6vw, 2.5rem); line-height: 1.12; letter-spacing: -0.02em; color: var(--bl-ink); text-wrap: balance; }
+    .dp-lede { margin: 0 0 2rem; max-width: 44rem; font-size: 1.08rem; line-height: 1.6; color: var(--bl-body); }
+    .dp-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 16rem), 1fr)); gap: 1rem; list-style: none; }
+    .dp-card { padding: 1.35rem 1.35rem 1.45rem; border: 1px solid var(--bl-rule); border-radius: 18px; background: var(--bl-card); }
+    .dp-card-icon { display: block; font-size: 1.5rem; line-height: 1; margin-bottom: 0.8rem; }
+    .dp-card h3 { margin: 0 0 0.45rem; font-size: 1.08rem; line-height: 1.3; color: var(--bl-ink); }
+    .dp-card p { font-size: 0.96rem; line-height: 1.55; color: var(--bl-body); }
+    .dp-list { columns: 14rem auto; column-gap: 2rem; list-style: none; }
+    .dp-list li { break-inside: avoid; padding: 0.45rem 0; border-bottom: 1px solid var(--bl-rule); color: var(--bl-body); }
+    .sc-chip-dot { display: inline-block; width: 7px; height: 7px; margin-right: 0.6em; border-radius: 50%; background: #30d158; vertical-align: middle; }
+    .dp-fine { margin: 1.4rem 0 0; font-size: 0.92rem; line-height: 1.55; color: var(--bl-quiet); }
+    .dp-fine a { color: var(--bl-green); }
+    .dp-stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(12rem, 1fr)); border-top: 1px solid var(--bl-rule); }
+    .dp-stats > div { display: flex; flex-direction: column; gap: 0.2rem; padding: 1.2rem 0.4rem; border-bottom: 1px solid var(--bl-rule); color: var(--bl-body); }
+    .dp-stats .bl-mono { font-size: 1.8rem; font-weight: 600; color: var(--bl-green); }
+
+    /* ---- FAQ ---------------------------------------------------------------- */
+    .dp-faq-group + .dp-faq-group { margin-top: 2.5rem; }
+    .dp-faq-group > h2 { margin: 0 0 1rem; font-size: clamp(1.35rem, 2.6vw, 1.8rem); color: var(--bl-ink); }
+    .bl-faq-item { border-top: 1px solid var(--bl-rule); }
+    .bl-faq-list .bl-faq-item:last-child { border-bottom: 1px solid var(--bl-rule); }
+    .bl-faq-item summary { list-style: none; cursor: pointer; display: flex; justify-content: space-between; align-items: center; gap: 1rem; font-size: 1.1rem; font-weight: 600; color: var(--bl-ink); padding: 1.25rem 0; }
+    .bl-faq-item summary::-webkit-details-marker { display: none; }
+    .bl-faq-item summary::after { content: "+"; font: 400 1.4rem/1 var(--bl-mono); color: var(--bl-green); flex: none; transition: transform 0.2s ease; }
+    .bl-faq-item[open] summary::after { transform: rotate(45deg); }
+    .bl-faq-answer { padding: 0 0 1.4rem; font-size: 1rem; line-height: 1.68; color: var(--bl-body); }
+    .bl-faq-answer a { color: var(--bl-green); }
+    .bl-faq-answer code { font-family: var(--bl-mono); font-size: 0.92em; }
+
+    /* ---- Closing: every depth page ends on the download -------------------- */
+    .dp-closing { text-align: center; padding: clamp(3.5rem, 8vw, 6rem) 16px; background: var(--bl-paper-2); border-top: 1px solid var(--bl-rule); }
+    .dp-closing h2 { margin: 0 auto 1.4rem; max-width: 20ch; font-size: clamp(1.8rem, 4vw, 2.8rem); letter-spacing: -0.02em; color: var(--bl-ink); text-wrap: balance; }
+    .bl-btn { display: inline-flex; align-items: center; justify-content: center; min-height: 48px; padding: 0.8rem 1.6rem; border-radius: 999px; font: 600 1.02rem/1.2 var(--bl-sans); text-decoration: none; background: #30d158; color: #04210D; box-shadow: 0 10px 28px rgba(48, 209, 88, 0.28); }
+    .dp-alt { display: flex; flex-wrap: wrap; justify-content: center; gap: 0.3rem 0.7rem; margin: 1.1rem 0 0; font-size: 0.95rem; color: var(--bl-quiet); }
+    .dp-alt a { color: var(--bl-body); }
+    footer { text-align: center; padding: 2rem 16px 3rem; font-size: 0.9rem; color: var(--bl-quiet); }
+    footer a { color: var(--bl-body); }
+    @media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } .bl-faq-item summary::after { transition: none; } }
+
+  </style>
+  <link rel="alternate" hreflang="x-default" href="https://blip.wemiller.com/faq/">
+  <link rel="alternate" hreflang="en" href="https://blip.wemiller.com/faq/">
+  <link rel="alternate" hreflang="zh-Hans" href="https://blip.wemiller.com/faq/?lang=zh-Hans">
+  <link rel="alternate" hreflang="ja" href="https://blip.wemiller.com/faq/?lang=ja">
+  <link rel="alternate" hreflang="de" href="https://blip.wemiller.com/faq/?lang=de">
+  <link rel="alternate" hreflang="fr" href="https://blip.wemiller.com/faq/?lang=fr">
+  <link rel="alternate" hreflang="es" href="https://blip.wemiller.com/faq/?lang=es">
+  <link rel="alternate" hreflang="ko" href="https://blip.wemiller.com/faq/?lang=ko">
+  <link rel="alternate" hreflang="pt-BR" href="https://blip.wemiller.com/faq/?lang=pt-BR">
+  <link rel="alternate" hreflang="it" href="https://blip.wemiller.com/faq/?lang=it">
+  <script src="../i18n/i18n.js?v=9b769779" defer data-page="faq" data-pos="bottom-left"></script>
+</head>
+<body>
+<nav class="bl-nav">
+    <div class="bl-nav-row">
+        <a href="../" class="bl-logo"><span class="bl-logo-dot"></span> Blip</a>
+        <ul class="bl-nav-links">
+            <li><a href="../" data-i18n="overview.0efc2e">Overview</a></li>
+            <li><a href="../features/" data-i18n="features.fc338f">Features</a></li>
+            <li><a href="../faq/" aria-current="page" data-i18n="faq.03688b">FAQ</a></li>
+        </ul>
+        <a href="https://apps.apple.com/us/app/blip-stats/id6762329495" class="bl-nav-store" target="_blank" rel="noopener noreferrer">App Store</a>
+    </div>
+</nav>
+
+<main>
+<header class="dp-header">
+    <p class="dp-eyebrow">Blip</p>
+    <h1 data-i18n="questions-answers.8ae3d7">Questions &amp; Answers</h1>
+    <p class="dp-standfirst" data-i18n="everything-people-ask-about.b4b9b0">Everything people ask about Blip on the Mac, iPhone and iPad.</p>
+</header>
+
+<section class="dp-section" id="faq">
+    <div class="dp-faq-group">
+        <h2 data-i18n="getting-started.76e7a3">Getting started</h2>
+        <div class="bl-faq-list">
+            <details class="bl-faq-item">
+                <summary data-i18n="what-do-i-need.c6c81a">What do I need to run it?</summary>
+                <p class="bl-faq-answer" data-i18n="a-mac-with-apple.8d5a83">A Mac with Apple silicon on macOS 14 Sonoma or later, or an iPhone or iPad on iOS 17 or later.</p>
+            </details>
+            <details class="bl-faq-item">
+                <summary data-i18n="does-blip-work-on.0c1c57">Does Blip work on Intel Macs?</summary>
+                <p class="bl-faq-answer" data-i18n="blip-is-built-exclusively.784fc9">Blip is built exclusively for Apple Silicon (M1, M2, M3, M4 and newer). It uses ARM64-specific optimizations and Apple Silicon IOKit interfaces for GPU and thermal monitoring.</p>
+            </details>
+            <details class="bl-faq-item">
+                <summary data-i18n="is-there-an-iphone.q77001">Is there an iPhone and iPad app?</summary>
+                <p class="bl-faq-answer" data-i18n="yes-blip-stats-2.q77002">Yes — Blip Stats 2.0 is one free app across Mac, iPhone, and iPad. The iOS app shows live device stats with drill-in details, runs Blip Bench (including the Neural Engine), tests network and disk speed, does ping and traceroute with an offline hop map, and ships Home Screen widgets and Shortcuts.</p>
+            </details>
+            <details class="bl-faq-item">
+                <summary data-i18n="can-i-install-it.9ac23d">Can I install it with Homebrew?</summary>
+                <p class="bl-faq-answer" data-i18n-html="yes-brew-install-cask.730725">Yes: <code>brew install --cask blaineam/tap/blip</code> installs the direct-download Mac app.</p>
+            </details>
+            <details class="bl-faq-item">
+                <summary data-i18n="how-do-i-build.5e186c">How do I build from source?</summary>
+                <p class="bl-faq-answer" data-i18n-html="clone-the-repo-install.bd6619">Clone the repo, install XcodeGen (<code>brew install xcodegen</code>), run <code>xcodegen generate</code>, then build with Xcode or <code>xcodebuild</code>. See the README for full instructions.</p>
+            </details>
+        </div>
+    </div>
+    <div class="dp-faq-group">
+        <h2 data-i18n="using-blip.4ae213">Using Blip</h2>
+        <div class="bl-faq-list">
+            <details class="bl-faq-item">
+                <summary data-i18n="why-do-some-mac.0e11f5">Why do some Mac stats need Blip Helper?</summary>
+                <p class="bl-faq-answer" data-i18n-html="the-app-store-keeps.416fd4">The App Store keeps Mac apps in a sandbox, so fans, temperatures, GPU, disk I/O, battery health and top processes come through the free <a href="https://github.com/blaineam/blip/releases/latest/download/BlipHelper.dmg">Blip Helper</a>. The direct download reads them itself.</p>
+            </details>
+            <details class="bl-faq-item">
+                <summary data-i18n="how-does-the-hover.65453d">How does the hover detail panel work?</summary>
+                <p class="bl-faq-answer" data-i18n="hover-over-any-row.3e9db5">Hover over any row in the main popover to reveal a detailed sub-panel to the side — just like iStats Menus. It shows charts, breakdowns, and top processes for that category.</p>
+            </details>
+            <details class="bl-faq-item">
+                <summary data-i18n="can-i-customize-what.f3b410">Can I customize what shows in the menu bar?</summary>
+                <p class="bl-faq-answer" data-i18n="yes-open-settings-from.0f7be7">Yes. Open Settings from the gear in the popover and choose which items show: CPU, Memory, Disk, GPU and the network dot, with or without labels, in a horizontal or stacked layout and the colors you like.</p>
+            </details>
+            <details class="bl-faq-item">
+                <summary data-i18n="how-much-memory-does.a1c4d1">How much memory does Blip use?</summary>
+                <p class="bl-faq-answer" data-i18n="typically-around-42-mb.7ba8b7">Typically around 42 MB physical footprint. Blip shows its own memory usage in the popover footer so you can always check. The binary itself is around 2 MB.</p>
+            </details>
+        </div>
+    </div>
+    <div class="dp-faq-group">
+        <h2 data-i18n="privacy-price-and-availability.3962fb">Privacy, price and availability</h2>
+        <div class="bl-faq-list">
+            <details class="bl-faq-item">
+                <summary data-i18n="is-it-safe.658a85">Is it safe?</summary>
+                <p class="bl-faq-answer" data-i18n="yes-blip-is-open.45f52c">Yes. Blip is open source and every Mac release is notarized by Apple. There are no analytics, no crash reporters and no servers: everything runs on your device.</p>
+            </details>
+            <details class="bl-faq-item">
+                <summary data-i18n="is-blip-really-free.33988b">Is Blip really free?</summary>
+                <p class="bl-faq-answer" data-i18n="yes-on-every-platform.f595c8">Yes, on every platform. The App Store app for Mac, iPhone and iPad, the direct download and the Homebrew cask are all free, with nothing to unlock.</p>
+            </details>
+            <details class="bl-faq-item">
+                <summary data-i18n="is-blip-available-in.3bdff6">Is Blip available in the European Union?</summary>
+                <p class="bl-faq-answer" data-i18n="yes-blip-is-on.991f87">Yes. Blip is on the App Store everywhere in the European Union, France included, and the direct download and Homebrew cask work everywhere.</p>
+            </details>
+        </div>
+    </div>
+</section>
+</main>
+
+<section class="dp-closing">
+    <h2 data-i18n="your-devices-vitals-at.cb380c">Your devices' vitals, at a glance.</h2>
+    <a href="https://apps.apple.com/us/app/blip-stats/id6762329495" class="bl-btn" target="_blank" rel="noopener noreferrer" data-i18n="download-on-the-app.a9096a">Download on the App Store</a>
+    <p class="dp-alt">
+        <a href="https://github.com/blaineam/blip/releases/latest/download/Blip.dmg" data-i18n="direct-download-for-mac.1c7de5">Direct download for Mac</a>
+        <span aria-hidden="true">·</span>
+        <a href="https://github.com/blaineam/blip" target="_blank" rel="noopener noreferrer" data-i18n="source-on-github.c60f2f">Source on GitHub</a>
+        <span aria-hidden="true">·</span>
+        <a href="../" data-i18n="back-to-the-overview.e274c2">Back to the overview</a>
+    </p>
+</section>
+
+<footer>
+    <p data-i18n-html="built-by-blaine-miller.9d6375">Built by <a href="https://github.com/blaineam">Blaine Miller</a> &middot; <a href="https://github.com/blaineam/blip">Open Source</a> under MIT License</p>
+</footer>
+</body>
+</html>
