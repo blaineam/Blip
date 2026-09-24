@@ -200,11 +200,12 @@ hide_others() {
 }
 
 # desktop_diff <frame> — RMSE (0..1) between the frame and the clean-desktop
-# reference over the LEFT 55% below the menu bar, where Blip never draws.
+# reference over the LEFT 45% below the menu bar, where Blip never draws (its
+# detail panels open left of the popover but stop short of the middle).
 desktop_diff() {
   magick compare -metric RMSE \
-    \( "$1" -crop 55%x90%+0+0 -gravity south -crop 100%x95%+0+0 +repage -resize 400x \) \
-    \( "$REF" -crop 55%x90%+0+0 -gravity south -crop 100%x95%+0+0 +repage -resize 400x \) \
+    \( "$1"   -resize '1440x900!' -crop 648x810+0+45 +repage -resize 324x \) \
+    \( "$REF" -resize '1440x900!' -crop 648x810+0+45 +repage -resize 324x \) \
     null: 2>&1 | sed -E 's/.*\(([0-9.e-]+)\).*/\1/'
 }
 

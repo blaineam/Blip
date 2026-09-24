@@ -91,11 +91,22 @@ blip_system_locale() {
         set -- $(cap_locale_args "$loc")   # -AppleLanguages (xx) -AppleLocale xx_YY
         lang="${2#(}"; lang="${lang%)}"; region="$4"
     fi
-    xcrun simctl spawn "$udid" defaults write -g AppleLanguages -array "$lang"
-    xcrun simctl spawn "$udid" defaults write -g AppleLocale -string "$region"
-    xcrun simctl shutdown "$udid"
-    xcrun simctl boot "$udid"
-    xcrun simctl bootstatus "$udid" >/dev/null
+    # Every step retries: on a loaded host simctl calls time out, and under
+    # `set -e` a single failure used to end the run with no message.
+    local n
+    for n in 1 2 3; do
+        xcrun simctl spawn "$udid" defaults write -g AppleLanguages -array "$lang" \
+            && xcrun simctl spawn "$udid" defaults write -g AppleLocale -string "$region" && break
+        echo "  … language write failed ($n/3) — retrying" >&2; sleep 5
+        [ "$n" = 3 ] && { echo "  ✗ could not set system language $lang" >&2; return 1; }
+    done
+    xcrun simctl shutdown "$udid" >/dev/null 2>&1 || true
+    for n in 1 2 3; do
+        xcrun simctl boot "$udid" >/dev/null 2>&1 || true
+        xcrun simctl bootstatus "$udid" >/dev/null 2>&1 && break
+        echo "  … reboot for $lang not confirmed ($n/3) — retrying" >&2; sleep 5
+        [ "$n" = 3 ] && { echo "  ✗ simulator did not come back up for $lang" >&2; return 1; }
+    done
     sleep 3
     cap_clean_statusbar "$udid"
 }
@@ -209,7 +220,16 @@ for entry in "${DEVICES[@]}"; do
             export CAP_EXTRA_LAUNCH_ARGS="$(cap_locale_args "$LOCALE")"
             SCENE_OUT="$DEVICE_OUT/$LOCALE"
             mkdir -p "$SCENE_OUT"
-            capture_scenes
+            if [ "$IS_IPAD" = 1 ]; then
+                # The status-bar guard's clock/date grammar is English-only
+                # ("9:41 AM Wed Sep 23"), so the localized date now drawn on
+                # iPad reads to it as foreign text. The sim is dedicated and
+                # checked for foreign apps above; these frames get a visual
+                # check on contact sheets instead (Tilebreak precedent).
+                CAP_STATUSBAR_GUARD=0 capture_scenes
+            else
+                capture_scenes
+            fi
         done
         unset CAP_EXTRA_LAUNCH_ARGS
         SCENE_OUT="$DEVICE_OUT"
