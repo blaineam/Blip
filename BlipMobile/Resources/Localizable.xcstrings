@@ -608,7 +608,7 @@
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "Ein selbst gehosteter OpenSpeedTest-Server (Docker) oder kompatibler Endpunkt. Das Quellenmenü im Tempo-Tab wechselt zwischen diesem und dem öffentlichen OpenSpeedTest-Dienst — gleiche Regel wie bei Blip für Mac: nur Open-Source-Endpunkte, nichts Reverse-Engineertes."
+            "value": "Ein selbst gehosteter OpenSpeedTest-Server (Docker) oder kompatibler Endpunkt. Das Quellenmenü im Speedtest-Tab wechselt zwischen diesem und dem öffentlichen OpenSpeedTest-Dienst — gleiche Regel wie bei Blip für Mac: nur Open-Source-Endpunkte, nichts Reverse-Engineertes."
           }
         },
         "es": {
@@ -7836,7 +7836,7 @@
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "Tempo"
+            "value": "Speedtest"
           }
         },
         "es": {

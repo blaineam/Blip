@@ -72,7 +72,7 @@ Blip bringt aussagekräftige Gerätewerte, einen echten Benchmark und leistungsf
 
 Blip Bench — Durchsatz von CPU, Arbeitsspeicher, GPU und Neural Engine in Blips festen Referenzeinheiten, vergleichbar zwischen allen Geräten, auf denen Blip läuft. Das vollständige Profil ergänzt eine Dauerlastphase, die die thermische Drosselung misst; die Ergebnisse bauen sich dabei Abschnitt für Abschnitt auf.
 
-Tempo — miss deine Verbindung mit dem öffentlichen OpenSpeedTest-Dienst oder deinem eigenen Server. Download und Upload erscheinen als getrennte Kurven, die Latenz wird im Leerlauf und unter Last gemessen (Bufferbloat), und jedes Ergebnis wird für die einzelnen Nutzungsarten bewertet: Surfen, HD- und 4K-Streaming, Videoanrufe, Cloud-Gaming, große Uploads.
+Speedtest — miss deine Verbindung mit dem öffentlichen OpenSpeedTest-Dienst oder deinem eigenen Server. Download und Upload erscheinen als getrennte Kurven, die Latenz wird im Leerlauf und unter Last gemessen (Bufferbloat), und jedes Ergebnis wird für die einzelnen Nutzungsarten bewertet: Surfen, HD- und 4K-Streaming, Videoanrufe, Cloud-Gaming, große Uploads.
 
 Netzwerk — Ping und Traceroute mit Latenz pro Hop, Timeout-Erkennung und einer GeoIP-Karte der Route, die auch offline funktioniert. Die Standortdatenbank wird einmal geladen, alle Abfragen bleiben auf deinem Gerät.
 
