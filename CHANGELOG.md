@@ -2,6 +2,12 @@
 
 ## Unreleased
 
+### Fixed — Mac: the last English labels (2.0.4, Mac)
+- The Network detail panel's **Download / Upload** column labels and its **Interface / Router / IPv4 (LAN) / VPN Interface** rows took a plain `String`, so they rendered English in every language; they are now `LocalizedStringKey` with translations (IPv4/IPv6 marked no-translate).
+- The Blip Helper **install / update prompts** and the "Status" label in the App Store build were never in the catalog; now translated into all 8 languages.
+- Popover row labels (Network, Thermal) sit in a 60-pt column and wrapped in long translations ("Temperatu-r" in German, "ネットワ…" in Japanese); they now stay on one line and shrink slightly instead.
+- Mac App Store screenshots are now localized for all 9 listing locales (menu bar in the listing's language, analog clock).
+
 ### Fixed — iPhone, iPad and widgets speak your language in more places (2.0.3)
 - **iOS strings that never reached the catalog.** A compiler stringsdata harvest of the BlipMobile target found plain-`String` UI that shipped English in every language: speed-test latency ("12 ms idle · 29 ms under load"), the Ping / Traceroute segment, the battery-state and VPN / Low Power values on the detail screens, disk-test MB/s labels, the ping "timeout" row and the public speed-test error messages. All now go through `String(localized:)` and are translated into the 8 languages.
 - **Widgets had no string catalog at all**, so every widget rendered English. `BlipMobileWidgets/Resources/Localizable.xcstrings` now carries all 31 widget strings (29 translated, reusing the app's existing translations; `%lld`-only keys marked no-translate).

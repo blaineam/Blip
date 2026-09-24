@@ -203,10 +203,10 @@ hide_others() {
 # reference over the LEFT 45% below the menu bar, where Blip never draws (its
 # detail panels open left of the popover but stop short of the middle).
 desktop_diff() {
-  magick compare -metric RMSE \
+  magick compare -quiet -metric RMSE \
     \( "$1"   -resize '1440x900!' -crop 648x810+0+45 +repage -resize 324x \) \
     \( "$REF" -resize '1440x900!' -crop 648x810+0+45 +repage -resize 324x \) \
-    null: 2>&1 | sed -E 's/.*\(([0-9.e-]+)\).*/\1/'
+    null: 2>&1 | grep -oE '\([0-9.e-]+\)' | tail -1 | tr -d '()'
 }
 
 # Reference: the clean capture desktop, no Blip running.
@@ -239,7 +239,7 @@ capture_set() {   # capture_set <outdir> [asc-locale]
     printf -v n "%02d" "$(scene_number "$scene")"
     screencapture -x -t png "$raw/$n-$scene.png" 2>/dev/null   # full clean-desktop capture
     d=$(desktop_diff "$raw/$n-$scene.png")
-    if ! awk -v d="$d" 'BEGIN{exit !(d+0 < 0.04)}'; then
+    if [ -z "$d" ] || ! awk -v d="$d" 'BEGIN{exit !(d+0 < 0.04)}'; then
       rm -f "$raw/$n-$scene.png" "$dir/$n-$scene.png"
       echo "✗ ${loc:-en-US} $n-$scene: desktop differs from the clean reference (rmse=$d) — NOT the capture setup; aborting" >&2
       exit 3

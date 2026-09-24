@@ -203,6 +203,8 @@ struct PopoverView: View {
                         .frame(width: 16)
                     Text("Network")
                         .font(.system(size: 11, weight: .medium))
+                        .lineLimit(1)
+                        .minimumScaleFactor(0.7)
                         .frame(width: 60, alignment: .leading)
                     // Occupy same space as UsageBar(60) + value(40) = 108 with spacing
                     HStack(spacing: 4) {
@@ -253,6 +255,8 @@ struct PopoverView: View {
                         .frame(width: 16)
                     Text("Thermal")
                         .font(.system(size: 11, weight: .medium))
+                        .lineLimit(1)
+                        .minimumScaleFactor(0.7)
                         .frame(width: 60, alignment: .leading)
                     Text(monitor.snapshot.system.thermalLevel.localizedName)
                         .font(.system(size: 10, design: .monospaced))

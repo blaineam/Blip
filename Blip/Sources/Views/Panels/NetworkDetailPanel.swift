@@ -328,7 +328,7 @@ struct NetworkDetailPanel: View {
         }
     }
 
-    private func addressRow(_ label: String, value: String) -> some View {
+    private func addressRow(_ label: LocalizedStringKey, value: String) -> some View {
         HStack {
             Text(label)
                 .font(.system(size: 11))
@@ -351,7 +351,7 @@ struct NetworkDetailPanel: View {
         }
     }
 
-    private func netStatColumn(icon: String, iconColor: Color, label: String, value: String) -> some View {
+    private func netStatColumn(icon: String, iconColor: Color, label: LocalizedStringKey, value: String) -> some View {
         VStack(alignment: .leading, spacing: 2) {
             HStack(spacing: 2) {
                 Image(systemName: icon)

@@ -1028,6 +1028,58 @@
         }
       }
     },
+    "An update to Blip Helper is available (this app is v%@). Update it to get the latest features and fixes." : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Für Blip Helper ist ein Update verfügbar (diese App ist v%@). Aktualisiere es, um die neuesten Funktionen und Korrekturen zu erhalten."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Hay una actualización de Blip Helper disponible (esta app es la v%@). Actualízalo para obtener las últimas funciones y correcciones."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Une mise à jour de Blip Helper est disponible (cette app est en v%@). Mettez-le à jour pour profiter des dernières fonctions et corrections."
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "È disponibile un aggiornamento di Blip Helper (questa app è la v%@). Aggiornalo per avere le ultime funzioni e correzioni."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Blip Helper のアップデートがあります（この App は v%@）。アップデートすると最新の機能と修正を利用できます。"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Blip Helper 업데이트가 있습니다(이 앱은 v%@). 업데이트하여 최신 기능과 수정 사항을 받으세요."
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Há uma atualização do Blip Helper disponível (este app é a v%@). Atualize para obter os recursos e correções mais recentes."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Blip Helper 有可用更新（此 App 为 v%@）。更新以获取最新功能和修复。"
+          }
+        }
+      }
+    },
     "App Setting" : {
       "localizations" : {
         "de" : {
@@ -1913,6 +1965,9 @@
       }
     },
     "Blip Bench" : {
+      "shouldTranslate" : false
+    },
+    "Blip Helper" : {
       "shouldTranslate" : false
     },
     "Blip Metric" : {
@@ -3793,6 +3848,58 @@
         }
       }
     },
+    "Download Blip Helper" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Blip Helper laden"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Descargar Blip Helper"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Télécharger Blip Helper"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Scarica Blip Helper"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Blip Helper をダウンロード"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Blip Helper 다운로드"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Baixar o Blip Helper"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "下载 Blip Helper"
+          }
+        }
+      }
+    },
     "Download the database first to enable automatic updates." : {
       "localizations" : {
         "de" : {
@@ -5249,6 +5356,64 @@
         }
       }
     },
+    "IPv4" : {
+      "shouldTranslate" : false
+    },
+    "IPv4 (LAN)" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "IPv4 (LAN)"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "IPv4 (LAN)"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "IPv4 (LAN)"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "IPv4 (LAN)"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "IPv4（LAN）"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "IPv4 (LAN)"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "IPv4 (LAN)"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "IPv4（局域网）"
+          }
+        }
+      }
+    },
+    "IPv6" : {
+      "shouldTranslate" : false
+    },
     "Idle" : {
       "localizations" : {
         "de" : {
@@ -5301,6 +5466,58 @@
         }
       }
     },
+    "Install Blip Helper for fan speeds, temperatures, GPU utilization, disk I/O, battery health, S.M.A.R.T. drive health, and process monitoring." : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Installiere Blip Helper für Lüfterdrehzahlen, Temperaturen, GPU-Auslastung, Festplatten-I/O, Batteriezustand, S.M.A.R.T.-Laufwerkszustand und Prozessüberwachung."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Instala Blip Helper para ver la velocidad de los ventiladores, temperaturas, uso de la GPU, E/S de disco, estado de la batería, estado S.M.A.R.T. de las unidades y supervisión de procesos."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Installez Blip Helper pour la vitesse des ventilateurs, les températures, l’utilisation du GPU, les E/S disque, l’état de la batterie, l’état S.M.A.R.T. des disques et le suivi des processus."
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Installa Blip Helper per velocità delle ventole, temperature, utilizzo della GPU, I/O del disco, salute della batteria, stato S.M.A.R.T. delle unità e monitoraggio dei processi."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Blip Helper をインストールすると、ファン速度、温度、GPU 使用率、ディスク I/O、バッテリーの状態、ドライブの S.M.A.R.T. 状態、プロセスの監視を利用できます。"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Blip Helper를 설치하면 팬 속도, 온도, GPU 사용률, 디스크 I/O, 배터리 상태, 드라이브 S.M.A.R.T. 상태 및 프로세스 모니터링을 사용할 수 있습니다."
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Instale o Blip Helper para ver a velocidade das ventoinhas, temperaturas, uso da GPU, E/S de disco, saúde da bateria, estado S.M.A.R.T. das unidades e monitoramento de processos."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "安装 Blip Helper 以查看风扇转速、温度、GPU 使用率、磁盘 I/O、电池健康、驱动器 S.M.A.R.T. 状态和进程监控。"
+          }
+        }
+      }
+    },
     "Installed — %@, %@" : {
       "localizations" : {
         "de" : {
@@ -5349,6 +5566,58 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "已安装 — %@、%@"
+          }
+        }
+      }
+    },
+    "Interface" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Schnittstelle"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Interfaz"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Interface"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Interfaccia"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "インターフェイス"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "인터페이스"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Interface"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "接口"
           }
         }
       }
@@ -9207,6 +9476,58 @@
         }
       }
     },
+    "Router" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Router"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Router"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Routeur"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Router"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ルーター"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "라우터"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Roteador"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "路由器"
+          }
+        }
+      }
+    },
     "Router Ping" : {
       "localizations" : {
         "de" : {
@@ -11859,6 +12180,58 @@
         }
       }
     },
+    "Status" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Status"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Estado"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "État"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Stato"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "状態"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "상태"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Status"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "状态"
+          }
+        }
+      }
+    },
     "Stop" : {
       "localizations" : {
         "de" : {
@@ -14254,6 +14627,58 @@
         }
       }
     },
+    "Update Blip Helper" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Blip Helper aktualisieren"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Actualizar Blip Helper"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Mettre à jour Blip Helper"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Aggiorna Blip Helper"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Blip Helper をアップデート"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Blip Helper 업데이트"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Atualizar o Blip Helper"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "更新 Blip Helper"
+          }
+        }
+      }
+    },
     "Update available" : {
       "localizations" : {
         "de" : {
@@ -14510,6 +14935,58 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "VPN 已启用"
+          }
+        }
+      }
+    },
+    "VPN Interface" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "VPN-Schnittstelle"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Interfaz VPN"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Interface VPN"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Interfaccia VPN"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "VPN インターフェイス"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "VPN 인터페이스"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Interface VPN"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "VPN 接口"
           }
         }
       }
