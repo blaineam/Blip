@@ -76,7 +76,7 @@ Tempo — miss deine Verbindung mit dem öffentlichen OpenSpeedTest-Dienst oder 
 
 Netzwerk — Ping und Traceroute mit Latenz pro Hop, Timeout-Erkennung und einer GeoIP-Karte der Route, die auch offline funktioniert. Die Standortdatenbank wird einmal geladen, alle Abfragen bleiben auf deinem Gerät.
 
-Festplatte — sequenzielle Geschwindigkeitstests für den internen Speicher oder jedes Volume, das du in der Dateien-App öffnen kannst, ohne Cache und mit Flush.
+Speicher — sequenzielle Geschwindigkeitstests für den internen Speicher oder jedes Volume, das du in der Dateien-App öffnen kannst, ohne Cache und mit Flush.
 
 Widgets — Bench-Score, Speicherplatz und letzter Speedtest auf deinem Home-Bildschirm, jeweils mit Angabe, wie aktuell der Wert ist. Kurzbefehle — starte Benchmarks und Speedtests oder halte in Automationen eine vollständige Momentaufnahme aller Werte fest.
 

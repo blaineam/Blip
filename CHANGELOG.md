@@ -2,6 +2,9 @@
 
 ## Unreleased
 
+### Fixed — German iOS: Storage and Memory say what they are
+- The German iPhone/iPad app called **Storage** "Festplatte" (hard disk), which an iPhone doesn't have. It is now **Speicher**, as in Apple's own "iPhone-Speicher"; **Memory** moved from "Speicher" to **Arbeitsspeicher** so the two Overview cards no longer compete for one word. The same split runs through the disk-speed heading ("Speichertempo"), the low-memory hint and its chart label, and the Bench and Get Device Snapshot descriptions. Activity Monitor's own "Physischer / Reservierter Speicher" stay. Widgets too. The Mac app keeps "Festplatte" — Macs have disks. Checked on iPhone SE and 17 Pro Max: "Arbeitsspeicher" stays on one line.
+
 ### Fixed — Mac: the last English labels (2.0.4, Mac)
 - The Network detail panel's **Download / Upload** column labels and its **Interface / Router / IPv4 (LAN) / VPN Interface** rows took a plain `String`, so they rendered English in every language; they are now `LocalizedStringKey` with translations (IPv4/IPv6 marked no-translate).
 - The Blip Helper **install / update prompts** and the "Status" label in the App Store build were never in the catalog; now translated into all 8 languages.

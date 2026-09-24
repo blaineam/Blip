@@ -2116,7 +2116,7 @@
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "Diagramm: in dieser Sitzung für Apps verfügbarer Speicher (os_proc_available_memory)."
+            "value": "Diagramm: in dieser Sitzung für Apps verfügbarer Arbeitsspeicher (os_proc_available_memory)."
           }
         },
         "es": {
@@ -2844,7 +2844,7 @@
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "Festplattentempo"
+            "value": "Speichertempo"
           }
         },
         "es": {
@@ -5028,7 +5028,7 @@
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "Miss, was dieses Gerät wirklich leistet — CPU-, Speicher- und GPU-Durchsatz in Blips festen Referenzeinheiten, vergleichbar mit jedem Mac oder iPhone mit Blip. Das vollständige Profil ergänzt eine Dauerlastphase, die zeigt, wie viel Leistung thermische Grenzen zurücknehmen."
+            "value": "Miss, was dieses Gerät wirklich leistet — CPU-, Arbeitsspeicher- und GPU-Durchsatz in Blips festen Referenzeinheiten, vergleichbar mit jedem Mac oder iPhone mit Blip. Das vollständige Profil ergänzt eine Dauerlastphase, die zeigt, wie viel Leistung thermische Grenzen zurücknehmen."
           }
         },
         "es": {
@@ -5080,7 +5080,7 @@
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "Speicher"
+            "value": "Arbeitsspeicher"
           }
         },
         "es": {
@@ -5132,7 +5132,7 @@
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "Für Apps verfügbarer Speicher ist knapp (%@). Große Apps starten evtl. neu; das Schließen nicht mehr benötigter Kamera- und Spiele-Apps hilft."
+            "value": "Für Apps verfügbarer Arbeitsspeicher ist knapp (%@). Große Apps starten evtl. neu; das Schließen nicht mehr benötigter Kamera- und Spiele-Apps hilft."
           }
         },
         "es": {
@@ -6900,7 +6900,7 @@
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "Gibt Blips vollständigen Statistik-Snapshot als Markdown-Text zurück – Gerät, CPU, Speicher, Festplatte, Netzwerk – bereit zum Speichern in einer Datei, Anhängen an eine Notiz oder Versenden."
+            "value": "Gibt Blips vollständigen Statistik-Snapshot als Markdown-Text zurück – Gerät, CPU, Arbeitsspeicher, Speicher, Netzwerk – bereit zum Speichern in einer Datei, Anhängen an eine Notiz oder Versenden."
           }
         },
         "es": {
@@ -7368,7 +7368,7 @@
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "Führt Blip Bench aus – CPU, Speicher, GPU und Neural Engine gemessen an Blips festen Referenzeinheiten, vergleichbar über alle Geräte mit Blip. Gibt den Gesamtwert zurück; das detaillierte Ergebnis landet im Verlauf des Bench-Tabs."
+            "value": "Führt Blip Bench aus – CPU, Arbeitsspeicher, GPU und Neural Engine gemessen an Blips festen Referenzeinheiten, vergleichbar über alle Geräte mit Blip. Gibt den Gesamtwert zurück; das detaillierte Ergebnis landet im Verlauf des Bench-Tabs."
           }
         },
         "es": {
@@ -8304,7 +8304,7 @@
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "Festplatte"
+            "value": "Speicher"
           }
         },
         "es": {
