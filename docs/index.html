@@ -6,9 +6,9 @@
     <title>Blip — System Stats for Mac, iPhone and iPad</title>
     <meta name="description" content="Blip is a featherlight, open-source system monitor for your Mac's menu bar, now on iPhone and iPad. Live vitals, Blip Bench, graded speed tests and traceroute with a map. Free.">
 
-    <link rel="icon" type="image/png" sizes="32x32" href="assets/favicon.png">
-    <link rel="icon" type="image/png" sizes="16x16" href="assets/favicon-16.png">
-    <link rel="apple-touch-icon" sizes="180x180" href="assets/apple-touch-icon.png">
+    <link rel="icon" type="image/png" sizes="32x32" href="assets/favicon.png?v=19bdf06e">
+    <link rel="icon" type="image/png" sizes="16x16" href="assets/favicon-16.png?v=82abc44a">
+    <link rel="apple-touch-icon" sizes="180x180" href="assets/apple-touch-icon.png?v=7638d2ea">
 
     <link rel="canonical" href="https://blip.wemiller.com/">
     <meta name="robots" content="index, follow">
@@ -215,10 +215,11 @@
         /* ---- Chapters ------------------------------------------------------- */
         .bl-chapter { max-width: var(--bl-measure); margin: 0 auto; padding: clamp(4rem, 9vw, 7rem) 16px; border-top: 1px solid var(--bl-rule); }
         .bl-spread { display: grid; gap: clamp(2.5rem, 6vw, 5rem); align-items: center; }
-        .bl-copy { max-width: 34rem; }
+        .bl-copy { max-width: 34rem; margin-inline: auto; }
         @media (min-width: 900px) {
-            .bl-spread { grid-template-columns: minmax(0, 5fr) minmax(0, 6fr); }
-            .bl-chapter.is-flipped .bl-spread { grid-template-columns: minmax(0, 6fr) minmax(0, 5fr); }
+            .bl-spread { grid-template-columns: minmax(0, 34rem) minmax(0, max-content); justify-content: center; }
+            .bl-chapter.is-flipped .bl-spread { grid-template-columns: minmax(0, max-content) minmax(0, 34rem); }
+    .bl-spread > figure { max-width: 100%; }
             .bl-chapter.is-flipped .bl-copy { order: 2; }
         }
         .bl-figure { margin: 0 auto; width: min(92vw, 560px); max-width: 100%; text-align: center; }
@@ -639,7 +640,7 @@
   <link rel="alternate" hreflang="ko" href="https://blip.wemiller.com/?lang=ko">
   <link rel="alternate" hreflang="pt-BR" href="https://blip.wemiller.com/?lang=pt-BR">
   <link rel="alternate" hreflang="it" href="https://blip.wemiller.com/?lang=it">
-  <script src="i18n/i18n.js?v=2" defer data-page="index" data-pos="bottom-left"></script>
+  <script src="i18n/i18n.js?v=9b769779" defer data-page="index" data-pos="bottom-left"></script>
 </head>
 <body>
 
@@ -652,7 +653,7 @@
 
 <!-- Hero: the promise, one download button, and the Mac menu bar itself, live. -->
 <header class="bl-hero">
-    <img class="bl-hero-icon" src="assets/icon-192.png" alt="Blip app icon" width="192" height="192">
+    <img class="bl-hero-icon" src="assets/icon-192.png?v=1413353b" alt="Blip app icon" width="192" height="192">
     <p class="bl-hero-kicker">Blip</p>
     <h1 data-i18n="your-devices-vitals-at.cb380c">Your devices' vitals, at a glance.</h1>
     <p class="bl-hero-standfirst" data-i18n="a-featherlight-system-monitor.576728">A featherlight system monitor for your Mac's menu bar, now on iPhone and iPad too. Free, open source and tiny.</p>
@@ -1176,8 +1177,8 @@
                 <p class="bl-lede" data-i18n="blip-bench-measures-cpu.5a1a6b">Blip Bench measures CPU, memory, GPU and Neural Engine in fixed units, so your Mac, iPhone and iPad land on one scale. A sustained run shows how much heat takes back.</p>
             </div>
             <figure class="bl-figure" data-reveal>
-                <img src="assets/screens/en/02-bench-1120.webp"
-                     srcset="assets/screens/en/02-bench-560.webp 560w, assets/screens/en/02-bench-1120.webp 1120w"
+                <img src="assets/screens/en/02-bench-1120.webp?v=b622f17e"
+                     srcset="assets/screens/en/02-bench-560.webp?v=29e5c62e 560w, assets/screens/en/02-bench-1120.webp?v=b622f17e 1120w"
                      sizes="(max-width: 608px) 92vw, 560px" width="1120" height="1463" loading="lazy" decoding="async" data-i18n-src
                      alt="A Blip Bench result on iPad, with the score for each category" data-i18n-attr="alt:a-blip-bench-result.edd4fe">
             </figure>
@@ -1192,8 +1193,8 @@
                 <p class="bl-lede" data-i18n="download-and-upload-draw.fc6945">Download and upload draw as separate curves, latency is measured idle and under load, and every result is graded for calls, streaming and gaming.</p>
             </div>
             <figure class="bl-figure" data-reveal>
-                <img src="assets/screens/en/03-speed-1120.webp"
-                     srcset="assets/screens/en/03-speed-560.webp 560w, assets/screens/en/03-speed-1120.webp 1120w"
+                <img src="assets/screens/en/03-speed-1120.webp?v=0f16fa5b"
+                     srcset="assets/screens/en/03-speed-560.webp?v=f91adb0b 560w, assets/screens/en/03-speed-1120.webp?v=0f16fa5b 1120w"
                      sizes="(max-width: 608px) 92vw, 560px" width="1120" height="1463" loading="lazy" decoding="async" data-i18n-src
                      alt="A network speed test on iPad, with download and upload curves and grades" data-i18n-attr="alt:a-network-speed-test.7f3679">
             </figure>
@@ -1208,8 +1209,8 @@
                 <p class="bl-lede" data-i18n="ping-and-traceroute-draw.4789fb">Ping and traceroute draw your route on an offline map. The location database downloads once, and lookups never leave your device.</p>
             </div>
             <figure class="bl-figure" data-reveal>
-                <img src="assets/screens/en/04-ping-1120.webp"
-                     srcset="assets/screens/en/04-ping-560.webp 560w, assets/screens/en/04-ping-1120.webp 1120w"
+                <img src="assets/screens/en/04-ping-1120.webp?v=b6fd9d82"
+                     srcset="assets/screens/en/04-ping-560.webp?v=8d871507 560w, assets/screens/en/04-ping-1120.webp?v=b6fd9d82 1120w"
                      sizes="(max-width: 608px) 92vw, 560px" width="1120" height="1463" loading="lazy" decoding="async" data-i18n-src
                      alt="A traceroute on iPad, its hops drawn on a map" data-i18n-attr="alt:a-traceroute-on-ipad.aa676f">
             </figure>
@@ -1267,7 +1268,7 @@
 
 <!-- Closing: the promise again, and the one button. -->
 <section class="bl-closing">
-    <img src="assets/icon-192.png" alt="" width="192" height="192" loading="lazy">
+    <img src="assets/icon-192.png?v=1413353b" alt="" width="192" height="192" loading="lazy">
     <h2 class="bl-display" data-i18n="your-devices-vitals-at.cb380c">Your devices' vitals, at a glance.</h2>
     <div class="bl-cta">
         <a href="https://apps.apple.com/us/app/blip-stats/id6762329495" class="bl-btn" target="_blank" rel="noopener noreferrer" data-i18n="download-on-the-app.a9096a">Download on the App Store</a>
