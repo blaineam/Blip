@@ -100,12 +100,10 @@ system monitor,cpu usage,memory pressure,menu bar,activity monitor,gpu,battery h
 Now on iPhone and iPad too. Live vitals, Blip Bench with Neural Engine scoring, graded speed tests, traceroute with a hop map — one free app across Mac and iOS.
 
 ## whats_new
-2.0.4 — Blip for Mac speaks your language in more places.
 
-* The CPU, Memory, Disk, Battery and Network detail panels, the disk speed test and the Blip Helper install and update prompts no longer show English labels — about 40 strings are now translated.
-* Long translated labels in the menu-bar popover now stay on one line instead of wrapping.
-* The Files and Shortcuts apps are now called by their local names in every translation.
-* The app icon's background is navy again, matching the iPhone icon.
+2.0.5 — Blip speaks your language in more places.
+
+* More labels that still appeared in English are now translated.
 
 ## whats_new_macos
 2.0.5 — Blip can keep your Mac awake and stay open while you work.

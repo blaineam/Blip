@@ -1,5 +1,17 @@
 # Changelog
 
+## 2.0.5 — 2026-10-04
+
+Mac: added Keep Awake, which prevents sleep for a chosen duration or indefinitely, with options to keep the display on, stay awake with the lid closed, and jiggle the mouse.
+
+Mac: the menu-bar popover can be pinned open as a detachable window, and detail panels can now open inline.
+
+Mac: any detail panel can be pinned into its own floating window that keeps updating live.
+
+Mac: translated the memory-pressure value and the "Usage over time" chart title.
+
+iOS and widgets: translated strings that previously shipped in English. German now uses Speicher for Storage, Arbeitsspeicher for Memory, and Speedtest for the Speed tab.
+
 ## Unreleased
 
 ### Added — Keep Awake (Mac)
