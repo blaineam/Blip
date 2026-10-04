@@ -122,7 +122,9 @@ jobs:
 
           echo "=== Security Scan ==="
           # Check no secrets or API keys leaked into the binary
-          if strings "$APP_PATH/Contents/MacOS/Blip" | grep -iE "(api_key|secret_key|password|token=)" > /dev/null 2>&1; then
+          # Assignments only: bare "password" now appears in user-facing Keep Awake text
+          # ("needs your administrator password").
+          if strings "$APP_PATH/Contents/MacOS/Blip" | grep -iE "(api_key|secret_key|password=|token=)" > /dev/null 2>&1; then
             echo "::error::Potential secret found in binary"
             exit 1
           fi
