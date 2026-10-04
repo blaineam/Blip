@@ -107,6 +107,20 @@ Now on iPhone and iPad too. Live vitals, Blip Bench with Neural Engine scoring, 
 * The Files and Shortcuts apps are now called by their local names in every translation.
 * The app icon's background is navy again, matching the iPhone icon.
 
+## whats_new_macos
+2.0.5 — Blip can keep your Mac awake and stay open while you work.
+
+* New Keep Awake: stop your Mac from sleeping for a set time or until you turn it off, and choose whether the display stays on. With Blip Helper installed, it can also keep running with the lid closed and jiggle the mouse so you never show as away.
+* Pin the menu-bar popover open as its own window, and open detail panels inline without losing your place.
+* Pin any detail panel into its own floating window that keeps updating live, so you can watch CPU, memory, network and more alongside your work.
+* The memory-pressure reading and the "Usage over time" chart title are now translated.
+
+## whats_new_ios
+2.0.5 — Blip speaks your language in more places.
+
+* Labels on iPhone, iPad and in the widgets that still appeared in English are now translated.
+* German: Storage is now Speicher, Memory is Arbeitsspeicher, and the Speed tab is Speedtest.
+
 ## marketing_url
 https://wemiller.com/apps/blip/
 
