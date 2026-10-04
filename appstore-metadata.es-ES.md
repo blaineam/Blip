@@ -58,9 +58,12 @@ monitor sistema,uso cpu,memoria ram,barra menús,actividad,gpu,batería,temperat
 Ahora también en iPhone y iPad. Datos en vivo, Blip Bench con Neural Engine, tests con nota, traceroute con mapa de saltos — una app gratis para Mac e iOS.
 
 ## whats_new
-2.0.5 — Blip habla tu idioma en más sitios.
+2.0.6: Blip puede mantener tu Mac despierto y seguir abierto mientras trabajas.
 
-* Más etiquetas que aún aparecían en inglés están ahora traducidas.
+* Nuevo Mantener activo: evita que tu Mac entre en reposo durante un tiempo determinado o hasta que lo desactives, y elige si la pantalla sigue encendida. Con Blip Helper instalado, también puede seguir funcionando con la tapa cerrada y mover el ratón para que nunca aparezcas como ausente.
+* Fija el panel de la barra de menús como una ventana independiente y abre los paneles de detalle integrados sin perder el hilo.
+* Fija cualquier panel de detalle en su propia ventana flotante, que se actualiza en tiempo real, para vigilar la CPU, la memoria, la red y mucho más mientras trabajas.
+* La lectura de presión de memoria y el título del gráfico «Uso a lo largo del tiempo» ya están traducidos.
 
 ## description_ios
 Blip lleva a tu iPhone y iPad estadísticas fiables del dispositivo, un benchmark de verdad y herramientas de red completas — con la misma filosofía ultraligera de Blip para Mac, gratis y en una sola app.
@@ -86,7 +89,7 @@ Sin cuentas, sin anuncios, sin seguimiento. Todo lo que muestra Blip es lo que i
 * Alemán: Almacenamiento ahora es «Speicher», Memoria es «Arbeitsspeicher» y la pestaña Velocidad pasa a ser «Speedtest».
 
 ## whats_new_macos
-2.0.5: Blip puede mantener tu Mac despierto y seguir abierto mientras trabajas.
+2.0.6: Blip puede mantener tu Mac despierto y seguir abierto mientras trabajas.
 
 * Nuevo Mantener activo: evita que tu Mac entre en reposo durante un tiempo determinado o hasta que lo desactives, y elige si la pantalla sigue encendida. Con Blip Helper instalado, también puede seguir funcionando con la tapa cerrada y mover el ratón para que nunca aparezcas como ausente.
 * Fija el panel de la barra de menús como una ventana independiente y abre los paneles de detalle integrados sin perder el hilo.

@@ -101,12 +101,15 @@ Now on iPhone and iPad too. Live vitals, Blip Bench with Neural Engine scoring, 
 
 ## whats_new
 
-2.0.5 — Blip speaks your language in more places.
+2.0.6 — Blip can keep your Mac awake and stay open while you work.
 
-* More labels that still appeared in English are now translated.
+* New Keep Awake: stop your Mac from sleeping for a set time or until you turn it off, and choose whether the display stays on. With Blip Helper installed, it can also keep running with the lid closed and jiggle the mouse so you never show as away.
+* Pin the menu-bar popover open as its own window, and open detail panels inline without losing your place.
+* Pin any detail panel into its own floating window that keeps updating live, so you can watch CPU, memory, network and more alongside your work.
+* The memory-pressure reading and the "Usage over time" chart title are now translated.
 
 ## whats_new_macos
-2.0.5 — Blip can keep your Mac awake and stay open while you work.
+2.0.6 — Blip can keep your Mac awake and stay open while you work.
 
 * New Keep Awake: stop your Mac from sleeping for a set time or until you turn it off, and choose whether the display stays on. With Blip Helper installed, it can also keep running with the lid closed and jiggle the mouse so you never show as away.
 * Pin the menu-bar popover open as its own window, and open detail panels inline without losing your place.

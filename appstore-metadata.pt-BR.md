@@ -58,9 +58,12 @@ monitor de sistema,cpu,uso de memória,barra de menus,gpu,bateria,ventoinha,temp
 Agora também no iPhone e iPad. Dados ao vivo, Blip Bench com Neural Engine, testes com nota, traceroute com mapa de saltos — um app gratuito para Mac e iOS.
 
 ## whats_new
-2.0.5 — O Blip fala o seu idioma em mais lugares.
+2.0.6 — O Blip pode manter seu Mac acordado e ficar aberto enquanto você trabalha.
 
-* Mais rótulos que ainda apareciam em inglês agora estão traduzidos.
+* Novo Manter Acordado: impeça o Mac de entrar em repouso por um tempo definido ou até você desativar, e escolha se a tela continua ligada. Com o Blip Helper instalado, ele também continua funcionando com a tampa fechada e mexe o mouse para você nunca aparecer como ausente.
+* Fixe o popover da barra de menus como uma janela própria e abra os painéis de detalhes ali mesmo, sem perder o ponto onde estava.
+* Fixe qualquer painel de detalhes em uma janela flutuante própria, atualizada ao vivo, para acompanhar CPU, memória, rede e muito mais enquanto trabalha.
+* A leitura de pressão de memória e o título do gráfico "Uso ao longo do tempo" agora estão traduzidos.
 
 ## description_ios
 O Blip traz para o seu iPhone e iPad estatísticas confiáveis do aparelho, um benchmark de verdade e ferramentas de rede completas — com a mesma filosofia ultraleve do Blip para Mac, gratuito e em um só app.
@@ -86,7 +89,7 @@ Sem contas, sem anúncios, sem rastreamento. Tudo o que o Blip mostra é o que o
 * Alemão: Armazenamento agora é Speicher, Memória é Arbeitsspeicher, e a aba Velocidade passou a se chamar Speedtest.
 
 ## whats_new_macos
-2.0.5 — O Blip pode manter seu Mac acordado e ficar aberto enquanto você trabalha.
+2.0.6 — O Blip pode manter seu Mac acordado e ficar aberto enquanto você trabalha.
 
 * Novo Manter Acordado: impeça o Mac de entrar em repouso por um tempo definido ou até você desativar, e escolha se a tela continua ligada. Com o Blip Helper instalado, ele também continua funcionando com a tampa fechada e mexe o mouse para você nunca aparecer como ausente.
 * Fixe o popover da barra de menus como uma janela própria e abra os painéis de detalhes ali mesmo, sem perder o ponto onde estava.

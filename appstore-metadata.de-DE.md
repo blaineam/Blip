@@ -58,9 +58,12 @@ systemmonitor,cpu auslastung,arbeitsspeicher,menüleiste,aktivitätsanzeige,gpu,
 Jetzt auch für iPhone und iPad. Live-Werte, Blip Bench mit Neural-Engine-Score, benotete Speedtests, Traceroute mit Hop-Karte — eine kostenlose App für Mac und iOS.
 
 ## whats_new
-2.0.5 – Blip spricht an noch mehr Stellen deine Sprache.
+2.0.6 – Blip hält deinen Mac wach und bleibt geöffnet, während du arbeitest.
 
-* Weitere Beschriftungen, die bisher noch auf Englisch erschienen, sind jetzt übersetzt.
+* Neu: Wach bleiben. Verhindere für eine bestimmte Zeit oder bis du es ausschaltest, dass dein Mac in den Ruhezustand geht, und lege fest, ob der Bildschirm an bleibt. Mit installiertem Blip Helper läuft dein Mac auch bei geschlossenem Deckel weiter, und die Maus wird leicht bewegt, damit du nie als abwesend angezeigt wirst.
+* Pinne das Menüleisten-Popover als eigenes Fenster fest und öffne Detailbereiche direkt darin, ohne den Überblick zu verlieren.
+* Pinne jeden Detailbereich als eigenes schwebendes Fenster fest, das sich live aktualisiert. So behältst du CPU, Arbeitsspeicher, Netzwerk und mehr neben deiner Arbeit im Blick.
+* Die Anzeige für die Speicherauslastung und der Diagrammtitel „Nutzung im Zeitverlauf“ sind jetzt übersetzt.
 
 ## description_ios
 Blip bringt aussagekräftige Gerätewerte, einen echten Benchmark und leistungsfähige Netzwerk-Tools auf dein iPhone und iPad — mit derselben federleichten Philosophie wie Blip für Mac, kostenlos und in einer App.
@@ -86,7 +89,7 @@ Keine Accounts, keine Werbung, kein Tracking. Blip zeigt genau das, was iOS eine
 * Deutsch: Aus „Storage“ wird „Speicher“, aus „Memory“ wird „Arbeitsspeicher“ und der Tab „Speed“ heißt jetzt „Speedtest“.
 
 ## whats_new_macos
-2.0.5 – Blip hält deinen Mac wach und bleibt geöffnet, während du arbeitest.
+2.0.6 – Blip hält deinen Mac wach und bleibt geöffnet, während du arbeitest.
 
 * Neu: Wach bleiben. Verhindere für eine bestimmte Zeit oder bis du es ausschaltest, dass dein Mac in den Ruhezustand geht, und lege fest, ob der Bildschirm an bleibt. Mit installiertem Blip Helper läuft dein Mac auch bei geschlossenem Deckel weiter, und die Maus wird leicht bewegt, damit du nie als abwesend angezeigt wirst.
 * Pinne das Menüleisten-Popover als eigenes Fenster fest und öffne Detailbereiche direkt darin, ohne den Überblick zu verlieren.

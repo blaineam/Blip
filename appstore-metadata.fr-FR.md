@@ -58,9 +58,12 @@ moniteur système,cpu,processeur,mémoire,barre des menus,gpu,batterie,ventilate
 Désormais sur iPhone et iPad. Données en direct, Blip Bench avec score Neural Engine, tests de débit notés, traceroute avec carte des sauts — une app gratuite Mac et iOS.
 
 ## whats_new
-2.0.5 — Blip parle votre langue à encore plus d’endroits.
+2.0.6 — Blip peut empêcher votre Mac de se mettre en veille et rester ouvert pendant que vous travaillez.
 
-* D’autres libellés qui s’affichaient encore en anglais sont désormais traduits.
+* Nouveau : Keep Awake. Empêchez votre Mac de se mettre en veille pendant une durée choisie ou jusqu'à ce que vous désactiviez l'option, et choisissez si l'écran reste allumé. Avec Blip Helper installé, votre Mac peut aussi rester actif capot fermé, et Blip peut faire bouger la souris pour que vous n'apparaissiez jamais comme absent.
+* Épinglez la fenêtre de la barre des menus pour la garder ouverte dans sa propre fenêtre, et ouvrez les panneaux de détails directement sur place sans perdre le fil.
+* Épinglez n'importe quel panneau de détails dans sa propre fenêtre flottante, mise à jour en temps réel, pour surveiller le processeur, la mémoire, le réseau et plus encore tout en travaillant.
+* L'indicateur de pression mémoire et le titre du graphique « Utilisation au fil du temps » sont désormais traduits.
 
 ## description_ios
 Blip apporte à votre iPhone et à votre iPad des statistiques fiables, un vrai benchmark et des outils réseau complets — avec la même philosophie ultralégère que Blip pour Mac, gratuitement et dans une seule app.
@@ -86,7 +89,7 @@ Aucun compte, aucune publicité, aucun pistage. Tout ce que Blip affiche, iOS le
 * Allemand : « Storage » devient « Speicher », « Memory » devient « Arbeitsspeicher » et l’onglet « Speed » devient « Speedtest ».
 
 ## whats_new_macos
-2.0.5 — Blip peut empêcher votre Mac de se mettre en veille et rester ouvert pendant que vous travaillez.
+2.0.6 — Blip peut empêcher votre Mac de se mettre en veille et rester ouvert pendant que vous travaillez.
 
 * Nouveau : Keep Awake. Empêchez votre Mac de se mettre en veille pendant une durée choisie ou jusqu'à ce que vous désactiviez l'option, et choisissez si l'écran reste allumé. Avec Blip Helper installé, votre Mac peut aussi rester actif capot fermé, et Blip peut faire bouger la souris pour que vous n'apparaissiez jamais comme absent.
 * Épinglez la fenêtre de la barre des menus pour la garder ouverte dans sa propre fenêtre, et ouvrez les panneaux de détails directement sur place sans perdre le fil.

@@ -1,6 +1,8 @@
 # Changelog
 
-## Unreleased
+## 2.0.6 — 2026-10-04 (Mac)
+
+Mac-only. Replaces Mac 2.0.5 before it reached review, so Mac App Store users get Keep Awake, pinning and inline details (everything listed under 2.0.5) together with this fix. iOS stays on 2.0.5.
 
 ### Fixed — Keep Awake with an older Blip Helper (Mac App Store)
 - With a Blip Helper from before 2.0.5 connected, the App Store build still showed *Stay awake with the lid closed* and *Jiggle the mouse when idle*, but the old helper doesn't know those requests, so they did nothing and *Allow…* never brought up the Accessibility prompt. Blip now checks the helper's version: below 2.0.5 it hides both switches and asks you to update Blip Helper, with a download link.

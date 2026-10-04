@@ -58,9 +58,12 @@ monitor sistema,cpu,ram,memoria,batteria,ventole,gpu,barra menu,temperatura,moni
 Ora anche su iPhone e iPad. Dati live, Blip Bench con Neural Engine, speed test con voto, traceroute con mappa hop — un'unica app gratuita per Mac e iOS.
 
 ## whats_new
-2.0.5 — Blip parla la tua lingua in più punti.
+2.0.6 — Blip può tenere sveglio il Mac e restare aperto mentre lavori.
 
-* Altre etichette che comparivano ancora in inglese ora sono tradotte.
+* Nuova funzione Mantieni attivo: impedisci al Mac di andare in stop per un tempo stabilito o finché non la disattivi, e scegli se lasciare acceso lo schermo. Con Blip Helper installato, il Mac resta attivo anche a coperchio chiuso e il mouse si muove da solo, così non risulti mai assente.
+* Fissa il popover della barra dei menu come finestra a sé e apri i pannelli dei dettagli direttamente al suo interno, senza perdere il punto in cui eri.
+* Fissa qualsiasi pannello dei dettagli in una finestra mobile che si aggiorna in tempo reale, così puoi tenere d'occhio CPU, memoria, rete e altro mentre lavori.
+* L'indicatore della pressione della memoria e il titolo del grafico "Utilizzo nel tempo" ora sono tradotti.
 
 ## description_ios
 Blip porta su iPhone e iPad statistiche affidabili sul dispositivo, un vero benchmark e strumenti di rete professionali — con la stessa filosofia ultraleggera di Blip per Mac, gratis e in un'unica app.
@@ -86,7 +89,7 @@ Nessun account, nessuna pubblicità, nessun tracciamento. Tutto ciò che Blip mo
 * Tedesco: Storage ora è Speicher, Memory è Arbeitsspeicher e il pannello Speed è Speedtest.
 
 ## whats_new_macos
-2.0.5 — Blip può tenere sveglio il Mac e restare aperto mentre lavori.
+2.0.6 — Blip può tenere sveglio il Mac e restare aperto mentre lavori.
 
 * Nuova funzione Mantieni attivo: impedisci al Mac di andare in stop per un tempo stabilito o finché non la disattivi, e scegli se lasciare acceso lo schermo. Con Blip Helper installato, il Mac resta attivo anche a coperchio chiuso e il mouse si muove da solo, così non risulti mai assente.
 * Fissa il popover della barra dei menu come finestra a sé e apri i pannelli dei dettagli direttamente al suo interno, senza perdere il punto in cui eri.
