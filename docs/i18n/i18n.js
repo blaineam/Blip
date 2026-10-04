@@ -16,7 +16,7 @@
  * ---------------------
  * An <img> or <picture><source> carrying a bare `data-i18n-src` attribute is
  * swapped to the visitor's language. The baked-in English URL names the
- * locale as a path segment — `…/screens/en/01-reader-800.webp` — and every
+ * locale as a path segment — `…/screens/en/01-reader-800.avif` — and every
  * URL in src and srcset has that segment replaced by the active language.
  * Availability comes from `…/screens/manifest.json`, written by
  * scripts/sync-app-screens.py next to the images, so a locale that has no
