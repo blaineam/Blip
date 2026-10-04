@@ -49,6 +49,8 @@ struct BlipSettingDescriptor: Sendable {
         .init(key: "colorizeUtilization", title: String(localized: "Colorize Utilization"), kind: .boolean, defaultValue: "true", isSecret: false),
         .init(key: "showRecommendations", title: String(localized: "Show Recommendations"), kind: .boolean, defaultValue: "true", isSecret: false),
         .init(key: "menuBarLayout", title: String(localized: "Menu Bar Style"), kind: .choice(allowed: ["horizontal", "stacked"]), defaultValue: "horizontal", isSecret: false),
+        .init(key: DetailPanelStyle.key, title: String(localized: "Detail Panels"), kind: .choice(allowed: DetailPanelStyle.allCases.map(\.rawValue)), defaultValue: DetailPanelStyle.beside.rawValue, isSecret: false),
+        .init(key: "popoverPinned", title: String(localized: "Pin Menu Open"), kind: .boolean, defaultValue: "false", isSecret: false),
         .init(key: "pingTarget", title: String(localized: "Ping Target"), kind: .string(validate: hostValidator), defaultValue: "1.1.1.1", isSecret: false),
         .init(key: "tracerouteTarget", title: String(localized: "Traceroute Target"), kind: .string(validate: hostValidator), defaultValue: "", isSecret: false),
         .init(key: "speedTestOpenSpeedTestURL", title: String(localized: "Self-Hosted Speed Test Server"), kind: .string(validate: urlValidator), defaultValue: "", isSecret: false),

@@ -43,7 +43,7 @@ private struct SettingsSceneContent: View {
 // MARK: - App Delegate
 
 @MainActor
-final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
+final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate, NSPopoverDelegate {
     /// The live delegate, so the `Settings` scene's fallback content can reach
     /// the same monitor the popover and the real Settings window use.
     private(set) static weak var shared: AppDelegate?
@@ -133,6 +133,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
         setupKeepAwake()
         installSettingsMenuOverride()
         monitor.start()
+        restorePinnedPopover()
 
         // Once per cold launch (§4.6: "Launch: once per cold launch"). This
         // used to hang off the Settings scene's .task, which only ran when
@@ -263,8 +264,9 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
     private func setupPopover() {
         popover = NSPopover()
         popover.contentSize = NSSize(width: 260, height: 320)
-        popover.behavior = .transient
+        popover.behavior = isPinned ? .applicationDefined : .transient
         popover.animates = true
+        popover.delegate = self
 
         let popoverView = PopoverView(
             monitor: monitor,
@@ -282,10 +284,22 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
             // installSettingsMenuOverride().
             onOpenSupport: { [weak self] in
                 self?.openSettings()
+            },
+            onTogglePin: { [weak self] in
+                guard let self else { return }
+                self.setPinned(!self.isPinned)
+            },
+            inlineDetail: { [weak self] section in
+                guard let self else { return AnyView(EmptyView()) }
+                return AnyView(self.detailContent(for: section))
             }
         )
 
-        popover.contentViewController = NSHostingController(rootView: popoverView)
+        let hosting = NSHostingController(rootView: popoverView)
+        // Track SwiftUI's size so the popover grows and shrinks when a row's
+        // details expand inline (and when the suggestion banner comes and goes).
+        hosting.sizingOptions = [.preferredContentSize]
+        popover.contentViewController = hosting
     }
 
     @objc private func togglePopover() {
@@ -294,6 +308,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
         if popover.isShown {
             closeAll()
         } else {
+            // Pin may have been flipped from Shortcuts since the last show.
+            popover.behavior = isPinned ? .applicationDefined : .transient
             popover.show(relativeTo: button.bounds, of: button, preferredEdge: .minY)
         }
     }
@@ -323,6 +339,11 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
     private var shareHoldActive = false
 
     private func handleSectionHover(_ section: PopoverSection?) {
+        // Inline mode shows details inside the popover instead.
+        if DetailPanelStyle.current == .inline {
+            if detailPanel?.isVisible == true { hideDetailPanel() }
+            return
+        }
         // Cancel any pending dismiss
         dismissWorkItem?.cancel()
         dismissWorkItem = nil
@@ -645,6 +666,40 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
         }
     }
 
+    // MARK: - Pinning
+
+    /// Pinned: the popover ignores outside clicks, can be dragged off into its
+    /// own floating window, and reopens at launch. Clicking the menu bar item
+    /// still hides it.
+    private var isPinned: Bool { UserDefaults.standard.bool(forKey: "popoverPinned") }
+
+    private func setPinned(_ pinned: Bool) {
+        UserDefaults.standard.set(pinned, forKey: "popoverPinned")
+        popover.behavior = pinned ? .applicationDefined : .transient
+        if !pinned, popover.isDetached { closeAll() }
+    }
+
+    private func restorePinnedPopover() {
+        guard isPinned else { return }
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) { [weak self] in
+            guard let self, !self.popover.isShown, let button = self.statusItem.button else { return }
+            self.popover.show(relativeTo: button.bounds, of: button, preferredEdge: .minY)
+        }
+    }
+
+    func popoverShouldDetach(_ popover: NSPopover) -> Bool {
+        isPinned
+    }
+
+    func popoverDidDetach(_ popover: NSPopover) {
+        // A pinned window stays above other apps' windows, like the popover did.
+        popover.contentViewController?.view.window?.level = .floating
+    }
+
+    func popoverDidClose(_ notification: Notification) {
+        hideDetailPanel()
+    }
+
     // MARK: - Keep Awake
 
     private func setupKeepAwake() {
@@ -732,7 +787,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
         ) { [weak self] _ in
             // A share picker (or the compose window it spawns) is mid-flight: the click
             // that picks a service must not tear the popover + panel down around it.
-            guard self?.shareHoldActive != true else { return }
+            guard self?.shareHoldActive != true, self?.isPinned != true else { return }
             self?.closeAll()
         }
 
@@ -753,7 +808,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
             MainActor.assumeIsolated {
                 guard let self else { return }
                 self.shareHoldActive = false
-                self.popover.behavior = .transient
+                self.popover.behavior = self.isPinned ? .applicationDefined : .transient
             }
         }
     }

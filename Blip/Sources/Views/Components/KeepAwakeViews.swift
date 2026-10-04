@@ -45,9 +45,7 @@ struct KeepAwakeOverviewRow: View {
                     .minimumScaleFactor(0.7)
                     .frame(width: 40, alignment: .trailing)
 
-                Image(systemName: "chevron.right")
-                    .font(.system(size: 8))
-                    .foregroundStyle(.quaternary)
+                RowChevron()
             }
             .padding(.vertical, 4)
             .padding(.horizontal, 8)

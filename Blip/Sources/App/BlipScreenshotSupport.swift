@@ -26,6 +26,14 @@ enum BlipScreenshotMode {
     }
 
     static var section: PopoverSection? { PopoverSection(rawValue: scene) }
+
+    /// Inline-details scenes: `-BlipScreenshotExpand <section>` opens that
+    /// row's details inside the popover.
+    static var expandedSection: PopoverSection? {
+        let args = Foundation.ProcessInfo.processInfo.arguments
+        guard isActive, let i = args.firstIndex(of: "-BlipScreenshotExpand"), i + 1 < args.count else { return nil }
+        return PopoverSection(rawValue: args[i + 1])
+    }
 }
 
 // MARK: - Fictional demo snapshot

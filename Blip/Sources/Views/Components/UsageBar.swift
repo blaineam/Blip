@@ -62,12 +62,46 @@ struct OverviewRow: View {
                 .foregroundStyle(.secondary)
                 .frame(width: 40, alignment: .trailing)
 
-            Image(systemName: "chevron.right")
-                .font(.system(size: 8))
-                .foregroundStyle(.quaternary)
+            RowChevron()
         }
         .padding(.vertical, 4)
         .padding(.horizontal, 8)
         .contentShape(Rectangle())
+    }
+}
+
+/// Where a section's details appear: the hover panel beside the popover
+/// (default), or expanded inline under its row on click.
+enum DetailPanelStyle: String, CaseIterable {
+    case beside, inline
+
+    static let key = "detailPanelStyle"
+
+    static var current: DetailPanelStyle {
+        UserDefaults.standard.string(forKey: key).flatMap(DetailPanelStyle.init(rawValue:)) ?? .beside
+    }
+}
+
+private struct RowExpandedKey: EnvironmentKey {
+    static let defaultValue = false
+}
+
+extension EnvironmentValues {
+    /// True on a popover row whose details are expanded inline.
+    var rowExpanded: Bool {
+        get { self[RowExpandedKey.self] }
+        set { self[RowExpandedKey.self] = newValue }
+    }
+}
+
+/// The trailing chevron on popover rows; turns down when the row is expanded inline.
+struct RowChevron: View {
+    @Environment(\.rowExpanded) private var expanded
+
+    var body: some View {
+        Image(systemName: "chevron.right")
+            .font(.system(size: 8))
+            .foregroundStyle(.quaternary)
+            .rotationEffect(.degrees(expanded ? 90 : 0))
     }
 }

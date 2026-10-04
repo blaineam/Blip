@@ -11,6 +11,12 @@
 - **Shortcuts:** *Keep Mac Awake* (with a duration) and *Let Mac Sleep*, plus *Keep Display On While Awake* and *Jiggle Mouse While Awake* in Get/Set Setting. Lid-closed mode is deliberately not scriptable, because turning it on from a Shortcut would spring a password prompt.
 - Translated into all 8 languages.
 
+### Added — Pin the menu open, and inline details (Mac)
+- **Pin** (the pin in the popover's footer) keeps Blip's menu up when you click elsewhere, reopens it at launch, and lets you drag it off the menu bar into its own floating window. Clicking the menu bar item still hides it; unpinning returns to the usual close-on-click-away.
+- **Details inside the menu.** Settings → Menu Bar → Layout → *Details* chooses where a section's details appear: *Beside the menu, on hover* (the default, unchanged) or *Inside the menu, on click*, which expands the panel under its row like an accordion, one at a time, with the chevron turning down. Tall panels (Network, Disk) scroll inside the menu instead of pushing it off the screen. Pairs well with Pin.
+- The popover now resizes with its content, so inline details and the suggestion banner grow and shrink it smoothly.
+- Both are in Shortcuts' Get/Set Setting (*Detail Panels*: beside/inline, *Pin Menu Open*), translated into all 8 languages.
+
 ### Fixed — German iOS: Storage and Memory say what they are
 - The German iPhone/iPad app called **Storage** "Festplatte" (hard disk), which an iPhone doesn't have. It is now **Speicher**, as in Apple's own "iPhone-Speicher"; **Memory** moved from "Speicher" to **Arbeitsspeicher** so the two Overview cards no longer compete for one word. The same split runs through the disk-speed heading ("Speichertempo"), the low-memory hint and its chart label, and the Bench and Get Device Snapshot descriptions. Activity Monitor's own "Physischer / Reservierter Speicher" stay. Widgets too. The Mac app keeps "Festplatte" — Macs have disks. Checked on iPhone SE and 17 Pro Max: "Arbeitsspeicher" stays on one line.
 - The German **Speed** tab and screen were called "Tempo" (as in a piece of music), under a "Speedtest starten" button. Tab, screen title, widget and the Settings hint that names the tab now say **Speedtest**; it fits the tab bar on iPhone SE.

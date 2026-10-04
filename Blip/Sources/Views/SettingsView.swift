@@ -18,6 +18,7 @@ struct SettingsView: View {
     @AppStorage("speedTestOpenSpeedTestURL") private var openSpeedTestURL: String = ""
     @AppStorage("colorizeUtilization") private var colorizeUtilization = true
     @AppStorage("showRecommendations") private var showRecommendations = true
+    @AppStorage(DetailPanelStyle.key) private var detailStyle: DetailPanelStyle = .beside
 
     var helperClient: HelperClient?
     /// Used by the Recommendations "Reset" action; nil when Settings is opened without it.
@@ -474,6 +475,11 @@ struct SettingsView: View {
                 Picker("Menu Bar Style", selection: $menuBarLayout) {
                     Text("Stacked (compact)").tag("stacked")
                     Text("Horizontal (wide)").tag("horizontal")
+                }
+                .pickerStyle(.radioGroup)
+                Picker("Details", selection: $detailStyle) {
+                    Text("Beside the menu, on hover").tag(DetailPanelStyle.beside)
+                    Text("Inside the menu, on click").tag(DetailPanelStyle.inline)
                 }
                 .pickerStyle(.radioGroup)
             }

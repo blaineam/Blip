@@ -7,6 +7,10 @@ struct PopoverView: View {
     @ObservedObject var monitor: SystemMonitor
     @AppStorage("accentColorOverride") private var colorOverride: String = ""
     @AppStorage("showRecommendations") private var showRecommendations = true
+    @AppStorage("popoverPinned") private var isPinned = false
+    @AppStorage(DetailPanelStyle.key) private var detailStyle: DetailPanelStyle = .beside
+    /// Inline mode: the one section whose details are expanded under its row.
+    @State private var expanded: PopoverSection?
     #if APPSTORE
     private var helperConnected: Bool { monitor.helperClient.isConnected }
     #endif
@@ -26,6 +30,10 @@ struct PopoverView: View {
     /// Opens Settings (where the support rows live) via AppDelegate, which
     /// also closes this popover on the way.
     var onOpenSupport: (() -> Void)? = nil
+    /// Pins / unpins the popover (AppDelegate owns its behavior).
+    var onTogglePin: (() -> Void)? = nil
+    /// Builds a section's detail panel for inline mode.
+    var inlineDetail: ((PopoverSection) -> AnyView)? = nil
 
     var body: some View {
         VStack(spacing: 0) {
@@ -131,6 +139,18 @@ struct PopoverView: View {
                     }, help: String(localized: "Share a snapshot of all stats as one file"))
                     .frame(width: 16, height: 14)
 
+                    if onTogglePin != nil {
+                        Button {
+                            onTogglePin?()
+                        } label: {
+                            Image(systemName: isPinned ? "pin.fill" : "pin")
+                                .font(.system(size: 10))
+                                .foregroundStyle(isPinned ? AnyShapeStyle(.orange) : AnyShapeStyle(.secondary))
+                        }
+                        .buttonStyle(.plain)
+                        .help(isPinned ? "Unpin — close when clicking elsewhere" : "Pin open — stays up, and can be dragged off into its own window")
+                    }
+
                     Button {
                         onOpenSettings?()
                     } label: {
@@ -166,6 +186,9 @@ struct PopoverView: View {
         .background(
             VisualEffectView(material: .popover, blendingMode: .behindWindow)
         )
+        .onAppear {
+            if let section = BlipScreenshotMode.expandedSection { expanded = section }
+        }
     }
 
     @ViewBuilder
@@ -225,9 +248,7 @@ struct PopoverView: View {
                         }
                     }
                     .frame(width: 108, alignment: .leading)
-                    Image(systemName: "chevron.right")
-                        .font(.system(size: 8))
-                        .foregroundStyle(.quaternary)
+                    RowChevron()
                 }
                 .padding(.vertical, 4)
                 .padding(.horizontal, 8)
@@ -263,9 +284,7 @@ struct PopoverView: View {
                         .font(.system(size: 10, design: .monospaced))
                         .foregroundStyle(thermalColor)
                         .frame(width: 108, alignment: .leading)
-                    Image(systemName: "chevron.right")
-                        .font(.system(size: 8))
-                        .foregroundStyle(.quaternary)
+                    RowChevron()
                 }
                 .padding(.vertical, 4)
                 .padding(.horizontal, 8)
@@ -282,11 +301,42 @@ struct PopoverView: View {
                 KeepAwakeOverviewRow(keepAwake: KeepAwake.shared)
             }
         }
-        .background(Color.clear)
-        .cornerRadius(4)
+        .environment(\.rowExpanded, detailStyle == .inline && expanded == section)
+        .frame(maxWidth: .infinity)
+        .background(
+            RoundedRectangle(cornerRadius: 8)
+                .fill(expanded == section ? Color.primary.opacity(0.07) : Color.clear)
+        )
+        .padding(.horizontal, Self.inlineInset)
         .onHover { hovering in
             onHoverSection?(hovering ? section : nil)
         }
+        .simultaneousGesture(TapGesture().onEnded {
+            guard detailStyle == .inline, inlineDetail != nil else { return }
+            withAnimation(.easeInOut(duration: 0.18)) {
+                expanded = expanded == section ? nil : section
+            }
+        })
+
+        if detailStyle == .inline, expanded == section, let inlineDetail {
+            // Same inset and radius as the highlighted row above, so the two
+            // read as one card.
+            inlineDetail(section)
+                .frame(width: 260 - 2 * Self.inlineInset)
+                .modifier(ScrollIfNeeded(maxHeight: inlineMaxHeight))
+                .background(RoundedRectangle(cornerRadius: 8).fill(Color.primary.opacity(0.04)))
+                .padding(.top, 2)
+                .padding(.bottom, 4)
+                .transition(.opacity.combined(with: .move(edge: .top)))
+        }
+    }
+
+    private static let inlineInset: CGFloat = 6
+
+    /// Tall panels (Network, Disk) scroll inside the popover rather than
+    /// pushing it off the screen.
+    private var inlineMaxHeight: CGFloat {
+        max(260, (NSScreen.main?.visibleFrame.height ?? 800) - 420)
     }
 
     // MARK: - Recommendation banner

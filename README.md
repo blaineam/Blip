@@ -37,7 +37,8 @@ Existing system monitors are either bloated, expensive, or missing key features.
 
 Plus:
 - **Historical charts** — sparklines for CPU, memory, GPU; dual-line charts for disk I/O and network bandwidth with auto-scaled Y-axis labels
-- **Live detail panels** — hover any row in the popover to reveal a detailed sub-panel that updates in real-time (like iStats Menus)
+- **Live detail panels** — hover any row in the popover to reveal a detailed sub-panel that updates in real-time (like iStats Menus), or switch to **inline details** to expand them inside the menu on click
+- **Pin it open** — keep the menu up while you work, or drag it off into its own floating window
 - **Two layouts** — horizontal (default, wide side-by-side) or stacked (compact vertical bars)
 - **Customizable** — category colors, monochrome, or custom color picker; separate measurement and value label toggles; optional utilization colorization
 - **Launch at login** — one toggle in settings
