@@ -515,7 +515,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate, NSPo
             )
         case .awake:
             KeepAwakeDetailPanel(keepAwake: KeepAwake.shared,
-                                 extrasAvailable: keepAwakeExtrasAvailable(monitor))
+                                 extrasAvailable: keepAwakeExtrasAvailable(monitor),
+                                 helperNeedsUpdate: keepAwakeHelperNeedsUpdate(monitor))
         }
     }
 

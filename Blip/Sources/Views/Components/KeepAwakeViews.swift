@@ -1,14 +1,54 @@
 import SwiftUI
 
 /// Whether the closed-lid and jiggle extras can be offered: always in the
-/// direct download, only while Blip Helper is connected in the App Store build.
+/// direct download; in the App Store build only while a Blip Helper that
+/// understands Keep Awake (2.0.5+) is connected.
 @MainActor
 func keepAwakeExtrasAvailable(_ monitor: SystemMonitor?) -> Bool {
+    keepAwakeHelperState(monitor) == .ready
+}
+
+/// True when the connected helper predates Keep Awake, so the extras would
+/// silently do nothing (and its Accessibility prompt never appear).
+@MainActor
+func keepAwakeHelperNeedsUpdate(_ monitor: SystemMonitor?) -> Bool {
+    keepAwakeHelperState(monitor) == .outdated
+}
+
+enum KeepAwakeHelperState { case ready, outdated, absent }
+
+/// First helper release that serves the `keepAwake` request.
+let keepAwakeMinimumHelperVersion = "2.0.5"
+
+@MainActor
+func keepAwakeHelperState(_ monitor: SystemMonitor?) -> KeepAwakeHelperState {
     #if APPSTORE
-    return monitor?.helperClient.isConnected ?? false
+    guard let client = monitor?.helperClient, client.isConnected else { return .absent }
+    guard let version = client.latestSnapshot?.helperVersion, !version.isEmpty,
+          version.compare(keepAwakeMinimumHelperVersion, options: .numeric) != .orderedAscending else {
+        return .outdated
+    }
+    return .ready
     #else
-    return true
+    return .ready
     #endif
+}
+
+/// Shown in place of the lid / jiggle switches when the helper is too old.
+struct KeepAwakeHelperUpdateNote: View {
+    var body: some View {
+        HStack(alignment: .firstTextBaseline, spacing: 6) {
+            Image(systemName: "arrow.down.circle")
+                .foregroundStyle(.orange)
+            VStack(alignment: .leading, spacing: 2) {
+                Text("Update Blip Helper to stay awake with the lid closed or jiggle the mouse.")
+                    .font(.system(size: 10))
+                    .fixedSize(horizontal: false, vertical: true)
+                Link("Download Blip Helper", destination: URL(string: "https://github.com/blaineam/blip/releases/latest/download/BlipHelper.dmg")!)
+                    .font(.system(size: 10, weight: .medium))
+            }
+        }
+    }
 }
 
 /// Popover row on exactly the same grid as CPU/Memory/…: icon (16), label
@@ -65,6 +105,7 @@ struct KeepAwakeOverviewRow: View {
 struct KeepAwakeDetailPanel: View {
     @ObservedObject var keepAwake: KeepAwake
     let extrasAvailable: Bool
+    var helperNeedsUpdate = false
     @AppStorage(KeepAwake.Keys.keepDisplayOn) private var keepDisplayOn = true
     @AppStorage(KeepAwake.Keys.lidClosed) private var lidClosed = false
     @AppStorage(KeepAwake.Keys.jiggle) private var jiggle = false
@@ -109,6 +150,9 @@ struct KeepAwakeDetailPanel: View {
                        detail: "Asks for an administrator password. Normal sleep returns when Keep Awake ends, Blip quits, or the battery reaches 10%.")
                 option("Jiggle the mouse when idle", isOn: $jiggle,
                        detail: "After a minute without input, the pointer moves one pixel and back so apps don't mark you away.")
+            }
+            if helperNeedsUpdate {
+                KeepAwakeHelperUpdateNote()
             }
 
             statusLine
@@ -196,6 +240,7 @@ struct KeepAwakeDetailPanel: View {
 struct KeepAwakeSettingsSection: View {
     @ObservedObject var keepAwake: KeepAwake
     let extrasAvailable: Bool
+    var helperNeedsUpdate = false
     @AppStorage(KeepAwake.Keys.keepDisplayOn) private var keepDisplayOn = true
     @AppStorage(KeepAwake.Keys.lidClosed) private var lidClosed = false
     @AppStorage(KeepAwake.Keys.jiggle) private var jiggle = false
@@ -217,6 +262,9 @@ struct KeepAwakeSettingsSection: View {
                         Button("Allow…") { keepAwake.requestJigglePermission() }
                     }
                 }
+            }
+            if helperNeedsUpdate {
+                KeepAwakeHelperUpdateNote()
             }
             Text("Turn Keep Awake on from the Awake row in Blip's menu. Lid-closed mode asks for an administrator password once while Blip is running, and ends when Keep Awake does, when Blip quits, or at 10% battery.")
                 .font(.caption)

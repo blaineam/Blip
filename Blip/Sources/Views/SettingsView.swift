@@ -110,7 +110,8 @@ struct SettingsView: View {
                 }
 
             KeepAwakeSettingsSection(keepAwake: KeepAwake.shared,
-                                     extrasAvailable: keepAwakeExtrasAvailable(monitor))
+                                     extrasAvailable: keepAwakeExtrasAvailable(monitor),
+                                     helperNeedsUpdate: keepAwakeHelperNeedsUpdate(monitor))
 
             Section("Network") {
                 HStack {

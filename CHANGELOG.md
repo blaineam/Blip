@@ -1,5 +1,10 @@
 # Changelog
 
+## Unreleased
+
+### Fixed — Keep Awake with an older Blip Helper (Mac App Store)
+- With a Blip Helper from before 2.0.5 connected, the App Store build still showed *Stay awake with the lid closed* and *Jiggle the mouse when idle*, but the old helper doesn't know those requests, so they did nothing and *Allow…* never brought up the Accessibility prompt. Blip now checks the helper's version: below 2.0.5 it hides both switches and asks you to update Blip Helper, with a download link.
+
 ## 2.0.5 — 2026-10-04
 
 Mac: added Keep Awake, which prevents sleep for a chosen duration or indefinitely, with options to keep the display on, stay awake with the lid closed, and jiggle the mouse.

@@ -19258,6 +19258,58 @@
         }
       }
     },
+    "Update Blip Helper to stay awake with the lid closed or jiggle the mouse." : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Aktualisiere Blip Helper, um mit geschlossenem Deckel wach zu bleiben oder die Maus zu bewegen."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Actualiza Blip Helper para mantener el Mac activo con la tapa cerrada o mover el ratón."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Mettez à jour Blip Helper pour rester éveillé écran rabattu ou faire bouger la souris."
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Aggiorna Blip Helper per restare attivo con il coperchio chiuso o muovere il mouse."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "蓋を閉じたままのスリープ防止やマウスの動作を使うには、Blip Helper をアップデートしてください。"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "덮개를 닫은 채 깨어 있거나 마우스를 흔들려면 Blip Helper를 업데이트하세요."
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Atualize o Blip Helper para ficar ativo com a tampa fechada ou mexer o mouse."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "更新 Blip Helper 以在合盖时保持唤醒或晃动鼠标。"
+          }
+        }
+      }
+    },
     "Update available" : {
       "localizations" : {
         "de" : {
