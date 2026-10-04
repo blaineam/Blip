@@ -75,7 +75,7 @@
   "keep-awake.k1a001": "Mantener activo",
   "stop-your-mac-sleeping.k1b002": "Evita que tu Mac duerma de 30 minutos a 4 horas o hasta que lo desactives, con la pantalla encendida o apagada. Mantenlo activo con la tapa cerrada (una contraseña por inicio, se restablece al terminar o con un 10 % de batería) y mueve el ratón en reposo para que las apps no te marquen como ausente.",
   "pin-it-open.k2a003": "Fíjalo abierto",
-  "pin-blip-s-menu.k2b004": "Fija el menú de Blip para que siga visible mientras trabajas, o arrástralo a su propia ventana flotante. ¿Prefieres los detalles dentro del menú? Cambia los paneles al pasar el puntero por secciones que se despliegan con un clic.",
+  "pin-blip-s-menu.k2b004": "Fija el menú de Blip para que siga visible mientras trabajas, o arrástralo a su propia ventana flotante. Fija también cualquier panel de detalles y se convierte en una ventana en directo que puedes dejar donde quieras. ¿Prefieres los detalles dentro del menú? Cambia los paneles al pasar el puntero por secciones que se despliegan con un clic.",
   "keep-mac-awake.k3a005": "<span class=\"sc-chip-dot\"></span>Mantener el Mac activo",
   "let-mac-sleep.k3b006": "<span class=\"sc-chip-dot\"></span>Dejar dormir al Mac"
 }

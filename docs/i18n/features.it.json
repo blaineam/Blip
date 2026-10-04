@@ -75,7 +75,7 @@
   "keep-awake.k1a001": "Mantieni attivo",
   "stop-your-mac-sleeping.k1b002": "Impedisci al Mac di andare in stop da 30 minuti a 4 ore o finché non lo disattivi, con lo schermo acceso o spento. Tienilo attivo con il coperchio chiuso (una password per avvio, ripristinato quando hai finito o al 10% di batteria) e muovi il mouse quando sei inattivo, così le app non ti segnano come assente.",
   "pin-it-open.k2a003": "Fissalo aperto",
-  "pin-blip-s-menu.k2b004": "Fissa il menu di Blip perché resti visibile mentre lavori, oppure trascinalo in una finestra mobile a sé. Preferisci i dettagli nel menu? Sostituisci i pannelli al passaggio del puntatore con sezioni che si espandono al clic.",
+  "pin-blip-s-menu.k2b004": "Fissa il menu di Blip perché resti visibile mentre lavori, oppure trascinalo in una finestra mobile a sé. Fissa anche qualsiasi pannello dei dettagli: diventa una finestra in tempo reale da posizionare dove vuoi. Preferisci i dettagli nel menu? Sostituisci i pannelli al passaggio del puntatore con sezioni che si espandono al clic.",
   "keep-mac-awake.k3a005": "<span class=\"sc-chip-dot\"></span>Mantieni attivo il Mac",
   "let-mac-sleep.k3b006": "<span class=\"sc-chip-dot\"></span>Lascia andare in stop il Mac"
 }

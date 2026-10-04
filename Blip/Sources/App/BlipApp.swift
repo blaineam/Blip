@@ -85,6 +85,14 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate, NSPo
     /// When true, the detail panel stops refreshing — used while the pointer is over
     /// the process list so rows don't reshuffle and the two-click kill state survives.
     private var processListFrozen = false
+    /// Detail panels torn off into their own floating windows, by section.
+    private var pinnedPanels: [PopoverSection: PinnedPanel] = [:]
+
+    private struct PinnedPanel {
+        let panel: NSPanel
+        let host: NSHostingView<AnyView>
+        let moveObserver: NSObjectProtocol
+    }
 
     func applicationDidFinishLaunching(_ notification: Notification) {
         wireBench()
@@ -134,6 +142,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate, NSPo
         installSettingsMenuOverride()
         monitor.start()
         restorePinnedPopover()
+        restorePinnedPanels()
 
         // Once per cold launch (§4.6: "Launch: once per cold launch"). This
         // used to hang off the Settings scene's .task, which only ran when
@@ -291,7 +300,11 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate, NSPo
             },
             inlineDetail: { [weak self] section in
                 guard let self else { return AnyView(EmptyView()) }
-                return AnyView(self.detailContent(for: section))
+                return AnyView(DetailPanelChrome(pinned: false, onTogglePin: { [weak self] in
+                    self?.pinPanel(section, topLeft: nil)
+                }) {
+                    self.detailContent(for: section)
+                })
             }
         )
 
@@ -350,6 +363,11 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate, NSPo
         if shareHoldActive && section == nil { return }   // picker open: ignore hover-out
 
         if let section = section {
+            // Already pinned in its own window — don't stack a hover copy beside it.
+            if pinnedPanels[section] != nil {
+                hideDetailPanel()
+                return
+            }
             currentSection = section
             showDetailPanel(for: section)
         } else {
@@ -727,9 +745,10 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate, NSPo
         monitor.$snapshot
             .receive(on: RunLoop.main)
             .sink { [weak self] _ in
-                guard let self, let section = self.currentSection,
-                      let panel = self.detailPanel, panel.isVisible,
-                      !self.processListFrozen else { return }
+                guard let self, !self.processListFrozen else { return }
+                self.refreshPinnedPanels()
+                guard let section = self.currentSection,
+                      let panel = self.detailPanel, panel.isVisible else { return }
                 self.refreshDetailContent(for: section)
             }
             .store(in: &cancellables)
@@ -753,10 +772,14 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate, NSPo
     }
 
     /// Builds the styled, scroll-when-needed, hover-tracking wrapper around a panel.
-    private func makeWrappedView(for section: PopoverSection) -> AnyView {
+    private func makeWrappedView(for section: PopoverSection, pinned: Bool = false) -> AnyView {
         let cornerRadius: CGFloat = 20
         return AnyView(
-            detailContent(for: section)
+            DetailPanelChrome(pinned: pinned, onTogglePin: { [weak self] in
+                self?.togglePanelPin(section)
+            }) {
+                detailContent(for: section)
+            }
                 .frame(width: 260)
                 .modifier(ScrollIfNeeded(maxHeight: panelMaxHeight))
                 .frame(width: 260)
@@ -769,6 +792,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate, NSPo
                         .stroke(Color.primary.opacity(0.08), lineWidth: 0.5)
                 )
                 .onHover { [weak self] hovering in
+                    // Pinned windows stay put; only the hover panel dismisses.
+                    guard !pinned else { return }
                     if hovering {
                         self?.dismissWorkItem?.cancel()
                         self?.dismissWorkItem = nil
@@ -777,6 +802,123 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate, NSPo
                     }
                 }
         )
+    }
+
+    // MARK: - Pinned detail panels
+
+    private static let pinnedPanelsKey = "pinnedDetailPanels"
+
+    private func togglePanelPin(_ section: PopoverSection) {
+        if pinnedPanels[section] != nil {
+            unpinPanel(section)
+        } else {
+            pinPanel(section, topLeft: nil)
+        }
+    }
+
+    /// Tears a section's panel off into a floating window that live-refreshes,
+    /// can be dragged anywhere, and survives the popover closing and relaunch.
+    private func pinPanel(_ section: PopoverSection, topLeft: NSPoint?) {
+        guard pinnedPanels[section] == nil else { return }
+
+        // Appear exactly where the hover panel was, else beside the popover,
+        // else near the top-right of the screen.
+        let origin: NSPoint
+        if let topLeft {
+            origin = topLeft
+        } else if let hover = detailPanel, hover.isVisible, currentSection == section {
+            origin = NSPoint(x: hover.frame.minX, y: hover.frame.maxY)
+        } else if let popoverFrame = popover.contentViewController?.view.window?.frame, popover.isShown {
+            origin = NSPoint(x: popoverFrame.minX - 261, y: popoverFrame.maxY)
+        } else {
+            let visible = NSScreen.main?.visibleFrame ?? NSRect(x: 0, y: 0, width: 1440, height: 900)
+            origin = NSPoint(x: visible.maxX - 540, y: visible.maxY - 8)
+        }
+
+        let host = NSHostingView(rootView: makeWrappedView(for: section, pinned: true))
+        host.wantsLayer = true
+        host.layer?.backgroundColor = .clear
+        host.layer?.cornerRadius = 20
+        host.layer?.cornerCurve = .continuous
+        host.layer?.masksToBounds = true
+
+        let panel = NSPanel(
+            contentRect: NSRect(x: 0, y: 0, width: 260, height: 300),
+            styleMask: [.borderless, .nonactivatingPanel],
+            backing: .buffered,
+            defer: false
+        )
+        panel.isOpaque = false
+        panel.backgroundColor = .clear
+        panel.level = .floating
+        panel.hidesOnDeactivate = false
+        panel.isMovableByWindowBackground = true
+        panel.hasShadow = true
+        panel.isFloatingPanel = true
+        panel.becomesKeyOnlyIfNeeded = true
+        panel.collectionBehavior = [.canJoinAllSpaces, .fullScreenAuxiliary]
+        panel.isReleasedWhenClosed = false
+        panel.contentView = host
+
+        let height = min(host.fittingSize.height, panelMaxHeight)
+        panel.setFrame(NSRect(x: origin.x, y: origin.y - height, width: 260, height: height), display: true)
+        panel.orderFrontRegardless()
+
+        let observer = NotificationCenter.default.addObserver(
+            forName: NSWindow.didMoveNotification, object: panel, queue: .main
+        ) { [weak self] _ in
+            MainActor.assumeIsolated { self?.savePinnedPanels() }
+        }
+        pinnedPanels[section] = PinnedPanel(panel: panel, host: host, moveObserver: observer)
+        if currentSection == section { hideDetailPanel() }
+        savePinnedPanels()
+    }
+
+    private func unpinPanel(_ section: PopoverSection) {
+        guard let pinned = pinnedPanels.removeValue(forKey: section) else { return }
+        NotificationCenter.default.removeObserver(pinned.moveObserver)
+        pinned.panel.orderOut(nil)
+        savePinnedPanels()
+    }
+
+    /// Re-renders pinned panels with fresh data, keeping each window's top
+    /// edge where the user left it as its content grows or shrinks.
+    private func refreshPinnedPanels() {
+        for (section, pinned) in pinnedPanels {
+            pinned.host.rootView = makeWrappedView(for: section, pinned: true)
+            pinned.host.layoutSubtreeIfNeeded()
+            let height = min(pinned.host.fittingSize.height, panelMaxHeight)
+            let frame = pinned.panel.frame
+            if abs(frame.height - height) > 0.5 {
+                pinned.panel.setFrame(NSRect(x: frame.minX, y: frame.maxY - height, width: frame.width, height: height),
+                                      display: true)
+            }
+        }
+    }
+
+    private func savePinnedPanels() {
+        let saved = pinnedPanels.reduce(into: [String: String]()) { dict, entry in
+            let frame = entry.value.panel.frame
+            dict[entry.key.rawValue] = "\(Int(frame.minX)),\(Int(frame.maxY))"
+        }
+        UserDefaults.standard.set(saved, forKey: Self.pinnedPanelsKey)
+    }
+
+    private func restorePinnedPanels() {
+        guard let saved = UserDefaults.standard.dictionary(forKey: Self.pinnedPanelsKey) as? [String: String] else { return }
+        for (raw, position) in saved.sorted(by: { $0.key < $1.key }) {
+            guard let section = PopoverSection(rawValue: raw) else { continue }
+            let parts = position.split(separator: ",").compactMap { Double($0) }
+            var topLeft: NSPoint?
+            if parts.count == 2 {
+                let point = NSPoint(x: parts[0], y: parts[1])
+                // Skip positions on a display that's no longer attached.
+                if NSScreen.screens.contains(where: { $0.frame.insetBy(dx: -1, dy: -1).contains(NSPoint(x: point.x + 20, y: point.y - 20)) }) {
+                    topLeft = point
+                }
+            }
+            pinPanel(section, topLeft: topLeft)
+        }
     }
 
     // MARK: - Event Monitor

@@ -75,7 +75,7 @@
   "keep-awake.k1a001": "Keep Awake",
   "stop-your-mac-sleeping.k1b002": "Stop your Mac sleeping for 30 minutes to 4 hours or until you turn it off, with the display on or off. Stay awake with the lid closed (one password per launch, restored when you're done or at 10% battery), and jiggle the mouse when idle so apps don't mark you away.",
   "pin-it-open.k2a003": "Pin It Open",
-  "pin-blip-s-menu.k2b004": "Pin Blip's menu so it stays up while you work, or drag it off into its own floating window. Prefer details inside the menu? Switch the hover panels to sections that expand inline on click.",
+  "pin-blip-s-menu.k2b004": "Pin Blip's menu so it stays up while you work, or drag it off into its own floating window. Pin any detail panel too, and it becomes a live window you can park anywhere. Prefer details inside the menu? Switch the hover panels to sections that expand on click.",
   "keep-mac-awake.k3a005": "<span class=\"sc-chip-dot\"></span>Keep Mac Awake",
   "let-mac-sleep.k3b006": "<span class=\"sc-chip-dot\"></span>Let Mac Sleep"
 }

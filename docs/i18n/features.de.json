@@ -75,7 +75,7 @@
   "keep-awake.k1a001": "Wach halten",
   "stop-your-mac-sleeping.k1b002": "Verhindere den Ruhezustand für 30 Minuten bis 4 Stunden oder bis zum Ausschalten, mit Display an oder aus. Bleib mit geschlossenem Deckel wach (ein Passwort pro Start, zurückgesetzt, wenn du fertig bist oder bei 10 % Batterie), und lass die Maus bei Inaktivität wackeln, damit Apps dich nicht als abwesend markieren.",
   "pin-it-open.k2a003": "Offen anheften",
-  "pin-blip-s-menu.k2b004": "Hefte Blips Menü an, damit es beim Arbeiten sichtbar bleibt, oder zieh es in ein eigenes schwebendes Fenster. Lieber Details im Menü? Stell die Hover-Bereiche auf Abschnitte um, die sich per Klick im Menü aufklappen.",
+  "pin-blip-s-menu.k2b004": "Hefte Blips Menü an, damit es beim Arbeiten sichtbar bleibt, oder zieh es in ein eigenes schwebendes Fenster. Auch jeder Detailbereich lässt sich anheften und wird zu einem Live-Fenster, das du überall abstellen kannst. Lieber Details im Menü? Stell die Hover-Bereiche auf Abschnitte um, die sich per Klick aufklappen.",
   "keep-mac-awake.k3a005": "<span class=\"sc-chip-dot\"></span>Mac wach halten",
   "let-mac-sleep.k3b006": "<span class=\"sc-chip-dot\"></span>Ruhezustand erlauben"
 }

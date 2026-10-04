@@ -75,7 +75,7 @@
   "keep-awake.k1a001": "Garder éveillé",
   "stop-your-mac-sleeping.k1b002": "Empêchez votre Mac de se suspendre de 30 minutes à 4 heures ou jusqu’à désactivation, écran allumé ou non. Gardez-le éveillé écran rabattu (un mot de passe par lancement, rétabli à la fin ou à 10 % de batterie) et faites bouger la souris en cas d’inactivité pour ne pas apparaître absent.",
   "pin-it-open.k2a003": "Épinglez-le",
-  "pin-blip-s-menu.k2b004": "Épinglez le menu de Blip pour qu’il reste affiché pendant que vous travaillez, ou faites-le glisser dans sa propre fenêtre flottante. Vous préférez les détails dans le menu ? Remplacez les panneaux au survol par des sections qui se déplient au clic.",
+  "pin-blip-s-menu.k2b004": "Épinglez le menu de Blip pour qu’il reste affiché pendant que vous travaillez, ou faites-le glisser dans sa propre fenêtre flottante. Épinglez aussi n’importe quel panneau de détails : il devient une fenêtre en direct à placer où vous voulez. Vous préférez les détails dans le menu ? Remplacez les panneaux au survol par des sections qui se déplient au clic.",
   "keep-mac-awake.k3a005": "<span class=\"sc-chip-dot\"></span>Garder le Mac éveillé",
   "let-mac-sleep.k3b006": "<span class=\"sc-chip-dot\"></span>Laisser le Mac se suspendre"
 }

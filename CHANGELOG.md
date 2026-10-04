@@ -14,6 +14,7 @@
 ### Added — Pin the menu open, and inline details (Mac)
 - **Pin** (the pin in the popover's footer) keeps Blip's menu up when you click elsewhere, reopens it at launch, and lets you drag it off the menu bar into its own floating window. Clicking the menu bar item still hides it; unpinning returns to the usual close-on-click-away.
 - **Details inside the menu.** Settings → Menu Bar → Layout → *Details* chooses where a section's details appear: *Beside the menu, on hover* (the default, unchanged) or *Inside the menu, on click*, which expands the panel under its row like an accordion, one at a time, with the chevron turning down. Tall panels (Network, Disk) scroll inside the menu instead of pushing it off the screen. Pairs well with Pin.
+- **Pin any detail panel.** Every panel (hover or inline) has a pin in its top corner that tears it off into its own floating window: drag it anywhere, keep several open at once, and they keep live-updating after the menu closes. They reopen where you left them at next launch; click the pin again to close one. Hovering a pinned section's row doesn't stack a second copy beside the menu.
 - The popover now resizes with its content, so inline details and the suggestion banner grow and shrink it smoothly.
 - Both are in Shortcuts' Get/Set Setting (*Detail Panels*: beside/inline, *Pin Menu Open*), translated into all 8 languages.
 
