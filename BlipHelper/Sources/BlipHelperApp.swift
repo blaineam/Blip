@@ -18,6 +18,9 @@ final class BlipHelperAppDelegate: NSObject, NSApplicationDelegate {
         // Register as login item so it starts automatically
         registerLoginItem()
 
+        // A reboot can leave lid-closed sleep off from a past Keep Awake session.
+        KeepAwakeExtrasHost.helper.recoverAfterUncleanExit()
+
         // Start the TCP server
         guard let port = server.start() else {
             NSLog("BlipHelper: Failed to start server")
@@ -28,6 +31,7 @@ final class BlipHelperAppDelegate: NSObject, NSApplicationDelegate {
     }
 
     func applicationWillTerminate(_ notification: Notification) {
+        KeepAwakeExtrasHost.helper.stopAll()
         server.stop()
         SMC.close()
     }
@@ -45,4 +49,9 @@ final class BlipHelperAppDelegate: NSObject, NSApplicationDelegate {
             }
         }
     }
+}
+
+extension KeepAwakeExtrasHost {
+    /// Serves the App Store build's closed-lid and mouse-jiggle requests.
+    static let helper = KeepAwakeExtrasHost(ownerName: "Blip Helper")
 }

@@ -40,6 +40,9 @@ struct HelperRequest: Codable, Sendable {
     // Feature B — Traceroute / MTR (optional for back-compat)
     var action: String? = nil // "start", "stop", "poll" for "traceroute"
     var host: String? = nil // target host/IP for "traceroute" start
+
+    // Feature C — Keep Awake extras for the App Store build (optional for back-compat)
+    var keepAwake: KeepAwakeExtrasRequest? = nil
 }
 
 struct HelperResponse: Codable, Sendable {
@@ -54,6 +57,30 @@ struct HelperResponse: Codable, Sendable {
     // Feature B — Traceroute / MTR result
     var hops: [HelperTraceHop]? = nil // current per-hop stats
     var running: Bool? = nil // whether a traceroute session is active
+
+    // Feature C — Keep Awake extras state
+    var keepAwake: KeepAwakeExtrasStatus? = nil
+}
+
+// MARK: - Keep Awake extras
+
+/// What the client wants from the closed-lid and mouse-jiggle extras. Sent
+/// every ~15 s while Keep Awake is on — it doubles as the helper's heartbeat.
+struct KeepAwakeExtrasRequest: Codable, Sendable, Equatable {
+    var lidClosed: Bool
+    var jiggle: Bool
+    /// Show the system Accessibility prompt for the process that jiggles.
+    var requestJigglePermission: Bool = false
+}
+
+struct KeepAwakeExtrasStatus: Codable, Sendable, Equatable {
+    var lidClosed = false
+    /// The administrator password prompt is up.
+    var lidPending = false
+    /// "cancelled" when the prompt was dismissed, else a failure message.
+    var lidError: String? = nil
+    var jiggle = false
+    var jigglePermission = false
 }
 
 // MARK: - Traceroute / MTR

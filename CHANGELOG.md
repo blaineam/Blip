@@ -2,6 +2,15 @@
 
 ## Unreleased
 
+### Added — Keep Awake (Mac)
+- **An Awake row in the menu** keeps the Mac from sleeping, for 30 minutes, 1, 2 or 4 hours, or until you turn it off. Its switch starts the last duration you picked; hover it for the Keep Awake panel with the duration chips, *Let Mac Sleep*, and the options below. A cup in the menu bar shows while it's on, and a timed session ends itself.
+- **Keep the display on** (default) or let the screen dim and sleep while the Mac keeps running. This is a plain IOKit power assertion, so it works in every build, App Store included.
+- **Stay awake with the lid closed.** Closing a MacBook's lid sleeps it no matter what an app asks, unless `pmset disablesleep` is set, and that needs root. Blip asks for an administrator password once per launch and starts a small root loop that follows a switch file and only ever runs `pmset -a disablesleep 1/0`. Normal sleep comes back when Keep Awake ends, when Blip quits or crashes (the loop watches Blip's process), and on battery at 10% or below. If a reboot ever leaves it on, Blip offers to restore it at next launch.
+- **Jiggle the mouse when idle.** After a minute without input the pointer moves one pixel and straight back, so chat and meeting apps don't mark you away. It never moves while you're using the Mac. Needs Accessibility access; the panel links to the prompt.
+- **App Store build:** lid-closed mode and the jiggler run in Blip Helper (outside the store) over the existing TOTP channel, and only appear once the helper is connected. The App Store binary never escalates privileges or posts events. The helper drops both if Blip stops checking in for a minute.
+- **Shortcuts:** *Keep Mac Awake* (with a duration) and *Let Mac Sleep*, plus *Keep Display On While Awake* and *Jiggle Mouse While Awake* in Get/Set Setting. Lid-closed mode is deliberately not scriptable, because turning it on from a Shortcut would spring a password prompt.
+- Translated into all 8 languages.
+
 ### Fixed — German iOS: Storage and Memory say what they are
 - The German iPhone/iPad app called **Storage** "Festplatte" (hard disk), which an iPhone doesn't have. It is now **Speicher**, as in Apple's own "iPhone-Speicher"; **Memory** moved from "Speicher" to **Arbeitsspeicher** so the two Overview cards no longer compete for one word. The same split runs through the disk-speed heading ("Speichertempo"), the low-memory hint and its chart label, and the Bench and Get Device Snapshot descriptions. Activity Monitor's own "Physischer / Reservierter Speicher" stay. Widgets too. The Mac app keeps "Festplatte" — Macs have disks. Checked on iPhone SE and 17 Pro Max: "Arbeitsspeicher" stays on one line.
 - The German **Speed** tab and screen were called "Tempo" (as in a piece of music), under a "Speedtest starten" button. Tab, screen title, widget and the Settings hint that names the tab now say **Speedtest**; it fits the tab bar on iPhone SE.

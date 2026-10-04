@@ -32,6 +32,7 @@ Existing system monitors are either bloated, expensive, or missing key features.
 | **GPU** | Usage bar + percentage *(optional, off by default)* | Apple Silicon GPU utilization, renderer name, GPU core count, historical usage chart |
 | **Battery** | — | Charge %, health %, cycle count, temperature, time remaining, charging status |
 | **Fans** | — | RPM per fan with min/max range bars, CPU and GPU temperatures |
+| **Keep Awake** | Cup icon while on | Stop the Mac sleeping for 30 min – 4 h or until turned off; keep the display on or let it sleep; **stay awake with the lid closed** (one admin prompt per launch, auto-restored when Keep Awake ends, Blip quits, or at 10% battery); **jiggle the mouse when idle** so apps don't mark you away |
 | **System** | — | Mac model, macOS version, uptime, thermal state, Blip's own memory usage |
 
 Plus:
@@ -40,7 +41,7 @@ Plus:
 - **Two layouts** — horizontal (default, wide side-by-side) or stacked (compact vertical bars)
 - **Customizable** — category colors, monochrome, or custom color picker; separate measurement and value label toggles; optional utilization colorization
 - **Launch at login** — one toggle in settings
-- **Shortcuts support (App Intents)** — automate Blip from the Shortcuts app: **Get System Metric** (37 metrics, chainable numeric results, optional 2-minute average/min/max for charted metrics), **Run Drive Speed Test** on any mounted volume, **Run Network Speed Test** (public or self-hosted OpenSpeedTest), **Run/Stop Traceroute** with an MTR summary, **Open Traceroute Map**, and **Get/Set Setting** over a curated, validated settings catalog
+- **Shortcuts support (App Intents)** — automate Blip from the Shortcuts app: **Get System Metric** (37 metrics, chainable numeric results, optional 2-minute average/min/max for charted metrics), **Run Drive Speed Test** on any mounted volume, **Run Network Speed Test** (public or self-hosted OpenSpeedTest), **Run/Stop Traceroute** with an MTR summary, **Open Traceroute Map**, **Keep Mac Awake** / **Let Mac Sleep**, and **Get/Set Setting** over a curated, validated settings catalog
 
 ## 📱 Blip for iOS / iPadOS
 

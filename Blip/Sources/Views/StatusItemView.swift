@@ -13,6 +13,8 @@ struct StatusItemView: View {
     @AppStorage("showValueLabels") private var showValueLabels = true
     @AppStorage("menuBarLayout") private var menuBarLayout: String = "horizontal"
     @AppStorage("colorizeUtilization") private var colorizeUtilization = true
+    @ObservedObject private var keepAwake = KeepAwake.shared
+    @AppStorage(KeepAwake.Keys.menuBarIndicator) private var showKeepAwakeIndicator = true
 
     var body: some View {
         Group {
@@ -68,6 +70,7 @@ struct StatusItemView: View {
             }
 
             networkDot
+            keepAwakeIndicator
         }
     }
 
@@ -80,6 +83,7 @@ struct StatusItemView: View {
             if showDisk { horizontalItem(label: "HD", value: monitor.snapshot.disk.primaryUsagePercent, color: .orange) }
             if showGPURow { horizontalItem(label: "GPU", value: monitor.snapshot.gpu.utilization, color: .purple) }
             networkDot
+            keepAwakeIndicator
         }
     }
 
@@ -116,6 +120,16 @@ struct StatusItemView: View {
             Circle()
                 .fill(resolvedColor(.green))
                 .frame(width: 4, height: 4)
+        }
+    }
+
+    /// A Mac that won't sleep should say so where the user looks.
+    @ViewBuilder
+    private var keepAwakeIndicator: some View {
+        if keepAwake.isActive && showKeepAwakeIndicator {
+            Image(systemName: "cup.and.saucer.fill")
+                .font(.system(size: 9))
+                .foregroundStyle(resolvedColor(.orange))
         }
     }
 

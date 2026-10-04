@@ -108,6 +108,9 @@ struct SettingsView: View {
                     }
                 }
 
+            KeepAwakeSettingsSection(keepAwake: KeepAwake.shared,
+                                     extrasAvailable: keepAwakeExtrasAvailable(monitor))
+
             Section("Network") {
                 HStack {
                     Text("Ping Target")

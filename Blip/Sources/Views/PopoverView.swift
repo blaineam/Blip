@@ -50,6 +50,7 @@ struct PopoverView: View {
             if monitor.snapshot.battery.isPresent {
                 overviewRow(.battery)
             }
+            overviewRow(.awake)
 
             Divider()
                 .padding(.vertical, 4)
@@ -277,6 +278,8 @@ struct PopoverView: View {
                     percent: monitor.snapshot.battery.level,
                     color: .green
                 )
+            case .awake:
+                KeepAwakeOverviewRow(keepAwake: KeepAwake.shared)
             }
         }
         .background(Color.clear)
@@ -356,5 +359,5 @@ struct PopoverView: View {
 // MARK: - Section Enum (shared with AppDelegate)
 
 enum PopoverSection: String, CaseIterable {
-    case cpu, memory, disk, network, gpu, thermal, battery, bench
+    case cpu, memory, disk, network, gpu, thermal, battery, bench, awake
 }

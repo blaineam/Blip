@@ -7,6 +7,15 @@ struct BlipAppShortcuts: AppShortcutsProvider {
 
     static var appShortcuts: [AppShortcut] {
         AppShortcut(
+            intent: KeepMacAwakeIntent(),
+            phrases: [
+                "Keep my Mac awake with \(.applicationName)",
+                "Stop my Mac sleeping with \(.applicationName)",
+            ],
+            shortTitle: "Keep Awake",
+            systemImageName: "cup.and.saucer"
+        )
+        AppShortcut(
             intent: GetMetricIntent(),
             phrases: [
                 "Get a system metric from \(.applicationName)",

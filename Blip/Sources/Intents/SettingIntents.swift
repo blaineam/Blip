@@ -8,7 +8,9 @@ import Foundation
 // secret-flagged settings — Blip has no secrets today, but the gate is
 // structural so future sensitive settings are never exposed by accident.
 // Deliberately NOT exposed: launchAtLogin (toggling the default alone
-// wouldn't (de)register the SMAppService — it would silently lie).
+// wouldn't (de)register the SMAppService — it would silently lie), and
+// keepAwakeLidClosed (turning it on from a Shortcut would spring an
+// administrator password prompt on the user).
 
 struct BlipSettingDescriptor: Sendable {
     enum Kind: Sendable {
@@ -50,6 +52,9 @@ struct BlipSettingDescriptor: Sendable {
         .init(key: "pingTarget", title: String(localized: "Ping Target"), kind: .string(validate: hostValidator), defaultValue: "1.1.1.1", isSecret: false),
         .init(key: "tracerouteTarget", title: String(localized: "Traceroute Target"), kind: .string(validate: hostValidator), defaultValue: "", isSecret: false),
         .init(key: "speedTestOpenSpeedTestURL", title: String(localized: "Self-Hosted Speed Test Server"), kind: .string(validate: urlValidator), defaultValue: "", isSecret: false),
+        .init(key: KeepAwake.Keys.keepDisplayOn, title: String(localized: "Keep Display On While Awake"), kind: .boolean, defaultValue: "true", isSecret: false),
+        .init(key: KeepAwake.Keys.jiggle, title: String(localized: "Jiggle Mouse While Awake"), kind: .boolean, defaultValue: "false", isSecret: false),
+        .init(key: KeepAwake.Keys.menuBarIndicator, title: String(localized: "Show Keep Awake Cup in Menu Bar"), kind: .boolean, defaultValue: "true", isSecret: false),
         .init(key: "geoipAutoUpdate", title: String(localized: "Auto-Update Location Database"), kind: .boolean, defaultValue: "false", isSecret: false),
         // SECRETS RULE: anything marked isSecret: true is settable but never
         // gettable through Shortcuts. (No secret settings exist yet.)

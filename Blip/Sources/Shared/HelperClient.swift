@@ -176,6 +176,20 @@ final class HelperClient: @unchecked Sendable {
         }
     }
 
+    // MARK: - Keep Awake extras (Feature C)
+
+    /// Asks the helper to run the closed-lid / mouse-jiggle extras. Returns nil
+    /// when the helper is unreachable or predates Keep Awake.
+    func keepAwake(_ wanted: KeepAwakeExtrasRequest) async -> KeepAwakeExtrasStatus? {
+        await withCheckedContinuation { (continuation: CheckedContinuation<KeepAwakeExtrasStatus?, Never>) in
+            queue.async { [self] in
+                var request = HelperRequest(type: "keepAwake", token: TOTP.generate())
+                request.keepAwake = wanted
+                continuation.resume(returning: self.sendRequestSync(request)?.keepAwake)
+            }
+        }
+    }
+
     /// Generic synchronous request/response over the framed TCP channel.
     /// Mirrors `fetchSnapshotSync` but works for any request type and returns
     /// the full decoded (TOTP-validated) response. Runs on `queue`.

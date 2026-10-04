@@ -130,6 +130,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
         setupDetailPanel()
         setupEventMonitor()
         setupLiveRefresh()
+        setupKeepAwake()
         installSettingsMenuOverride()
         monitor.start()
 
@@ -223,6 +224,12 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
     }
 
     func applicationWillTerminate(_ notification: Notification) {
+        KeepAwake.shared.stop()
+        #if !APPSTORE
+        // Synchronous: the root loop sees the session file vanish and restores
+        // lid-closed sleep even though the async stop above won't finish.
+        LocalKeepAwakeExtras.host.stopAll()
+        #endif
         monitor.stop()
         SMC.close()
     }
@@ -467,6 +474,9 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
             BatteryDetailPanel(
                 stats: monitor.snapshot.battery
             )
+        case .awake:
+            KeepAwakeDetailPanel(keepAwake: KeepAwake.shared,
+                                 extrasAvailable: keepAwakeExtrasAvailable(monitor))
         }
     }
 
@@ -633,6 +643,27 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
         DispatchQueue.main.async { [weak self] in
             self?.updateActivationPolicyForOpenWindows()
         }
+    }
+
+    // MARK: - Keep Awake
+
+    private func setupKeepAwake() {
+        let keepAwake = KeepAwake.shared
+        #if APPSTORE
+        keepAwake.extrasBackend = HelperKeepAwakeExtras(client: monitor.helperClient)
+        #else
+        // A reboot can leave lid-closed sleep off from a past session.
+        LocalKeepAwakeExtras.host.recoverAfterUncleanExit()
+        #endif
+        monitor.$snapshot
+            .receive(on: RunLoop.main)
+            .sink { snapshot in
+                let battery = snapshot.battery
+                keepAwake.updateBattery(isPresent: battery.isPresent,
+                                        onBattery: battery.powerSource == "Battery" && !battery.isCharging,
+                                        level: battery.level)
+            }
+            .store(in: &cancellables)
     }
 
     // MARK: - Live Refresh

@@ -192,6 +192,17 @@ final class HelperServer: @unchecked Sendable {
             )
             sendResponse(response, on: connection)
 
+        case "keepAwake":
+            let wanted = request.keepAwake ?? KeepAwakeExtrasRequest(lidClosed: false, jiggle: false)
+            let response = HelperResponse(
+                type: "keepAwake",
+                token: TOTP.generate(),
+                data: nil,
+                message: nil,
+                keepAwake: KeepAwakeExtrasHost.helper.apply(wanted)
+            )
+            sendResponse(response, on: connection)
+
         default:
             sendError("Unknown request type", on: connection)
         }

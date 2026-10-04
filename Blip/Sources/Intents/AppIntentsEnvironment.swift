@@ -50,6 +50,9 @@ enum AppIntentsEnvironment {
     /// Mounted-volume inventory for the VolumeEntity query.
     static var volumesProvider: @MainActor () -> [VolumeInfo] = { DiskMonitor.readVolumes() }
 
+    /// Keep Awake controller (tests swap in one with mock backends).
+    static var keepAwake: KeepAwake = .shared
+
     /// Defaults store for Get/Set Setting (tests use a scratch suite).
     static var defaults: UserDefaults = .standard
 
