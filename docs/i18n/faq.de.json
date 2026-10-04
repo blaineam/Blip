@@ -35,7 +35,7 @@
   "yes-blip-is-on.991f87": "Ja. Blip ist in der gesamten Europäischen Union im App Store, auch in Frankreich, und der direkte Download und das Homebrew-Cask funktionieren überall.",
   "yes-blip-is-open.45f52c": "Ja. Blip ist Open Source, und jede Mac-Version ist von Apple notarisiert. Es gibt keine Analysen, keine Absturzberichte und keine Server: Alles läuft auf deinem Gerät.",
   "yes-blip-stats-2.q77002": "Ja — Blip Stats 2.0 ist eine kostenlose App für Mac, iPhone und iPad. Die iOS-App zeigt Live-Gerätewerte mit Detailansichten, führt Blip Bench aus (inklusive Neural Engine), testet Netzwerk- und Festplattentempo, beherrscht Ping und Traceroute mit Offline-Hop-Karte und bringt Home-Bildschirm-Widgets und Kurzbefehle mit.",
-  "yes-brew-install-cask.730725": "Ja: <code>brew install --cask blaineam/tap/blip</code> installiert die Mac-App aus dem direkten Download.",
+  "yes-brew-install-cask.730725": "Ja: <code>brew install --cask blaineam/tap/blip</code> installiert die Mac-App aus dem direkten Download. Du nutzt die App-Store-Version? <code>brew install --cask blaineam/tap/blip-helper</code> installiert den kostenlosen Blip Helper.",
   "yes-on-every-platform.f595c8": "Ja, auf jeder Plattform. Die App-Store-App für Mac, iPhone und iPad, der direkte Download und das Homebrew-Cask sind alle kostenlos, ohne etwas freizuschalten.",
   "yes-open-settings-from.0f7be7": "Ja. Öffne die Einstellungen über das Zahnrad im Popover und wähle, was angezeigt wird: CPU, Speicher, Festplatte, GPU und den Netzwerkpunkt, mit oder ohne Beschriftung, nebeneinander oder gestapelt und in den Farben, die dir gefallen.",
   "your-devices-vitals-at.cb380c": "Die Werte deiner Geräte, auf einen Blick."

@@ -71,7 +71,7 @@ Some advanced features (fan speeds, temperatures, GPU utilization, disk I/O, top
 
 ```bash
 brew install --cask blaineam/tap/blip
-brew install --cask blaineam/tap/blip-helper   # optional companion helper
+brew install --cask blaineam/tap/blip-helper   # only for the App Store build
 ```
 
 ### Download DMG

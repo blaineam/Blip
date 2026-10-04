@@ -35,7 +35,7 @@
   "yes-blip-is-on.991f87": "可以。Blip 在欧盟各地（包括法国）的 App Store 上架，直接下载版和 Homebrew cask 在任何地方都能用。",
   "yes-blip-is-open.45f52c": "安全。Blip 是开源的，每个 Mac 版本都经过 Apple 公证。没有分析、没有崩溃报告工具、没有服务器：一切都在你的设备上运行。",
   "yes-blip-stats-2.q77002": "有 —— Blip Stats 2.0 是一款免费 App，通用于 Mac、iPhone 和 iPad。iOS 版提供可深入查看的实时设备统计、Blip Bench（含神经网络引擎）、网络与磁盘速度测试、附离线跃点地图的 Ping 和路由跟踪，以及主屏幕小组件与快捷指令。",
-  "yes-brew-install-cask.730725": "可以：<code>brew install --cask blaineam/tap/blip</code> 会安装直接下载版的 Mac App。",
+  "yes-brew-install-cask.730725": "可以：<code>brew install --cask blaineam/tap/blip</code> 会安装直接下载版的 Mac App。使用的是 App Store 版本？<code>brew install --cask blaineam/tap/blip-helper</code> 会安装免费的 Blip Helper。",
   "yes-on-every-platform.f595c8": "是的，所有平台都免费。App Store 上的 Mac、iPhone 和 iPad App、直接下载版以及 Homebrew cask 全部免费，没有任何需要解锁的内容。",
   "yes-open-settings-from.0f7be7": "可以。从弹出面板中的齿轮打开“设置”，选择要显示的项目：CPU、内存、磁盘、GPU 和网络指示点，可带或不带标签，横排或堆叠布局，颜色也随你喜欢。",
   "your-devices-vitals-at.cb380c": "设备的运行状态，一目了然。"

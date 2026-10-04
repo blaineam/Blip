@@ -181,7 +181,7 @@
   "writing.969b46": "写入中…",
   "yes-blip-is-on.991f87": "可以。Blip 在欧盟各地（包括法国）的 App Store 上架，直接下载版和 Homebrew cask 在任何地方都能用。",
   "yes-blip-is-open.45f52c": "安全。Blip 是开源的，每个 Mac 版本都经过 Apple 公证。没有分析、没有崩溃报告工具、没有服务器：一切都在你的设备上运行。",
-  "yes-brew-install-cask.730725": "可以：<code>brew install --cask blaineam/tap/blip</code> 会安装直接下载版的 Mac App。",
+  "yes-brew-install-cask.730725": "可以：<code>brew install --cask blaineam/tap/blip</code> 会安装直接下载版的 Mac App。使用的是 App Store 版本？<code>brew install --cask blaineam/tap/blip-helper</code> 会安装免费的 Blip Helper。",
   "yes-on-every-platform.f595c8": "是的，所有平台都免费。App Store 上的 Mac、iPhone 和 iPad App、直接下载版以及 Homebrew cask 全部免费，没有任何需要解锁的内容。",
   "your-devices-vitals-at.cb380c": "设备的运行状态，一目了然。",
   "zero-kb.75be7e": "零 KB"

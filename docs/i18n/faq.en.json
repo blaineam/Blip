@@ -35,7 +35,7 @@
   "yes-blip-is-on.991f87": "Yes. Blip is on the App Store everywhere in the European Union, France included, and the direct download and Homebrew cask work everywhere.",
   "yes-blip-is-open.45f52c": "Yes. Blip is open source and every Mac release is notarized by Apple. There are no analytics, no crash reporters and no servers: everything runs on your device.",
   "yes-blip-stats-2.q77002": "Yes — Blip Stats 2.0 is one free app across Mac, iPhone, and iPad. The iOS app shows live device stats with drill-in details, runs Blip Bench (including the Neural Engine), tests network and disk speed, does ping and traceroute with an offline hop map, and ships Home Screen widgets and Shortcuts.",
-  "yes-brew-install-cask.730725": "Yes: <code>brew install --cask blaineam/tap/blip</code> installs the direct-download Mac app.",
+  "yes-brew-install-cask.730725": "Yes: <code>brew install --cask blaineam/tap/blip</code> installs the direct-download Mac app. Using the App Store version? <code>brew install --cask blaineam/tap/blip-helper</code> installs the free Blip Helper.",
   "yes-on-every-platform.f595c8": "Yes, on every platform. The App Store app for Mac, iPhone and iPad, the direct download and the Homebrew cask are all free, with nothing to unlock.",
   "yes-open-settings-from.0f7be7": "Yes. Open Settings from the gear in the popover and choose which items show: CPU, Memory, Disk, GPU and the network dot, with or without labels, in a horizontal or stacked layout and the colors you like.",
   "your-devices-vitals-at.cb380c": "Your devices' vitals, at a glance."

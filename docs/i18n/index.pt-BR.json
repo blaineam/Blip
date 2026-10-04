@@ -181,7 +181,7 @@
   "writing.969b46": "Gravando…",
   "yes-blip-is-on.991f87": "Sim. O Blip está na App Store em toda a União Europeia, França incluída, e o download direto e o cask do Homebrew funcionam em qualquer lugar.",
   "yes-blip-is-open.45f52c": "Sim. O Blip é de código aberto e cada versão para Mac é notarizada pela Apple. Não há análises, relatórios de falhas nem servidores: tudo roda no seu dispositivo.",
-  "yes-brew-install-cask.730725": "Sim: <code>brew install --cask blaineam/tap/blip</code> instala o app de Mac do download direto.",
+  "yes-brew-install-cask.730725": "Sim: <code>brew install --cask blaineam/tap/blip</code> instala o app de Mac do download direto. Usa a versão da App Store? <code>brew install --cask blaineam/tap/blip-helper</code> instala o Blip Helper gratuito.",
   "yes-on-every-platform.f595c8": "Sim, em todas as plataformas. O app da App Store para Mac, iPhone e iPad, o download direto e o cask do Homebrew são todos gratuitos, sem nada para desbloquear.",
   "your-devices-vitals-at.cb380c": "Os sinais vitais dos seus dispositivos, num relance.",
   "zero-kb.75be7e": "Zero KB"

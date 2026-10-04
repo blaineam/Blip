@@ -181,7 +181,7 @@
   "writing.969b46": "쓰는 중…",
   "yes-blip-is-on.991f87": "네. Blip은 프랑스를 포함한 유럽 연합 전역의 App Store에 있으며, 직접 다운로드와 Homebrew cask는 어디서나 사용할 수 있습니다.",
   "yes-blip-is-open.45f52c": "네. Blip은 오픈 소스이며 모든 Mac 릴리스는 Apple의 공증을 받습니다. 분석도, 충돌 리포터도, 서버도 없이 모든 것이 기기에서 실행됩니다.",
-  "yes-brew-install-cask.730725": "네. <code>brew install --cask blaineam/tap/blip</code> 명령으로 직접 다운로드용 Mac 앱이 설치됩니다.",
+  "yes-brew-install-cask.730725": "네. <code>brew install --cask blaineam/tap/blip</code> 명령으로 직접 다운로드용 Mac 앱이 설치됩니다. App Store 버전을 사용 중이라면 <code>brew install --cask blaineam/tap/blip-helper</code> 명령으로 무료 Blip Helper를 설치할 수 있습니다.",
   "yes-on-every-platform.f595c8": "네, 모든 플랫폼에서요. Mac, iPhone, iPad용 App Store 앱, 직접 다운로드 버전, Homebrew cask 모두 무료이며 잠금 해제할 것도 없습니다.",
   "your-devices-vitals-at.cb380c": "기기의 상태를 한눈에.",
   "zero-kb.75be7e": "0KB"

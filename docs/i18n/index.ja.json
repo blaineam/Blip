@@ -181,7 +181,7 @@
   "writing.969b46": "書き込み中…",
   "yes-blip-is-on.991f87": "はい。Blip はフランスを含む EU 全域の App Store で配信しています。直接ダウンロード版と Homebrew の cask はどこでも使えます。",
   "yes-blip-is-open.45f52c": "はい。Blip はオープンソースで、Mac 版のリリースはすべて Apple の公証を受けています。解析もクラッシュレポーターもサーバーもなく、すべてがあなたのデバイスの中で動きます。",
-  "yes-brew-install-cask.730725": "はい。<code>brew install --cask blaineam/tap/blip</code> で直接ダウンロード版の Mac アプリがインストールされます。",
+  "yes-brew-install-cask.730725": "はい。<code>brew install --cask blaineam/tap/blip</code> で直接ダウンロード版の Mac アプリがインストールされます。App Store 版をお使いの場合は、<code>brew install --cask blaineam/tap/blip-helper</code> で無料の Blip Helper をインストールできます。",
   "yes-on-every-platform.f595c8": "はい、すべてのプラットフォームで。Mac・iPhone・iPad 向けの App Store 版、直接ダウンロード版、Homebrew cask はどれも無料で、解除が必要なものは何もありません。",
   "your-devices-vitals-at.cb380c": "デバイスの状態を、ひと目で。",
   "zero-kb.75be7e": "0 KB"
