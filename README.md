@@ -98,11 +98,27 @@ The app lands in `.build/DerivedData/Build/Products/Release/Blip.app`.
 ### Run the Tests
 
 ```bash
+xcodegen generate                    # the .xcodeproj is generated, not committed
 xcodebuild test -scheme Blip -destination 'platform=macOS,arch=arm64'
 
-# Or with the coverage ratchet (fails below the gated minimum):
+# The same Mac tests compiled as the App Store variant (exercises the #if APPSTORE paths):
+xcodebuild test -scheme Blip -destination 'platform=macOS,arch=arm64' \
+  'SWIFT_ACTIVE_COMPILATION_CONDITIONS=DEBUG APPSTORE' -derivedDataPath /tmp/blip-appstore-dd
+
+# iOS app + widgets (also runs the cross-platform tests in BlipTests/CrossPlatform):
+xcodebuild test -scheme BlipMobile -destination 'platform=iOS Simulator,name=iPhone 17 Pro'
+
+# Coverage ratchet (fails below the gated minimum):
 ./Scripts/coverage-check.sh
+
+# Localization + website consistency (string catalogs, Info.plist dev region, docs/ i18n):
+node --test Scripts/checks.test.mjs
 ```
+
+Everything above is wired into Soren (`soren.config.mjs`): `unit`, `appstore-unit`, `mobile`,
+`appstore`, `helper`, `coverage`, `l10n`, `web-syntax` and `web`. All tests are hermetic — network
+tests use in-process loopback servers, privileged paths (password prompt, `pmset`, the helper)
+use fakes.
 
 ### Build DMG Locally
 
@@ -176,10 +192,15 @@ Blip/
 │       ├── Assets.xcassets
 │       ├── Info.plist
 │       └── Blip.entitlements
-├── BlipTests/                           # Hermetic unit tests (intents, models)
+├── BlipTests/                           # Hermetic Mac unit tests
+│   ├── CrossPlatform/                   #   also compiled into BlipMobileTests
+│   └── Support/                         #   MMDB fixture builder, loopback HTTP server
+├── BlipMobileTests/                     # iOS unit tests (simulator)
 ├── Scripts/
 │   ├── build-dmg.sh                     # Local build + package
 │   ├── coverage-check.sh                # App-logic coverage ratchet (xccov)
+│   ├── check-l10n.mjs                   # String catalog / Info.plist gate
+│   ├── check-site-i18n.mjs              # docs/ i18n + manifest gate
 │   └── generate-assets.swift            # App icon generator
 ├── .github/workflows/
 │   ├── ci.yml                           # PR build + QA checks
