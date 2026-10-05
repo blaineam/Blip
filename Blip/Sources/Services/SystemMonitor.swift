@@ -125,13 +125,9 @@ final class SystemMonitor: ObservableObject {
         }
         return await helperClient.killProcess(pid: pid, force: force)
         #else
-        let result = kill(pid, force ? SIGKILL : SIGTERM)
-        if result == 0 { return (true, force ? "Force killed" : "Terminated") }
-        switch errno {
-        case EPERM: return (false, "Permission denied (system process)")
-        case ESRCH: return (false, "Process no longer running")
-        default:    return (false, "Failed (errno \(errno))")
-        }
+        // Same rules as the helper's route, including refusing pid <= 1: kill(0) would
+        // signal Blip's own process group and kill(-1) every process the user owns.
+        return ProcessSignaller.terminate(pid, force: force)
         #endif
     }
 
