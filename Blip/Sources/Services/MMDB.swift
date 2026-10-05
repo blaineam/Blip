@@ -51,14 +51,21 @@ struct MMDBReader: @unchecked Sendable {
         guard case let .map(m) = meta,
               case let .uint(nc)? = m["node_count"],
               case let .uint(rs)? = m["record_size"],
-              case let .uint(iv)? = m["ip_version"]
+              case let .uint(iv)? = m["ip_version"],
+              let nodeCount = Int(exactly: nc), nodeCount > 0,
+              iv == 4 || iv == 6
         else { throw Error.badMetadata }
 
-        self.nodeCount = Int(nc)
+        guard rs == 24 || rs == 28 || rs == 32 else { throw Error.unsupportedRecordSize }
+        self.nodeCount = nodeCount
         self.recordSize = Int(rs)
         self.ipVersion = Int(iv)
-        guard rs == 24 || rs == 28 || rs == 32 else { throw Error.unsupportedRecordSize }
         self.nodeByteSize = Int(rs) * 2 / 8
+
+        // The search tree and its 16-byte separator must fit before the metadata — a
+        // truncated or corrupt file must not send tree walks past the end of the data.
+        let (treeSize, overflow) = nodeCount.multipliedReportingOverflow(by: Int(rs) * 2 / 8)
+        guard !overflow, treeSize <= metaStart - marker.count - 16 else { throw Error.badMetadata }
 
         if case let .string(t)? = m["database_type"] { self.databaseType = t } else { self.databaseType = "" }
         if case let .uint(e)? = m["build_epoch"] { self.buildEpoch = e } else { self.buildEpoch = 0 }
@@ -215,7 +222,20 @@ private struct Decoder {
     let base: Int          // data.startIndex
     let sectionStart: Int  // offset (relative to base) where this section begins
 
-    private func byte(_ off: Int) -> UInt8 { data[base + sectionStart + off] }
+    /// Out-of-range reads (corrupt pointers / sizes in an untrusted file) yield 0 rather
+    /// than trapping; callers bound sizes and recursion so a bad file decodes to garbage
+    /// values, never a crash or a hang.
+    private func byte(_ off: Int) -> UInt8 {
+        let i = base + sectionStart + off
+        guard off >= 0, i >= data.startIndex, i < data.endIndex else { return 0 }
+        return data[i]
+    }
+
+    /// Bytes available from `off` to the end of the data.
+    private func remaining(_ off: Int) -> Int { max(0, data.endIndex - (base + sectionStart + off)) }
+
+    /// Real databases nest a handful of levels deep; anything deeper is corrupt.
+    private static let maxDepth = 32
     private func readUInt(_ off: Int, _ n: Int) -> UInt64 {
         var v: UInt64 = 0
         for i in 0..<n { v = (v << 8) | UInt64(byte(off + i)) }
@@ -224,7 +244,8 @@ private struct Decoder {
 
     /// Decode the value at `offset` (relative to the section start). Returns the
     /// value and the offset just past it.
-    func decode(at offset: Int) -> (value: MMDBValue, next: Int) {
+    func decode(at offset: Int, depth: Int = 0) -> (value: MMDBValue, next: Int) {
+        guard depth <= Self.maxDepth, offset >= 0, remaining(offset) > 0 else { return (.null, offset + 1) }
         var off = offset
         let ctrl = Int(byte(off)); off += 1
         var type = ctrl >> 5
@@ -241,7 +262,7 @@ private struct Decoder {
             case 2: ptr = (low3 << 24) | Int(readUInt(off, 3)); off += 3; ptr += 526336
             default: ptr = Int(readUInt(off, 4)); off += 4
             }
-            let target = decode(at: ptr).value
+            let target = decode(at: ptr, depth: depth + 1).value
             return (target, off)
         }
 
@@ -254,6 +275,10 @@ private struct Decoder {
             default: size = 65821 + Int(readUInt(off, 3)); off += 3
             }
         }
+
+        // Every type below consumes `size` payload bytes (maps/arrays at least one per
+        // element); a size the file can't hold is corruption.
+        if type != 14, size > remaining(off) { return (.null, off) }
 
         switch type {
         case 2: // UTF-8 string
@@ -273,8 +298,8 @@ private struct Decoder {
         case 7: // map
             var dict = [String: MMDBValue](); dict.reserveCapacity(size)
             for _ in 0..<size {
-                let k = decode(at: off); off = k.next
-                let v = decode(at: off); off = v.next
+                let k = decode(at: off, depth: depth + 1); off = k.next
+                let v = decode(at: off, depth: depth + 1); off = v.next
                 if case let .string(key) = k.value { dict[key] = v.value }
             }
             return (.map(dict), off)
@@ -288,7 +313,7 @@ private struct Decoder {
             return (.int(Int64(bitPattern: v)), off)
         case 11: // array
             var arr = [MMDBValue](); arr.reserveCapacity(size)
-            for _ in 0..<size { let e = decode(at: off); off = e.next; arr.append(e.value) }
+            for _ in 0..<size { let e = decode(at: off, depth: depth + 1); off = e.next; arr.append(e.value) }
             return (.array(arr), off)
         case 14: // bool (value encoded in size: 0/1)
             return (.bool(size != 0), off)

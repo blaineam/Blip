@@ -273,21 +273,27 @@ enum Gzip {
         }
         // Parse the gzip header to find where the raw DEFLATE stream begins.
         let flg = input[input.startIndex + 3]
+        let deflateEnd = input.count - 8   // strip CRC32 + ISIZE trailer
+        // Header fields are walked with bounds checks: a malformed header (an unterminated
+        // FNAME, an FEXTRA length past the end) is "not gzip", never an out-of-range read.
+        func at(_ i: Int) throws -> UInt8 {
+            guard i < deflateEnd else { throw Error.notGzip }
+            return input[input.startIndex + i]
+        }
         var p = 10
         if flg & 0x04 != 0 {   // FEXTRA
-            let xlen = Int(input[input.startIndex + p]) | (Int(input[input.startIndex + p + 1]) << 8)
+            let xlen = Int(try at(p)) | (Int(try at(p + 1)) << 8)
             p += 2 + xlen
         }
         if flg & 0x08 != 0 {   // FNAME (zero-terminated)
-            while input[input.startIndex + p] != 0 { p += 1 }; p += 1
+            while try at(p) != 0 { p += 1 }; p += 1
         }
         if flg & 0x10 != 0 {   // FCOMMENT (zero-terminated)
-            while input[input.startIndex + p] != 0 { p += 1 }; p += 1
+            while try at(p) != 0 { p += 1 }; p += 1
         }
         if flg & 0x02 != 0 { p += 2 }   // FHCRC
 
         let deflateStart = p
-        let deflateEnd = input.count - 8   // strip CRC32 + ISIZE trailer
         guard deflateEnd > deflateStart else { throw Error.notGzip }
 
         FileManager.default.createFile(atPath: dest.path, contents: nil)
@@ -321,6 +327,9 @@ enum Gzip {
                 if produced > 0 { fh.write(Data(bytes: dstBuf, count: produced)) }
                 if status == COMPRESSION_STATUS_END { break }
                 if status == COMPRESSION_STATUS_ERROR { thrown = Error.inflateFailed; break }
+                // Input exhausted without reaching the end of the stream (truncated file):
+                // no further call can make progress.
+                if produced == 0 && stream.src_size == 0 { thrown = Error.inflateFailed; break }
             }
         }
         if let thrown { throw thrown }
