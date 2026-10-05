@@ -227,6 +227,10 @@ targets:
     deploymentTarget: "17.0"
     sources:
       - path: BlipMobileTests
+      # Tests for code both apps compile (MMDB reader, connection grades, ICMP probe) and
+      # their Foundation-only fixtures run on iOS too.
+      - path: BlipTests/CrossPlatform
+      - path: BlipTests/Support
     dependencies:
       - target: BlipMobile
 
