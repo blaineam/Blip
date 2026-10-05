@@ -97,7 +97,9 @@ final class MobileDiskBench: ObservableObject {
         }
         try handle.synchronize()   // include the flush — honesty over flattery
         let elapsed = CFAbsoluteTimeGetCurrent() - start
-        guard written > 0, elapsed > 0.2 else { throw CocoaError(.fileWriteUnknown) }
+        // Fast storage can finish the whole 512 MB in under 0.2 s; that's a result, not a
+        // failure ("The file couldn't be saved" on a fast drive was the old behaviour).
+        guard written > 0, elapsed > 0 else { throw CocoaError(.fileWriteUnknown) }
         return Double(written) / elapsed / 1_048_576
     }
 
@@ -116,7 +118,7 @@ final class MobileDiskBench: ObservableObject {
             live(Double(read) / max(elapsed, 0.05) / 1_048_576)
         }
         let elapsed = CFAbsoluteTimeGetCurrent() - start
-        guard read > 0, elapsed > 0.05 else { throw CocoaError(.fileReadUnknown) }
+        guard read > 0, elapsed > 0 else { throw CocoaError(.fileReadUnknown) }
         return Double(read) / elapsed / 1_048_576
     }
 }
