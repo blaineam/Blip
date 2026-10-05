@@ -1,6 +1,8 @@
 # Changelog
 
-## Unreleased
+## 2.0.7 — 2026-10-04 (direct download + Homebrew)
+
+GitHub/Homebrew only, for the Blip Helper icon; the Mac App Store stays on 2.0.6.
 
 ### Fixed — Blip Helper had no icon
 - Blip Helper shipped without an app icon (Finder, Homebrew installs, the Accessibility list and Login Items all showed the generic app). Its target asked the asset compiler for an icon named "Blip" while its catalog only had "AppIcon", so nothing was compiled. It now has its own Icon Composer icon, `BlipHelper.icon`: the yellow bolt and gauge as a glass layer over Blip's navy gradient, so it matches Blip's Liquid Glass icon.
