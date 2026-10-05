@@ -65,7 +65,7 @@ Same repo, same `xcodegen` project: build the `BlipMobile` scheme. Ships on the 
 
 Blip is available free on the Mac App Store as **Blip Stats** — the same app as the direct download and Homebrew builds.
 
-[![Download on the Mac App Store](https://toolbox.marketingtools.apple.com/api/badges/download-on-the-mac-app-store/black/en-us)](https://apps.apple.com/us/app/blip-stats/id6762329495)
+[![Download on the Mac App Store](docs/assets/badges/download-on-the-mac-app-store.svg)](https://apps.apple.com/us/app/blip-stats/id6762329495)
 
 The App Store build is sandboxed, so some advanced features (fan speeds, temperatures, GPU utilization, disk I/O, top processes) need the free [Blip Helper](https://github.com/blaineam/blip/releases/latest/download/BlipHelper.dmg) companion app. The direct download and Homebrew builds read them on their own.
 
