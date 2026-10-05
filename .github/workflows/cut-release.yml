@@ -34,6 +34,7 @@ jobs:
         env:
           V: ${{ inputs.version }}
           RC: ${{ inputs.rc }}
+          PLATFORMS: ${{ inputs.platforms }}
         run: |
           set -euo pipefail
           [[ "$V" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]] || { echo "::error::version must be X.Y.Z"; exit 1; }
@@ -41,8 +42,15 @@ jobs:
           TAG="v$V"; [ -n "$RC" ] && TAG="v$V-rc.$RC"
           git rev-parse -q --verify "refs/tags/$TAG" >/dev/null && { echo "::error::$TAG already exists"; exit 1; }
           if [ -z "$RC" ]; then
-            NOTES=$(awk '/^## whats_new$/{f=1;next} /^## /{f=0} f&&NF{print;exit}' appstore-metadata.md)
-            [[ "$NOTES" == "$V"* ]] || { echo "::error::appstore-metadata.md whats_new starts with '$NOTES' — write the $V notes first"; exit 1; }
+            # Same rule as asc-autosubmit: each platform being cut ships its own
+            # `## whats_new_<platform>` when the file has one, else the shared `## whats_new`.
+            for P in $(echo "${PLATFORMS:-mac,ios}" | tr ',' ' '); do
+              case "$P" in mac) SFX=macos ;; ios) SFX=ios ;; *) echo "::error::unknown platform '$P'"; exit 1 ;; esac
+              KEY="whats_new_$SFX"
+              grep -q "^## $KEY\s*$" appstore-metadata.md || KEY=whats_new
+              NOTES=$(awk -v k="## $KEY" '$0==k{f=1;next} /^## /{f=0} f&&NF{print;exit}' appstore-metadata.md)
+              [[ "$NOTES" == "$V"* ]] || { echo "::error::appstore-metadata.md $KEY starts with '$NOTES' — write the $V notes first"; exit 1; }
+            done
           fi
           python3 - <<PY
           import plistlib
