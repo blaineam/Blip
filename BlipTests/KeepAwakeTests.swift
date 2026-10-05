@@ -175,6 +175,7 @@ final class KeepAwakeTests: XCTestCase {
         XCTAssertFalse(k.isActive)
     }
 
+    #if !APPSTORE   // the lid-closed root loop isn't compiled into the App Store build
     func testPmsetParsing() {
         let on = "System-wide power settings:\n SleepDisabled\t\t1\nCurrently in use:\n standby 1\n"
         let off = "System-wide power settings:\n SleepDisabled\t\t0\n"
@@ -190,4 +191,5 @@ final class KeepAwakeTests: XCTestCase {
         XCTAssertFalse(LidClosedSleep.isShellSafe("/tmp/$(id)"))
         XCTAssertEqual(LidClosedSleep.appleScriptEscaped(#"say "hi" \ there"#), #"say \"hi\" \\ there"#)
     }
+    #endif
 }

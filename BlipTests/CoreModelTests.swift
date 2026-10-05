@@ -132,6 +132,7 @@ final class CoreModelTests: XCTestCase {
 
     // MARK: netstat parsing
 
+    #if !APPSTORE   // the App Store build gets these totals from Blip Helper instead
     func testParseNetstatTotals() {
         let output = """
         Name       Mtu   Network       Address            Ipkts Ierrs     Ibytes    Opkts Oerrs     Obytes  Coll
@@ -146,6 +147,7 @@ final class CoreModelTests: XCTestCase {
         XCTAssertEqual(totals.down, 6_250_000_000)
         XCTAssertEqual(totals.up, 1_550_000_000)
     }
+    #endif
 
     // MARK: Helper IPC framing + wire types
 
