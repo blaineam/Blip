@@ -76,6 +76,8 @@ jobs:
     # rc → TestFlight-only: ensure the Xcode Cloud build of the tagged commit exists and reaches
     # VALID (testers have it); no App Store version or review. Full releases submit as before.
     if: ${{ github.event.inputs.platforms == '' || github.event.inputs.platforms == null || contains(github.event.inputs.platforms, 'mac') }}
+    outputs:
+      submitted: ${{ steps.submit.outputs.submitted }}
     runs-on: ubuntu-latest
     timeout-minutes: 240
     steps:
@@ -98,6 +100,7 @@ jobs:
         if: steps.gate.outputs.ready == 'true'
         with: { node-version: "22" }
       - name: Submit Blip for Mac
+        id: submit
         if: steps.gate.outputs.ready == 'true'
         env:
           ASC_API_KEY_ID: ${{ secrets.ASC_API_KEY_ID }}
@@ -117,11 +120,14 @@ jobs:
           node Scripts/asc-autosubmit.mjs --version "$VERSION" --commit "$COMMIT" --tag "v$VERSION" \
             --bundle-id com.blainemiller.Blip --platforms MAC_OS \
             --wait-build 120 --wait-process 45 --notes-dir . "${extra[@]}"
+          echo "submitted=true" >> "$GITHUB_OUTPUT"
 
   submit-ios:
     needs: meta
     # The iOS twin of submit-mac — Blip for iOS ships from the same tag.
     if: ${{ github.event.inputs.platforms == '' || github.event.inputs.platforms == null || contains(github.event.inputs.platforms, 'ios') }}
+    outputs:
+      submitted: ${{ steps.submit.outputs.submitted }}
     runs-on: ubuntu-latest
     timeout-minutes: 240
     steps:
@@ -144,6 +150,7 @@ jobs:
         if: steps.gate.outputs.ready == 'true'
         with: { node-version: "22" }
       - name: Submit Blip for iOS
+        id: submit
         if: steps.gate.outputs.ready == 'true'
         env:
           ASC_API_KEY_ID: ${{ secrets.ASC_API_KEY_ID }}
@@ -163,3 +170,55 @@ jobs:
           node Scripts/asc-autosubmit.mjs --version "$VERSION" --commit "$COMMIT" --tag "v$VERSION" \
             --bundle-id com.blainemiller.Blip --platforms IOS \
             --wait-build 120 --wait-process 45 --notes-dir . "${extra[@]}"
+          echo "submitted=true" >> "$GITHUB_OUTPUT"
+
+  # Only now — with the tagged commit's Xcode Cloud build attached and submitted on every lane
+  # that ran — may main move on. cut-release used to push this bump seconds after tagging; Xcode
+  # Cloud cancels a branch's in-flight run on every push, so the tagged commit got no build and
+  # the lane found only NEXT-version builds ("built marketing version X.Y.Z+1" — Blip 2.0.2 and
+  # 2.0.6). Ported from Haven (cb5373a5). Apple closes the released train on approval and XCC
+  # builds every main push, so main must not linger on the released version either. rc tags keep
+  # the version (train still open). A failed lane leaves main alone: fix, re-run that lane, and
+  # this job follows. Runs with GITHUB_TOKEN, so the push triggers no other GitHub workflow.
+  bump-version:
+    needs: [meta, submit-mac, submit-ios]
+    if: >-
+      ${{ always() && needs.meta.result == 'success'
+          && needs.meta.outputs.is_rc != 'true' && github.event.inputs.dry_run != 'true'
+          && needs.submit-mac.result != 'failure' && needs.submit-mac.result != 'cancelled'
+          && needs.submit-ios.result != 'failure' && needs.submit-ios.result != 'cancelled'
+          && (needs.submit-mac.outputs.submitted == 'true' || needs.submit-ios.outputs.submitted == 'true') }}
+    permissions:
+      contents: write
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with: { fetch-depth: 0 }
+      - name: Move main to the next patch version
+        env:
+          V: ${{ needs.meta.outputs.version }}
+          COMMIT: ${{ needs.meta.outputs.commit }}
+        run: |
+          set -euo pipefail
+          git fetch -q origin main
+          TIP=$(git rev-parse origin/main)
+          if [ "$TIP" != "$COMMIT" ]; then
+            echo "::notice title=version bump skipped::main moved past the released commit (${TIP:0:10} vs ${COMMIT:0:10}) — bump it by hand if it's still on $V"
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git checkout -q -B main origin/main
+          NEXT="${V%.*}.$(( ${V##*.} + 1 ))"
+          python3 - <<PY
+          import plistlib
+          for p in ('Blip/Resources/Info.plist', 'BlipHelper/Resources/Info.plist',
+                    'BlipMobile/Resources/Info.plist', 'BlipMobileWidgets/Resources/Info.plist'):
+              d = plistlib.load(open(p, 'rb'))
+              d['CFBundleShortVersionString'] = "$NEXT"
+              plistlib.dump(d, open(p, 'wb'))
+          print("main ->", "$NEXT")
+          PY
+          git add -A && git commit -q -m "back to development: $NEXT (the $V train closes on approval)" && git push origin HEAD:main
+          echo "::notice title=version bump::main is now $NEXT"
+          echo "- 🔁 main moved to $NEXT (the $V train closes on approval)" >> "$GITHUB_STEP_SUMMARY"
