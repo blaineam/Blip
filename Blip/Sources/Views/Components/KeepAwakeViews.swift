@@ -15,20 +15,12 @@ func keepAwakeHelperNeedsUpdate(_ monitor: SystemMonitor?) -> Bool {
     keepAwakeHelperState(monitor) == .outdated
 }
 
-enum KeepAwakeHelperState { case ready, outdated, absent }
-
-/// First helper release that serves the `keepAwake` request.
-let keepAwakeMinimumHelperVersion = "2.0.5"
-
 @MainActor
 func keepAwakeHelperState(_ monitor: SystemMonitor?) -> KeepAwakeHelperState {
     #if APPSTORE
-    guard let client = monitor?.helperClient, client.isConnected else { return .absent }
-    guard let version = client.latestSnapshot?.helperVersion, !version.isEmpty,
-          version.compare(keepAwakeMinimumHelperVersion, options: .numeric) != .orderedAscending else {
-        return .outdated
-    }
-    return .ready
+    guard let client = monitor?.helperClient else { return .absent }
+    return HelperVersionGate.keepAwakeState(connected: client.isConnected,
+                                            helperVersion: client.latestSnapshot?.helperVersion)
     #else
     return .ready
     #endif

@@ -151,9 +151,8 @@ final class GeoIPDatabase: ObservableObject {
 
     /// Candidate monthly files as (tag, URL), newest first. DB-IP keeps only the most
     /// recent months, so the current month may 404 until it's published.
-    private static func candidateMonths() -> [(tag: String, url: URL)] {
+    static func candidateMonths(now: Date = Date()) -> [(tag: String, url: URL)] {
         let cal = Calendar(identifier: .gregorian)
-        let now = Date()
         var out: [(String, URL)] = []
         for back in 0...3 {
             guard let d = cal.date(byAdding: .month, value: -back, to: now) else { continue }
@@ -262,7 +261,7 @@ private final class GeoIPDownloader: NSObject, URLSessionDownloadDelegate, @unch
 
 // MARK: - Gzip (streaming inflate via the Compression framework)
 
-private enum Gzip {
+enum Gzip {
     enum Error: Swift.Error { case notGzip, inflateFailed }
 
     /// Inflate a gzip file to `dest`, streaming so peak memory stays small.

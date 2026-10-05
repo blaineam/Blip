@@ -15,15 +15,15 @@ enum TOTP {
     private static let period: UInt64 = 30
     private static let digits = 6
 
-    /// Generate a TOTP token for the current time window.
-    static func generate() -> String {
-        let counter = UInt64(Date().timeIntervalSince1970) / period
+    /// Generate a TOTP token for the current time window (`at` is a test seam).
+    static func generate(at date: Date = Date()) -> String {
+        let counter = UInt64(date.timeIntervalSince1970) / period
         return code(for: counter)
     }
 
-    /// Validate a TOTP token, allowing +/- 1 time step drift.
-    static func validate(_ token: String) -> Bool {
-        let counter = UInt64(Date().timeIntervalSince1970) / period
+    /// Validate a TOTP token, allowing +/- 1 time step drift (`at` is a test seam).
+    static func validate(_ token: String, at date: Date = Date()) -> Bool {
+        let counter = UInt64(date.timeIntervalSince1970) / period
         for offset: Int64 in [-1, 0, 1] {
             let c = UInt64(max(0, Int64(counter) + offset))
             if code(for: c) == token {

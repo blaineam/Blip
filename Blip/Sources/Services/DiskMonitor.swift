@@ -307,20 +307,6 @@ final class DiskMonitor: @unchecked Sendable {
         return drives
     }
 
-    private struct NVMeSMARTLog {
-        var criticalWarning: UInt8
-        var temperatureKelvin: UInt16
-        var availableSpare: UInt8
-        var spareThreshold: UInt8
-        var percentUsed: UInt8
-        var dataUnitsRead: UInt64
-        var dataUnitsWritten: UInt64
-        var powerCycles: UInt64
-        var powerOnHours: UInt64
-        var unsafeShutdowns: UInt64
-        var mediaErrors: UInt64
-    }
-
     /// Reads the 512-byte NVMe SMART/Health log via the IONVMeSMARTUserClient plug-in.
     /// `SMARTReadData` sits at vtable byte offset 40 (IUNKNOWN_C_GUTS + UInt16
     /// version/revision); `Release` at offset 24.
@@ -350,22 +336,7 @@ final class DiskMonitor: @unchecked Sendable {
         let result = buffer.withUnsafeMutableBytes { readData(ifaceRaw, $0.baseAddress) }
         guard result == kIOReturnSuccess else { return nil }
 
-        return buffer.withUnsafeBytes { raw -> NVMeSMARTLog in
-            func u64(_ off: Int) -> UInt64 { raw.loadUnaligned(fromByteOffset: off, as: UInt64.self) }
-            return NVMeSMARTLog(
-                criticalWarning: raw[0],
-                temperatureKelvin: raw.loadUnaligned(fromByteOffset: 1, as: UInt16.self),
-                availableSpare: raw[3],
-                spareThreshold: raw[4],
-                percentUsed: raw[5],
-                dataUnitsRead: u64(32),
-                dataUnitsWritten: u64(48),
-                powerCycles: u64(112),
-                powerOnHours: u64(128),
-                unsafeShutdowns: u64(144),
-                mediaErrors: u64(160)
-            )
-        }
+        return NVMeSMARTLog(bytes: buffer)
     }
 
     /// Reads ATA/SAT S.M.A.R.T. for external SATA/USB drives via the ATA SMART user
@@ -407,35 +378,12 @@ final class DiskMonitor: @unchecked Sendable {
         guard statusOK else { return nil }
         let smartStatus = exceeded.boolValue ? "Failing" : "Verified"
 
-        var life: Int?
-        var tempC: Int?
-        var poh: UInt64?
         var buffer = [UInt8](repeating: 0, count: 512)
-        if buffer.withUnsafeMutableBytes({ readFn(ifaceRaw, $0.baseAddress) }) == kIOReturnSuccess {
-            // Attribute table at offset 2, 12 bytes/entry. Only trust entries with a
-            // plausible structure (known ID + sane normalized value) — bridges that
-            // return non-standard blobs simply yield nil for these.
-            let lifeIDs: Set<UInt8> = [231, 233, 202, 169, 177, 173]
-            for i in 0..<30 {
-                let off = 2 + i * 12
-                guard off + 11 < buffer.count else { break }
-                let id = buffer[off]
-                guard id != 0, id != 0xFF else { continue }
-                let current = Int(buffer[off + 3])
-                if lifeIDs.contains(id), current >= 1, current <= 100, life == nil {
-                    life = current
-                }
-                if id == 194 {  // temperature — normalized current value is °C on most SSDs
-                    if current > 0, current < 120 { tempC = current }
-                }
-                if id == 9 {    // power-on hours (raw, 6 bytes LE)
-                    var h: UInt64 = 0
-                    for b in 0..<6 { h |= UInt64(buffer[off + 5 + b]) << (8 * b) }
-                    if h > 0, h < 1_000_000 { poh = h }
-                }
-            }
+        guard buffer.withUnsafeMutableBytes({ readFn(ifaceRaw, $0.baseAddress) }) == kIOReturnSuccess else {
+            return (smartStatus, nil, nil, nil)
         }
-        return (smartStatus, life, tempC, poh)
+        let attrs = ATASMARTAttributes.parse(buffer)
+        return (smartStatus, attrs.life, attrs.tempC, attrs.powerOnHours)
     }
     #endif
 }

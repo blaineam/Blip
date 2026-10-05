@@ -92,6 +92,8 @@ final class SpeedTester: ObservableObject {
     var phaseDuration: TimeInterval = 8
     /// Short warm-up window discarded from the measurement (seconds). Test-tunable.
     var warmup: TimeInterval = 1.5
+    /// ICMP target for the idle / loaded latency samples. Test-tunable (loopback).
+    var latencyHost = "1.1.1.1"
     /// Bytes requested per download chunk (OpenSpeedTest streams a large response).
     private let downloadChunkBytes = 50_000_000
     /// Bytes posted per upload chunk (25 MB in-memory body).
@@ -230,8 +232,8 @@ final class SpeedTester: ObservableObject {
     private var loadedSamples: [Double] = []
     private var loadedProbeTask: Task<Void, Never>?
 
-    private static func medianPing(count: Int, spacingMs: UInt64) async -> Double? {
-        guard let addr = try? ICMPProbe.resolveIPv4("1.1.1.1") else { return nil }
+    private static func medianPing(host: String, count: Int, spacingMs: UInt64) async -> Double? {
+        guard let addr = try? ICMPProbe.resolveIPv4(host) else { return nil }
         var rtts: [Double] = []
         for i in 0..<count {
             if Task.isCancelled { break }
@@ -245,8 +247,9 @@ final class SpeedTester: ObservableObject {
     }
 
     private func startLoadedProbes() {
+        let host = latencyHost
         loadedProbeTask = Task { [weak self] in
-            guard let addr = try? ICMPProbe.resolveIPv4("1.1.1.1") else { return }
+            guard let addr = try? ICMPProbe.resolveIPv4(host) else { return }
             var seq: UInt16 = 5000
             while !Task.isCancelled {
                 seq &+= 1
@@ -271,7 +274,7 @@ final class SpeedTester: ObservableObject {
         else { downCurve.append(mbps); if downCurve.count > 240 { downCurve.removeFirst() } }
     }
 
-    private static func downsample(_ values: [Double], to target: Int = 80) -> [Double]? {
+    nonisolated static func downsample(_ values: [Double], to target: Int = 80) -> [Double]? {
         guard !values.isEmpty else { return nil }
         guard values.count > target else { return values }
         let stride = Double(values.count) / Double(target)
@@ -280,7 +283,7 @@ final class SpeedTester: ObservableObject {
 
     private func run() async {
         do {
-            unloadedPing = await Self.medianPing(count: 5, spacingMs: 120)
+            unloadedPing = await Self.medianPing(host: latencyHost, count: 5, spacingMs: 120)
             var result: NetSpeedResult
             if server.isPublic {
                 startLoadedProbes()
@@ -692,7 +695,7 @@ final class NetworkMonitor: @unchecked Sendable {
                             stats.interfaceName = name
                         }
                         activeMacInterfaces.insert(name)
-                    } else if name.hasPrefix("utun") || name.hasPrefix("tailscale") || name.hasPrefix("wg") {
+                    } else if Self.isVPNInterface(name) {
                         stats.vpnAddress = ip
                         stats.vpnInterface = name
                         stats.isVPNActive = true
@@ -752,18 +755,17 @@ final class NetworkMonitor: @unchecked Sendable {
         // reality once an interface had moved >4 GiB since boot. By summing positive
         // per-interface deltas each poll we get accurate totals for all traffic seen
         // while Blip is running, independent of macOS struct-layout changes.
-        let wrap: UInt64 = 1 << 32
         var deltaIn: UInt64 = 0
         var deltaOut: UInt64 = 0
         for (ifName, cur) in curIn {
             if let last = perIfLastIn[ifName] {
-                deltaIn += cur >= last ? (cur - last) : (wrap - last + cur)
+                deltaIn += Self.wrapAwareDelta(current: cur, last: last)
             }
             perIfLastIn[ifName] = cur
         }
         for (ifName, cur) in curOut {
             if let last = perIfLastOut[ifName] {
-                deltaOut += cur >= last ? (cur - last) : (wrap - last + cur)
+                deltaOut += Self.wrapAwareDelta(current: cur, last: last)
             }
             perIfLastOut[ifName] = cur
         }
@@ -964,17 +966,35 @@ final class NetworkMonitor: @unchecked Sendable {
             try task.run()
             let data = pipe.fileHandleForReading.readDataToEndOfFile()
             task.waitUntilExit()
-            let output = String(data: data, encoding: .utf8) ?? ""
-            for line in output.components(separatedBy: "\n") {
-                let parts = line.split(separator: " ", omittingEmptySubsequences: true)
-                if parts.count >= 2 && parts[0] == "default" {
-                    return String(parts[1])
-                }
-            }
+            return parseDefaultGateway(String(data: data, encoding: .utf8) ?? "")
         } catch {}
         return "—"
     }
     #endif
+
+    /// The gateway column of the first `default` row of `netstat -rn -f inet`, or "—".
+    static func parseDefaultGateway(_ netstatOutput: String) -> String {
+        for line in netstatOutput.components(separatedBy: "\n") {
+            let parts = line.split(separator: " ", omittingEmptySubsequences: true)
+            if parts.count >= 2 && parts[0] == "default" {
+                return String(parts[1])
+            }
+        }
+        return "—"
+    }
+
+    /// Tunnel interfaces whose address is reported as the VPN address (macOS VPNs,
+    /// Tailscale, WireGuard).
+    static func isVPNInterface(_ name: String) -> Bool {
+        name.hasPrefix("utun") || name.hasPrefix("tailscale") || name.hasPrefix("wg")
+    }
+
+    /// Bytes moved since the last poll for a 32-bit kernel counter that may have
+    /// wrapped past 4 GiB in between.
+    static func wrapAwareDelta(current: UInt64, last: UInt64) -> UInt64 {
+        let wrap: UInt64 = 1 << 32
+        return current >= last ? current - last : wrap - last + current
+    }
 
     /// Maps interface names to user-friendly display names
     private static func interfaceDisplayName(_ name: String) -> String {

@@ -31,15 +31,41 @@ final class LidClosedSleep: @unchecked Sendable {
         case failed(String)
     }
 
+    /// The two system touch points: reading `pmset -g` and running an administrator
+    /// command through osascript. Swappable so the state machine can be unit-tested
+    /// without a password prompt or a real `pmset`.
+    struct System: Sendable {
+        var sleepDisabled: @Sendable () -> Bool
+        var runPrivileged: @Sendable (_ command: String, _ prompt: String) -> Result<Void, Failure>
+
+        static let live = System(sleepDisabled: { LidClosedSleep.systemSleepDisabled() },
+                                 runPrivileged: { LidClosedSleep.runPrivileged($0, prompt: $1) })
+    }
+
     private let lock = NSLock()
     /// The switch file the root loop watches; nil until the first prompt succeeds.
     private var sentinel: URL?
     private var on = false
     private let ownerName: String
+    private let system: System
+    private let markerFile: URL?
+    private let sessionDirectory: URL?
 
     /// - Parameter ownerName: shown in the password prompt ("Blip", "Blip Helper").
     init(ownerName: String) {
         self.ownerName = ownerName
+        self.system = .live
+        self.markerFile = nil
+        self.sessionDirectory = nil
+    }
+
+    /// Test seam: a fake system, plus where the unclean-exit marker and the session
+    /// (switch) file live.
+    init(ownerName: String, system: System, markerFile: URL, sessionDirectory: URL) {
+        self.ownerName = ownerName
+        self.system = system
+        self.markerFile = markerFile
+        self.sessionDirectory = sessionDirectory
     }
 
     /// True while the root loop is holding lid-closed sleep off.
@@ -57,9 +83,9 @@ final class LidClosedSleep: @unchecked Sendable {
             // The loop polls every 2 s. If it never applies the switch it was
             // killed out from under us, so fall through and start a fresh one.
             for _ in 0..<8 {
-                if Self.systemSleepDisabled() {
+                if system.sleepDisabled() {
                     lock.withLock { on = true }
-                    Self.writeMarker()
+                    writeMarker()
                     return .success(())
                 }
                 Thread.sleep(forTimeInterval: 0.5)
@@ -68,7 +94,7 @@ final class LidClosedSleep: @unchecked Sendable {
             lock.withLock { sentinel = nil }
         }
 
-        let dir = FileManager.default.temporaryDirectory
+        let dir = sessionDirectory ?? FileManager.default.temporaryDirectory
         let file = dir.appendingPathComponent("blip-lidclosed-\(UUID().uuidString)")
         guard Self.isShellSafe(file.path) else { return .failure(.failed("Unsafe temporary path")) }
         guard FileManager.default.createFile(atPath: file.path, contents: Data("1".utf8), attributes: [.posixPermissions: 0o600]) else {
@@ -84,10 +110,10 @@ final class LidClosedSleep: @unchecked Sendable {
         let command = "/bin/sh -c '\(loop)' >/dev/null 2>&1 &"
         let prompt = "\(ownerName) needs your password to keep this Mac awake with the lid closed. It asks once while \(ownerName) is running; normal sleep comes back when Keep Awake ends or \(ownerName) quits."
 
-        switch Self.runPrivileged(command, prompt: prompt) {
+        switch system.runPrivileged(command, prompt) {
         case .success:
             lock.withLock { sentinel = file; on = true }
-            Self.writeMarker()
+            writeMarker()
             return .success(())
         case .failure(let failure):
             try? FileManager.default.removeItem(at: file)
@@ -104,7 +130,7 @@ final class LidClosedSleep: @unchecked Sendable {
         }
         guard let file else { return }
         Self.setSwitch(file, false)
-        Self.removeMarker()
+        removeMarker()
     }
 
     /// Turns lid-closed mode off and ends the root loop (Blip or the helper
@@ -116,7 +142,7 @@ final class LidClosedSleep: @unchecked Sendable {
         }
         guard let file else { return }
         try? FileManager.default.removeItem(at: file)
-        Self.removeMarker()
+        removeMarker()
     }
 
     private static func setSwitch(_ file: URL, _ on: Bool) {
@@ -127,15 +153,15 @@ final class LidClosedSleep: @unchecked Sendable {
     /// root loop), prompt once to turn lid-closed sleep back on. Call at launch,
     /// off the main thread.
     func recoverAfterUncleanExit() {
-        guard FileManager.default.fileExists(atPath: Self.markerURL.path) else { return }
+        guard FileManager.default.fileExists(atPath: markerURL.path) else { return }
         guard !isActive else { return }
-        guard Self.systemSleepDisabled() else {
-            Self.removeMarker()
+        guard system.sleepDisabled() else {
+            removeMarker()
             return
         }
         let prompt = "\(ownerName) kept this Mac awake with the lid closed before it last quit. Enter your password to turn normal lid-closed sleep back on."
-        if case .success = Self.runPrivileged("/usr/bin/pmset -a disablesleep 0", prompt: prompt) {
-            Self.removeMarker()
+        if case .success = system.runPrivileged("/usr/bin/pmset -a disablesleep 0", prompt) {
+            removeMarker()
         }
     }
 
@@ -191,18 +217,20 @@ final class LidClosedSleep: @unchecked Sendable {
                 String(decoding: errData, as: UTF8.self))
     }
 
-    private static var markerURL: URL {
+    /// Present while lid-closed sleep is (or was, before a crash) held off.
+    var markerURL: URL {
+        if let markerFile { return markerFile }
         let base = FileManager.default.urls(for: .applicationSupportDirectory, in: .userDomainMask)[0]
         let dir = base.appendingPathComponent(Bundle.main.bundleIdentifier ?? "com.blainemiller.Blip")
         try? FileManager.default.createDirectory(at: dir, withIntermediateDirectories: true)
         return dir.appendingPathComponent("lid-closed-sleep-disabled")
     }
 
-    private static func writeMarker() {
+    private func writeMarker() {
         FileManager.default.createFile(atPath: markerURL.path, contents: nil)
     }
 
-    private static func removeMarker() {
+    private func removeMarker() {
         try? FileManager.default.removeItem(at: markerURL)
     }
 }
@@ -265,15 +293,47 @@ final class MouseJiggler: @unchecked Sendable {
     }
 }
 
+/// What the extras host needs from the lid-closed controller (LidClosedSleep in
+/// production; a fake in tests).
+protocol LidClosedControlling: AnyObject, Sendable {
+    var isActive: Bool { get }
+    func enable() -> Result<Void, LidClosedSleep.Failure>
+    func disable()
+    func shutdown()
+    func recoverAfterUncleanExit()
+}
+
+extension LidClosedSleep: LidClosedControlling {}
+
+/// What the extras host needs from the jiggler (MouseJiggler in production).
+protocol MouseJiggling: AnyObject, Sendable {
+    var isRunning: Bool { get }
+    var permissionGranted: Bool { get }
+    func promptForPermission()
+    func start()
+    func stop()
+}
+
+extension MouseJiggler: MouseJiggling {
+    var permissionGranted: Bool { Self.hasPermission }
+    func promptForPermission() { Self.requestPermission() }
+}
+
 /// Runs the extras for whoever asks — Blip itself in the direct build, or the
 /// helper on behalf of the App Store build. Requests double as a heartbeat:
 /// if none arrives for `leaseSeconds`, everything stops, so a client that
 /// quits or crashes can't leave the lid-closed mode or the jiggler running.
 final class KeepAwakeExtrasHost: @unchecked Sendable {
     private let lock = NSLock()
-    private let lid: LidClosedSleep
-    private let jiggler = MouseJiggler()
+    private let lid: LidClosedControlling
+    private let jiggler: MouseJiggling
     private let leaseSeconds: TimeInterval
+    /// After a failed or cancelled password prompt, don't prompt again for this long.
+    private let failureCooldown: TimeInterval
+    private let leaseCheckInterval: TimeInterval
+    private let now: @Sendable () -> Date
+    /// Where the (blocking) password prompt runs.
+    private let lidQueue: DispatchQueue
     private var desiredLid = false
     private var lidPending = false
     private var lidError: String?
@@ -281,25 +341,42 @@ final class KeepAwakeExtrasHost: @unchecked Sendable {
     private var lastHeartbeat = Date.distantPast
     private var leaseTimer: DispatchSourceTimer?
 
-    init(ownerName: String, leaseSeconds: TimeInterval = 60) {
-        self.lid = LidClosedSleep(ownerName: ownerName)
+    convenience init(ownerName: String, leaseSeconds: TimeInterval = 60) {
+        self.init(lid: LidClosedSleep(ownerName: ownerName), jiggler: MouseJiggler(),
+                  leaseSeconds: leaseSeconds)
+    }
+
+    /// Designated init; the extra parameters are test seams with production defaults.
+    init(lid: LidClosedControlling, jiggler: MouseJiggling,
+         leaseSeconds: TimeInterval = 60,
+         failureCooldown: TimeInterval = 10,
+         leaseCheckInterval: TimeInterval = 10,
+         now: @escaping @Sendable () -> Date = { Date() },
+         lidQueue: DispatchQueue = .global(qos: .userInitiated)) {
+        self.lid = lid
+        self.jiggler = jiggler
         self.leaseSeconds = leaseSeconds
+        self.failureCooldown = failureCooldown
+        self.leaseCheckInterval = leaseCheckInterval
+        self.now = now
+        self.lidQueue = lidQueue
     }
 
     /// Applies the requested state and returns the current one. Never blocks
     /// on the password prompt: turning lid mode on reports `lidPending` until
     /// the prompt is answered, and the next request picks up the result.
     func apply(_ request: KeepAwakeExtrasRequest) -> KeepAwakeExtrasStatus {
-        if request.requestJigglePermission { MouseJiggler.requestPermission() }
+        if request.requestJigglePermission { jiggler.promptForPermission() }
 
-        if request.jiggle && MouseJiggler.hasPermission { jiggler.start() } else { jiggler.stop() }
+        if request.jiggle && jiggler.permissionGranted { jiggler.start() } else { jiggler.stop() }
 
         var startLid = false
+        let current = now()
         lock.withLock {
-            lastHeartbeat = Date()
+            lastHeartbeat = current
             desiredLid = request.lidClosed
             if !request.lidClosed { lidError = nil }
-            let cooledDown = lidFailedAt.map { Date().timeIntervalSince($0) > 10 } ?? true
+            let cooledDown = lidFailedAt.map { current.timeIntervalSince($0) > failureCooldown } ?? true
             if request.lidClosed, !lidPending, cooledDown, !lid.isActive {
                 lidPending = true
                 lidError = nil
@@ -336,23 +413,24 @@ final class KeepAwakeExtrasHost: @unchecked Sendable {
     func status() -> KeepAwakeExtrasStatus {
         lock.withLock {
             KeepAwakeExtrasStatus(lidClosed: lid.isActive, lidPending: lidPending, lidError: lidError,
-                                  jiggle: jiggler.isRunning, jigglePermission: MouseJiggler.hasPermission)
+                                  jiggle: jiggler.isRunning, jigglePermission: jiggler.permissionGranted)
         }
     }
 
     private func enableLid() {
-        DispatchQueue.global(qos: .userInitiated).async { [self] in
+        lidQueue.async { [self] in
             let result = lid.enable()
+            let failedAt = now()
             let stillWanted = lock.withLock { () -> Bool in
                 lidPending = false
                 switch result {
                 case .success:
                     lidFailedAt = nil
                 case .failure(.cancelled):
-                    lidFailedAt = Date()
+                    lidFailedAt = failedAt
                     lidError = "cancelled"
                 case .failure(.failed(let message)):
-                    lidFailedAt = Date()
+                    lidFailedAt = failedAt
                     lidError = message
                 }
                 return desiredLid
@@ -366,15 +444,21 @@ final class KeepAwakeExtrasHost: @unchecked Sendable {
         lock.withLock {
             guard leaseTimer == nil else { return }
             let t = DispatchSource.makeTimerSource(queue: .global(qos: .utility))
-            t.schedule(deadline: .now() + 10, repeating: 10)
+            t.schedule(deadline: .now() + leaseCheckInterval, repeating: leaseCheckInterval)
             t.setEventHandler { [weak self] in self?.checkLease() }
             t.resume()
             leaseTimer = t
         }
     }
 
-    private func checkLease() {
-        let expired = lock.withLock { Date().timeIntervalSince(lastHeartbeat) > leaseSeconds }
+    /// True while the heartbeat lease timer is armed.
+    var isLeaseArmed: Bool { lock.withLock { leaseTimer != nil } }
+
+    /// Pauses everything once no request has arrived for `leaseSeconds`. Driven by the
+    /// lease timer; internal so tests can drive it with a manual clock.
+    func checkLease() {
+        let current = now()
+        let expired = lock.withLock { current.timeIntervalSince(lastHeartbeat) > leaseSeconds }
         guard expired else { return }
         pauseAll()
         lock.withLock {

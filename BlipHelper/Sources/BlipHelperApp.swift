@@ -55,3 +55,10 @@ extension KeepAwakeExtrasHost {
     /// Serves the App Store build's closed-lid and mouse-jiggle requests.
     static let helper = KeepAwakeExtrasHost(ownerName: "Blip Helper")
 }
+
+extension HelperDaemon {
+    /// Keep Awake extras run in the helper's process-wide host (one root loop per helper).
+    func keepAwake(_ request: KeepAwakeExtrasRequest) -> KeepAwakeExtrasStatus {
+        KeepAwakeExtrasHost.helper.apply(request)
+    }
+}

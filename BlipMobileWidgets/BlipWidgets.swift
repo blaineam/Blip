@@ -55,10 +55,8 @@ struct BenchProvider: TimelineProvider {
         completion(Timeline(entries: [load()], policy: .after(.now.addingTimeInterval(1800))))
     }
     private func load() -> BenchEntry {
-        let history = BenchHistory.load(defaults: MobileSharedStore.defaults)
-        return .init(date: .now,
-                     result: history.last,
-                     best: history.filter { $0.profile == .full }.map(\.composite).max())
+        let summary = MobileSharedStore.benchWidgetSummary(BenchHistory.load(defaults: MobileSharedStore.defaults))
+        return .init(date: .now, result: summary.latest, best: summary.bestFull)
     }
 }
 

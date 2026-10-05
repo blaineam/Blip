@@ -438,9 +438,7 @@ struct SettingsView: View {
     /// The connected helper is outdated if it reports no version (a pre-versioning
     /// build) or a version older than this app, compared numerically (1.4.7 < 1.5.0).
     private func computeHelperOutdated(installedVersion: String?, connected: Bool) -> Bool {
-        guard connected else { return false }
-        guard let installedVersion, !installedVersion.isEmpty else { return true }
-        return installedVersion.compare(appVersion, options: .numeric) == .orderedAscending
+        HelperVersionGate.isOutdated(installed: installedVersion, app: appVersion, connected: connected)
     }
 
     private func refreshHelperStatus() {

@@ -7,7 +7,7 @@ import AppKit
 /// Polls privileged system APIs and produces HelperSnapshots.
 /// Runs in the helper process (unsandboxed) to collect data
 /// that the sandboxed MAS app cannot access directly.
-final class HelperDaemon: @unchecked Sendable {
+final class HelperDaemon: HelperDaemonActions, @unchecked Sendable {
     private var previousDiskRead: UInt64 = 0
     private var previousDiskWrite: UInt64 = 0
     private var previousDiskTimestamp: Date?
@@ -398,21 +398,6 @@ final class HelperDaemon: @unchecked Sendable {
         return drives
     }
 
-    /// Parsed fields from the NVMe SMART/Health Information log (log page 0x02).
-    private struct NVMeSMARTLog {
-        var criticalWarning: UInt8
-        var temperatureKelvin: UInt16
-        var availableSpare: UInt8
-        var spareThreshold: UInt8
-        var percentUsed: UInt8
-        var dataUnitsRead: UInt64
-        var dataUnitsWritten: UInt64
-        var powerCycles: UInt64
-        var powerOnHours: UInt64
-        var unsafeShutdowns: UInt64
-        var mediaErrors: UInt64
-    }
-
     /// Reads the 512-byte NVMe SMART/Health log via the IONVMeSMARTUserClient plug-in.
     /// The interface vtable is `IUNKNOWN_C_GUTS` + `UInt16 version`/`revision` +
     /// `SMARTReadData(self, buffer)`, so SMARTReadData sits at vtable byte offset 40.
@@ -444,22 +429,7 @@ final class HelperDaemon: @unchecked Sendable {
         let result = buffer.withUnsafeMutableBytes { readData(ifaceRaw, $0.baseAddress) }
         guard result == kIOReturnSuccess else { return nil }
 
-        return buffer.withUnsafeBytes { raw -> NVMeSMARTLog in
-            func u64(_ off: Int) -> UInt64 { raw.loadUnaligned(fromByteOffset: off, as: UInt64.self) }
-            return NVMeSMARTLog(
-                criticalWarning: raw[0],
-                temperatureKelvin: raw.loadUnaligned(fromByteOffset: 1, as: UInt16.self),
-                availableSpare: raw[3],
-                spareThreshold: raw[4],
-                percentUsed: raw[5],
-                dataUnitsRead: u64(32),
-                dataUnitsWritten: u64(48),
-                powerCycles: u64(112),
-                powerOnHours: u64(128),
-                unsafeShutdowns: u64(144),
-                mediaErrors: u64(160)
-            )
-        }
+        return NVMeSMARTLog(bytes: buffer)
     }
 
     /// Reads ATA/SAT S.M.A.R.T. for external SATA/USB drives. Overall pass/fail is
@@ -496,28 +466,12 @@ final class HelperDaemon: @unchecked Sendable {
         guard statusFn(ifaceRaw, &exceeded) == kIOReturnSuccess else { return nil }
         let smartStatus = exceeded.boolValue ? "Failing" : "Verified"
 
-        var life: Int?
-        var tempC: Int?
-        var poh: UInt64?
         var buffer = [UInt8](repeating: 0, count: 512)
-        if buffer.withUnsafeMutableBytes({ readFn(ifaceRaw, $0.baseAddress) }) == kIOReturnSuccess {
-            let lifeIDs: Set<UInt8> = [231, 233, 202, 169, 177, 173]
-            for i in 0..<30 {
-                let off = 2 + i * 12
-                guard off + 11 < buffer.count else { break }
-                let id = buffer[off]
-                guard id != 0, id != 0xFF else { continue }
-                let current = Int(buffer[off + 3])
-                if lifeIDs.contains(id), current >= 1, current <= 100, life == nil { life = current }
-                if id == 194, current > 0, current < 120 { tempC = current }
-                if id == 9 {
-                    var h: UInt64 = 0
-                    for b in 0..<6 { h |= UInt64(buffer[off + 5 + b]) << (8 * b) }
-                    if h > 0, h < 1_000_000 { poh = h }
-                }
-            }
+        guard buffer.withUnsafeMutableBytes({ readFn(ifaceRaw, $0.baseAddress) }) == kIOReturnSuccess else {
+            return (smartStatus, nil, nil, nil)
         }
-        return (smartStatus, life, tempC, poh)
+        let attrs = ATASMARTAttributes.parse(buffer)
+        return (smartStatus, attrs.life, attrs.tempC, attrs.powerOnHours)
     }
 
     // MARK: - Battery Health (via IOKit registry)
@@ -690,17 +644,7 @@ final class HelperDaemon: @unchecked Sendable {
     /// user, so it can only kill user-owned processes — system processes fail
     /// with EPERM, which we surface gracefully rather than escalating.
     func killProcess(_ pid: pid_t, force: Bool) -> (ok: Bool, message: String) {
-        guard pid > 1 else { return (false, "Invalid PID") }
-        let signal = force ? SIGKILL : SIGTERM
-        let result = kill(pid, signal)
-        if result == 0 {
-            return (true, force ? "Force killed" : "Terminated")
-        }
-        switch errno {
-        case EPERM: return (false, "Permission denied (system process)")
-        case ESRCH: return (false, "Process no longer running")
-        default:    return (false, "Failed (errno \(errno))")
-        }
+        ProcessSignaller.terminate(pid, force: force)
     }
 
     // MARK: - Traceroute / MTR (Feature B)
@@ -745,29 +689,14 @@ private final class TraceSession: @unchecked Sendable {
     let host: String
 
     private let lock = NSLock()
-    private var hops: [Int: HopStat] = [:]
+    private var hops = TraceHopAccumulator()
     private var thread: Thread?
     private var stopFlag = false
 
-    /// Mutable accumulator for a single hop.
-    private struct HopStat {
-        var host: String = "*"
-        var sent: Int = 0
-        var recv: Int = 0
-        var last: Double?
-        var best: Double?
-        var worst: Double?
-        var total: Double = 0
-    }
-
-    /// Validates that a host is a plausible hostname or IP. We never shell-
-    /// interpolate it (Process takes an argument array), but we still reject
-    /// anything with whitespace or shell metacharacters as defense-in-depth.
+    /// We never shell-interpolate the host (Process takes an argument array), but we
+    /// still reject anything with whitespace or shell metacharacters as defense-in-depth.
     static func isValidHost(_ host: String) -> Bool {
-        guard !host.isEmpty, host.count <= 253 else { return false }
-        let allowed = CharacterSet(charactersIn:
-            "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789.-:")
-        return host.unicodeScalars.allSatisfy { allowed.contains($0) }
+        HostValidation.isValid(host)
     }
 
     init(host: String) {
@@ -793,16 +722,7 @@ private final class TraceSession: @unchecked Sendable {
 
     func snapshot() -> [HelperTraceHop] {
         lock.lock(); defer { lock.unlock() }
-        return hops.keys.sorted().map { num in
-            let s = hops[num]!
-            let loss = s.sent > 0 ? Double(s.sent - s.recv) / Double(s.sent) * 100 : 0
-            let avg = s.recv > 0 ? s.total / Double(s.recv) : nil
-            return HelperTraceHop(
-                hop: num, host: s.host, sent: s.sent, recv: s.recv,
-                lossPct: loss, lastMs: s.last, avgMs: avg,
-                bestMs: s.best, worstMs: s.worst
-            )
-        }
+        return hops.snapshot()
     }
 
     private func shouldStop() -> Bool {
@@ -836,53 +756,11 @@ private final class TraceSession: @unchecked Sendable {
             return
         }
 
-        // Read line-by-line so we can bail promptly when asked to stop.
-        let handle = pipe.fileHandleForReading
-        let data = handle.readDataToEndOfFile()
+        let data = pipe.fileHandleForReading.readDataToEndOfFile()
         process.waitUntilExit()
         guard !shouldStop() else { return }
 
         let output = String(data: data, encoding: .utf8) ?? ""
-        for line in output.components(separatedBy: "\n") {
-            parseHopLine(line)
-        }
-    }
-
-    /// Parses a traceroute hop line of the form:
-    ///   " 1  192.168.1.1  1.234 ms"   or   " 5  * "
-    private func parseHopLine(_ rawLine: String) {
-        let line = rawLine.trimmingCharacters(in: .whitespaces)
-        guard !line.isEmpty else { return }
-        let tokens = line.split(whereSeparator: { $0 == " " || $0 == "\t" }).map(String.init)
-        guard let first = tokens.first, let hopNum = Int(first) else { return }
-
-        // Find the responding host (first token that looks like an IP) and the rtt.
-        var hostStr = "*"
-        var rtt: Double?
-        var i = 1
-        while i < tokens.count {
-            let tok = tokens[i]
-            if tok == "ms", i > 1, let ms = Double(tokens[i - 1]) {
-                rtt = ms
-            } else if tok != "*" && tok != "ms" && Double(tok) == nil {
-                // Non-numeric, non-marker token → treat as the hop host/IP.
-                if hostStr == "*" { hostStr = tok }
-            }
-            i += 1
-        }
-
-        lock.lock()
-        defer { lock.unlock() }
-        var stat = hops[hopNum] ?? HopStat()
-        if hostStr != "*" { stat.host = hostStr }
-        stat.sent += 1
-        if let rtt {
-            stat.recv += 1
-            stat.last = rtt
-            stat.total += rtt
-            stat.best = stat.best.map { min($0, rtt) } ?? rtt
-            stat.worst = stat.worst.map { max($0, rtt) } ?? rtt
-        }
-        hops[hopNum] = stat
+        lock.lock(); hops.ingest(output: output); lock.unlock()
     }
 }

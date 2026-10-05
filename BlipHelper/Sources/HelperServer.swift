@@ -109,7 +109,8 @@ final class HelperServer: @unchecked Sendable {
                 connection.cancel()
                 return
             }
-            guard let length = MessageFraming.decodeLength(from: data), length > 0, length < 65536 else {
+            guard let length = MessageFraming.decodeLength(from: data),
+                  HelperRequestRouter.isAcceptableRequestLength(length) else {
                 connection.cancel()
                 return
             }
@@ -129,83 +130,8 @@ final class HelperServer: @unchecked Sendable {
     }
 
     private func processRequest(_ data: Data, on connection: NWConnection) {
-        guard let request = try? JSONDecoder().decode(HelperRequest.self, from: data) else {
-            sendError("Invalid request", on: connection)
-            return
-        }
-
-        // Validate TOTP token
-        guard TOTP.validate(request.token) else {
-            sendError("Authentication failed", on: connection)
-            return
-        }
-
-        switch request.type {
-        case "poll":
-            guard let snapshot = latestSnapshot else {
-                sendError("No data available yet", on: connection)
-                return
-            }
-            let response = HelperResponse(
-                type: "snapshot",
-                token: TOTP.generate(),
-                data: snapshot,
-                message: nil
-            )
-            sendResponse(response, on: connection)
-
-        case "kill":
-            guard let pid = request.pid else {
-                sendError("Missing PID", on: connection)
-                return
-            }
-            let result = daemon.killProcess(pid, force: request.force ?? false)
-            let response = HelperResponse(
-                type: "killResult",
-                token: TOTP.generate(),
-                data: nil,
-                message: result.message,
-                success: result.ok
-            )
-            sendResponse(response, on: connection)
-
-        case "traceroute":
-            switch request.action {
-            case "start":
-                if let host = request.host {
-                    daemon.startTraceroute(host: host)
-                }
-            case "stop":
-                daemon.stopTraceroute()
-            default:
-                break // "poll" or nil — just return the current snapshot
-            }
-            let snap = daemon.tracerouteSnapshot()
-            let response = HelperResponse(
-                type: "traceroute",
-                token: TOTP.generate(),
-                data: nil,
-                message: nil,
-                success: nil,
-                hops: snap.hops,
-                running: snap.running
-            )
-            sendResponse(response, on: connection)
-
-        case "keepAwake":
-            let wanted = request.keepAwake ?? KeepAwakeExtrasRequest(lidClosed: false, jiggle: false)
-            let response = HelperResponse(
-                type: "keepAwake",
-                token: TOTP.generate(),
-                data: nil,
-                message: nil,
-                keepAwake: KeepAwakeExtrasHost.helper.apply(wanted)
-            )
-            sendResponse(response, on: connection)
-
-        default:
-            sendError("Unknown request type", on: connection)
-        }
+        let response = HelperRequestRouter.response(for: data, snapshot: latestSnapshot, actions: daemon)
+        sendResponse(response, on: connection)
     }
 
     private func sendResponse(_ response: HelperResponse, on connection: NWConnection) {
@@ -216,10 +142,5 @@ final class HelperServer: @unchecked Sendable {
         connection.send(content: frame, completion: .contentProcessed { _ in
             connection.cancel()
         })
-    }
-
-    private func sendError(_ message: String, on connection: NWConnection) {
-        let response = HelperResponse(type: "error", token: nil, data: nil, message: message)
-        sendResponse(response, on: connection)
     }
 }

@@ -28,30 +28,39 @@ final class SystemMonitor: ObservableObject {
     /// so it survives the 2s detail-panel rebuild and the two-click confirm completes.
     @Published var pendingKillPID: pid_t?
 
+    /// Where dismissals persist (tests pass a scratch suite).
+    private let defaults: UserDefaults
+    /// Clock for the 24h dismissal window. Test seam; production never changes it.
+    var now: () -> Date = { Date() }
+
     /// Dismissed recommendation ids → when dismissed; they re-surface after 24h.
-    private var dismissedRecs: [String: Date] = {
-        if let dict = UserDefaults.standard.dictionary(forKey: "dismissedRecs") as? [String: Double] {
-            return dict.mapValues { Date(timeIntervalSince1970: $0) }
+    private var dismissedRecs: [String: Date]
+
+    init(defaults: UserDefaults = .standard) {
+        self.defaults = defaults
+        if let dict = defaults.dictionary(forKey: "dismissedRecs") as? [String: Double] {
+            dismissedRecs = dict.mapValues { Date(timeIntervalSince1970: $0) }
+        } else {
+            dismissedRecs = [:]
         }
-        return [:]
-    }()
+    }
 
     /// Dismiss a recommendation for 24h.
     func dismissRecommendation(_ id: String) {
-        dismissedRecs[id] = Date()
-        UserDefaults.standard.set(dismissedRecs.mapValues { $0.timeIntervalSince1970 }, forKey: "dismissedRecs")
+        dismissedRecs[id] = now()
+        defaults.set(dismissedRecs.mapValues { $0.timeIntervalSince1970 }, forKey: "dismissedRecs")
         recommendations = RecommendationsEngine.analyze(snapshot).filter { !isDismissed($0.id) }
     }
 
     private func isDismissed(_ id: String) -> Bool {
         guard let when = dismissedRecs[id] else { return false }
-        return Date().timeIntervalSince(when) < 86_400
+        return now().timeIntervalSince(when) < 86_400
     }
 
     /// Clear all dismissals so previously-hidden recommendations can resurface.
     func resetDismissedRecommendations() {
         dismissedRecs.removeAll()
-        UserDefaults.standard.removeObject(forKey: "dismissedRecs")
+        defaults.removeObject(forKey: "dismissedRecs")
         recommendations = RecommendationsEngine.analyze(snapshot).filter { !isDismissed($0.id) }
     }
 
@@ -527,20 +536,10 @@ final class SystemMonitor: ObservableObject {
 /// by the direct (unsandboxed) build when no BlipHelper is installed.
 final class LocalTraceRunner: @unchecked Sendable {
     private let lock = NSLock()
-    private var hops: [Int: HopStat] = [:]
+    private var hops = TraceHopAccumulator()
     private var thread: Thread?
     private var stopFlag = false
     private var currentHost: String = ""
-
-    private struct HopStat {
-        var host: String = "*"
-        var sent: Int = 0
-        var recv: Int = 0
-        var last: Double?
-        var best: Double?
-        var worst: Double?
-        var total: Double = 0
-    }
 
     static func isValidHost(_ host: String) -> Bool {
         HostValidation.isValid(host)
@@ -572,15 +571,7 @@ final class LocalTraceRunner: @unchecked Sendable {
 
     func snapshot() -> (hops: [HelperTraceHop], running: Bool) {
         lock.lock(); defer { lock.unlock() }
-        let result = hops.keys.sorted().map { num -> HelperTraceHop in
-            let s = hops[num]!
-            let loss = s.sent > 0 ? Double(s.sent - s.recv) / Double(s.sent) * 100 : 0
-            let avg = s.recv > 0 ? s.total / Double(s.recv) : nil
-            return HelperTraceHop(hop: num, host: s.host, sent: s.sent, recv: s.recv,
-                                  lossPct: loss, lastMs: s.last, avgMs: avg,
-                                  bestMs: s.best, worstMs: s.worst)
-        }
-        return (result, !stopFlag && thread != nil)
+        return (hops.snapshot(), !stopFlag && thread != nil)
     }
 
     private func shouldStop() -> Bool {
@@ -610,40 +601,7 @@ final class LocalTraceRunner: @unchecked Sendable {
         process.waitUntilExit()
         guard !shouldStop() else { return }
         let output = String(data: data, encoding: .utf8) ?? ""
-        for line in output.components(separatedBy: "\n") { parseHopLine(line) }
-    }
-
-    private func parseHopLine(_ rawLine: String) {
-        let line = rawLine.trimmingCharacters(in: .whitespaces)
-        guard !line.isEmpty else { return }
-        let tokens = line.split(whereSeparator: { $0 == " " || $0 == "\t" }).map(String.init)
-        guard let first = tokens.first, let hopNum = Int(first) else { return }
-
-        var hostStr = "*"
-        var rtt: Double?
-        var i = 1
-        while i < tokens.count {
-            let tok = tokens[i]
-            if tok == "ms", i > 1, let ms = Double(tokens[i - 1]) {
-                rtt = ms
-            } else if tok != "*" && tok != "ms" && Double(tok) == nil {
-                if hostStr == "*" { hostStr = tok }
-            }
-            i += 1
-        }
-
-        lock.lock(); defer { lock.unlock() }
-        var stat = hops[hopNum] ?? HopStat()
-        if hostStr != "*" { stat.host = hostStr }
-        stat.sent += 1
-        if let rtt {
-            stat.recv += 1
-            stat.last = rtt
-            stat.total += rtt
-            stat.best = stat.best.map { min($0, rtt) } ?? rtt
-            stat.worst = stat.worst.map { max($0, rtt) } ?? rtt
-        }
-        hops[hopNum] = stat
+        lock.lock(); hops.ingest(output: output); lock.unlock()
     }
 }
 #endif

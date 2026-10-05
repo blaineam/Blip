@@ -19,13 +19,21 @@ final class HelperClient: @unchecked Sendable {
     private var consecutiveFailures = 0
     private static let disconnectThreshold = 3
 
+    /// Test seam: read the helper's port from here instead of the App Group container.
+    private let portFileOverride: URL?
+    private var portFileURL: URL { portFileOverride ?? HelperConstants.portFileURL }
+
+    init(portFileURL: URL? = nil) {
+        self.portFileOverride = portFileURL
+    }
+
     @MainActor var isConnected: Bool { _isConnected }
     @MainActor var latestSnapshot: HelperSnapshot? { _latestSnapshot }
 
     /// Check if the helper appears to be installed.
     var isHelperInstalled: Bool {
         // Check port file (helper has run before)
-        if FileManager.default.fileExists(atPath: HelperConstants.portFileURL.path) {
+        if FileManager.default.fileExists(atPath: portFileURL.path) {
             return true
         }
         // Check common install locations
@@ -247,7 +255,7 @@ final class HelperClient: @unchecked Sendable {
     }
 
     private func readPortFile() -> UInt16? {
-        guard let contents = try? String(contentsOf: HelperConstants.portFileURL, encoding: .utf8),
+        guard let contents = try? String(contentsOf: portFileURL, encoding: .utf8),
               let port = UInt16(contents.trimmingCharacters(in: .whitespacesAndNewlines)),
               port > 0 else {
             return nil

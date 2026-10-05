@@ -51,6 +51,12 @@ enum MobileSharedStore {
         reloadWidgets(kind: "BlipSpeed")
     }
 
+    /// What the Bench widget shows: the latest run, and this device's best FULL-profile
+    /// composite (quick runs skip the sustained phase, so they never set the bar).
+    static func benchWidgetSummary(_ history: [BenchResult]) -> (latest: BenchResult?, bestFull: Double?) {
+        (history.last, history.filter { $0.profile == .full }.map(\.composite).max())
+    }
+
     static func benchUpdated() {
         reloadWidgets(kind: "BlipBench")
     }
