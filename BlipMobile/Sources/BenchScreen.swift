@@ -36,6 +36,7 @@ struct BenchScreen: View {
         Text("Measure what this device can actually do — CPU, memory, and GPU throughput in Blip's fixed reference units, comparable with any Mac or iPhone running Blip. The full profile adds a sustained phase that shows how much performance thermal limits take back.")
             .font(.callout)
             .foregroundStyle(.secondary)
+            .accessibilityIdentifier("bench.intro")
     }
 
     private var guardrails: some View {
@@ -44,6 +45,7 @@ struct BenchScreen: View {
                 Label("On battery — scores can read low. Plug in for a fair full run.",
                       systemImage: "battery.25")
                     .font(.footnote).foregroundStyle(.orange)
+                    .accessibilityIdentifier("bench.guardrail.battery")
             }
             if stats.snapshot.thermalState >= 2 {
                 Label("Device is already \(stats.snapshot.thermalLabel.lowercased()) — let it cool before benchmarking.",
@@ -62,6 +64,7 @@ struct BenchScreen: View {
         }
         .buttonStyle(.borderedProminent)
         .tint(engine.isRunning ? .red : .purple)
+        .accessibilityIdentifier("bench.run")
     }
 
     private func shareRow(_ r: BenchResult) -> some View {
@@ -75,18 +78,21 @@ struct BenchScreen: View {
                 .frame(maxWidth: .infinity)
         }
         .buttonStyle(.bordered)
+        .accessibilityIdentifier("bench.share")
     }
 
     private var history: some View {
         VStack(alignment: .leading, spacing: 6) {
             Text("History").font(.headline)
             BenchHistoryChart(history: engine.history)
-            ForEach(engine.history.suffix(8).reversed()) { r in
+            ForEach(Array(engine.history.suffix(8).reversed().enumerated()), id: \.element.id) { index, r in
                 HStack {
                     Text("\(Int(r.composite.rounded()))")
                         .font(.system(.body, design: .rounded).weight(.semibold))
                         .frame(width: 64, alignment: .leading)
+                        .accessibilityIdentifier("bench.history.row.\(index)")
                     Text(r.profile == .quick ? "quick" : "full")
+                        .accessibilityIdentifier("bench.history.profile.\(index)")
                         .font(.caption2)
                         .padding(.horizontal, 6).padding(.vertical, 2)
                         .background(.quaternary, in: Capsule())
@@ -118,6 +124,8 @@ struct BenchRunningView: View {
             ForEach(Self.legOrder, id: \.id) { leg in
                 if let done = engine.liveLegs.first(where: { $0.id == leg.id }) {
                     finishedRow(LocalizedStringKey(leg.name), leg.icon, done.score)
+                        .accessibilityElement(children: .contain)
+                        .accessibilityIdentifier("bench.leg.\(leg.id)")
                         .transition(.asymmetric(insertion: .move(edge: .leading).combined(with: .opacity),
                                                 removal: .opacity))
                 } else if engine.phase == leg.phase {
@@ -131,6 +139,8 @@ struct BenchRunningView: View {
         }
         .padding(14)
         .background(.quaternary.opacity(0.5), in: RoundedRectangle(cornerRadius: 16))
+        .accessibilityElement(children: .contain)
+        .accessibilityIdentifier("bench.running")
         .animation(.spring(duration: 0.45), value: engine.liveLegs)
         .animation(.spring(duration: 0.45), value: engine.phase)
         .onAppear { pulse = true }
@@ -220,6 +230,7 @@ struct ScoreCard: View {
                     .foregroundStyle(LinearGradient(colors: [.purple, .blue],
                                                     startPoint: .topLeading, endPoint: .bottomTrailing))
                     .contentTransition(.numericText())
+                    .accessibilityIdentifier("bench.score")
                 VStack(alignment: .leading, spacing: 0) {
                     Text("composite").font(.subheadline).foregroundStyle(.secondary)
                     Text(result.profile == .quick ? "quick run" : "full run")

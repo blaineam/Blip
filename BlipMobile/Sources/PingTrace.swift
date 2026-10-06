@@ -54,6 +54,19 @@ final class PingRunner: ObservableObject {
         samples = []
         error = nil
         isRunning = true
+        #if DEBUG
+        // UI tests: the canned RFC 5737 samples instead of ICMP sockets; runs until stopped.
+        if UITestMode.isActive {
+            task = Task { [weak self] in
+                for sample in DemoSeed.pingSamples {
+                    try? await Task.sleep(nanoseconds: 40_000_000)
+                    guard !Task.isCancelled, let self else { return }
+                    self.samples.append(sample)
+                }
+            }
+            return
+        }
+        #endif
         task = Task.detached { [weak self] in
             do {
                 let addr = try ICMPProbe.resolveIPv4(host)
@@ -98,6 +111,20 @@ final class TraceRunner: ObservableObject {
         hops = []
         error = nil
         isRunning = true
+        #if DEBUG
+        // UI tests: the canned RFC 5737 route instead of TTL-limited probes.
+        if UITestMode.isActive {
+            task = Task { [weak self] in
+                for hop in DemoSeed.traceHops {
+                    try? await Task.sleep(nanoseconds: 120_000_000)
+                    guard !Task.isCancelled, let self else { return }
+                    self.hops.append(hop)
+                }
+                self?.isRunning = false
+            }
+            return
+        }
+        #endif
         task = Task.detached { [weak self] in
             do {
                 let addr = try ICMPProbe.resolveIPv4(host)

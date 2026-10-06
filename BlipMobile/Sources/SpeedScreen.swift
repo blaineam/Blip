@@ -38,6 +38,7 @@ struct SpeedScreen: View {
             .toolbar {
                 ToolbarItem(placement: .topBarTrailing) {
                     NavigationLink { SettingsScreen() } label: { Image(systemName: "gearshape") }
+                        .accessibilityIdentifier("speed.settings")
                 }
             }
         }
@@ -55,6 +56,8 @@ struct SpeedScreen: View {
         }
         .font(.footnote)
         .foregroundStyle(.secondary)
+        .accessibilityElement(children: .combine)
+        .accessibilityIdentifier("speed.pathBanner")
     }
 
     // MARK: - Source (#feedback: dropdown for public vs configured, with a configure link)
@@ -83,12 +86,14 @@ struct SpeedScreen: View {
                 .background(.quaternary.opacity(0.5), in: Capsule())
             }
             .disabled(tester.isRunning)
+            .accessibilityIdentifier("speed.sourceMenu")
             Spacer()
             NavigationLink { SettingsScreen() } label: {
                 Text(MobileSpeedTester.customServer.isEmpty && tester.source == .custom
                      ? "Set server…" : "Configure")
                     .font(.footnote)
             }
+            .accessibilityIdentifier("speed.configure")
         }
     }
 
@@ -109,8 +114,10 @@ struct SpeedScreen: View {
                                   : tester.lastResult.map { String(format: "%.0f", $0.downMbps) } ?? "—")
                 .font(.system(size: 56, weight: .bold, design: .rounded))
                 .contentTransition(.numericText())
+                .accessibilityIdentifier("speed.gauge")
             Text(phaseLabel)
                 .font(.footnote).foregroundStyle(.secondary)
+                .accessibilityIdentifier("speed.phase")
         }
         .frame(maxWidth: .infinity)
         .padding(.vertical, 12)
@@ -136,6 +143,7 @@ struct SpeedScreen: View {
         }
         .buttonStyle(.borderedProminent)
         .tint(tester.isRunning ? .red : .teal)
+        .accessibilityIdentifier("speed.run")
     }
 
     // MARK: - Results + history
@@ -146,22 +154,25 @@ struct SpeedScreen: View {
         if !older.isEmpty {
             VStack(alignment: .leading, spacing: 6) {
                 Text("History").font(.headline)
-                ForEach(older.reversed()) { r in
-                    resultCard(r, isLatest: false)
+                ForEach(Array(older.reversed().enumerated()), id: \.element.id) { index, r in
+                    resultCard(r, isLatest: false, historyIndex: index)
                 }
             }
         }
     }
 
-    private func resultCard(_ r: MobileSpeedResult, isLatest: Bool) -> some View {
-        VStack(alignment: .leading, spacing: 10) {
+    private func resultCard(_ r: MobileSpeedResult, isLatest: Bool, historyIndex: Int = 0) -> some View {
+        let idPrefix = isLatest ? "speed.result" : "speed.history.\(historyIndex)"
+        return VStack(alignment: .leading, spacing: 10) {
             HStack(spacing: 16) {
                 VStack(alignment: .leading, spacing: 2) {
                     Label(String(format: "%.0f Mbps", r.downMbps), systemImage: "arrow.down")
                         .foregroundStyle(isLatest ? .teal : .primary)
+                        .accessibilityIdentifier("\(idPrefix).down")
                     if let up = r.upMbps {
                         Label(String(format: "%.0f Mbps", up), systemImage: "arrow.up")
                             .foregroundStyle(isLatest ? .orange : .primary)
+                            .accessibilityIdentifier("\(idPrefix).up")
                     }
                 }
                 .font(isLatest ? .system(.body, design: .rounded).weight(.semibold)
@@ -181,12 +192,15 @@ struct SpeedScreen: View {
                     Image(systemName: "square.and.arrow.up").font(.callout)
                 }
                 .buttonStyle(.borderless)
+                .accessibilityIdentifier("\(idPrefix).share")
             }
             if let ping = r.pingMs {
                 HStack(spacing: 14) {
                     Label(String(localized: "\(Int(ping.rounded())) ms idle"), systemImage: "clock")
+                        .accessibilityIdentifier("\(idPrefix).ping")
                     if let loaded = r.loadedPingMs {
                         Label(String(localized: "\(Int(loaded.rounded())) ms under load"), systemImage: "clock.badge.exclamationmark")
+                            .accessibilityIdentifier("\(idPrefix).loadedPing")
                             .foregroundStyle(loaded - ping > 100 ? .orange : .secondary)
                     }
                 }

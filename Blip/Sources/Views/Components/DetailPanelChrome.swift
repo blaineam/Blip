@@ -5,6 +5,8 @@ import SwiftUI
 /// the pin on that window closes it again.
 struct DetailPanelChrome<Content: View>: View {
     let pinned: Bool
+    /// UI-test handle: the panel is the `detail.<section>` container.
+    var section: String = ""
     let onTogglePin: () -> Void
     @ViewBuilder let content: Content
 
@@ -30,5 +32,7 @@ struct DetailPanelChrome<Content: View>: View {
             content
                 .padding(.top, -8)
         }
+        .accessibilityElement(children: .contain)
+        .accessibilityIdentifier("detail.\(section)")
     }
 }

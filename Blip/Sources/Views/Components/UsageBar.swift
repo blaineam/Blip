@@ -40,6 +40,8 @@ struct OverviewRow: View {
     let value: String
     let percent: Double
     let color: Color
+    /// UI-test handle: the label is `popover.row.<id>`, the value `popover.row.<id>.value`.
+    var id: String = ""
 
     var body: some View {
         HStack(spacing: 8) {
@@ -54,6 +56,7 @@ struct OverviewRow: View {
             Text(LocalizedStringKey(label))
                 .font(.system(size: 11, weight: .medium))
                 .frame(width: 60, alignment: .leading)
+                .accessibilityIdentifier("popover.row.\(id)")
 
             UsageBar(value: percent, color: color, width: 60)
 
@@ -61,6 +64,7 @@ struct OverviewRow: View {
                 .font(.system(size: 10, weight: .regular, design: .monospaced))
                 .foregroundStyle(.secondary)
                 .frame(width: 40, alignment: .trailing)
+                .accessibilityIdentifier("popover.row.\(id).value")
 
             RowChevron()
         }

@@ -11,6 +11,8 @@ struct CopyRow: View {
     let name: LocalizedStringKey
     let value: String
     var monospaced = false
+    /// UI-test handle: the value is `<id>`, the copy button `<id>.copy` / `<id>.copied`.
+    var id: String? = nil
     @State private var copied = false
 
     var body: some View {
@@ -20,6 +22,7 @@ struct CopyRow: View {
             Text(value)
                 .font(monospaced ? .callout.monospaced() : .callout)
                 .multilineTextAlignment(.trailing)
+                .accessibilityIdentifier(id ?? "")
             Button {
                 UIPasteboard.general.string = value
                 UINotificationFeedbackGenerator().notificationOccurred(.success)
@@ -32,6 +35,7 @@ struct CopyRow: View {
                     .foregroundStyle(copied ? .green : .secondary)
             }
             .buttonStyle(.borderless)
+            .accessibilityIdentifier(id.map { copied ? "\($0).copied" : "\($0).copy" } ?? "")
         }
         .font(.callout)
     }
@@ -40,11 +44,14 @@ struct CopyRow: View {
 struct PlainRow: View {
     let name: LocalizedStringKey
     let value: String
+    /// UI-test handle on the value text.
+    var id: String? = nil
     var body: some View {
         HStack {
             Text(name).foregroundStyle(.secondary)
             Spacer()
             Text(value).multilineTextAlignment(.trailing)
+                .accessibilityIdentifier(id ?? "")
         }
         .font(.callout)
     }
@@ -62,6 +69,7 @@ struct CPUDetailScreen: View {
                 VStack(alignment: .leading, spacing: 8) {
                     Text("\(Int(s.cpuUsagePercent))%")
                         .font(.system(size: 44, weight: .bold, design: .rounded))
+                        .accessibilityIdentifier("detail.cpu.total")
                     Sparkline(values: stats.cpuHistory.values, tint: .blue, height: 70, fixedDomain: 0...100)
                 }
                 .padding(.vertical, 4)
@@ -69,18 +77,19 @@ struct CPUDetailScreen: View {
                 Text("Total CPU across all cores, sampled every 2 seconds while Blip is open.")
             }
             Section("Load") {
-                PlainRow(name: "Load average (1m)", value: String(format: "%.2f", s.load1))
+                PlainRow(name: "Load average (1m)", value: String(format: "%.2f", s.load1), id: "detail.cpu.load1")
                 PlainRow(name: "Load average (5m)", value: String(format: "%.2f", s.load5))
                 PlainRow(name: "Load average (15m)", value: String(format: "%.2f", s.load15))
             }
             Section("Cores") {
-                PlainRow(name: "Total", value: "\(s.coresTotal)")
+                PlainRow(name: "Total", value: "\(s.coresTotal)", id: "detail.cpu.cores")
                 if s.coresPerformance > 0 {
-                    PlainRow(name: "Performance", value: "\(s.coresPerformance)")
-                    PlainRow(name: "Efficiency", value: "\(s.coresEfficiency)")
+                    PlainRow(name: "Performance", value: "\(s.coresPerformance)", id: "detail.cpu.pcores")
+                    PlainRow(name: "Efficiency", value: "\(s.coresEfficiency)", id: "detail.cpu.ecores")
                 }
             }
         }
+        .accessibilityIdentifier("detail.cpu")
         .navigationTitle("CPU")
         .navigationBarTitleDisplayMode(.inline)
     }
@@ -98,6 +107,7 @@ struct MemoryDetailScreen: View {
                 VStack(alignment: .leading, spacing: 8) {
                     Text(Fmt.memory(Int64(s.memoryPhysical)))
                         .font(.system(size: 40, weight: .bold, design: .rounded))
+                        .accessibilityIdentifier("detail.memory.total")
                     if stats.memoryHistory.values.count > 2 {
                         Sparkline(values: stats.memoryHistory.values, tint: .blue, height: 70)
                     }
@@ -107,17 +117,18 @@ struct MemoryDetailScreen: View {
                 Text("Chart: memory available to apps this session (os_proc_available_memory).")
             }
             Section("Breakdown") {
-                PlainRow(name: "Available to apps", value: Fmt.memory(Int64(s.memoryAppAvailable)))
+                PlainRow(name: "Available to apps", value: Fmt.memory(Int64(s.memoryAppAvailable)), id: "detail.memory.available")
                 PlainRow(name: "Free", value: Fmt.memory(Int64(s.memFree)))
                 PlainRow(name: "Active", value: Fmt.memory(Int64(s.memActive)))
                 PlainRow(name: "Inactive", value: Fmt.memory(Int64(s.memInactive)))
-                PlainRow(name: "Wired memory", value: Fmt.memory(Int64(s.memWired)))
+                PlainRow(name: "Wired memory", value: Fmt.memory(Int64(s.memWired)), id: "detail.memory.wired")
                 PlainRow(name: "Compressed", value: Fmt.memory(Int64(s.memCompressed)))
             }
             Section("This App") {
                 PlainRow(name: "Blip's footprint", value: Fmt.memory(Int64(s.appFootprint)))
             }
         }
+        .accessibilityIdentifier("detail.memory")
         .navigationTitle("Memory")
         .navigationBarTitleDisplayMode(.inline)
     }
@@ -145,13 +156,14 @@ struct StorageDetailScreen: View {
                 .padding(.vertical, 4)
             }
             Section {
-                PlainRow(name: "Free (strict)", value: Fmt.bytes(s.storageFree))
-                PlainRow(name: "Free if caches purge", value: Fmt.bytes(s.storageOpportunistic))
+                PlainRow(name: "Free (strict)", value: Fmt.bytes(s.storageFree), id: "detail.storage.free")
+                PlainRow(name: "Free if caches purge", value: Fmt.bytes(s.storageOpportunistic), id: "detail.storage.purgeable")
             } footer: {
                 Text("iOS can reclaim purgeable caches under pressure — the second number is what important-usage requests could actually get.")
             }
             MobileDiskBenchSection(bench: bench)
         }
+        .accessibilityIdentifier("detail.storage")
         .navigationTitle("Storage")
         .navigationBarTitleDisplayMode(.inline)
     }
@@ -170,6 +182,7 @@ struct NetworkDetailScreen: View {
                 VStack(alignment: .leading, spacing: 2) {
                     Text(s.interfaceType)
                         .font(.system(size: 34, weight: .bold, design: .rounded))
+                        .accessibilityIdentifier("detail.network.interface")
                     HStack(spacing: 6) {
                         if s.isExpensivePath { badge("metered", .orange) }
                         if s.isConstrainedPath { badge("low data", .orange) }
@@ -194,16 +207,18 @@ struct NetworkDetailScreen: View {
                         let parts = entry.split(separator: " ", maxSplits: 1).map(String.init)
                         CopyRow(name: LocalizedStringKey(parts.first ?? "if"),
                                 value: parts.count > 1 ? parts[1] : entry,
-                                monospaced: true)
+                                monospaced: true,
+                                id: "detail.network.ip.\(parts.first ?? "if")")
                     }
                 }
             }
             Section {
-                PlainRow(name: "VPN", value: s.vpnActive ? String(localized: "Active (utun interface up)") : String(localized: "Not detected"))
+                PlainRow(name: "VPN", value: s.vpnActive ? String(localized: "Active (utun interface up)") : String(localized: "Not detected"), id: "detail.network.vpn")
             } footer: {
                 Text("Detected from routing interfaces; a VPN app's own status is authoritative.")
             }
         }
+        .accessibilityIdentifier("detail.network")
         .navigationTitle("Network")
         .navigationBarTitleDisplayMode(.inline)
     }
@@ -247,15 +262,17 @@ struct BatteryDetailScreen: View {
             Section {
                 Text(s.batteryLevel.map { "\(Int($0 * 100))%" } ?? "—")
                     .font(.system(size: 44, weight: .bold, design: .rounded))
+                    .accessibilityIdentifier("detail.battery.level")
                     .padding(.vertical, 4)
             }
             Section {
-                PlainRow(name: "State", value: String(localized: String.LocalizationValue(s.batteryState)))
-                PlainRow(name: "Low Power Mode", value: s.lowPowerMode ? String(localized: "On") : String(localized: "Off"))
+                PlainRow(name: "State", value: String(localized: String.LocalizationValue(s.batteryState)), id: "detail.battery.state")
+                PlainRow(name: "Low Power Mode", value: s.lowPowerMode ? String(localized: "On") : String(localized: "Off"), id: "detail.battery.lowPower")
             } footer: {
                 Text("iOS reports level in 1% steps and doesn't expose battery health, cycle count, or wattage to apps — Settings → Battery is the only honest source for those.")
             }
         }
+        .accessibilityIdentifier("detail.battery")
         .navigationTitle("Battery")
         .navigationBarTitleDisplayMode(.inline)
     }
@@ -273,6 +290,7 @@ struct ThermalDetailScreen: View {
                 VStack(alignment: .leading, spacing: 8) {
                     Text(LocalizedStringKey(s.thermalLabel))
                         .font(.system(size: 40, weight: .bold, design: .rounded))
+                        .accessibilityIdentifier("detail.thermal.state")
                         .foregroundStyle(tint)
                     if stats.thermalHistory.values.count > 2 {
                         ThermalSteps(values: stats.thermalHistory.values, height: 60)
@@ -289,6 +307,7 @@ struct ThermalDetailScreen: View {
                 PlainRow(name: "Critical", value: "Heavy throttling; cool it down")
             }
         }
+        .accessibilityIdentifier("detail.thermal")
         .navigationTitle("Thermal")
         .navigationBarTitleDisplayMode(.inline)
     }
@@ -321,14 +340,14 @@ struct DeviceDetailScreen: View {
                 .padding(.vertical, 4)
             }
             Section("Identity") {
-                CopyRow(name: "Model identifier", value: s.model, monospaced: true)
-                CopyRow(name: "OS", value: s.osVersion)
+                CopyRow(name: "Model identifier", value: s.model, monospaced: true, id: "detail.device.model")
+                CopyRow(name: "OS", value: s.osVersion, id: "detail.device.os")
             }
             Section("Uptime") {
                 if let boot = s.bootDate {
                     PlainRow(name: "Booted", value: boot.formatted(date: .abbreviated, time: .shortened))
                 }
-                PlainRow(name: "Uptime", value: Fmt.uptime(s.bootUptime ?? s.uptime))
+                PlainRow(name: "Uptime", value: Fmt.uptime(s.bootUptime ?? s.uptime), id: "detail.device.uptime")
                 PlainRow(name: "Awake time", value: Fmt.uptime(s.uptime))
             }
             Section("Cores") {
@@ -339,6 +358,7 @@ struct DeviceDetailScreen: View {
                 }
             }
         }
+        .accessibilityIdentifier("detail.device")
         .navigationTitle("Device")
         .navigationBarTitleDisplayMode(.inline)
     }

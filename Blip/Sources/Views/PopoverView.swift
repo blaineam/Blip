@@ -74,6 +74,7 @@ struct PopoverView: View {
                             .font(.system(size: 9))
                             .foregroundStyle(.secondary)
                             .lineLimit(1)
+                            .accessibilityIdentifier("popover.footer.model")
                         Spacer()
                     }
                     .padding(.horizontal, 8)
@@ -85,6 +86,7 @@ struct PopoverView: View {
                         Text(monitor.snapshot.system.macOSVersion)
                             .font(.system(size: 9))
                             .foregroundStyle(.tertiary)
+                            .accessibilityIdentifier("popover.footer.os")
                         Spacer()
                     }
                     .padding(.horizontal, 8)
@@ -98,6 +100,7 @@ struct PopoverView: View {
                         Text(Fmt.uptime(monitor.snapshot.system.uptime))
                             .font(.system(size: 9, design: .monospaced))
                             .foregroundStyle(.secondary)
+                            .accessibilityIdentifier("popover.footer.uptime")
                     }
                     Spacer()
                 }
@@ -125,12 +128,14 @@ struct PopoverView: View {
                     .contentShape(Rectangle())
                 }
                 .buttonStyle(.plain)
+                .accessibilityIdentifier("popover.support")
                 .padding(.horizontal, 8)
 
                 HStack {
                     Text("Blip v\(AppVersion.short()) · \(String(format: "%.1f", monitor.snapshot.system.blipMemoryMB)) MB")
                         .font(.system(size: 8))
                         .foregroundStyle(.quaternary)
+                        .accessibilityIdentifier("popover.footer.version")
                     Spacer()
                     // iOS-parity: one click hands you a Markdown snapshot of everything
                     // Blip knows right now (same file the iOS toolbar button produces).
@@ -138,6 +143,7 @@ struct PopoverView: View {
                         [MacSnapshotExport.file(monitor.snapshot, speedHistory: speedHistory)]
                     }, help: String(localized: "Share a snapshot of all stats as one file"))
                     .frame(width: 16, height: 14)
+                    .accessibilityIdentifier("popover.share")
 
                     if onTogglePin != nil {
                         Button {
@@ -149,6 +155,7 @@ struct PopoverView: View {
                         }
                         .buttonStyle(.plain)
                         .help(isPinned ? "Unpin — close when clicking elsewhere" : "Pin open — stays up, and can be dragged off into its own window")
+                        .accessibilityIdentifier(isPinned ? "popover.pin.on" : "popover.pin.off")
                     }
 
                     Button {
@@ -159,6 +166,7 @@ struct PopoverView: View {
                             .foregroundStyle(.secondary)
                     }
                     .buttonStyle(.plain)
+                    .accessibilityIdentifier("popover.settings")
 
                     Button {
                         NSApplication.shared.terminate(nil)
@@ -168,6 +176,7 @@ struct PopoverView: View {
                             .foregroundStyle(.secondary)
                     }
                     .buttonStyle(.plain)
+                    .accessibilityIdentifier("popover.quit")
                 }
                 .padding(.horizontal, 8)
             }
@@ -201,7 +210,8 @@ struct PopoverView: View {
                     label: "CPU",
                     value: Fmt.percent(monitor.snapshot.cpu.totalUsage),
                     percent: monitor.snapshot.cpu.totalUsage,
-                    color: .blue
+                    color: .blue,
+                    id: "cpu"
                 )
             case .memory:
                 OverviewRow(
@@ -209,7 +219,8 @@ struct PopoverView: View {
                     label: "Memory",
                     value: Fmt.percent(monitor.snapshot.memory.usagePercent),
                     percent: monitor.snapshot.memory.usagePercent,
-                    color: .green
+                    color: .green,
+                    id: "memory"
                 )
             case .disk:
                 OverviewRow(
@@ -217,7 +228,8 @@ struct PopoverView: View {
                     label: "Disk",
                     value: Fmt.percent(monitor.snapshot.disk.primaryUsagePercent),
                     percent: monitor.snapshot.disk.primaryUsagePercent,
-                    color: .orange
+                    color: .orange,
+                    id: "disk"
                 )
             case .network:
                 HStack(spacing: 8) {
@@ -230,6 +242,7 @@ struct PopoverView: View {
                         .lineLimit(1)
                         .minimumScaleFactor(0.7)
                         .frame(width: 60, alignment: .leading)
+                        .accessibilityIdentifier("popover.row.network")
                     // Occupy same space as UsageBar(60) + value(40) = 108 with spacing
                     HStack(spacing: 4) {
                         HStack(spacing: 1) {
@@ -238,6 +251,7 @@ struct PopoverView: View {
                                 .foregroundStyle(.green)
                             Text(Fmt.shortSpeed(monitor.snapshot.network.downloadSpeed))
                                 .font(.system(size: 9, design: .monospaced))
+                                .accessibilityIdentifier("popover.row.network.down")
                         }
                         HStack(spacing: 1) {
                             Image(systemName: "arrow.up")
@@ -245,6 +259,7 @@ struct PopoverView: View {
                                 .foregroundStyle(.blue)
                             Text(Fmt.shortSpeed(monitor.snapshot.network.uploadSpeed))
                                 .font(.system(size: 9, design: .monospaced))
+                                .accessibilityIdentifier("popover.row.network.up")
                         }
                     }
                     .frame(width: 108, alignment: .leading)
@@ -259,7 +274,8 @@ struct PopoverView: View {
                     label: "GPU",
                     value: Fmt.percent(monitor.snapshot.gpu.utilization),
                     percent: monitor.snapshot.gpu.utilization,
-                    color: .purple
+                    color: .purple,
+                    id: "gpu"
                 )
             case .bench:
                 OverviewRow(
@@ -267,7 +283,8 @@ struct PopoverView: View {
                     label: "Bench",
                     value: benchScoreLabel,
                     percent: 0,
-                    color: .purple
+                    color: .purple,
+                    id: "bench"
                 )
             case .thermal:
                 HStack(spacing: 8) {
@@ -280,10 +297,12 @@ struct PopoverView: View {
                         .lineLimit(1)
                         .minimumScaleFactor(0.7)
                         .frame(width: 60, alignment: .leading)
+                        .accessibilityIdentifier("popover.row.thermal")
                     Text(monitor.snapshot.system.thermalLevel.localizedName)
                         .font(.system(size: 10, design: .monospaced))
                         .foregroundStyle(thermalColor)
                         .frame(width: 108, alignment: .leading)
+                        .accessibilityIdentifier("popover.row.thermal.value")
                     RowChevron()
                 }
                 .padding(.vertical, 4)
@@ -295,7 +314,8 @@ struct PopoverView: View {
                     label: "Battery",
                     value: Fmt.percent(monitor.snapshot.battery.level),
                     percent: monitor.snapshot.battery.level,
-                    color: .green
+                    color: .green,
+                    id: "battery"
                 )
             case .awake:
                 KeepAwakeOverviewRow(keepAwake: KeepAwake.shared)
@@ -363,6 +383,7 @@ struct PopoverView: View {
                 Text(rec.title)
                     .font(.system(size: 11, weight: .semibold))
                     .fixedSize(horizontal: false, vertical: true)
+                    .accessibilityIdentifier("popover.recommendation.title")
                 Text(rec.detail)
                     .font(.system(size: 9))
                     .foregroundStyle(.secondary)
@@ -378,6 +399,7 @@ struct PopoverView: View {
             }
             .buttonStyle(.plain)
             .help("Dismiss")
+            .accessibilityIdentifier("popover.recommendation.dismiss")
         }
         .padding(8)
         .background(

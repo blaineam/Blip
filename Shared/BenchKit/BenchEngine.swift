@@ -83,6 +83,9 @@ public final class BenchEngine: ObservableObject {
         progress = 0
         liveLegs = []
         cancelledFlag.reset()
+        #if DEBUG
+        if UITestMode.isActive { startUITestRun(profile: profile); return }
+        #endif
         let flag = cancelledFlag
         let thermal = self.thermal
         task = Task { [weak self] in
@@ -99,18 +102,63 @@ public final class BenchEngine: ObservableObject {
                 }
             }
             await MainActor.run { [weak self] in
-                guard let self else { return }
-                self.isRunning = false
-                self.phase = result == nil ? .idle : .done
-                self.progress = result == nil ? 0 : 1
-                if let result {
-                    self.lastResult = result
-                    BenchHistory.append(result, defaults: self.defaults)
-                    self.history = BenchHistory.load(defaults: self.defaults)
-                }
+                self?.finish(result)
             }
         }
     }
+
+    private func finish(_ result: BenchResult?) {
+        isRunning = false
+        phase = result == nil ? .idle : .done
+        progress = result == nil ? 0 : 1
+        if let result {
+            lastResult = result
+            BenchHistory.append(result, defaults: defaults)
+            history = BenchHistory.load(defaults: defaults)
+        }
+    }
+
+    #if DEBUG
+    /// UI-test stand-in for a real run (minutes of CPU/GPU load): walks the same published
+    /// phases and live legs on a short schedule, then records a canned composite of 1388.
+    /// `-UITestBenchOutcome cancel` holds after the last leg until the run is cancelled.
+    private func startUITestRun(profile: BenchProfile) {
+        let flag = cancelledFlag
+        let holdForCancel = UITestMode.value("UITestBenchOutcome") == "cancel"
+        task = Task { [weak self] in
+            let legs: [(id: String, name: String, score: Double, next: Phase)] = [
+                ("single", "Single-core", 736, .multiCore), ("multi", "All cores", 6551, .memory),
+                ("memory", "Memory", 1097, .gpu), ("gpu", "GPU", 680, .neural), ("neural", "Neural", 847, .sustained),
+            ]
+            for (i, leg) in legs.enumerated() {
+                try? await Task.sleep(nanoseconds: 600_000_000)
+                if flag.isSet { break }
+                guard let self else { return }
+                self.liveLegs.append(BenchLiveLeg(id: leg.id, name: leg.name, score: leg.score))
+                self.phase = leg.next
+                self.progress = Double(i + 1) / Double(legs.count + 1)
+            }
+            if holdForCancel {
+                while !flag.isSet && !Task.isCancelled { try? await Task.sleep(nanoseconds: 50_000_000) }
+            }
+            guard let self else { return }
+            guard !flag.isSet else { self.finish(nil); return }
+            let composite = 1388.0
+            let result = BenchResult(
+                date: Date(), profile: profile,
+                singleCore: .init(name: "Single-core", score: 736, results: []),
+                multiCore: .init(name: "All cores", score: 6551, results: []),
+                memory: .init(name: "Memory", score: 1097, results: []),
+                gpu: .init(name: "GPU", score: 680, results: []),
+                neural: .init(name: "Neural", score: 847, results: []),
+                throttleFactor: profile.sustainedSeconds > 0 ? 0.96 : nil, thermalSamples: [],
+                composite: composite,
+                deviceModel: "UITest",
+                osVersion: Foundation.ProcessInfo.processInfo.operatingSystemVersionString)
+            self.finish(result)
+        }
+    }
+    #endif
 
     /// Run through the SHARED engine (published state + history) and return the result —
     /// what the Run Benchmark intent uses so Shortcuts runs land in the panel like any other.

@@ -137,6 +137,24 @@ final class DeviceStats: ObservableObject {
         s.localIPs = ["en0 192.0.2.24"]   // RFC 5737 documentation address — nobody's LAN
     }
 
+    #if DEBUG
+    /// UI-test mode: the demo overlay plus the values the overlay leaves live (CPU, thermal,
+    /// uptime, load, cores), pinned so every assertion is stable.
+    nonisolated static func applyUITestPins(_ s: inout DeviceSnapshot) {
+        applyDemoOverlay(&s)
+        s.cpuUsagePercent = 23
+        s.thermalState = 0
+        s.uptime = 3 * 86_400 + 5 * 3_600 + 12 * 60
+        s.bootDate = nil
+        s.load1 = 1.82
+        s.load5 = 1.64
+        s.load15 = 1.51
+        s.coresTotal = 6
+        s.coresPerformance = 2
+        s.coresEfficiency = 4
+    }
+    #endif
+
     /// Hardware identifier — on the simulator, the SIMULATED device's identifier
     /// (uname reports the host's arch, which told users they own a "Simulator (arm64)").
     nonisolated static func currentModelIdentifier() -> String {
@@ -154,6 +172,11 @@ final class DeviceStats: ObservableObject {
     private var lastPath: NWPath?
 
     init() {
+        #if DEBUG
+        // UI tests: one deterministic sample (demo overlay + pinned live values), no path
+        // monitor, no 2 s timer — the screen never changes under the test.
+        if UITestMode.isActive { sample(); return }
+        #endif
         #if canImport(UIKit)
         UIDevice.current.isBatteryMonitoringEnabled = true
         #endif
@@ -338,6 +361,9 @@ final class DeviceStats: ObservableObject {
         // Overlay must be the LAST writer — the path/VPN fields above would otherwise
         // clobber the stubs (field-caught: "Wired · VPN" survived into the shots).
         if UserDefaults.standard.bool(forKey: "blip.demoSeed") { Self.applyDemoOverlay(&s) }
+        #if DEBUG
+        if UITestMode.isActive { Self.applyUITestPins(&s) }
+        #endif
         snapshot = s
         cpuHistory.append(s.cpuUsagePercent)
         if s.memoryAppAvailable > 0 { memoryHistory.append(Double(s.memoryAppAvailable) / 1_073_741_824) }

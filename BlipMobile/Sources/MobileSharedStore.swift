@@ -14,7 +14,13 @@ enum MobileSharedStore {
     static let appGroup = "group.com.blainemiller.Blip"
 
     static var defaults: UserDefaults {
-        UserDefaults(suiteName: appGroup) ?? .standard
+        #if DEBUG
+        // UI tests never touch the real App Group: an isolated, per-launch-cleared suite.
+        if UITestMode.isActive, let isolated = UserDefaults(suiteName: UITestMode.mobileSuiteName) {
+            return isolated
+        }
+        #endif
+        return UserDefaults(suiteName: appGroup) ?? .standard
     }
 
     struct SpeedRecord: Codable {

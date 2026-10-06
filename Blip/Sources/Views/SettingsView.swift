@@ -97,6 +97,7 @@ struct SettingsView: View {
     private var generalTab: some View {
         Form {
             Toggle("Launch at Login", isOn: $launchAtLogin)
+                .accessibilityIdentifier("settings.launchAtLogin")
                 .onChange(of: launchAtLogin) { _, newValue in
                     do {
                         if newValue {
@@ -118,6 +119,7 @@ struct SettingsView: View {
                     Text("Ping Target")
                     Spacer()
                     TextField("1.1.1.1", text: $pingTarget)
+                        .accessibilityIdentifier("settings.pingTarget")
                         .textFieldStyle(.roundedBorder)
                         .frame(width: 180)
                         .font(.system(size: 12, design: .monospaced))
@@ -128,6 +130,7 @@ struct SettingsView: View {
                     Text("Traceroute Target")
                     Spacer()
                     TextField(pingTarget.isEmpty ? "1.1.1.1" : pingTarget, text: $tracerouteTarget)
+                        .accessibilityIdentifier("settings.traceTarget")
                         .textFieldStyle(.roundedBorder)
                         .frame(width: 180)
                         .font(.system(size: 12, design: .monospaced))
@@ -140,6 +143,7 @@ struct SettingsView: View {
                         Text("OpenSpeedTest Server")
                         Spacer()
                         TextField("http://192.168.1.50:3000", text: $openSpeedTestURL)
+                            .accessibilityIdentifier("settings.speedServer")
                             .textFieldStyle(.roundedBorder)
                             .frame(width: 180)
                             .font(.system(size: 12, design: .monospaced))
@@ -165,6 +169,7 @@ struct SettingsView: View {
 
             Section("Recommendations") {
                 Toggle("Show optimization suggestions", isOn: $showRecommendations)
+                    .accessibilityIdentifier("settings.recommendations.toggle")
                 Text("Dismissable tips at the top of the menu — high CPU, memory pressure, thermals, low disk, S.M.A.R.T. and battery health.")
                     .font(.caption)
                     .foregroundStyle(.secondary)
@@ -173,6 +178,7 @@ struct SettingsView: View {
                         Text("Dismissed suggestions")
                         Spacer()
                         Button("Reset") { monitor?.resetDismissedRecommendations() }
+                            .accessibilityIdentifier("settings.recommendations.reset")
                     }
                 }
             }
@@ -216,6 +222,7 @@ struct SettingsView: View {
                     Text(AppVersion.display())
                         .foregroundStyle(.secondary)
                         .monospacedDigit()
+                        .accessibilityIdentifier("settings.version")
                 }
                 LabeledContent("Website") {
                     Link("wemiller.com/apps/blip", destination: URL(string: "https://wemiller.com/apps/blip/")!)
@@ -255,12 +262,14 @@ struct SettingsView: View {
                     }
                 }
                 .pickerStyle(.radioGroup)
+                .accessibilityIdentifier("settings.colorMode")
                 .onChange(of: selectedMode) { _, newMode in
                     applyColorMode(newMode)
                 }
 
                 if selectedMode == .custom {
                     ColorPicker("Pick a color", selection: $customColor, supportsOpacity: false)
+                        .accessibilityIdentifier("settings.colorPicker")
                         .onChange(of: customColor) { _, newColor in
                             colorOverride = newColor.hexString
                         }
@@ -464,11 +473,11 @@ struct SettingsView: View {
     private var menuBarTab: some View {
         Form {
             Section("Visible Items") {
-                Toggle("CPU", isOn: $showCPU)
-                Toggle("Memory", isOn: $showMemory)
-                Toggle("Disk", isOn: $showDisk)
-                Toggle("GPU", isOn: $showGPU)
-                Toggle("Network Indicator", isOn: $showNetworkDot)
+                Toggle("CPU", isOn: $showCPU).accessibilityIdentifier("settings.menubar.showCPU")
+                Toggle("Memory", isOn: $showMemory).accessibilityIdentifier("settings.menubar.showMemory")
+                Toggle("Disk", isOn: $showDisk).accessibilityIdentifier("settings.menubar.showDisk")
+                Toggle("GPU", isOn: $showGPU).accessibilityIdentifier("settings.menubar.showGPU")
+                Toggle("Network Indicator", isOn: $showNetworkDot).accessibilityIdentifier("settings.menubar.showNetworkDot")
             }
             Section("Layout") {
                 Picker("Menu Bar Style", selection: $menuBarLayout) {
@@ -476,11 +485,13 @@ struct SettingsView: View {
                     Text("Horizontal (wide)").tag("horizontal")
                 }
                 .pickerStyle(.radioGroup)
+                .accessibilityIdentifier("settings.menubar.layout")
                 Picker("Details", selection: $detailStyle) {
                     Text("Beside the menu, on hover").tag(DetailPanelStyle.beside)
                     Text("Inside the menu, on click").tag(DetailPanelStyle.inline)
                 }
                 .pickerStyle(.radioGroup)
+                .accessibilityIdentifier("settings.menubar.detailStyle")
             }
             Section("Display") {
                 Toggle("Show Measurement Labels", isOn: $showMeasurementLabels)
@@ -515,8 +526,10 @@ struct SettingsView: View {
                 HStack {
                     Image(systemName: "globe").foregroundStyle(.secondary)
                     Text("Not installed").foregroundStyle(.secondary)
+                        .accessibilityIdentifier("settings.geoip.status")
                     Spacer()
                     Button("Download") { geoDB.download() }
+                        .accessibilityIdentifier("settings.geoip.download")
                 }
             case .downloading(let p):
                 HStack(spacing: 8) {

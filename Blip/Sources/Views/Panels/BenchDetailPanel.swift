@@ -45,6 +45,7 @@ struct BenchDetailPanel: View {
                 engine.toggle(profile: .full)
             }
             .controlSize(.small)
+            .accessibilityIdentifier("detail.bench.run")
         }
     }
 
@@ -62,6 +63,7 @@ struct BenchDetailPanel: View {
                     .foregroundStyle(LinearGradient(colors: [.purple, .blue],
                                                     startPoint: .topLeading, endPoint: .bottomTrailing))
                     .contentTransition(.numericText())
+                    .accessibilityIdentifier("detail.bench.score")
                     // Never wrap the digits ("2,31⏎9" — field screenshot); scale down instead
                     // and outrank the labels in the width fight.
                     .lineLimit(1)
@@ -208,11 +210,12 @@ struct BenchDetailPanel: View {
                 Spacer()
             }
             BenchHistoryChart(history: engine.history, height: 56)
-            ForEach(engine.history.suffix(6).reversed()) { r in
+            ForEach(Array(engine.history.suffix(6).reversed().enumerated()), id: \.element.id) { index, r in
                 HStack {
                     Text("\(Int(r.composite.rounded()))")
                         .font(.system(size: 11, weight: .semibold, design: .rounded))
                         .frame(width: 44, alignment: .leading)
+                        .accessibilityIdentifier("detail.bench.history.\(index)")
                     Text(r.profile == .quick ? "quick" : "full")
                         .font(.system(size: 8))
                         .padding(.horizontal, 5).padding(.vertical, 1.5)

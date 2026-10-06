@@ -706,6 +706,9 @@ final class DiskSpeedTester: ObservableObject {
         phase = .writing
         progress = 0
         lastError = nil
+        #if DEBUG
+        if UITestMode.isActive { startUITestStub(); return }
+        #endif
         let size = self.size
         let target = resolveTargetDirectory()
         let dirURL = target?.url
@@ -768,6 +771,27 @@ final class DiskSpeedTester: ObservableObject {
         phase = .idle
         progress = 0
     }
+
+    #if DEBUG
+    /// UI-test stand-in for the real benchmark (gigabytes of disk I/O): the same phases on a
+    /// short schedule, then a canned 3120 MB/s write / 5480 MB/s read / 41k IOPS result.
+    private func startUITestStub() {
+        task = Task { [weak self] in
+            for (i, phase) in [DiskBenchmark.Phase.writing, .reading, .randomRead].enumerated() {
+                guard let self, !Task.isCancelled else { return }
+                self.phase = phase
+                self.progress = Double(i) / 3
+                try? await Task.sleep(nanoseconds: 700_000_000)
+            }
+            guard let self, !Task.isCancelled else { return }
+            self.record(DiskSpeedResult(writeMBps: 3120, readMBps: 5480, randomReadIOPS: 41_000, timestamp: Date()))
+            self.completedBenchmarks += 1
+            self.isRunning = false
+            self.phase = .idle
+            self.progress = 0
+        }
+    }
+    #endif
 
     /// Records an externally-run benchmark result (e.g. from the RunDriveSpeedTest
     /// App Intent) into the tester's result/history so the Disk panel reflects it.

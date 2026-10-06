@@ -62,15 +62,18 @@ struct KeepAwakeOverviewRow: View {
                     .lineLimit(1)
                     .minimumScaleFactor(0.7)
                     .frame(width: 60, alignment: .leading)
+                    .accessibilityIdentifier("popover.row.awake")
 
                 PillSwitch(isOn: Binding(
                     get: { keepAwake.isActive },
                     set: { _ in keepAwake.toggle() }
                 ), label: "Keep Mac Awake")
+                .accessibilityIdentifier("popover.row.awake.switch")
                 .help(keepAwake.isActive ? "Let the Mac sleep" : "Keep the Mac awake (\(keepAwake.lastDuration.title))")
                 .frame(width: 60, alignment: .leading)
 
                 Text(valueText(at: context.date))
+                    .accessibilityIdentifier("popover.row.awake.value")
                     .font(.system(size: 10, design: .monospaced))
                     .foregroundStyle(keepAwake.isActive ? AnyShapeStyle(.orange) : AnyShapeStyle(.secondary))
                     .lineLimit(1)
@@ -111,6 +114,7 @@ struct KeepAwakeDetailPanel: View {
                     .font(.system(size: 13, weight: .semibold))
                 Spacer()
                 statusText
+                    .accessibilityIdentifier("detail.awake.status")
                     .font(.system(size: 13, weight: .bold))
                     .foregroundStyle(keepAwake.isActive ? .orange : .secondary)
             }
@@ -130,6 +134,7 @@ struct KeepAwakeDetailPanel: View {
                         .frame(maxWidth: .infinity)
                 }
                 .controlSize(.small)
+                .accessibilityIdentifier("detail.awake.stop")
             }
 
             Divider()
@@ -185,6 +190,7 @@ struct KeepAwakeDetailPanel: View {
                 }
                 .buttonStyle(.plain)
                 .help(duration.title)
+                .accessibilityIdentifier("detail.awake.duration.\(duration.rawValue)")
             }
         }
     }

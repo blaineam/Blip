@@ -453,6 +453,9 @@ private struct TracerouteSection: View {
                 .contentShape(Rectangle())
             }
             .buttonStyle(.plain)
+            // UI-test handle. The "open in a window" icon sits at the trailing edge of this
+            // row (it is part of the button's label, so it has no element of its own).
+            .accessibilityIdentifier("detail.network.trace.toggle")
 
             if expanded {
                 // Target (set in Settings → Network) + controls
@@ -470,10 +473,12 @@ private struct TracerouteSection: View {
                         Button("Stop") { stopTrace() }
                             .controlSize(.small)
                             .tint(.red)
+                            .accessibilityIdentifier("detail.network.trace.stop")
                     } else {
                         Button("Start") { startTrace() }
                             .controlSize(.small)
                             .disabled(effectiveHost.isEmpty)
+                            .accessibilityIdentifier("detail.network.trace.start")
                     }
                 }
 
@@ -550,6 +555,7 @@ private struct TracerouteSection: View {
                         .frame(maxWidth: .infinity, alignment: .leading)
                         .lineLimit(1)
                         .truncationMode(.middle)
+                        .accessibilityIdentifier("detail.network.trace.hop.\(hop.hop)")
                     Text(String(format: "%.0f%%", hop.lossPct))
                         .frame(width: 34, alignment: .trailing)
                         .foregroundStyle(lossColor(hop.lossPct))
@@ -663,6 +669,7 @@ struct SpeedTestSection: View {
                         .foregroundStyle(.purple)
                     Text("Speed Test")
                         .font(.system(size: 11, weight: .medium))
+                        .accessibilityIdentifier("detail.network.speed.toggle")
                     Spacer()
                     if let last = tester.lastResult, !expanded {
                         Text(Fmt.throughput(last.downMbps))
@@ -756,6 +763,7 @@ struct SpeedTestSection: View {
                 }
                 .buttonStyle(.plain)
                 .disabled(needsServerURL)
+                .accessibilityIdentifier("detail.network.speed.run")
                 if needsServerURL {
                     Text("Set server URL in Settings")
                         .font(.system(size: 9))
@@ -1220,15 +1228,18 @@ struct TracerouteWindowView: View {
                 Text("Traceroute / MTR").font(.headline)
                 Spacer()
                 TextField("host or IP", text: $host)
+                    .accessibilityIdentifier("traceroute.host")
                     .textFieldStyle(.roundedBorder)
                     .frame(width: 200)
                     .disableAutocorrection(true)
                     .onSubmit { if !running { startTrace() } }
                 if running {
                     Button("Stop") { stopTrace() }.tint(.red)
+                        .accessibilityIdentifier("traceroute.stop")
                 } else {
                     Button("Start") { startTrace() }
                         .disabled(host.trimmingCharacters(in: .whitespaces).isEmpty)
+                        .accessibilityIdentifier("traceroute.start")
                 }
             }
 
@@ -1281,6 +1292,7 @@ struct TracerouteWindowView: View {
                     HStack(spacing: 8) {
                         Text("\(hop.hop)").frame(width: 22, alignment: .trailing).foregroundStyle(.tertiary)
                         Text(hop.host).frame(maxWidth: .infinity, alignment: .leading).lineLimit(1).truncationMode(.middle)
+                            .accessibilityIdentifier("traceroute.hop.\(hop.hop)")
                         Text(String(format: "%.0f%%", hop.lossPct)).frame(width: 48, alignment: .trailing)
                             .foregroundStyle(hop.lossPct <= 0 ? .green : (hop.lossPct < 20 ? .orange : .red))
                         Text(ms(hop.lastMs)).frame(width: 56, alignment: .trailing).foregroundStyle(.secondary)

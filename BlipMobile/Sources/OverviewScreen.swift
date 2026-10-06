@@ -22,13 +22,13 @@ struct OverviewScreen: View {
             ScrollView {
                 suggestions
                 LazyVGrid(columns: columns, spacing: 12) {
-                    card(cpuCard) { CPUDetailScreen(stats: stats) }
-                    card(memoryCard) { MemoryDetailScreen(stats: stats) }
-                    card(storageCard) { StorageDetailScreen(stats: stats) }
-                    card(networkCard) { NetworkDetailScreen(stats: stats) }
-                    card(batteryCard) { BatteryDetailScreen(stats: stats) }
-                    card(thermalCard) { ThermalDetailScreen(stats: stats) }
-                    card(systemCard) { DeviceDetailScreen(stats: stats) }
+                    card(cpuCard, id: "cpu") { CPUDetailScreen(stats: stats) }
+                    card(memoryCard, id: "memory") { MemoryDetailScreen(stats: stats) }
+                    card(storageCard, id: "storage") { StorageDetailScreen(stats: stats) }
+                    card(networkCard, id: "network") { NetworkDetailScreen(stats: stats) }
+                    card(batteryCard, id: "battery") { BatteryDetailScreen(stats: stats) }
+                    card(thermalCard, id: "thermal") { ThermalDetailScreen(stats: stats) }
+                    card(systemCard, id: "device") { DeviceDetailScreen(stats: stats) }
                 }
                 .padding()
             }
@@ -39,20 +39,23 @@ struct OverviewScreen: View {
                               preview: SharePreview("Blip Snapshot", image: Image(systemName: "doc.text"))) {
                         Image(systemName: "square.and.arrow.up.on.square")
                     }
+                    .accessibilityIdentifier("overview.share")
                 }
                 ToolbarItem(placement: .topBarTrailing) {
                     NavigationLink { SettingsScreen() } label: {
                         Image(systemName: "gearshape")
                     }
+                    .accessibilityIdentifier("overview.settings")
                 }
             }
             .refreshable { stats.sample() }
         }
     }
 
-    private func card<D: View>(_ content: some View, @ViewBuilder destination: () -> D) -> some View {
+    private func card<D: View>(_ content: some View, id: String, @ViewBuilder destination: () -> D) -> some View {
         NavigationLink { destination() } label: { content }
             .buttonStyle(.plain)
+            .accessibilityIdentifier("overview.card.\(id)")
     }
 
     private var s: DeviceSnapshot { stats.snapshot }
@@ -74,6 +77,8 @@ struct OverviewScreen: View {
             }
             .padding(12)
             .background(.quaternary.opacity(0.5), in: RoundedRectangle(cornerRadius: 14))
+            .accessibilityElement(children: .contain)
+            .accessibilityIdentifier("overview.suggestions")
             .padding(.horizontal)
             .padding(.top, 4)
         }

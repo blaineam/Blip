@@ -106,6 +106,15 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate, NSPo
             return
         }
 
+        #if DEBUG
+        // UI tests (BlipUITests → BlipUITestHost): deterministic fixtures, no polling,
+        // no helper, stubbed runners. See BlipUITestSupport.swift.
+        if UITestMode.isActive {
+            startUITestMode()
+            return
+        }
+        #endif
+
         // Make the live services available to App Intents (Shortcuts) in every
         // mode — installed first so an intent arriving right after a cold
         // Shortcut-triggered launch finds them.
@@ -197,6 +206,63 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate, NSPo
         }
     }
 
+    #if DEBUG
+    /// The window the UI tests drive: the real PopoverView (same callbacks as the menu-bar
+    /// popover) hosted in an ordinary titled window, because a transient NSPopover hanging
+    /// off an LSUIElement status item is not something XCUITest can reach reliably. The
+    /// status item + popover are still installed so they can be exercised too.
+    private var uiTestWindow: NSWindow?
+
+    private func startUITestMode() {
+        BlipUITestFixtures.resetDefaults()
+        BlipUITestFixtures.seedBench()
+        BlipUITestFixtures.load(into: monitor)
+        NSAnimationContext.current.duration = 0
+        NSApp.setActivationPolicy(.regular)
+        setupStatusItem()
+        setupPopover()
+        setupDetailPanel()
+        installSettingsMenuOverride()
+
+        let hosting = NSHostingController(rootView: AnyView(
+            makePopoverView(onHoverSection: nil)
+                .transaction { $0.disablesAnimations = true; $0.animation = nil }))
+        // Default sizing (min/max constraints from the SwiftUI content) — the popover's
+        // .preferredContentSize option loops the window's update-constraints pass.
+        let window = NSWindow(contentViewController: hosting)
+        window.title = "Blip UI Test"
+        window.identifier = NSUserInterfaceItemIdentifier("blip-uitest-popover")
+        window.styleMask = [.titled, .closable, .miniaturizable]
+        window.isReleasedWhenClosed = false
+        window.setFrameTopLeftPoint(NSPoint(x: 120, y: (NSScreen.main?.visibleFrame.maxY ?? 900) - 40))
+        uiTestWindow = window
+        window.makeKeyAndOrderFront(nil)
+        NSApp.activate(ignoringOtherApps: true)
+    }
+    #endif
+
+    /// Traceroute session seam: the in-process runner (or helper), or the canned UI-test route.
+    private func traceStart(_ host: String) async {
+        #if DEBUG
+        if UITestMode.isActive { UITestTraceStub.shared.start(host: host); return }
+        #endif
+        await monitor.startTraceroute(host: host)
+    }
+
+    private func traceStop() async {
+        #if DEBUG
+        if UITestMode.isActive { UITestTraceStub.shared.stop(); return }
+        #endif
+        await monitor.stopTraceroute()
+    }
+
+    private func tracePoll() async -> (hops: [HelperTraceHop], running: Bool) {
+        #if DEBUG
+        if UITestMode.isActive { return UITestTraceStub.shared.snapshot() }
+        #endif
+        return await monitor.tracerouteHops()
+    }
+
     /// Renders the requested scene (overview popover or a section detail panel)
     /// as a borderless card on a transparent window, sized to fit, for screenshots.
     private func setupScreenshotWindow() {
@@ -277,11 +343,22 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate, NSPo
         popover.animates = true
         popover.delegate = self
 
-        let popoverView = PopoverView(
+        let popoverView = makePopoverView(onHoverSection: { [weak self] section in
+            self?.handleSectionHover(section)
+        })
+
+        let hosting = NSHostingController(rootView: popoverView)
+        // Track SwiftUI's size so the popover grows and shrinks when a row's
+        // details expand inline (and when the suggestion banner comes and goes).
+        hosting.sizingOptions = [.preferredContentSize]
+        popover.contentViewController = hosting
+    }
+
+    /// The overview, wired to this delegate's live services and actions.
+    private func makePopoverView(onHoverSection: ((PopoverSection?) -> Void)?) -> PopoverView {
+        PopoverView(
             monitor: monitor,
-            onHoverSection: { [weak self] section in
-                self?.handleSectionHover(section)
-            },
+            onHoverSection: onHoverSection,
             benchEngine: benchEngine,
             speedHistory: netSpeedTester.history,
             onOpenSettings: { [weak self] in
@@ -300,19 +377,13 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate, NSPo
             },
             inlineDetail: { [weak self] section in
                 guard let self else { return AnyView(EmptyView()) }
-                return AnyView(DetailPanelChrome(pinned: false, onTogglePin: { [weak self] in
+                return AnyView(DetailPanelChrome(pinned: false, section: section.rawValue, onTogglePin: { [weak self] in
                     self?.pinPanel(section, topLeft: nil)
                 }) {
                     self.detailContent(for: section)
                 })
             }
         )
-
-        let hosting = NSHostingController(rootView: popoverView)
-        // Track SwiftUI's size so the popover grows and shrinks when a row's
-        // details expand inline (and when the suggestion banner comes and goes).
-        hosting.sizingOptions = [.preferredContentSize]
-        popover.contentViewController = hosting
     }
 
     @objc private func togglePopover() {
@@ -492,9 +563,9 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate, NSPo
                 downloadHistory: monitor.netDownHistory.values,
                 uploadHistory: monitor.netUpHistory.values,
                 speedTester: netSpeedTester,
-                traceStart: { host in await self.monitor.startTraceroute(host: host) },
-                traceStop: { await self.monitor.stopTraceroute() },
-                tracePoll: { await self.monitor.tracerouteHops() },
+                traceStart: { host in await self.traceStart(host) },
+                traceStop: { await self.traceStop() },
+                tracePoll: { await self.tracePoll() },
                 onOpenTracerouteWindow: { [weak self] in self?.openTracerouteWindow() }
             )
         case .gpu:
@@ -619,6 +690,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate, NSPo
 
         let window = NSWindow(contentViewController: hostingController)
         window.title = String(localized: "Blip Settings", comment: "Title of the settings window")
+        window.identifier = NSUserInterfaceItemIdentifier("blip-settings")
         window.styleMask = [.titled, .closable, .resizable, .miniaturizable]
         window.center()
         window.setFrameAutosaveName("BlipSettings")
@@ -645,13 +717,14 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate, NSPo
         }
 
         let view = TracerouteWindowView(
-            start: { host in await self.monitor.startTraceroute(host: host) },
-            stop: { await self.monitor.stopTraceroute() },
-            poll: { await self.monitor.tracerouteHops() }
+            start: { host in await self.traceStart(host) },
+            stop: { await self.traceStop() },
+            poll: { await self.tracePoll() }
         )
         let hostingController = NSHostingController(rootView: view)
         let window = NSWindow(contentViewController: hostingController)
         window.title = String(localized: "Traceroute Map", comment: "Title of the traceroute map window")
+        window.identifier = NSUserInterfaceItemIdentifier("blip-traceroute")
         window.styleMask = [.titled, .closable, .resizable, .miniaturizable]
         window.setContentSize(NSSize(width: 560, height: 620))
         window.center()
@@ -776,7 +849,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate, NSPo
     private func makeWrappedView(for section: PopoverSection, pinned: Bool = false) -> AnyView {
         let cornerRadius: CGFloat = 20
         return AnyView(
-            DetailPanelChrome(pinned: pinned, onTogglePin: { [weak self] in
+            DetailPanelChrome(pinned: pinned, section: section.rawValue, onTogglePin: { [weak self] in
                 self?.togglePanelPin(section)
             }) {
                 detailContent(for: section)

@@ -15,6 +15,7 @@ struct SettingsScreen: View {
         Form {
             Section {
                 TextField("192.168.1.50:3000", text: $speedServer)
+                    .accessibilityIdentifier("settings.speedServer")
                     .keyboardType(.URL)
                     .textInputAutocapitalization(.never)
                     .autocorrectionDisabled()
@@ -26,8 +27,10 @@ struct SettingsScreen: View {
 
             Section {
                 TextField("Ping target — 1.1.1.1", text: $pingTarget)
+                    .accessibilityIdentifier("settings.pingTarget")
                     .keyboardType(.URL).textInputAutocapitalization(.never).autocorrectionDisabled()
                 TextField("Traceroute target — 1.1.1.1", text: $traceTarget)
+                    .accessibilityIdentifier("settings.traceTarget")
                     .keyboardType(.URL).textInputAutocapitalization(.never).autocorrectionDisabled()
             } header: {
                 Text("Network Tools")
@@ -52,6 +55,7 @@ struct SettingsScreen: View {
                     .font(.footnote).foregroundStyle(.secondary)
             }
         }
+        .accessibilityIdentifier("settings.form")
         .navigationTitle("Settings")
         .navigationBarTitleDisplayMode(.inline)
         .onAppear { geo.loadIfPresent() }
@@ -64,6 +68,7 @@ struct SettingsScreen: View {
             Button { geo.download() } label: {
                 Label("Download GeoIP Database", systemImage: "arrow.down.circle")
             }
+            .accessibilityIdentifier("settings.geoip.download")
         case .downloading(let p):
             HStack {
                 if p >= 0 { ProgressView(value: p) } else { ProgressView() }

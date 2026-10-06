@@ -26,6 +26,7 @@ struct NetworkToolsScreen: View {
                         ForEach(Mode.allCases) { Text($0.label).tag($0) }
                     }
                     .pickerStyle(.segmented)
+                    .accessibilityIdentifier("net.mode")
 
                     switch mode {
                     case .ping: pingView
@@ -38,6 +39,7 @@ struct NetworkToolsScreen: View {
             .toolbar {
                 ToolbarItem(placement: .topBarTrailing) {
                     NavigationLink { SettingsScreen() } label: { Image(systemName: "gearshape") }
+                        .accessibilityIdentifier("net.settings")
                 }
             }
             .onAppear {
@@ -62,20 +64,22 @@ struct NetworkToolsScreen: View {
             }
             .buttonStyle(.borderedProminent)
             .tint(ping.isRunning ? .red : .teal)
+            .accessibilityIdentifier("net.ping.start")
 
             if let err = ping.error {
                 Label(err, systemImage: "exclamationmark.triangle")
                     .font(.footnote).foregroundStyle(.orange)
+                    .accessibilityIdentifier("net.error")
             }
 
             if !ping.samples.isEmpty {
                 let st = ping.stats
                 HStack(spacing: 14) {
-                    statPill("sent", "\(st.sent)")
-                    statPill("loss", "\(st.lossPercent)%", tint: st.lossPercent > 0 ? .orange : .green)
-                    if let avg = st.avgMs { statPill("avg", String(format: "%.0f ms", avg)) }
+                    statPill("sent", "\(st.sent)", id: "sent")
+                    statPill("loss", "\(st.lossPercent)%", tint: st.lossPercent > 0 ? .orange : .green, id: "loss")
+                    if let avg = st.avgMs { statPill("avg", String(format: "%.0f ms", avg), id: "avg") }
                     if let mn = st.minMs, let mx = st.maxMs {
-                        statPill("min–max", String(format: "%.0f–%.0f", mn, mx))
+                        statPill("min–max", String(format: "%.0f–%.0f", mn, mx), id: "minmax")
                     }
                 }
                 Sparkline(values: ping.samples.compactMap(\.rttMs), tint: .teal, height: 60)
@@ -86,6 +90,7 @@ struct NetworkToolsScreen: View {
                         Text(s.rttMs.map { String(format: "%.1f ms", $0) } ?? String(localized: "timeout"))
                             .font(.callout.monospacedDigit())
                             .foregroundStyle(s.rttMs == nil ? .orange : .primary)
+                            .accessibilityIdentifier("net.ping.sample.\(s.sequence)")
                     }
                 }
             }
@@ -104,10 +109,12 @@ struct NetworkToolsScreen: View {
             }
             .buttonStyle(.borderedProminent)
             .tint(trace.isRunning ? .red : .indigo)
+            .accessibilityIdentifier("net.trace.start")
 
             if let err = trace.error {
                 Label(err, systemImage: "exclamationmark.triangle")
                     .font(.footnote).foregroundStyle(.orange)
+                    .accessibilityIdentifier("net.error")
             }
             if !geo.isReady && !trace.hops.isEmpty && !DemoSeed.active {
                 NavigationLink { SettingsScreen() } label: {
@@ -115,9 +122,11 @@ struct NetworkToolsScreen: View {
                           systemImage: "globe")
                         .font(.footnote)
                 }
+                .accessibilityIdentifier("net.trace.geoHint")
             }
             if geo.isReady || DemoSeed.active {
                 TraceHopMap(hops: trace.hops, geo: geo)
+                    .accessibilityIdentifier("net.trace.map")
             }
 
             ForEach(trace.hops) { hop in
@@ -140,6 +149,7 @@ struct NetworkToolsScreen: View {
                 if let addr = hop.address {
                     HStack(spacing: 6) {
                         Text(addr).font(.callout.monospaced())
+                            .accessibilityIdentifier("net.trace.hop.\(hop.ttl)")
                         if hop.isDestination {
                             Image(systemName: "flag.checkered").font(.caption)
                         }
@@ -149,6 +159,7 @@ struct NetworkToolsScreen: View {
                     }
                 } else {
                     Text("*").font(.callout.monospaced()).foregroundStyle(.tertiary)
+                        .accessibilityIdentifier("net.trace.hop.\(hop.ttl)")
                 }
             }
             Spacer()
@@ -169,6 +180,7 @@ struct NetworkToolsScreen: View {
     private func targetHeader(_ target: String) -> some View {
         HStack {
             Label(target, systemImage: "scope").font(.callout.monospaced())
+                .accessibilityIdentifier("net.target")
             Spacer()
             NavigationLink { SettingsScreen() } label: {
                 Text("Change").font(.footnote)
@@ -177,9 +189,10 @@ struct NetworkToolsScreen: View {
         .foregroundStyle(.secondary)
     }
 
-    private func statPill(_ name: LocalizedStringKey, _ value: String, tint: Color = .primary) -> some View {
+    private func statPill(_ name: LocalizedStringKey, _ value: String, tint: Color = .primary, id: String) -> some View {
         VStack(spacing: 1) {
             Text(value).font(.callout.monospacedDigit().weight(.semibold)).foregroundStyle(tint)
+                .accessibilityIdentifier("net.ping.stat.\(id)")
             Text(name).font(.caption2).foregroundStyle(.secondary)
         }
         .padding(.horizontal, 10).padding(.vertical, 6)

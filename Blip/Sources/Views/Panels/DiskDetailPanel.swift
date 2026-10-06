@@ -377,6 +377,7 @@ struct DiskDetailPanel: View {
                         .foregroundStyle(.orange)
                     Text("Speed Test")
                         .font(.system(size: 11, weight: .medium))
+                        .accessibilityIdentifier("detail.disk.speed.toggle")
                     Spacer()
                     if let r = speedTester.lastResult, !speedTestExpanded {
                         Text(String(format: "%.0f / %.0f MB/s", r.readMBps, r.writeMBps))
@@ -445,6 +446,7 @@ struct DiskDetailPanel: View {
                     Button("Cancel") { speedTester.cancel() }
                         .controlSize(.small)
                         .tint(.red)
+                        .accessibilityIdentifier("detail.disk.speed.cancel")
                 } else {
                     Button { speedTester.start() } label: {
                         HStack(spacing: 3) {
@@ -454,6 +456,7 @@ struct DiskDetailPanel: View {
                     }
                     .controlSize(.small)
                     .buttonStyle(.borderedProminent)
+                    .accessibilityIdentifier("detail.disk.speed.run")
                 }
             }
 
@@ -479,6 +482,7 @@ struct DiskDetailPanel: View {
                             }
                             Text(iops >= 1000 ? String(format: "%.0fK IOPS", iops / 1000)
                                               : String(format: "%.0f IOPS", iops))
+                                .accessibilityIdentifier("detail.disk.speed.iops")
                                 .font(.system(size: 11, design: .monospaced))
                         }
                         .frame(maxWidth: .infinity, alignment: .leading)

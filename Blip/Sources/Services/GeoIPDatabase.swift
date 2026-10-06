@@ -46,6 +46,15 @@ final class GeoIPDatabase: ObservableObject {
 
     /// Path: <Application Support>/Blip/dbip-city.mmdb (per-app, sandbox-safe).
     private static func fileURL() -> URL {
+        #if DEBUG
+        // UI tests must never see (or remove) the user's real database: a scratch location
+        // that is empty on every launch, so Settings shows the not-installed state.
+        if UITestMode.isActive {
+            let dir = FileManager.default.temporaryDirectory.appendingPathComponent("blip-uitest-geoip", isDirectory: true)
+            try? FileManager.default.createDirectory(at: dir, withIntermediateDirectories: true)
+            return dir.appendingPathComponent("dbip-city.mmdb")
+        }
+        #endif
         let support = FileManager.default.urls(for: .applicationSupportDirectory, in: .userDomainMask)[0]
         let dir = support.appendingPathComponent("Blip", isDirectory: true)
         try? FileManager.default.createDirectory(at: dir, withIntermediateDirectories: true)

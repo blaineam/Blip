@@ -122,11 +122,49 @@ final class SpeedTester: ObservableObject {
         // especially `runOnce`) would observe the stale idle/done/failed phase
         // of a previous run.
         phase = .download
+        #if DEBUG
+        if UITestMode.isActive {
+            runTask = Task { [weak self] in
+                await self?.runUITestStub()
+                self?.runTask = nil
+            }
+            return
+        }
+        #endif
         runTask = Task { [weak self] in
             await self?.run()
             self?.runTask = nil
         }
     }
+
+    #if DEBUG
+    /// UI-test stand-in for a transfer: no network, the real phases on a short schedule,
+    /// then a canned 930/840 Mbps result (ping 9 ms idle / 24 ms loaded).
+    private func runUITestStub() async {
+        for mbps in [320.0, 760, 930] {
+            try? await Task.sleep(nanoseconds: 250_000_000)
+            if Task.isCancelled { phase = .idle; liveMbps = 0; return }
+            liveMbps = mbps
+            downCurve.append(mbps)
+        }
+        phase = .upload
+        for mbps in [300.0, 690, 840] {
+            try? await Task.sleep(nanoseconds: 250_000_000)
+            if Task.isCancelled { phase = .idle; liveMbps = 0; return }
+            liveMbps = mbps
+            upCurve.append(mbps)
+        }
+        var result = NetSpeedResult(downMbps: 930, upMbps: 840, timestamp: Date())
+        result.pingMs = 9
+        result.loadedPingMs = 24
+        result.downCurve = downCurve
+        result.upCurve = upCurve
+        lastResult = result
+        history.append(result)
+        phase = .done
+        liveMbps = 0
+    }
+    #endif
 
     func cancel() {
         runTask?.cancel()

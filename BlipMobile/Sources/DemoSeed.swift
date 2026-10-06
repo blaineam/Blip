@@ -8,7 +8,13 @@ import Foundation
 // definition belong to no one.
 
 enum DemoSeed {
-    static var active: Bool { UserDefaults.standard.bool(forKey: "blip.demoSeed") }
+    static var active: Bool {
+        #if DEBUG
+        // UI tests reuse these fixtures (into their isolated store) unless asked for an empty start.
+        if UITestMode.isSeeded { return true }
+        #endif
+        return UserDefaults.standard.bool(forKey: "blip.demoSeed")
+    }
 
     @MainActor
     static func applyIfRequested() {

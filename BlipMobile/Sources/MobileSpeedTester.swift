@@ -154,6 +154,9 @@ final class MobileSpeedTester: ObservableObject {
     // MARK: - Public widget (ported runner)
 
     private func startPublic(interface: String) {
+        #if DEBUG
+        if UITestMode.isActive { startUITestRun(interface: interface, source: "OpenSpeedTest"); return }
+        #endif
         phase = .connecting
         let runner = OpenSpeedTestWidgetRunner()
         publicRunner = runner
@@ -205,6 +208,9 @@ final class MobileSpeedTester: ObservableObject {
         if !base.lowercased().hasPrefix("http") { base = "http://" + base }
         while base.hasSuffix("/") { base.removeLast() }
         guard let baseURL = URL(string: base) else { phase = .failed("That server address isn't a URL."); return }
+        #if DEBUG
+        if UITestMode.isActive { startUITestRun(interface: interface, source: baseURL.host ?? "custom"); return }
+        #endif
 
         phase = .connecting
         task = Task { [weak self] in
@@ -231,6 +237,35 @@ final class MobileSpeedTester: ObservableObject {
             }
         }
     }
+
+    #if DEBUG
+    /// UI-test stand-in for a transfer: no network, the real phases on a short schedule, then
+    /// a canned 905/812 Mbps result through `record` (or a failure for -UITestSpeedOutcome fail).
+    private func startUITestRun(interface: String, source: String) {
+        phase = .connecting
+        let fail = UITestMode.value("UITestSpeedOutcome") == "fail"
+        task = Task { [weak self] in
+            try? await Task.sleep(nanoseconds: 300_000_000)
+            guard let self, !Task.isCancelled else { return }
+            if fail { self.phase = .failed("Server unreachable"); return }
+            self.unloadedPing = 14
+            self.phase = .download
+            for mbps in [310.0, 702, 905] {
+                try? await Task.sleep(nanoseconds: 150_000_000)
+                if Task.isCancelled { return }
+                self.captureLive(mbps, upload: false)
+            }
+            self.loadedSamples = [33]
+            self.phase = .upload
+            for mbps in [280.0, 640, 812] {
+                try? await Task.sleep(nanoseconds: 150_000_000)
+                if Task.isCancelled { return }
+                self.captureLive(mbps, upload: true)
+            }
+            self.record(down: 905, up: 812, ping: self.unloadedPing, interface: interface, source: source)
+        }
+    }
+    #endif
 
     // MARK: - Result plumbing
 

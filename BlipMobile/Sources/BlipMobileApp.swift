@@ -24,9 +24,32 @@ struct BlipMobileApp: App {
         // discarded when SwiftUI installs the wrapper; the object's own init survives.
         @Published var tab: Tab =
             UserDefaults.standard.string(forKey: "blip.route").flatMap(Tab.init(rawValue:)) ?? .overview
+
+        init() {
+            #if DEBUG
+            // UI tests drive the deep-link router without a URL round-trip through the system.
+            if let raw = UITestMode.value("UITestOpenURL"), let url = URL(string: raw) {
+                tab = BlipMobileApp.tab(for: url)
+            }
+            #endif
+        }
+    }
+
+    /// Widget deep links: blip://bench, blip://speed, blip://network, blip://overview.
+    static func tab(for url: URL) -> Tab {
+        switch url.host ?? url.path.trimmingCharacters(in: .init(charactersIn: "/")) {
+        case "bench": return .bench
+        case "speed": return .speed
+        case "network": return .network
+        default: return .overview
+        }
     }
 
     init() {
+        #if DEBUG
+        // Must run before anything reads the shared store (seeding, the engines below).
+        MobileUITestSupport.prepareIfActive()
+        #endif
         DemoSeed.applyIfRequested()
         wireIntents()
     }
@@ -53,14 +76,9 @@ struct BlipMobileApp: App {
                 if phase == .active { WidgetCenter.shared.reloadAllTimelines() }
             }
             .onOpenURL { url in
-                // Widget deep links: blip://bench, blip://speed, blip://network, blip://overview.
-                switch url.host ?? url.path.trimmingCharacters(in: .init(charactersIn: "/")) {
-                case "bench": router.tab = .bench
-                case "speed": router.tab = .speed
-                case "network": router.tab = .network
-                default: router.tab = .overview
-                }
+                router.tab = Self.tab(for: url)
             }
+            .uiTestAnimationsOff()
         }
     }
 
