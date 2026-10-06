@@ -16,12 +16,12 @@
 //
 // `root` defaults to this file's directory (the Blip repo), so all paths below
 // are relative to the repo root.
-import { homedir } from 'node:os';
 import { join } from 'node:path';
 
-// Persistent derived data for the UI suites (Soren's own default lives under /tmp, which a
-// reboot wipes — a cold UI-test build every morning). Outside iCloud, beside Xcode's own.
-const DD = (suite) => join(homedir(), 'Library/Developer/Xcode/DerivedData', `soren-Blip-${suite}`);
+// Derived data for the UI suites: one fixed /tmp folder per suite (outside iCloud, so the
+// repo never syncs build output; per suite, so the three runners never thrash each other).
+// A reboot wipes /tmp, which costs one cold build — the price of the shared /tmp convention.
+const DD = (suite) => join('/tmp', `soren-Blip-${suite}`);
 
 export default {
   name: 'Blip',
