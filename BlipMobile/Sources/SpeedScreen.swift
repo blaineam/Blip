@@ -7,6 +7,9 @@ import SwiftUI
 struct SpeedScreen: View {
     @ObservedObject var tester: MobileSpeedTester
     @ObservedObject var stats: DeviceStats
+    /// Observed (not just read) so the source menu and Configure link update the moment the
+    /// address is edited in Settings — reading UserDefaults in `body` alone left them stale.
+    @AppStorage("mobile.speed.server") private var customServer = ""
 
     var body: some View {
         NavigationStack {
@@ -67,7 +70,7 @@ struct SpeedScreen: View {
             Menu {
                 Picker("Source", selection: $tester.source) {
                     ForEach(SpeedSource.allCases) { source in
-                        if source == .custom && MobileSpeedTester.customServer.isEmpty {
+                        if source == .custom && customServer.isEmpty {
                             // still selectable — the run button explains what's missing
                             Label(source.label, systemImage: "exclamationmark.circle").tag(source)
                         } else {
@@ -89,7 +92,7 @@ struct SpeedScreen: View {
             .accessibilityIdentifier("speed.sourceMenu")
             Spacer()
             NavigationLink { SettingsScreen() } label: {
-                Text(MobileSpeedTester.customServer.isEmpty && tester.source == .custom
+                Text(customServer.isEmpty && tester.source == .custom
                      ? "Set server…" : "Configure")
                     .font(.footnote)
             }
@@ -101,7 +104,7 @@ struct SpeedScreen: View {
         switch source {
         case .publicWidget: return String(localized: "OpenSpeedTest (public)")
         case .custom:
-            let server = MobileSpeedTester.customServer
+            let server = customServer
             return server.isEmpty ? String(localized: "My server (not set)") : server
         }
     }
