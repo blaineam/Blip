@@ -120,9 +120,8 @@ final class OverviewTests: XCTestCase {
         waitLabel(app.el("detail.network.interface"), equals: "Wi-Fi")
         waitLabel(app.el("detail.network.ip.en0"), equals: "192.0.2.24")
         waitLabel(app.el("detail.network.vpn"), equals: "Not detected")
-        wait(app.el("detail.network.ip.en0.copy")).tap()
         // The button flips to its "copied" state (checkmark) for a moment, then back.
-        wait(app.el("detail.network.ip.en0.copied"), 4)
+        tap(app.el("detail.network.ip.en0.copy"), expecting: app.el("detail.network.ip.en0.copied"))
         wait(app.el("detail.network.ip.en0.copy"), 10)
     }
 
