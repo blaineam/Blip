@@ -415,13 +415,13 @@ final class CoverageGapTests: XCTestCase {
     private func openGeoIPSettings(_ state: String) -> XCUIApplication {
         let app = launchBlip(.seeded, ["-UITestGeoIP", state])
         tap(app.el("overview.settings"), expecting: app.navigationBars["Settings"])
-        app.scrollTo(app.el("settings.geoip.status"))
+        app.scrollTo(app.staticTexts["settings.geoip.status"])
         return app
     }
 
     func testGeoIPReadyShowsRemove() {
         let app = openGeoIPSettings("ready")
-        waitLabel(app.el("settings.geoip.status"), contains: "Installed — DBIP-City-Lite")
+        waitLabel(app.staticTexts["settings.geoip.status"], contains: "Installed — DBIP-City-Lite")
         waitLabel(app.el("settings.geoip.updated"), contains: "Updated Sep 15, 2026")
         waitLabel(app.el("settings.geoip.updated"), contains: "IP geolocation by DB-IP")
         app.el("settings.geoip.remove").tap()
@@ -431,7 +431,7 @@ final class CoverageGapTests: XCTestCase {
 
     func testGeoIPFailedShowsRetry() {
         let app = openGeoIPSettings("failed")
-        waitLabel(app.el("settings.geoip.status"), contains: "No internet connection.")
+        waitLabel(app.staticTexts["settings.geoip.status"], contains: "No internet connection.")
         // Try Again starts a (stubbed, offline) download; cancelling it lands on not-installed.
         tap(app.el("settings.geoip.retry"), expecting: app.el("settings.geoip.cancel"))
         XCTAssertFalse(app.el("settings.geoip.retry").exists)

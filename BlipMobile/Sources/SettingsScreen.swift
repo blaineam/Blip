@@ -78,9 +78,12 @@ struct SettingsScreen: View {
             }
         case .ready(let date, let type):
             VStack(alignment: .leading, spacing: 2) {
-                Label("Installed — \(type)", systemImage: "checkmark.circle.fill")
-                    .foregroundStyle(.green)
-                    .accessibilityIdentifier("settings.geoip.status")
+                Label {
+                    Text("Installed — \(type)").accessibilityIdentifier("settings.geoip.status")
+                } icon: {
+                    Image(systemName: "checkmark.circle.fill")
+                }
+                .foregroundStyle(.green)
                 Text("Updated \(date.formatted(date: .abbreviated, time: .omitted)) · \(GeoIPDatabase.attribution)")
                     .font(.caption).foregroundStyle(.secondary)
                     .accessibilityIdentifier("settings.geoip.updated")
@@ -91,9 +94,12 @@ struct SettingsScreen: View {
             .accessibilityIdentifier("settings.geoip.remove")
         case .failed(let why):
             VStack(alignment: .leading, spacing: 4) {
-                Label(why, systemImage: "exclamationmark.triangle")
-                    .font(.footnote).foregroundStyle(.orange)
-                    .accessibilityIdentifier("settings.geoip.status")
+                Label {
+                    Text(why).accessibilityIdentifier("settings.geoip.status")
+                } icon: {
+                    Image(systemName: "exclamationmark.triangle")
+                }
+                .font(.footnote).foregroundStyle(.orange)
                 Button { geo.download() } label: { Label("Try Again", systemImage: "arrow.clockwise") }
                     .accessibilityIdentifier("settings.geoip.retry")
             }
