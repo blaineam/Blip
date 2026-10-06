@@ -109,6 +109,23 @@ targets:
     dependencies:
       - package: MillerKit
 
+  # ---------- macOS UI tests (XCUITest against BlipUITestHost in -UITestMode) ----------
+  BlipUITests:
+    type: bundle.ui-testing
+    platform: macOS
+    sources:
+      - path: BlipUITests
+    dependencies:
+      - target: BlipUITestHost
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.blainemiller.BlipUITests
+        TEST_TARGET_NAME: BlipUITestHost
+        GENERATE_INFOPLIST_FILE: YES
+        ENABLE_HARDENED_RUNTIME: NO
+        SWIFT_VERSION: "5.0"
+        SWIFT_STRICT_CONCURRENCY: minimal
+
   # ---------- Main App (Mac App Store) ----------
   BlipAppStore:
     type: application
@@ -267,6 +284,24 @@ targets:
     dependencies:
       - target: BlipMobile
 
+  # ---------- iOS/iPadOS UI tests (XCUITest against BlipMobile in -UITestMode) ----------
+  BlipMobileUITests:
+    type: bundle.ui-testing
+    platform: iOS
+    deploymentTarget: "17.0"
+    sources:
+      - path: BlipMobileUITests
+    dependencies:
+      - target: BlipMobile
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.blainemiller.BlipMobileUITests
+        TEST_TARGET_NAME: BlipMobile
+        TARGETED_DEVICE_FAMILY: "1,2"
+        GENERATE_INFOPLIST_FILE: YES
+        SWIFT_VERSION: "5.0"
+        SWIFT_STRICT_CONCURRENCY: minimal
+
 schemes:
   Blip:
     build:
@@ -290,8 +325,44 @@ schemes:
       config: Debug
     test:
       config: Debug
+      gatherCoverageData: true
+      coverageTargets:
+        - BlipMobile
+        - BlipMobileWidgets
       targets:
         - BlipMobileTests
+
+  # UI tests get their own schemes so the CI path (`xcodebuild test -scheme Blip`) and the
+  # unit gates never pick them up. Soren runs them as the ui-macos / ui-ios / ui-ipad suites.
+  BlipUITests:
+    build:
+      targets:
+        BlipUITestHost: all
+        BlipUITests: [test]
+    run:
+      config: Debug
+    test:
+      config: Debug
+      gatherCoverageData: true
+      coverageTargets:
+        - BlipUITestHost
+      targets:
+        - BlipUITests
+
+  BlipMobileUITests:
+    build:
+      targets:
+        BlipMobile: all
+        BlipMobileUITests: [test]
+    run:
+      config: Debug
+    test:
+      config: Debug
+      gatherCoverageData: true
+      coverageTargets:
+        - BlipMobile
+      targets:
+        - BlipMobileUITests
 
   BlipAppStore:
     build:
