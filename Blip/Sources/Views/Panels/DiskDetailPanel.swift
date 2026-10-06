@@ -388,6 +388,9 @@ struct DiskDetailPanel: View {
                         .font(.system(size: 9))
                         .foregroundStyle(.secondary)
                 }
+                // The whole header row toggles, like the Traceroute header — a plain
+                // button otherwise only hits the icon, title and chevron, not the gap.
+                .contentShape(Rectangle())
             }
             .buttonStyle(.plain)
 

@@ -680,6 +680,8 @@ struct SpeedTestSection: View {
                         .font(.system(size: 9))
                         .foregroundStyle(.tertiary)
                 }
+                // Whole-row hit target, matching the Traceroute header below it.
+                .contentShape(Rectangle())
             }
             .buttonStyle(.plain)
 
