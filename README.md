@@ -119,7 +119,8 @@ node --test Scripts/checks.test.mjs
 xcodebuild test -scheme BlipMobileUITests -destination 'platform=iOS Simulator,name=iPhone 17 Pro,OS=27.0'
 xcodebuild test -scheme BlipMobileUITests -destination 'platform=iOS Simulator,name=iPad Pro 13-inch (M5),OS=27.0'
 # macOS — against the Debug-only BlipUITestHost ("Blip UITest", its own bundle id). The runner
-# must be signed (ad-hoc is fine) and needs Developer Tools access (`DevToolsSecurity -enable`):
+# must be signed (ad-hoc is fine) and may need Developer Tools access (`DevToolsSecurity -enable`)
+# — a runner that "hung before establishing connection" is waiting on that authorization:
 xcodebuild test -scheme BlipUITests -destination 'platform=macOS' CODE_SIGN_IDENTITY=-
 ```
 

@@ -87,10 +87,10 @@ export default {
     //    macOS: BlipUITestHost ("Blip UITest", com.blainemiller.Blip.uitesthost) — the direct
     //    app's sources under their own bundle id, so the per-launch defaults wipe can never
     //    reach the real Blip's preferences. The XCUITest runner must be signed (ad-hoc is
-    //    enough) and, on this Mac, needs Developer Tools access: with `DevToolsSecurity`
-    //    disabled the runner sits suspended at launch until an admin authorizes it ("The test
-    //    runner hung before establishing connection"). One-time owner step:
-    //    `sudo DevToolsSecurity -enable`.
+    //    enough). It drives the real mouse and keyboard, so don't use the Mac while it runs.
+    //    If it fails with "The test runner hung before establishing connection", the runner is
+    //    sitting suspended at launch waiting for Developer Tools authorization (seen here with
+    //    `DevToolsSecurity` disabled): approve the prompt, or once `sudo DevToolsSecurity -enable`.
     'ui-macos': {
       type: 'xcodebuild-test',
       platform: 'macos',
