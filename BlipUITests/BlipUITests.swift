@@ -96,75 +96,60 @@ final class PopoverOverviewTests: XCTestCase {
 // MARK: - Inline detail panels
 
 final class InlineDetailTests: XCTestCase {
-    func testCPUDetail() {
+    // Expanding a row replaces the open panel, so each test walks several panels in one
+    // launch (each assertion is scoped to the panel just opened).
+
+    func testCPUMemoryDiskNetworkDetails() {
         let app = launchBlip()
-        let panel = app.expand("cpu")
+        var panel = app.expand("cpu")
         wait(panel.text("31%"))
         wait(panel.text("2.40"))      // load 1m
         wait(panel.text("2.10"))      // load 5m
         wait(panel.text("8"))         // P-cores
         wait(panel.text("4"))         // E-cores
         wait(panel.text("12"))        // logical
-    }
 
-    func testMemoryDetail() {
-        let app = launchBlip()
-        let panel = app.expand("memory")
+        panel = app.expand("memory")
         wait(panel.text("53%"))
         wait(panel.text("36 GB"))
-    }
 
-    func testDiskDetail() {
-        let app = launchBlip()
-        let panel = app.expand("disk")
+        panel = app.expand("disk")
         wait(panel.text("Macintosh HD"))
         wait(panel.text("612 GB free"))
         wait(panel.text("388 GB used"))
-    }
 
-    func testNetworkDetail() {
-        let app = launchBlip()
-        let panel = app.expand("network")
+        panel = app.expand("network")
         wait(panel.text("11 ms"))      // WAN ping
         wait(panel.text("2 ms"))       // router ping
         wait(panel.text("192.168.1.42"))
     }
 
-    func testGPUDetail() {
+    func testGPUThermalBatteryDetails() {
         let app = launchBlip()
-        let panel = app.expand("gpu")
+        var panel = app.expand("gpu")
         wait(panel.text("Apple M4 Pro GPU"))
         wait(panel.text("18%"))
-    }
 
-    func testThermalDetail() {
-        let app = launchBlip()
-        let panel = app.expand("thermal")
+        panel = app.expand("thermal")
         wait(panel.text("Nominal"))
         // No helper → no SMC fans/temps: those sections stay out instead of showing zeros.
         XCTAssertFalse(panel.text("Fans").exists)
-    }
 
-    func testBatteryDetail() {
-        let app = launchBlip()
-        let panel = app.expand("battery")
+        panel = app.expand("battery")
         wait(panel.text("84%"))
         wait(panel.text("On Battery"))
         wait(panel.text("6h 12m"))
     }
 
-    func testBenchDetailShowsScoreAndHistory() {
+    func testBenchAndKeepAwakeDetails() {
         let app = launchBlip()
-        let panel = app.expand("bench")
+        var panel = app.expand("bench")
         waitText(panel.el("detail.bench.score"), equals: "1,342")
         waitText(panel.el("detail.bench.history.0"), equals: "1,342")
         waitText(panel.el("detail.bench.history.2"), equals: "1,246")
         XCTAssertFalse(panel.el("detail.bench.history.3").exists)
-    }
 
-    func testKeepAwakeDetailShowsOff() {
-        let app = launchBlip()
-        let panel = app.expand("awake")
+        panel = app.expand("awake")
         waitText(panel.el("detail.awake.status"), equals: "Off")
         wait(panel.el("detail.awake.duration.oneHour"))
     }
@@ -349,6 +334,29 @@ final class SettingsTests: XCTestCase {
         let settings = app.openSettings()
         waitText(settings.el("settings.geoip.status"), equals: "Not installed")
         XCTAssertTrue(settings.el("settings.geoip.download").exists)
+    }
+
+    /// `-UITestGeoIP ready`: the installed row (type + month) with Update/Remove; Remove → not installed.
+    func testGeoIPReadyThenRemove() {
+        let app = launchBlip(["-UITestGeoIP", "ready"])
+        let settings = app.openSettings()
+        waitText(settings.el("settings.geoip.status"), equals: "Installed — DBIP-City-Lite, Sep 2026")
+        XCTAssertTrue(settings.el("settings.geoip.update").exists)
+        settings.el("settings.geoip.remove").click()
+        waitText(settings.el("settings.geoip.status"), equals: "Not installed")
+        XCTAssertTrue(settings.el("settings.geoip.download").exists)
+    }
+
+    /// `-UITestGeoIP failed`: the reason + Retry; Retry starts the offline stub download,
+    /// which Cancel ends back at not installed.
+    func testGeoIPFailedRetryThenCancel() {
+        let app = launchBlip(["-UITestGeoIP", "failed"])
+        let settings = app.openSettings()
+        waitText(settings.el("settings.geoip.status"), equals: "No internet connection.")
+        settings.el("settings.geoip.retry").click()
+        waitText(settings.el("settings.geoip.status"), equals: "Downloading…")
+        settings.el("settings.geoip.cancel").click()
+        waitText(settings.el("settings.geoip.status"), equals: "Not installed")
     }
 
     func testVersionRowShowsAppVersion() {

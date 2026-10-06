@@ -536,27 +536,35 @@ struct SettingsView: View {
                     if p < 0 {
                         ProgressView().controlSize(.small)
                         Text("Downloading…").font(.caption).foregroundStyle(.secondary)
+                            .accessibilityIdentifier("settings.geoip.status")
                     } else {
                         ProgressView(value: p).frame(width: 130)
                         Text("Downloading… \(Int(p * 100))%").font(.caption).foregroundStyle(.secondary)
+                            .accessibilityIdentifier("settings.geoip.status")
                     }
                     Spacer()
                     Button("Cancel") { geoDB.cancelDownload() }
+                        .accessibilityIdentifier("settings.geoip.cancel")
                 }
             case .ready(let date, let type):
                 HStack {
                     Image(systemName: "checkmark.circle.fill").foregroundStyle(.green)
                     Text("Installed — \(type), \(Self.dbDateFormatter.string(from: date))")
+                        .accessibilityIdentifier("settings.geoip.status")
                     Spacer()
                     Button("Update") { geoDB.download() }
+                        .accessibilityIdentifier("settings.geoip.update")
                     Button("Remove", role: .destructive) { geoDB.remove() }
+                        .accessibilityIdentifier("settings.geoip.remove")
                 }
             case .failed(let msg):
                 HStack {
                     Image(systemName: "exclamationmark.triangle.fill").foregroundStyle(.orange)
                     Text(msg).font(.caption).foregroundStyle(.secondary)
+                        .accessibilityIdentifier("settings.geoip.status")
                     Spacer()
                     Button("Retry") { geoDB.download() }
+                        .accessibilityIdentifier("settings.geoip.retry")
                 }
             }
 

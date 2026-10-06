@@ -74,22 +74,28 @@ struct SettingsScreen: View {
                 if p >= 0 { ProgressView(value: p) } else { ProgressView() }
                 Button("Cancel") { geo.cancelDownload() }
                     .buttonStyle(.borderless)
+                    .accessibilityIdentifier("settings.geoip.cancel")
             }
         case .ready(let date, let type):
             VStack(alignment: .leading, spacing: 2) {
                 Label("Installed — \(type)", systemImage: "checkmark.circle.fill")
                     .foregroundStyle(.green)
+                    .accessibilityIdentifier("settings.geoip.status")
                 Text("Updated \(date.formatted(date: .abbreviated, time: .omitted)) · \(GeoIPDatabase.attribution)")
                     .font(.caption).foregroundStyle(.secondary)
+                    .accessibilityIdentifier("settings.geoip.updated")
             }
             Button(role: .destructive) { geo.remove() } label: {
                 Label("Remove Database", systemImage: "trash")
             }
+            .accessibilityIdentifier("settings.geoip.remove")
         case .failed(let why):
             VStack(alignment: .leading, spacing: 4) {
                 Label(why, systemImage: "exclamationmark.triangle")
                     .font(.footnote).foregroundStyle(.orange)
+                    .accessibilityIdentifier("settings.geoip.status")
                 Button { geo.download() } label: { Label("Try Again", systemImage: "arrow.clockwise") }
+                    .accessibilityIdentifier("settings.geoip.retry")
             }
         }
     }

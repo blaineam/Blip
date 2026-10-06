@@ -63,6 +63,9 @@ final class GeoIPDatabase: ObservableObject {
 
     /// Memory-map an already-installed database, if present.
     func loadIfPresent() {
+        #if DEBUG
+        if uiTestStubIsShowing() { return }
+        #endif
         let url = Self.fileURL()
         guard FileManager.default.fileExists(atPath: url.path) else { status = .absent; return }
         do {
@@ -89,6 +92,18 @@ final class GeoIPDatabase: ObservableObject {
     func download() {
         guard downloadTask == nil else { return }
         status = .downloading(-1)
+        #if DEBUG
+        // UI tests never touch the network: an indeterminate download that only ends when cancelled.
+        if UITestMode.isActive {
+            uiTestStubShowing = false
+            downloadTask = Task { [weak self] in
+                while !Task.isCancelled { try? await Task.sleep(nanoseconds: 50_000_000) }
+                self?.downloadTask = nil
+                self?.loadIfPresent()
+            }
+            return
+        }
+        #endif
         downloadTask = Task { [weak self] in
             do {
                 let (url, month) = try await Self.fetchAndInstall { p in
@@ -110,6 +125,29 @@ final class GeoIPDatabase: ObservableObject {
             self?.downloadTask = nil
         }
     }
+
+    #if DEBUG
+    /// nil = not yet decided; true while a `-UITestGeoIP` state is shown (until Remove/Download).
+    private var uiTestStubShowing: Bool?
+
+    /// `-UITestGeoIP ready|failed`: Settings shows that state without a real database or
+    /// network, surviving the screen's own reloads until Remove / Try Again replace it.
+    /// Returns true while the stubbed state is showing.
+    private func uiTestStubIsShowing() -> Bool {
+        guard UITestMode.isActive else { return false }
+        if let showing = uiTestStubShowing { return showing }
+        switch UITestMode.value("UITestGeoIP") {
+        case "ready": status = .ready(date: Self.uiTestBuildDate, type: "DBIP-City-Lite")
+        case "failed": status = .failed("No internet connection.")
+        default: uiTestStubShowing = false; return false
+        }
+        uiTestStubShowing = true
+        return true
+    }
+
+    /// 15 Sep 2026 12:00 UTC — mid-month, so every time zone formats the same month and day.
+    static let uiTestBuildDate = Date(timeIntervalSince1970: 1_789_473_600)
+    #endif
 
     // MARK: - Auto-update
 
@@ -138,6 +176,9 @@ final class GeoIPDatabase: ObservableObject {
 
     /// Remove the installed database (the map stops plotting hops).
     func remove() {
+        #if DEBUG
+        if UITestMode.isActive { uiTestStubShowing = false }
+        #endif
         cancelDownload()
         try? FileManager.default.removeItem(at: Self.fileURL())
         UserDefaults.standard.removeObject(forKey: Keys.installedMonth)

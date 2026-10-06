@@ -152,6 +152,12 @@ final class DeviceStats: ObservableObject {
         s.coresTotal = 6
         s.coresPerformance = 2
         s.coresEfficiency = 4
+        // `-UITestFixture strained`: 96 % storage used and serious thermals, so the Overview
+        // suggestions banner has something real to say.
+        if UITestMode.value("UITestFixture") == "strained" {
+            s.storageFree = Int64(Double(s.storageTotal) * 0.04)
+            s.thermalState = 2
+        }
     }
     #endif
 

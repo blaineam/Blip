@@ -24,19 +24,6 @@ private enum Fixture {
 // MARK: - Tabs + deep links
 
 final class TabNavigationTests: XCTestCase {
-    func testFourTabsAndTitles() {
-        let app = launchBlip()
-        wait(app.navigationBars["Blip"])
-        app.tapTab("Bench")
-        wait(app.navigationBars["Bench"])
-        app.tapTab("Speed")
-        wait(app.navigationBars["Speed"])
-        app.tapTab("Network")
-        wait(app.navigationBars["Network Tools"])
-        app.tapTab("Overview")
-        wait(app.navigationBars["Blip"])
-    }
-
     func testRouteLaunchArgLandsOnTab() {
         let app = launchBlip(.seeded, ["-blip.route", "bench"])
         wait(app.navigationBars["Bench"])
@@ -48,8 +35,17 @@ final class TabNavigationTests: XCTestCase {
         wait(app.navigationBars["Speed"])
     }
 
-    func testOpenURLRoutesToTabs() {
+    /// All four tabs by tapping, then blip:// URLs opened while running — one launch.
+    func testTabsAndOpenURLRouting() {
         let app = launchBlip()
+        wait(app.navigationBars["Blip"])
+        app.tapTab("Bench")
+        wait(app.navigationBars["Bench"])
+        app.tapTab("Speed")
+        wait(app.navigationBars["Speed"])
+        app.tapTab("Network")
+        wait(app.navigationBars["Network Tools"])
+        app.tapTab("Overview")
         wait(app.navigationBars["Blip"])
         app.open(URL(string: "blip://network")!)
         wait(app.navigationBars["Network Tools"])
@@ -362,5 +358,96 @@ final class SettingsTests: XCTestCase {
         goBack(from: "Settings", to: "Blip", in: app)
         tap(app.el("overview.settings"), expecting: app.navigationBars["Settings"])
         XCTAssertEqual(wait(app.el("settings.traceTarget")).value as? String, "example.test")
+    }
+}
+
+// MARK: - Suggestions banner, Storage → Disk Speed, GeoIP states, About
+
+final class CoverageGapTests: XCTestCase {
+    /// `-UITestFixture strained` (96 % storage used, serious thermals) → exactly the storage
+    /// and thermal suggestions, with the real numbers in the text.
+    func testSuggestionsBannerListsApplicableItems() {
+        let app = launchBlip(.seeded, ["-UITestFixture", "strained"])
+        wait(app.el("overview.suggestions"))
+        let free = ByteCountFormatter.string(fromByteCount: Int64(Double(Fixture.storageTotal) * 0.04), countStyle: .file)
+        waitLabel(app.el("overview.suggestions.item.storage"), contains: "Storage is nearly full (\(free) left)")
+        waitLabel(app.el("overview.suggestions.item.thermal"), contains: "running serious")
+        waitLabel(app.el("overview.card.thermal"), contains: "Serious")
+        XCTAssertFalse(app.el("overview.suggestions.item.lpm").exists)
+        XCTAssertFalse(app.el("overview.suggestions.item.lowdata").exists)
+        XCTAssertFalse(app.el("overview.suggestions.item.mem").exists)
+    }
+
+    private func openDiskSpeed(_ extra: [String] = []) -> XCUIApplication {
+        let app = launchBlip(.seeded, extra)
+        tap(app.el("overview.card.storage"), expecting: app.navigationBars["Storage"])
+        let run = app.el("storage.disk.runInternal")
+        app.scrollTo(run)
+        waitLabel(run, contains: "Test Internal Storage")
+        waitLabel(app.el("storage.disk.pickFolder"), contains: "Test External Volume")
+        XCTAssertFalse(app.el("storage.disk.result.volume").exists, "no result before the first run")
+        return app
+    }
+
+    func testStorageDiskSpeedRunShowsResult() {
+        let app = openDiskSpeed()
+        app.el("storage.disk.runInternal").tap()
+        waitLabel(app.el("storage.disk.result.volume"), equals: "Internal storage")
+        waitLabel(app.staticTexts["storage.disk.result.write"], contains: "2,950 MB/s write")
+        waitLabel(app.staticTexts["storage.disk.result.read"], contains: "3,400 MB/s read")
+        // Back to idle: the run buttons return, the live readout is gone.
+        wait(app.el("storage.disk.runInternal"))
+        XCTAssertFalse(app.el("storage.disk.cancel").exists)
+    }
+
+    func testStorageDiskSpeedCancelLeavesNoResult() {
+        let app = openDiskSpeed(["-UITestDiskOutcome", "cancel"])
+        app.el("storage.disk.runInternal").tap()
+        // The stub walks writing → reading and holds there with the last live figure.
+        waitLabel(app.el("storage.disk.phase"), equals: "Reading…")
+        waitLabel(app.el("storage.disk.live"), equals: "3400 MB/s")
+        app.el("storage.disk.cancel").tap()
+        wait(app.el("storage.disk.runInternal"))
+        XCTAssertFalse(app.el("storage.disk.phase").exists)
+        XCTAssertFalse(app.el("storage.disk.result.volume").exists, "a cancelled run records nothing")
+    }
+
+    private func openGeoIPSettings(_ state: String) -> XCUIApplication {
+        let app = launchBlip(.seeded, ["-UITestGeoIP", state])
+        tap(app.el("overview.settings"), expecting: app.navigationBars["Settings"])
+        app.scrollTo(app.el("settings.geoip.status"))
+        return app
+    }
+
+    func testGeoIPReadyShowsRemove() {
+        let app = openGeoIPSettings("ready")
+        waitLabel(app.el("settings.geoip.status"), contains: "Installed — DBIP-City-Lite")
+        waitLabel(app.el("settings.geoip.updated"), contains: "Updated Sep 15, 2026")
+        waitLabel(app.el("settings.geoip.updated"), contains: "IP geolocation by DB-IP")
+        app.el("settings.geoip.remove").tap()
+        waitLabel(app.el("settings.geoip.download"), contains: "Download GeoIP Database")
+        XCTAssertFalse(app.el("settings.geoip.remove").exists)
+    }
+
+    func testGeoIPFailedShowsRetry() {
+        let app = openGeoIPSettings("failed")
+        waitLabel(app.el("settings.geoip.status"), contains: "No internet connection.")
+        // Try Again starts a (stubbed, offline) download; cancelling it lands on not-installed.
+        tap(app.el("settings.geoip.retry"), expecting: app.el("settings.geoip.cancel"))
+        XCTAssertFalse(app.el("settings.geoip.retry").exists)
+        app.el("settings.geoip.cancel").tap()
+        waitLabel(app.el("settings.geoip.download"), contains: "Download GeoIP Database")
+    }
+
+    func testAboutShowsAppVersion() {
+        let app = launchBlip()
+        tap(app.el("overview.settings"), expecting: app.navigationBars["Settings"])
+        let label = app.staticTexts["Version"]
+        app.scrollTo(label, maxSwipes: 12)
+        wait(label)
+        let version = app.staticTexts.matching(
+            NSPredicate(format: "label MATCHES %@", #"^\d+\.\d+(\.\d+)?( \(\d+\))?$"#)).firstMatch
+        wait(version)
+        XCTAssertEqual(version.frame.midY, label.frame.midY, accuracy: 12, "the version sits on the Version row")
     }
 }

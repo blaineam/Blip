@@ -31,6 +31,9 @@ final class MobileDiskBench: ObservableObject {
     func cancel() { task?.cancel(); phase = .idle; liveMBps = 0 }
 
     func runInternal() {
+        #if DEBUG
+        if UITestMode.isActive { startUITestRun(name: "Internal storage"); return }
+        #endif
         let dir = FileManager.default.temporaryDirectory
         run(in: dir, name: "Internal storage", scoped: false)
     }
@@ -72,6 +75,41 @@ final class MobileDiskBench: ObservableObject {
             }
         }
     }
+
+    #if DEBUG
+    /// UI-test stand-in for the real run (512 MB of disk I/O): the same writing → reading
+    /// phases with canned live MB/s, then a fixed 2950 / 3400 MB/s result.
+    /// `-UITestDiskOutcome cancel` holds in the reading phase until the run is cancelled.
+    private func startUITestRun(name: String) {
+        guard !isRunning else { return }
+        phase = .writing
+        liveMBps = 0
+        result = nil
+        let holdForCancel = UITestMode.value("UITestDiskOutcome") == "cancel"
+        task = Task { [weak self] in
+            for mbps in [1200.0, 2400, 2950] {
+                try? await Task.sleep(nanoseconds: 150_000_000)
+                guard let self, !Task.isCancelled else { return }
+                self.liveMBps = mbps
+            }
+            guard let self, !Task.isCancelled else { return }
+            self.phase = .reading
+            self.liveMBps = 0
+            for mbps in [1800.0, 3100, 3400] {
+                try? await Task.sleep(nanoseconds: 150_000_000)
+                guard !Task.isCancelled else { return }
+                self.liveMBps = mbps
+            }
+            if holdForCancel {
+                while !Task.isCancelled { try? await Task.sleep(nanoseconds: 50_000_000) }
+                return
+            }
+            self.result = DiskBenchResult(writeMBps: 2950, readMBps: 3400, volumeName: name, date: Date())
+            self.phase = .done
+            self.liveMBps = 0
+        }
+    }
+    #endif
 
     // 512 MB in 8 MB chunks — enough to escape burst caches on real media without
     // chewing minutes on a slow thumb drive; budget-capped at ~20 s per direction.
@@ -135,22 +173,36 @@ struct MobileDiskBenchSection: View {
                     HStack {
                         Text(bench.phase == .writing ? "Writing…" : "Reading…")
                             .font(.callout.weight(.medium))
+                            .accessibilityIdentifier("storage.disk.phase")
                         Spacer()
                         Text(String(format: "%.0f MB/s", bench.liveMBps))
                             .font(.system(.callout, design: .rounded).weight(.bold))
                             .contentTransition(.numericText())
+                            .accessibilityIdentifier("storage.disk.live")
                     }
                     ProgressView().frame(maxWidth: .infinity)
                     Button("Cancel", role: .destructive) { bench.cancel() }
                         .buttonStyle(.borderless)
+                        .accessibilityIdentifier("storage.disk.cancel")
                 }
             } else {
                 if let r = bench.result {
                     VStack(alignment: .leading, spacing: 4) {
                         Text(r.volumeName).font(.callout.weight(.semibold))
+                            .accessibilityIdentifier("storage.disk.result.volume")
                         HStack(spacing: 16) {
-                            Label(String(localized: "\(Int(r.writeMBps.rounded())) MB/s write"), systemImage: "arrow.down.doc")
-                            Label(String(localized: "\(Int(r.readMBps.rounded())) MB/s read"), systemImage: "arrow.up.doc")
+                            Label {
+                                Text(String(localized: "\(Int(r.writeMBps.rounded())) MB/s write"))
+                                    .accessibilityIdentifier("storage.disk.result.write")
+                            } icon: {
+                                Image(systemName: "arrow.down.doc")
+                            }
+                            Label {
+                                Text(String(localized: "\(Int(r.readMBps.rounded())) MB/s read"))
+                                    .accessibilityIdentifier("storage.disk.result.read")
+                            } icon: {
+                                Image(systemName: "arrow.up.doc")
+                            }
                         }
                         .font(.callout)
                     }
@@ -162,9 +214,11 @@ struct MobileDiskBenchSection: View {
                 Button { bench.runInternal() } label: {
                     Label("Test Internal Storage", systemImage: "internaldrive")
                 }
+                .accessibilityIdentifier("storage.disk.runInternal")
                 Button { showPicker = true } label: {
                     Label("Test External Volume…", systemImage: "externaldrive")
                 }
+                .accessibilityIdentifier("storage.disk.pickFolder")
             }
         } header: {
             Text("Disk Speed")

@@ -13,6 +13,9 @@ import Foundation
 //   -UITestSpeedOutcome ok|fail      (fail: the stub speed test ends in a failure)
 //   -UITestRecommendation            (macOS: seed one suggestion banner)
 //   -UITestOpenURL <url>             (iOS: route a deep link at launch)
+//   -UITestDiskOutcome ok|cancel     (iOS disk speed: cancel holds in the reading phase)
+//   -UITestFixture strained          (iOS: 96 % storage used + serious thermals → suggestions)
+//   -UITestGeoIP ready|failed        (Settings starts in that GeoIP state; downloads are offline)
 
 enum UITestMode {
     #if DEBUG

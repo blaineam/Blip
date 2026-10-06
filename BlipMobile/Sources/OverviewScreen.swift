@@ -71,6 +71,7 @@ struct OverviewScreen: View {
                     HStack(alignment: .top, spacing: 8) {
                         Image(systemName: item.icon).foregroundStyle(item.tint)
                         Text(item.text).font(.footnote)
+                            .accessibilityIdentifier("overview.suggestions.item.\(item.id)")
                         Spacer(minLength: 0)
                     }
                 }
