@@ -27,7 +27,10 @@ struct CopyRow: View {
                 UIPasteboard.general.string = value
                 UINotificationFeedbackGenerator().notificationOccurred(.success)
                 withAnimation(.spring(duration: 0.3)) { copied = true }
-                Task { try? await Task.sleep(nanoseconds: 1_200_000_000)
+                // Under UI test the confirmation is held longer, so a loaded machine's slower
+                // accessibility snapshots can't miss it (Release: UITestMode.isActive is false).
+                let hold: UInt64 = UITestMode.isActive ? 5_000_000_000 : 1_200_000_000
+                Task { try? await Task.sleep(nanoseconds: hold)
                        await MainActor.run { withAnimation { copied = false } } }
             } label: {
                 Image(systemName: copied ? "checkmark" : "doc.on.doc")

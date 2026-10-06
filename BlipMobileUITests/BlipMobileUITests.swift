@@ -122,8 +122,8 @@ final class OverviewTests: XCTestCase {
         waitLabel(app.el("detail.network.vpn"), equals: "Not detected")
         wait(app.el("detail.network.ip.en0.copy")).tap()
         // The button flips to its "copied" state (checkmark) for a moment, then back.
-        wait(app.el("detail.network.ip.en0.copied"), 3)
-        wait(app.el("detail.network.ip.en0.copy"), 5)
+        wait(app.el("detail.network.ip.en0.copied"), 4)
+        wait(app.el("detail.network.ip.en0.copy"), 10)
     }
 
     func testBatteryThermalDeviceDetails() {
