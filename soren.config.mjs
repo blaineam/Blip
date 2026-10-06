@@ -16,6 +16,13 @@
 //
 // `root` defaults to this file's directory (the Blip repo), so all paths below
 // are relative to the repo root.
+import { homedir } from 'node:os';
+import { join } from 'node:path';
+
+// Persistent derived data for the UI suites (Soren's own default lives under /tmp, which a
+// reboot wipes — a cold UI-test build every morning). Outside iCloud, beside Xcode's own.
+const DD = (suite) => join(homedir(), 'Library/Developer/Xcode/DerivedData', `soren-Blip-${suite}`);
+
 export default {
   name: 'Blip',
   suites: {
@@ -69,6 +76,65 @@ export default {
       xcodegen: true,
       description: 'BlipMobile app + widgets (iOS simulator)',
       tags: ['regression'],
+    },
+
+    // ── UI tests (XCUITest), one suite per platform. The app runs with the DEBUG-only
+    //    `-UITestMode` launch argument (Shared/UITestMode.swift): isolated defaults seeded with
+    //    the screenshot fixtures, stubbed bench / speed / disk / ping / traceroute runners, no
+    //    network, no helper, animations off. Own schemes (BlipUITests, BlipMobileUITests), so
+    //    the CI path `xcodebuild test -scheme Blip` and the unit gates never pick them up.
+    //
+    //    macOS: BlipUITestHost ("Blip UITest", com.blainemiller.Blip.uitesthost) — the direct
+    //    app's sources under their own bundle id, so the per-launch defaults wipe can never
+    //    reach the real Blip's preferences. The XCUITest runner must be signed (ad-hoc is
+    //    enough) and, on this Mac, needs Developer Tools access: with `DevToolsSecurity`
+    //    disabled the runner sits suspended at launch until an admin authorizes it ("The test
+    //    runner hung before establishing connection"). One-time owner step:
+    //    `sudo DevToolsSecurity -enable`.
+    'ui-macos': {
+      type: 'xcodebuild-test',
+      platform: 'macos',
+      project: 'Blip.xcodeproj',
+      scheme: 'BlipUITests',
+      destination: 'platform=macOS',
+      xcodegen: true,
+      derivedDataPath: DD('ui-macos'),
+      // Soren passes CODE_SIGNING_ALLOWED=NO; later settings win, and the macOS runner
+      // must be signed to launch at all.
+      extraArgs: ['CODE_SIGNING_ALLOWED=YES', 'CODE_SIGN_IDENTITY=-'],
+      description: 'Blip menu-bar popover, inline detail panels, Settings and Traceroute window (XCUITest, -UITestMode, isolated bundle id)',
+      tags: ['ui'],
+    },
+    // iOS + iPadOS: the same BlipMobileUITests bundle on both idioms (layout assertions branch
+    // on the idiom). DEDICATED simulators (iOS 27.0), booted by the suite and shut down after it:
+    // on the shared "iPhone 17 Pro" / "iPad Pro 13-inch (M5)" devices other projects' UI suites
+    // launch their apps mid-run and steal the foreground (field-caught 2026-10-05: taps on Blip
+    // landed while another app was frontmost). Create them once with
+    //   xcrun simctl create "Blip UI iPhone 17 Pro" "iPhone 17 Pro" com.apple.CoreSimulator.SimRuntime.iOS-27-0
+    //   xcrun simctl create "Blip UI iPad Pro 13-inch (M5)" "iPad Pro 13-inch (M5)" com.apple.CoreSimulator.SimRuntime.iOS-27-0
+    'ui-ios': {
+      type: 'xcodebuild-test',
+      platform: 'ios',
+      project: 'Blip.xcodeproj',
+      scheme: 'BlipMobileUITests',
+      destination: 'platform=iOS Simulator,name=Blip UI iPhone 17 Pro,OS=27.0',
+      shutdownSimulator: true,
+      xcodegen: true,
+      derivedDataPath: DD('ui-ios'),
+      description: 'Blip iOS tabs, every detail screen, bench/speed/ping/trace flows, Settings, deep links (XCUITest, iPhone)',
+      tags: ['ui'],
+    },
+    'ui-ipad': {
+      type: 'xcodebuild-test',
+      platform: 'ios',
+      project: 'Blip.xcodeproj',
+      scheme: 'BlipMobileUITests',
+      destination: 'platform=iOS Simulator,name=Blip UI iPad Pro 13-inch (M5),OS=27.0',
+      shutdownSimulator: true,
+      xcodegen: true,
+      derivedDataPath: DD('ui-ipad'),
+      description: 'Blip iPadOS tabs, adaptive grid, detail screens and flows (XCUITest, iPad)',
+      tags: ['ui'],
     },
 
     // ── The Mac App Store target itself (sandboxed entitlements, APPSTORE) must still compile;

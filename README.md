@@ -113,12 +113,23 @@ xcodebuild test -scheme BlipMobile -destination 'platform=iOS Simulator,name=iPh
 
 # Localization + website consistency (string catalogs, Info.plist dev region, docs/ i18n):
 node --test Scripts/checks.test.mjs
+
+# UI tests (XCUITest). iOS/iPadOS — the same bundle on both idioms:
+# (Soren runs these on dedicated "Blip UI …" simulators — see soren.config.mjs.)
+xcodebuild test -scheme BlipMobileUITests -destination 'platform=iOS Simulator,name=iPhone 17 Pro,OS=27.0'
+xcodebuild test -scheme BlipMobileUITests -destination 'platform=iOS Simulator,name=iPad Pro 13-inch (M5),OS=27.0'
+# macOS — against the Debug-only BlipUITestHost ("Blip UITest", its own bundle id). The runner
+# must be signed (ad-hoc is fine) and needs Developer Tools access (`DevToolsSecurity -enable`):
+xcodebuild test -scheme BlipUITests -destination 'platform=macOS' CODE_SIGN_IDENTITY=-
 ```
 
 Everything above is wired into Soren (`soren.config.mjs`): `unit`, `appstore-unit`, `mobile`,
-`appstore`, `helper`, `coverage`, `l10n`, `web-syntax` and `web`. All tests are hermetic — network
-tests use in-process loopback servers, privileged paths (password prompt, `pmset`, the helper)
-use fakes.
+`ui-macos`, `ui-ios`, `ui-ipad`, `appstore`, `helper`, `coverage`, `l10n`, `web-syntax` and `web`.
+All tests are hermetic — network tests use in-process loopback servers, privileged paths (password
+prompt, `pmset`, the helper) use fakes. The UI tests launch the app with the DEBUG-only
+`-UITestMode` argument (`Shared/UITestMode.swift`): isolated defaults seeded with the screenshot
+fixtures, stubbed bench / speed-test / ping / traceroute runners, no network, animations off.
+Release builds compile it out.
 
 ### Build DMG Locally
 
