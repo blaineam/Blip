@@ -122,7 +122,7 @@ public final class BenchEngine: ObservableObject {
     /// UI-test stand-in for a real run (minutes of CPU/GPU load): walks the same published
     /// phases and live legs on a short schedule, then records a canned composite of 1388.
     /// `-UITestBenchOutcome cancel` holds after the last leg until the run is cancelled.
-    private func startUITestRun(profile: BenchProfile) {
+    func startUITestRun(profile: BenchProfile) {
         let flag = cancelledFlag
         let holdForCancel = UITestMode.value("UITestBenchOutcome") == "cancel"
         task = Task { [weak self] in
