@@ -42,7 +42,7 @@ export default {
       destination: 'platform=macOS',
       xcodegen: true,
       description: 'BlipTests unit suite (Blip scheme, macOS, direct build)',
-      coverageFloor: 79, // ratchet up, never down; measured 81.9% 2026-10-13 (hosted SwiftUI view tests)
+      coverageFloor: 80, // ratchet up, never down; measured 82.1% 2026-10-13 gate pass (368 tests)
       tags: ['regression'],
     },
 
@@ -59,7 +59,7 @@ export default {
       xcodegen: true,
       extraArgs: ['SWIFT_ACTIVE_COMPILATION_CONDITIONS=DEBUG APPSTORE'],
       description: 'BlipTests compiled with APPSTORE (App Store code paths, macOS)',
-      coverageFloor: 79, // ratchet up, never down; measured 82.5% 2026-10-13 (hosted SwiftUI view tests)
+      coverageFloor: 80, // ratchet up, never down; measured 82.5% 2026-10-13 gate pass (329 tests)
       tags: ['regression'],
     },
 
@@ -77,7 +77,7 @@ export default {
       destination: 'platform=iOS Simulator,name=iPhone 17 Pro',
       xcodegen: true,
       description: 'BlipMobile app + widgets (iOS simulator)',
-      coverageFloor: 85, // ratchet up, never down; measured 88% 2026-10-13 pass 2 (loopback ICMP tests skip on VPN hosts)
+      coverageFloor: 86, // ratchet up, never down; measured 88.1% 2026-10-13 gate pass (183 tests)
       tags: ['regression'],
     },
 
