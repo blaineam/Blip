@@ -593,9 +593,11 @@ struct SettingsView: View {
 extension Color {
     var hexString: String {
         guard let components = NSColor(self).usingColorSpace(.sRGB) else { return "" }
-        let r = Int(components.redComponent * 255)
-        let g = Int(components.greenComponent * 255)
-        let b = Int(components.blueComponent * 255)
+        // Rounded, not truncated: 0x3A / 255 * 255 lands a hair under 58 in floating point,
+        // so truncation turned every picked colour a shade darker on the round trip.
+        let r = Int((components.redComponent * 255).rounded())
+        let g = Int((components.greenComponent * 255).rounded())
+        let b = Int((components.blueComponent * 255).rounded())
         return String(format: "%02X%02X%02X", r, g, b)
     }
 }
