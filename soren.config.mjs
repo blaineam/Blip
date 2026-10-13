@@ -77,7 +77,7 @@ export default {
       destination: 'platform=iOS Simulator,name=iPhone 17 Pro',
       xcodegen: true,
       description: 'BlipMobile app + widgets (iOS simulator)',
-      coverageFloor: 48, // ratchet up, never down; measured 49.2% 2026-10-13 (loopback ICMP tests skip on VPN hosts)
+      coverageFloor: 85, // ratchet up, never down; measured 88% 2026-10-13 pass 2 (loopback ICMP tests skip on VPN hosts)
       tags: ['regression'],
     },
 
