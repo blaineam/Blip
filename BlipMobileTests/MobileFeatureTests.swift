@@ -110,7 +110,21 @@ final class MobileFeatureTests: XCTestCase {
 
     // MARK: Ping / traceroute (loopback)
 
+    /// Hosts with a VPN / network extension (Tailscale) can swallow loopback ICMP echoes or have a
+    /// gateway answer them. That is the environment, not the runner, so those tests skip with a reason
+    /// (the reply classification itself is covered deterministically in ICMPProbeTests).
+    private func requireLoopbackICMP() throws {
+        do {
+            let addr = try ICMPProbe.resolveIPv4("127.0.0.1")
+            let reply = try ICMPProbe.probe(addr: addr, ttl: nil, sequence: 1, timeout: 1)
+            guard reply?.from == "127.0.0.1" else { throw XCTSkip("loopback ICMP echo is filtered on this host") }
+        } catch ICMPSocketError.socketFailed(let code) {
+            throw XCTSkip("ICMP datagram sockets unavailable here (errno \(code))")
+        }
+    }
+
     func testPingRunnerCollectsLoopbackSamples() async throws {
+        try requireLoopbackICMP()
         let ping = PingRunner()
         ping.start(host: "127.0.0.1")
         XCTAssertTrue(ping.isRunning)
@@ -138,6 +152,7 @@ final class MobileFeatureTests: XCTestCase {
     }
 
     func testTraceRunnerReachesLoopbackInOneHop() async throws {
+        try requireLoopbackICMP()
         let trace = TraceRunner()
         trace.start(host: "127.0.0.1", maxHops: 3)
         await waitFor(trace.$isRunning, timeout: 15) { !$0 }
