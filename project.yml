@@ -285,8 +285,15 @@ targets:
       # their Foundation-only fixtures run on iOS too.
       - path: BlipTests/CrossPlatform
       - path: BlipTests/Support
+      # The widget file itself, compiled next to the app module so the unit tests can drive its
+      # providers and render its views (BLIP_WIDGET_TESTS adds `@testable import BlipMobile`
+      # and drops the extension's @main).
+      - path: BlipMobileWidgets/BlipWidgets.swift
     dependencies:
       - target: BlipMobile
+    settings:
+      base:
+        SWIFT_ACTIVE_COMPILATION_CONDITIONS: "$(inherited) BLIP_WIDGET_TESTS"
 
   # ---------- iOS/iPadOS UI tests (XCUITest against BlipMobile in -UITestMode) ----------
   BlipMobileUITests:
@@ -333,6 +340,9 @@ schemes:
       coverageTargets:
         - BlipMobile
         - BlipMobileWidgets
+        # BlipMobileTests compiles BlipWidgets.swift itself (see its sources), so the widget
+        # providers/views the tests execute only show up in the report through this target.
+        - BlipMobileTests
       targets:
         - BlipMobileTests
 

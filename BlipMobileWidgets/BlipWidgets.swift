@@ -1,5 +1,10 @@
 import WidgetKit
 import SwiftUI
+#if BLIP_WIDGET_TESTS
+// Only the unit-test bundle compiles this file next to the app module (to exercise the providers
+// and views); the extension itself never defines this flag.
+@testable import BlipMobile
+#endif
 
 // Blip's widgets — designed around what WidgetKit actually is: a SNAPSHOT gallery, not a live
 // monitor. Design rules applied here, deliberately:
@@ -12,6 +17,13 @@ import SwiftUI
 //   4. Tap lands you on the screen that refreshes the fact (blip://bench, blip://speed, …).
 //   5. The app pushes reloads on every new fact (MobileSharedStore); timelines refresh
 //      lazily (30 min) otherwise, which respects the widget budget.
+
+/// Every widget refreshes lazily (the app pushes reloads on new facts), which respects the budget.
+let widgetRefreshInterval: TimeInterval = 1800
+
+func widgetTimeline<E: TimelineEntry>(_ entry: E, now: Date = .now) -> Timeline<E> {
+    Timeline(entries: [entry], policy: .after(now.addingTimeInterval(widgetRefreshInterval)))
+}
 
 // MARK: - Shared look
 
@@ -35,8 +47,9 @@ struct BenchEntry: TimelineEntry {
 }
 
 struct BenchProvider: TimelineProvider {
-    func placeholder(in context: Context) -> BenchEntry {
-        // Sample data for the gallery — real entries replace it the moment the timeline loads.
+    func placeholder(in context: Context) -> BenchEntry { Self.placeholderEntry }
+    /// Sample data for the gallery — real entries replace it the moment the timeline loads.
+    static var placeholderEntry: BenchEntry {
         .init(date: .now, result: BenchProvider.sample, best: BenchProvider.sample.composite)
     }
     static let sample = BenchResult(
@@ -52,17 +65,20 @@ struct BenchProvider: TimelineProvider {
         completion(load())
     }
     func getTimeline(in context: Context, completion: @escaping (Timeline<BenchEntry>) -> Void) {
-        completion(Timeline(entries: [load()], policy: .after(.now.addingTimeInterval(1800))))
+        completion(widgetTimeline(load()))
     }
-    private func load() -> BenchEntry {
+    func load() -> BenchEntry {
         let summary = MobileSharedStore.benchWidgetSummary(BenchHistory.load(defaults: MobileSharedStore.defaults))
         return .init(date: .now, result: summary.latest, best: summary.bestFull)
     }
 }
 
 struct BenchWidgetView: View {
-    @Environment(\.widgetFamily) private var family
+    @Environment(\.widgetFamily) private var environmentFamily
     let entry: BenchEntry
+    /// Tests can't set `widgetFamily` in the environment (read-only), so they pass it here.
+    var familyOverride: WidgetFamily?
+    private var family: WidgetFamily { familyOverride ?? environmentFamily }
 
     var body: some View {
         Group {
@@ -70,6 +86,14 @@ struct BenchWidgetView: View {
         }
         .containerBackground(for: .widget) { BlipWidgetBackground(tint: .purple) }
         .widgetURL(URL(string: "blip://bench"))
+    }
+
+    /// How far a FULL run sits below this device's best (a negative percent), or nil when it
+    /// matches/beats the best, is a quick run, or there is no best yet.
+    static func regressionPercent(result r: BenchResult, best: Double?) -> Int? {
+        guard let best, best > 0, r.profile == .full else { return nil }
+        let pct = Int(((r.composite - best) / best * 100).rounded())
+        return pct < 0 ? pct : nil
     }
 
     private var empty: some View {
@@ -85,11 +109,8 @@ struct BenchWidgetView: View {
                 Label("Bench", systemImage: "gauge.with.needle")
                     .font(.caption2.weight(.semibold)).foregroundStyle(.purple)
                 Spacer()
-                if let best = entry.best, best > 0, r.profile == .full {
-                    let pct = Int(((r.composite - best) / best * 100).rounded())
-                    if pct < 0 {
-                        Text("\(pct)%").font(.caption2.weight(.bold)).foregroundStyle(.orange)
-                    }
+                if let pct = Self.regressionPercent(result: r, best: entry.best) {
+                    Text("\(pct)%").font(.caption2.weight(.bold)).foregroundStyle(.orange)
                 }
             }
             Text("\(Int(r.composite.rounded()))")
@@ -142,16 +163,17 @@ struct StorageEntry: TimelineEntry {
 }
 
 struct StorageProvider: TimelineProvider {
-    func placeholder(in context: Context) -> StorageEntry {
+    func placeholder(in context: Context) -> StorageEntry { Self.placeholderEntry }
+    static var placeholderEntry: StorageEntry {
         .init(date: .now, record: .init(storageTotal: 512_000_000_000, storageFree: 128_000_000_000,
                                         thermalState: 0, batteryLevel: 0.8, date: .now))
     }
+    func load() -> StorageEntry { .init(date: .now, record: MobileSharedStore.readDevice()) }
     func getSnapshot(in context: Context, completion: @escaping (StorageEntry) -> Void) {
-        completion(.init(date: .now, record: MobileSharedStore.readDevice()))
+        completion(load())
     }
     func getTimeline(in context: Context, completion: @escaping (Timeline<StorageEntry>) -> Void) {
-        completion(Timeline(entries: [.init(date: .now, record: MobileSharedStore.readDevice())],
-                            policy: .after(.now.addingTimeInterval(1800))))
+        completion(widgetTimeline(load()))
     }
 }
 
@@ -209,16 +231,17 @@ struct SpeedEntry: TimelineEntry {
 }
 
 struct SpeedProvider: TimelineProvider {
-    func placeholder(in context: Context) -> SpeedEntry {
+    func placeholder(in context: Context) -> SpeedEntry { Self.placeholderEntry }
+    static var placeholderEntry: SpeedEntry {
         .init(date: .now, record: .init(downMbps: 940, upMbps: 850, date: .now, interface: "Wi-Fi",
                                         pingMs: 12, loadedPingMs: 31))
     }
+    func load() -> SpeedEntry { .init(date: .now, record: MobileSharedStore.readSpeed()) }
     func getSnapshot(in context: Context, completion: @escaping (SpeedEntry) -> Void) {
-        completion(.init(date: .now, record: MobileSharedStore.readSpeed()))
+        completion(load())
     }
     func getTimeline(in context: Context, completion: @escaping (Timeline<SpeedEntry>) -> Void) {
-        completion(Timeline(entries: [.init(date: .now, record: MobileSharedStore.readSpeed())],
-                            policy: .after(.now.addingTimeInterval(1800))))
+        completion(widgetTimeline(load()))
     }
 }
 
@@ -290,7 +313,9 @@ struct BlipSpeedWidget: Widget {
 
 // MARK: - Bundle
 
+#if !BLIP_WIDGET_TESTS
 @main
+#endif
 struct BlipWidgetBundle: WidgetBundle {
     var body: some Widget {
         BlipBenchWidget()

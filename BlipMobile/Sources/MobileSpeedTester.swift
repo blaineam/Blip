@@ -48,6 +48,10 @@ final class MobileSpeedTester: ObservableObject {
     }
 
     static let maxHistory = 10
+    /// Seams for tests: the self-hosted run's per-direction duration, and whether the ICMP
+    /// latency probes (which reach the public internet) run at all.
+    static var transferSeconds: (down: Double, up: Double) = (8, 8)
+    static var latencyProbesEnabled = true
     private var task: Task<Void, Never>?
     private var publicRunner: OpenSpeedTestWidgetRunner?
 
@@ -97,6 +101,7 @@ final class MobileSpeedTester: ObservableObject {
 
     /// Median of a burst of ICMP probes to the ping target — cheap, honest.
     private static func medianPing(count: Int, spacingMs: UInt64) async -> Double? {
+        guard latencyProbesEnabled else { return nil }
         guard let addr = try? ICMPProbe.resolveIPv4(NetworkTargets.ping) else { return nil }
         var rtts: [Double] = []
         for i in 0..<count {
@@ -116,6 +121,7 @@ final class MobileSpeedTester: ObservableObject {
 
     /// Sample latency continuously while the transfer saturates the line.
     private func startLoadedProbes() {
+        guard Self.latencyProbesEnabled else { return }
         loadedProbeTask = Task { [weak self] in
             guard let addr = try? ICMPProbe.resolveIPv4(NetworkTargets.ping) else { return }
             var seq: UInt16 = 5000
@@ -217,12 +223,12 @@ final class MobileSpeedTester: ObservableObject {
             do {
                 await self?.measureUnloaded()
                 await MainActor.run { self?.phase = .download; self?.startLoadedProbes() }
-                let down = try await ThroughputRun.download(baseURL: baseURL, seconds: 8, streams: 4) { mbps in
+                let down = try await ThroughputRun.download(baseURL: baseURL, seconds: Self.transferSeconds.down, streams: 4) { mbps in
                     Task { @MainActor in self?.captureLive(mbps, upload: false) }
                 }
                 guard !Task.isCancelled else { return }
                 await MainActor.run { self?.stopLoadedProbes(); self?.phase = .upload; self?.liveMbps = 0 }
-                let up = try await ThroughputRun.upload(baseURL: baseURL, seconds: 8, streams: 3) { mbps in
+                let up = try await ThroughputRun.upload(baseURL: baseURL, seconds: Self.transferSeconds.up, streams: 3) { mbps in
                     Task { @MainActor in self?.captureLive(mbps, upload: true) }
                 }
                 guard !Task.isCancelled else { return }
