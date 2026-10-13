@@ -97,16 +97,16 @@ final class MobileSpeedTester: ObservableObject {
 
     private var unloadedPing: Double?
     private var loadedSamples: [Double] = []
-    private var loadedProbeTask: Task<Void, Never>?
+    private(set) var loadedProbeTask: Task<Void, Never>?
 
     /// Median of a burst of ICMP probes to the ping target — cheap, honest.
     private static func medianPing(count: Int, spacingMs: UInt64) async -> Double? {
         guard latencyProbesEnabled else { return nil }
-        guard let addr = try? ICMPProbe.resolveIPv4(NetworkTargets.ping) else { return nil }
+        guard let addr = try? ICMPBackend.resolve(NetworkTargets.ping) else { return nil }
         var rtts: [Double] = []
         for i in 0..<count {
             if Task.isCancelled { break }
-            if let r = try? ICMPProbe.probe(addr: addr, ttl: nil, sequence: UInt16(4000 + i), timeout: 1) {
+            if let r = try? ICMPBackend.probe(addr, nil, UInt16(4000 + i), 1) {
                 rtts.append(r.rttMs)
             }
             try? await Task.sleep(nanoseconds: spacingMs * 1_000_000)
@@ -123,11 +123,11 @@ final class MobileSpeedTester: ObservableObject {
     private func startLoadedProbes() {
         guard Self.latencyProbesEnabled else { return }
         loadedProbeTask = Task { [weak self] in
-            guard let addr = try? ICMPProbe.resolveIPv4(NetworkTargets.ping) else { return }
+            guard let addr = try? ICMPBackend.resolve(NetworkTargets.ping) else { return }
             var seq: UInt16 = 5000
             while !Task.isCancelled {
                 seq &+= 1
-                if let r = try? ICMPProbe.probe(addr: addr, ttl: nil, sequence: seq, timeout: 1) {
+                if let r = try? ICMPBackend.probe(addr, nil, seq, 1) {
                     await MainActor.run { [weak self] in self?.loadedSamples.append(r.rttMs) }
                 }
                 try? await Task.sleep(nanoseconds: 400_000_000)
@@ -150,7 +150,7 @@ final class MobileSpeedTester: ObservableObject {
         else { downCurve.append(mbps); if downCurve.count > 240 { downCurve.removeFirst() } }
     }
 
-    private static func downsample(_ values: [Double], to target: Int = 80) -> [Double]? {
+    static func downsample(_ values: [Double], to target: Int = 80) -> [Double]? {
         guard !values.isEmpty else { return nil }
         guard values.count > target else { return values }
         let stride = Double(values.count) / Double(target)
@@ -186,13 +186,16 @@ final class MobileSpeedTester: ObservableObject {
                 }
             } catch is CancellationError {
             } catch {
-                await MainActor.run { self?.phase = .failed(Self.describe(error)) }
+                await MainActor.run {
+                    self?.stopLoadedProbes()
+                    self?.phase = .failed(Self.describe(error))
+                }
             }
             await MainActor.run { self?.publicRunner = nil }
         }
     }
 
-    private static func describe(_ error: Error) -> String {
+    static func describe(_ error: Error) -> String {
         if let e = error as? OpenSpeedTestWidgetRunner.RunError {
             switch e {
             case .loadFailed: return String(localized: "Couldn't load the OpenSpeedTest widget.")
@@ -227,6 +230,14 @@ final class MobileSpeedTester: ObservableObject {
                     Task { @MainActor in self?.captureLive(mbps, upload: false) }
                 }
                 guard !Task.isCancelled else { return }
+                // A server that never delivered a byte (wrong address, 404s) is a failure, not a 0 Mbps result.
+                guard down > 0 else {
+                    await MainActor.run {
+                        self?.stopLoadedProbes()
+                        self?.phase = .failed(Self.describe(OpenSpeedTestWidgetRunner.RunError.noResult))
+                    }
+                    return
+                }
                 await MainActor.run { self?.stopLoadedProbes(); self?.phase = .upload; self?.liveMbps = 0 }
                 let up = try await ThroughputRun.upload(baseURL: baseURL, seconds: Self.transferSeconds.up, streams: 3) { mbps in
                     Task { @MainActor in self?.captureLive(mbps, upload: true) }
@@ -239,7 +250,10 @@ final class MobileSpeedTester: ObservableObject {
                 }
             } catch is CancellationError {
             } catch {
-                await MainActor.run { self?.phase = .failed((error as NSError).localizedDescription) }
+                await MainActor.run {
+                    self?.stopLoadedProbes()
+                    self?.phase = .failed((error as NSError).localizedDescription)
+                }
             }
         }
     }
@@ -345,8 +359,11 @@ enum ThroughputRun {
                         req.httpMethod = "POST"
                         req.timeoutInterval = 15
                         req.setValue("application/octet-stream", forHTTPHeaderField: "Content-Type")
-                        _ = try? await URLSession.shared.upload(for: req, from: payload)
-                        counter.add(payload.count)
+                        // Only a completed 2xx upload counts — a refused or dropped request moved nothing.
+                        if let (_, response) = try? await URLSession.shared.upload(for: req, from: payload),
+                           let http = response as? HTTPURLResponse, (200..<300).contains(http.statusCode) {
+                            counter.add(payload.count)
+                        }
                     }
                 }
             }
@@ -391,16 +408,30 @@ final class CountingDelegate: NSObject, URLSessionDataDelegate, @unchecked Senda
     private var continuation: CheckedContinuation<Void, Error>?
     private var budgetEnd: Double = .infinity
     private var task: URLSessionDataTask?
+    private var rejected: Error?
 
     init(counter: LiveCounter) { self.counter = counter }
 
     func run(_ request: URLRequest, in session: URLSession, budgetEnd: Double) async throws {
         self.budgetEnd = budgetEnd
+        rejected = nil
         return try await withCheckedThrowingContinuation { cont in
             continuation = cont
             let t = session.dataTask(with: request)
             task = t
             t.resume()
+        }
+    }
+
+    /// A non-2xx answer (wrong address, a 404 page) is not a speed test: its error body must not
+    /// be counted as throughput.
+    func urlSession(_ session: URLSession, dataTask: URLSessionDataTask, didReceive response: URLResponse,
+                    completionHandler: @escaping (URLSession.ResponseDisposition) -> Void) {
+        if let http = response as? HTTPURLResponse, !(200..<300).contains(http.statusCode) {
+            rejected = URLError(.badServerResponse)
+            completionHandler(.cancel)
+        } else {
+            completionHandler(.allow)
         }
     }
 
@@ -411,7 +442,9 @@ final class CountingDelegate: NSObject, URLSessionDataDelegate, @unchecked Senda
 
     func urlSession(_ session: URLSession, task: URLSessionTask, didCompleteWithError error: Error?) {
         let cont = continuation; continuation = nil
-        if let error, (error as NSError).code != NSURLErrorCancelled {
+        if let rejected {
+            cont?.resume(throwing: rejected)
+        } else if let error, (error as NSError).code != NSURLErrorCancelled {
             cont?.resume(throwing: error)
         } else {
             cont?.resume()   // budget-cancel is a normal end

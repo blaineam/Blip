@@ -318,7 +318,26 @@ final class DeviceStats: ObservableObject {
         #endif
     }
 
+    #if DEBUG
+    /// Test seam: publish a hand-built snapshot (history + widget record included) and an
+    /// optional revealed WAN address, exactly as the tail of `sample()` would.
+    func publishForTesting(_ s: DeviceSnapshot, wanIP: String? = nil) {
+        // Freeze live sampling (timer + path updates) so nothing overwrites the fixture.
+        frozenForTesting = true
+        timer?.invalidate(); timer = nil
+        commit(s)
+        self.wanIP = wanIP
+    }
+    #endif
+
+    #if DEBUG
+    private var frozenForTesting = false
+    #endif
+
     func sample() {
+        #if DEBUG
+        if frozenForTesting { return }
+        #endif
         var s = DeviceSnapshot()
 
         #if canImport(UIKit)
@@ -370,6 +389,10 @@ final class DeviceStats: ObservableObject {
         #if DEBUG
         if UITestMode.isActive { Self.applyUITestPins(&s) }
         #endif
+        commit(s)
+    }
+
+    private func commit(_ s: DeviceSnapshot) {
         snapshot = s
         cpuHistory.append(s.cpuUsagePercent)
         if s.memoryAppAvailable > 0 { memoryHistory.append(Double(s.memoryAppAvailable) / 1_073_741_824) }

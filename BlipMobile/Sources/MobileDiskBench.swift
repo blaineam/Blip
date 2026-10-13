@@ -114,8 +114,9 @@ final class MobileDiskBench: ObservableObject {
     // 512 MB in 8 MB chunks — enough to escape burst caches on real media without
     // chewing minutes on a slow thumb drive; budget-capped at ~20 s per direction.
     nonisolated private static let chunk = 8 << 20
-    nonisolated private static let maxBytes = 512 << 20
-    nonisolated private static let budget = 20.0
+    // Variables only so tests can shrink the file / force the budget path; production never writes them.
+    nonisolated(unsafe) static var maxBytes = 512 << 20
+    nonisolated(unsafe) static var budget = 20.0
 
     nonisolated private static func sequentialWrite(to url: URL, live: @escaping @Sendable (Double) -> Void) throws -> Double {
         FileManager.default.createFile(atPath: url.path, contents: nil)

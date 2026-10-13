@@ -26,6 +26,18 @@ struct TraceHop: Identifiable, Sendable, Equatable {
     var isDestination = false
 }
 
+/// Where the runners (and the speed tester's latency probes) reach ICMP. Production never
+/// changes these; tests swap in scripted replies so the state machines run with no sockets.
+enum ICMPBackend {
+    typealias Reply = (from: String, rttMs: Double, reachedDestination: Bool)
+    nonisolated(unsafe) static var resolve: @Sendable (String) throws -> sockaddr_in = { try ICMPProbe.resolveIPv4($0) }
+    nonisolated(unsafe) static var probe: @Sendable (sockaddr_in, Int32?, UInt16, Double) throws -> Reply? = {
+        try ICMPProbe.probe(addr: $0, ttl: $1, sequence: $2, timeout: $3)
+    }
+    /// Gap between successive pings.
+    nonisolated(unsafe) static var pingIntervalNanoseconds: UInt64 = 1_000_000_000
+}
+
 @MainActor
 final class PingRunner: ObservableObject {
     @Published private(set) var samples: [PingSample] = []
@@ -69,18 +81,18 @@ final class PingRunner: ObservableObject {
         #endif
         task = Task.detached { [weak self] in
             do {
-                let addr = try ICMPProbe.resolveIPv4(host)
+                let addr = try ICMPBackend.resolve(host)
                 var seq: UInt16 = 0
                 while !Task.isCancelled {
                     seq &+= 1
-                    let r = try? ICMPProbe.probe(addr: addr, ttl: nil, sequence: seq, timeout: 2)
+                    let r = try? ICMPBackend.probe(addr, nil, seq, 2)
                     let sample = PingSample(sequence: Int(seq), rttMs: r?.rttMs)
                     await MainActor.run { [weak self] in
                         guard let self else { return }
                         self.samples.append(sample)
                         if self.samples.count > 50 { self.samples.removeFirst() }
                     }
-                    try? await Task.sleep(nanoseconds: 1_000_000_000)
+                    try? await Task.sleep(nanoseconds: ICMPBackend.pingIntervalNanoseconds)
                 }
             } catch {
                 await MainActor.run { [weak self] in
@@ -127,12 +139,12 @@ final class TraceRunner: ObservableObject {
         #endif
         task = Task.detached { [weak self] in
             do {
-                let addr = try ICMPProbe.resolveIPv4(host)
+                let addr = try ICMPBackend.resolve(host)
                 var seq: UInt16 = 1000
                 for ttl in 1...maxHops {
                     if Task.isCancelled { break }
                     seq &+= 1
-                    let r = try? ICMPProbe.probe(addr: addr, ttl: Int32(ttl), sequence: seq, timeout: 1.5)
+                    let r = try? ICMPBackend.probe(addr, Int32(ttl), seq, 1.5)
                     var hop = TraceHop(ttl: ttl, address: r?.from, rttMs: r?.rttMs)
                     hop.isDestination = r?.reachedDestination ?? false
                     let done = hop.isDestination
