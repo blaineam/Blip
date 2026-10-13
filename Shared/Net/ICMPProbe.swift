@@ -60,37 +60,74 @@ enum ICMPProbe {
         }
         guard sent > 0 else { return nil }
 
-        var buffer = [UInt8](repeating: 0, count: 512)
-        var from = sockaddr_in()
-        var fromLen = socklen_t(MemoryLayout<sockaddr_in>.size)
-        let n = withUnsafeMutablePointer(to: &from) {
-            $0.withMemoryRebound(to: sockaddr.self, capacity: 1) { sa in
-                recvfrom(fd, &buffer, buffer.count, 0, sa, &fromLen)
+        // Read until a datagram that actually answers THIS probe arrives (or the deadline
+        // passes): a stray ICMP message (a gateway's unreachable/redirect for other traffic)
+        // must not be mistaken for the reply.
+        let deadline = start + timeout
+        let targetIP = dotted(addr.sin_addr)
+        while true {
+            var buffer = [UInt8](repeating: 0, count: 512)
+            var from = sockaddr_in()
+            var fromLen = socklen_t(MemoryLayout<sockaddr_in>.size)
+            let n = withUnsafeMutablePointer(to: &from) {
+                $0.withMemoryRebound(to: sockaddr.self, capacity: 1) { sa in
+                    recvfrom(fd, &buffer, buffer.count, 0, sa, &fromLen)
+                }
+            }
+            guard n > 0 else { return nil }   // timeout
+            let rtt = (CFAbsoluteTimeGetCurrent() - start) * 1000
+            let ip = dotted(from.sin_addr)
+
+            switch classify(Array(buffer.prefix(n)), sequence: sequence, targetIP: targetIP) {
+            case .echoReply: return (from: ip, rttMs: rtt, reachedDestination: true)
+            case .hop: return (from: ip, rttMs: rtt, reachedDestination: ip == targetIP)
+            case .unrelated:
+                if CFAbsoluteTimeGetCurrent() >= deadline { return nil }
             }
         }
-        guard n > 0 else { return nil }   // timeout
-        let rtt = (CFAbsoluteTimeGetCurrent() - start) * 1000
+    }
 
-        var ipBytes = [CChar](repeating: 0, count: Int(INET_ADDRSTRLEN))
-        var sin = from.sin_addr
-        inet_ntop(AF_INET, &sin, &ipBytes, socklen_t(INET_ADDRSTRLEN))
-        let ip = String(decoding: ipBytes.prefix(while: { $0 != 0 }).map { UInt8(bitPattern: $0) }, as: UTF8.self)
+    static func dotted(_ addr: in_addr) -> String {
+        var a = addr
+        var bytes = [CChar](repeating: 0, count: Int(INET_ADDRSTRLEN))
+        inet_ntop(AF_INET, &a, &bytes, socklen_t(INET_ADDRSTRLEN))
+        return String(decoding: bytes.prefix(while: { $0 != 0 }).map { UInt8(bitPattern: $0) }, as: UTF8.self)
+    }
 
-        // XNU (macOS/iOS alike) delivers the full IP datagram on ICMP dgram sockets — the
-        // ICMP header sits AFTER the IP header (unlike Linux). Field-verified: reading
-        // byte 0 (0x45) as the ICMP type made traceroute never see its echo reply.
-        var type = buffer[0]
-        if n > 20, buffer[0] >> 4 == 4 {
-            let ihl = Int(buffer[0] & 0x0f) * 4
-            if n > ihl { type = buffer[ihl] }
+    enum ReplyKind: Equatable { case echoReply, hop, unrelated }
+
+    /// Classify one datagram received on the ICMP socket. XNU (macOS/iOS alike) delivers the
+    /// full IP datagram — the ICMP header sits AFTER the IP header (unlike Linux). Field-
+    /// verified: reading byte 0 (0x45) as the ICMP type made traceroute never see its echo
+    /// reply. A header-less datagram (stacks that strip it) is read from byte 0.
+    /// - `.echoReply`: type 0 carrying our sequence.
+    /// - `.hop`: time-exceeded (11) / destination-unreachable (3) quoting OUR echo (sequence
+    ///   and destination match) — a traceroute hop or a path refusal.
+    /// - `.unrelated`: anything else (other traffic's ICMP, a different probe's reply).
+    static func classify(_ datagram: [UInt8], sequence: UInt16, targetIP: String) -> ReplyKind {
+        var offset = 0
+        if datagram.count > 20, datagram[0] >> 4 == 4 {
+            let ihl = Int(datagram[0] & 0x0f) * 4
+            guard datagram.count > ihl else { return .unrelated }
+            offset = ihl
         }
-        // Echo reply = destination; also accept "the responder IS the target" (belt and
-        // suspenders for stacks that strip the header).
-        var target = addr.sin_addr
-        var targetBytes = [CChar](repeating: 0, count: Int(INET_ADDRSTRLEN))
-        inet_ntop(AF_INET, &target, &targetBytes, socklen_t(INET_ADDRSTRLEN))
-        let targetIP = String(decoding: targetBytes.prefix(while: { $0 != 0 }).map { UInt8(bitPattern: $0) }, as: UTF8.self)
-        return (from: ip, rttMs: rtt, reachedDestination: type == 0 || ip == targetIP)
+        guard datagram.count >= offset + 8 else { return .unrelated }
+        func seq(at o: Int) -> UInt16 { UInt16(datagram[o + 6]) << 8 | UInt16(datagram[o + 7]) }
+        switch datagram[offset] {
+        case 0:
+            return seq(at: offset) == sequence ? .echoReply : .unrelated
+        case 3, 11:
+            // ICMP header (8) + quoted IP header + the first 8 bytes of our echo request.
+            let q = offset + 8
+            guard datagram.count > q, datagram[q] >> 4 == 4 else { return .unrelated }
+            let qihl = Int(datagram[q] & 0x0f) * 4
+            guard qihl >= 20, datagram.count >= q + qihl + 8, datagram[q + qihl] == 8 else { return .unrelated }
+            guard seq(at: q + qihl) == sequence else { return .unrelated }
+            let dst = datagram[(q + 16)..<(q + 20)].map(String.init).joined(separator: ".")
+            return dst == targetIP ? .hop : .unrelated
+        default:
+            return .unrelated
+        }
     }
 
     static func icmpChecksum(_ bytes: [UInt8]) -> UInt16 {
