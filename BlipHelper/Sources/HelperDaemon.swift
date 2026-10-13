@@ -3,6 +3,10 @@ import IOKit
 import IOKit.ps
 import Darwin
 import AppKit
+#if canImport(Blip)
+// Compiled into BlipTests too (see project.yml); the Blip module supplies the shared types there.
+@testable import Blip
+#endif
 
 /// Polls privileged system APIs and produces HelperSnapshots.
 /// Runs in the helper process (unsandboxed) to collect data

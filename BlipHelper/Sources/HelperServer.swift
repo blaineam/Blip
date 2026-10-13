@@ -1,5 +1,9 @@
 import Foundation
 import Network
+#if canImport(Blip)
+// Compiled into BlipTests too (see project.yml); the Blip module supplies the shared types there.
+@testable import Blip
+#endif
 
 /// TCP server that listens on localhost and serves HelperSnapshots to the main app.
 /// Uses TOTP authentication to prevent unauthorized access.
@@ -9,6 +13,12 @@ final class HelperServer: @unchecked Sendable {
     private let daemon = HelperDaemon()
     private var latestSnapshot: HelperSnapshot?
     private let pollInterval: TimeInterval = 2.0
+    /// Where the listening port is published for the app. Tests point it at scratch space.
+    private let portFileURL: URL
+
+    init(portFileURL: URL = HelperConstants.portFileURL) {
+        self.portFileURL = portFileURL
+    }
 
     /// Start the TCP server on a random localhost port.
     /// Returns the port number, or nil on failure.
@@ -64,13 +74,13 @@ final class HelperServer: @unchecked Sendable {
         listener?.cancel()
         listener = nil
         // Clean up port file
-        try? FileManager.default.removeItem(at: HelperConstants.portFileURL)
+        try? FileManager.default.removeItem(at: portFileURL)
     }
 
     // MARK: - Port File
 
     private func writePortFile(_ port: UInt16) {
-        let url = HelperConstants.portFileURL
+        let url = portFileURL
         // Ensure parent directory exists
         try? FileManager.default.createDirectory(
             at: url.deletingLastPathComponent(),

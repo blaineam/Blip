@@ -241,78 +241,8 @@ final class SystemMonitor: ObservableObject {
         var topByMemory = procs.byMemory
 
         if let h = helper {
-            // Fans/thermal: use helper if in-process SMC returned nothing
-            if fans.fans.isEmpty && !h.fans.isEmpty {
-                fans.fans = h.fans.map { FanInfo(id: $0.id, name: $0.name, currentRPM: $0.currentRPM, minRPM: $0.minRPM, maxRPM: $0.maxRPM) }
-            }
-            if fans.cpuTemperature == nil { fans.cpuTemperature = h.cpuTemperature }
-            if fans.gpuTemperature == nil { fans.gpuTemperature = h.gpuTemperature }
-
-            // GPU utilization: use helper if in-process IOKit returned 0
-            if gpu.utilization == 0 && h.gpuUtilization > 0 {
-                gpu.utilization = h.gpuUtilization
-            }
-
-            // Disk I/O: use helper if in-process returned 0
-            if disk.readBytesPerSec == 0 && disk.writeBytesPerSec == 0 {
-                disk.readBytesPerSec = h.diskReadBytesPerSec
-                disk.writeBytesPerSec = h.diskWriteBytesPerSec
-                disk.totalBytesRead = h.diskTotalBytesRead
-                disk.totalBytesWritten = h.diskTotalBytesWritten
-            }
-            if disk.smartStatus.isEmpty && !h.smartStatus.isEmpty {
-                disk.smartStatus = h.smartStatus
-            }
-
-            // Since-boot network totals from the helper (sandboxed app can't run netstat)
-            if let down = h.networkTotalDownloaded, down > 0 {
-                network.totalBytesDownloaded = down
-            }
-            if let up = h.networkTotalUploaded, up > 0 {
-                network.totalBytesUploaded = up
-            }
-
-            // Per-drive S.M.A.R.T. health (NVMe health log via the helper)
-            if disk.drives.isEmpty, let helperDrives = h.drives, !helperDrives.isEmpty {
-                disk.drives = helperDrives.map {
-                    DriveHealth(
-                        name: $0.name,
-                        bsdName: $0.bsdName,
-                        isInternal: $0.isInternal,
-                        medium: $0.medium,
-                        smartStatus: $0.smartStatus,
-                        percentageUsed: $0.percentageUsed,
-                        availableSpare: $0.availableSpare,
-                        availableSpareThreshold: $0.availableSpareThreshold,
-                        temperatureCelsius: $0.temperatureCelsius,
-                        bytesWritten: $0.bytesWritten,
-                        bytesRead: $0.bytesRead,
-                        powerOnHours: $0.powerOnHours,
-                        powerCycles: $0.powerCycles,
-                        unsafeShutdowns: $0.unsafeShutdowns,
-                        mediaErrors: $0.mediaErrors,
-                        criticalWarning: $0.criticalWarning
-                    )
-                }
-            }
-
-            // Battery health: use helper if in-process returned defaults
-            if battery.health == 0 { battery.health = h.batteryHealth ?? 0 }
-            if battery.cycleCount == 0 { battery.cycleCount = h.batteryCycleCount ?? 0 }
-            if battery.condition.isEmpty { battery.condition = h.batteryCondition ?? "" }
-            if battery.temperature == 0 { battery.temperature = h.batteryTemperature ?? 0 }
-
-            // Processes: use helper if in-process proc_* returned empty
-            if topByCPU.isEmpty && !h.topProcessesByCPU.isEmpty {
-                topByCPU = h.topProcessesByCPU.map {
-                    ProcessInfo(id: $0.pid, name: $0.name, cpu: $0.cpu, memory: $0.memory, icon: $0.icon)
-                }
-            }
-            if topByMemory.isEmpty && !h.topProcessesByMemory.isEmpty {
-                topByMemory = h.topProcessesByMemory.map {
-                    ProcessInfo(id: $0.pid, name: $0.name, cpu: $0.cpu, memory: $0.memory, icon: $0.icon)
-                }
-            }
+            Self.mergeHelper(h, fans: &fans, gpu: &gpu, disk: &disk, network: &network, battery: &battery,
+                             topByCPU: &topByCPU, topByMemory: &topByMemory)
         }
 
         // System info (uptime, thermal, self-usage)
@@ -344,6 +274,85 @@ final class SystemMonitor: ObservableObject {
         diskWriteHistory.append(Double(disk.writeBytesPerSec))
         netDownHistory.append(Double(network.downloadSpeed))
         netUpHistory.append(Double(network.uploadSpeed))
+    }
+
+    /// Fills the gaps the in-process monitors left (sandboxed: they return empty/zero) from the
+    /// helper's snapshot. Static and side-effect free so the merge rules are unit-testable.
+    static func mergeHelper(_ h: HelperSnapshot, fans: inout FanStats, gpu: inout GPUStats,
+                            disk: inout DiskStats, network: inout NetworkStats, battery: inout BatteryStats,
+                            topByCPU: inout [ProcessInfo], topByMemory: inout [ProcessInfo]) {
+        // Fans/thermal: use helper if in-process SMC returned nothing
+        if fans.fans.isEmpty && !h.fans.isEmpty {
+            fans.fans = h.fans.map { FanInfo(id: $0.id, name: $0.name, currentRPM: $0.currentRPM, minRPM: $0.minRPM, maxRPM: $0.maxRPM) }
+        }
+        if fans.cpuTemperature == nil { fans.cpuTemperature = h.cpuTemperature }
+        if fans.gpuTemperature == nil { fans.gpuTemperature = h.gpuTemperature }
+
+        // GPU utilization: use helper if in-process IOKit returned 0
+        if gpu.utilization == 0 && h.gpuUtilization > 0 {
+            gpu.utilization = h.gpuUtilization
+        }
+
+        // Disk I/O: use helper if in-process returned 0
+        if disk.readBytesPerSec == 0 && disk.writeBytesPerSec == 0 {
+            disk.readBytesPerSec = h.diskReadBytesPerSec
+            disk.writeBytesPerSec = h.diskWriteBytesPerSec
+            disk.totalBytesRead = h.diskTotalBytesRead
+            disk.totalBytesWritten = h.diskTotalBytesWritten
+        }
+        if disk.smartStatus.isEmpty && !h.smartStatus.isEmpty {
+            disk.smartStatus = h.smartStatus
+        }
+
+        // Since-boot network totals from the helper (sandboxed app can't run netstat)
+        if let down = h.networkTotalDownloaded, down > 0 {
+            network.totalBytesDownloaded = down
+        }
+        if let up = h.networkTotalUploaded, up > 0 {
+            network.totalBytesUploaded = up
+        }
+
+        // Per-drive S.M.A.R.T. health (NVMe health log via the helper)
+        if disk.drives.isEmpty, let helperDrives = h.drives, !helperDrives.isEmpty {
+            disk.drives = helperDrives.map {
+                DriveHealth(
+                    name: $0.name,
+                    bsdName: $0.bsdName,
+                    isInternal: $0.isInternal,
+                    medium: $0.medium,
+                    smartStatus: $0.smartStatus,
+                    percentageUsed: $0.percentageUsed,
+                    availableSpare: $0.availableSpare,
+                    availableSpareThreshold: $0.availableSpareThreshold,
+                    temperatureCelsius: $0.temperatureCelsius,
+                    bytesWritten: $0.bytesWritten,
+                    bytesRead: $0.bytesRead,
+                    powerOnHours: $0.powerOnHours,
+                    powerCycles: $0.powerCycles,
+                    unsafeShutdowns: $0.unsafeShutdowns,
+                    mediaErrors: $0.mediaErrors,
+                    criticalWarning: $0.criticalWarning
+                )
+            }
+        }
+
+        // Battery health: use helper if in-process returned defaults
+        if battery.health == 0 { battery.health = h.batteryHealth ?? 0 }
+        if battery.cycleCount == 0 { battery.cycleCount = h.batteryCycleCount ?? 0 }
+        if battery.condition.isEmpty { battery.condition = h.batteryCondition ?? "" }
+        if battery.temperature == 0 { battery.temperature = h.batteryTemperature ?? 0 }
+
+        // Processes: use helper if in-process proc_* returned empty
+        if topByCPU.isEmpty && !h.topProcessesByCPU.isEmpty {
+            topByCPU = h.topProcessesByCPU.map {
+                ProcessInfo(id: $0.pid, name: $0.name, cpu: $0.cpu, memory: $0.memory, icon: $0.icon)
+            }
+        }
+        if topByMemory.isEmpty && !h.topProcessesByMemory.isEmpty {
+            topByMemory = h.topProcessesByMemory.map {
+                ProcessInfo(id: $0.pid, name: $0.name, cpu: $0.cpu, memory: $0.memory, icon: $0.icon)
+            }
+        }
     }
 
     private func readSystemInfo() -> SystemInfo {
