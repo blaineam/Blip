@@ -117,10 +117,11 @@ Now on iPhone and iPad too. Live vitals, Blip Bench with Neural Engine scoring, 
 * The memory-pressure reading and the "Usage over time" chart title are now translated.
 
 ## whats_new_ios
-2.0.5 — Blip speaks your language in more places.
+Optimized for iPhone Duo. Blip now fits both the folded and the opened display.
 
-* Labels on iPhone, iPad and in the widgets that still appeared in English are now translated.
-* German: Storage is now Speicher, Memory is Arbeitsspeicher, and the Speed tab is Speedtest.
+* Disk speed tests no longer fail on very fast storage.
+* The Speed tab shows your own server as soon as you set it in Settings.
+* Traceroute now rejects targets that begin with a dash instead of misreading them as options.
 
 ## marketing_url
 https://wemiller.com/apps/blip/

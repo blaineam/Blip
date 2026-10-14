@@ -1,6 +1,13 @@
 # Changelog
 
-## 2.0.8 — unreleased (Mac + iOS)
+## 2.0.8 — 2026-10-14 (iOS submitted; Mac follows)
+
+Optimized for iPhone Duo.
+
+The iOS build ships first; the Mac fixes below go out with the next Mac release.
+
+### Added — Optimized for iPhone Duo
+- **Optimized for iPhone Duo.** Blip fits both the folded and the opened display, and the App Store listing now carries iPhone Duo screenshots in all nine listing languages (opened overview, folded Bench, opened Speed, folded Ping, opened Traceroute).
 
 Fixes found while raising Blip's automated test coverage from 34% to 85%. Nothing here changes how Blip looks or what it measures, apart from the corrections below.
 
