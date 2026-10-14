@@ -1,5 +1,32 @@
 # Changelog
 
+## 2.0.8 — unreleased (Mac + iOS)
+
+Fixes found while raising Blip's automated test coverage from 34% to 85%. Nothing here changes how Blip looks or what it measures, apart from the corrections below.
+
+### Fixed — iPhone and iPad speed tests
+- **A failed speed test left its latency probes running.** After a failure on a self-hosted or public test, the loaded-latency ping loop kept running in the background, and every later *Start* left another one behind. A failure now stops it.
+- **A server that answered with an error counted as a result.** A 404 or 500 from the test server was recorded as a download and upload speed (one run on loopback showed 16,329 Mbps up). An error answer now fails the run with the server's error, and a run that moves no data reports "The test finished without a result."
+- **Refused or failed uploads inflated the upload speed.** Only completed uploads count toward throughput now.
+- **The disk speed test failed on fast storage.** If the 512 MB write finished in under 0.2 seconds (or the read in under 0.05 seconds), it threw "The file couldn't be saved." instead of showing a result.
+- **The Speed tab showed an old server setting.** After typing a self-hosted server in Settings and going back, the source menu still said "My server (not set)" until something else redrew the screen. It updates immediately now.
+
+### Fixed — Mac
+- **Picked colours drifted by one step.** Choosing a custom colour such as `3A7BD5` came back as `397BD5` because the hex value was truncated instead of rounded.
+- **The Speed Test row in the Disk and Network panels only opened from its icon, title and chevron.** Clicking the empty middle of the row did nothing; the whole row opens it now, like the Traceroute row below it.
+- **Kill in the direct (non-App Store) build could signal the wrong processes.** It accepted process ID 0 or 1. `ps` lists the kernel as PID 0, and signalling 0 reaches Blip's own process group while -1 reaches every process you own. It now refuses those IDs, like the helper already did.
+
+### Fixed — ping and traceroute (Mac and iOS)
+- **A stray network reply could be reported as the target's answer.** The ping probe returned the first ICMP message that arrived on its socket, so a gateway reply (seen on a Mac with a VPN network extension) was read as the target answering. It now accepts only a reply to its own probe and skips the rest.
+- **A traceroute target starting with "-" was read as an option.** A target like `-ien0` is no longer accepted (no hostname or IP address starts with "-"). This closes a way to pass options to `traceroute` through Settings, Shortcuts or the helper.
+
+### Fixed — GeoIP database
+- **A truncated or corrupt download could crash Blip.** The database reader indexed the file without bounds checks, and the gzip step could read past a malformed header or spin on a truncated stream. Reads are bounds-checked now, sizes are capped, and a bad file is rejected with an error instead of crashing.
+
+### Behind the scenes
+- Coverage floors are ratcheted (unit 80, App Store unit 80, mobile 86) so it can't silently drop.
+- No new strings, so no localization changes.
+
 ## 2.0.7 — 2026-10-04 (direct download + Homebrew)
 
 GitHub/Homebrew only, for the Blip Helper icon; the Mac App Store stays on 2.0.6.
