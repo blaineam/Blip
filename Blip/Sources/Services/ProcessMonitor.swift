@@ -146,7 +146,9 @@ final class ProcessMonitor: @unchecked Sendable {
 
         // Merge in system processes from ps that we couldn't read via proc_pidinfo —
         // these are other users' / root / system processes (not user-space).
-        for entry in psCPU where !directPIDs.contains(entry.pid) && entry.cpu > 0.5 {
+        // Blip never lists itself: the loop above skips myPid, so ps must too — otherwise our own
+        // process shows up here whenever it is busy enough to pass the CPU threshold.
+        for entry in psCPU where entry.pid != myPid && !directPIDs.contains(entry.pid) && entry.cpu > 0.5 {
             results.append(ProcessInfo(id: entry.pid, name: entry.name, cpu: entry.cpu, memory: 0, icon: nil, isUserOwned: false))
         }
 
