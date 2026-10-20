@@ -36,6 +36,7 @@ export default {
     //    Shared/ code used by Blip Helper rides this suite (the helper has no test target).
     unit: {
       type: 'xcodebuild-test',
+      vm: true, // macOS tests run in the QA VM (see _shared/qa-vm), not on this Mac
       platform: 'macos',
       project: 'Blip.xcodeproj',
       scheme: 'Blip',
@@ -52,6 +53,7 @@ export default {
     //    never thrashes the `unit` build.
     'appstore-unit': {
       type: 'xcodebuild-test',
+      vm: true, // macOS tests run in the QA VM (see _shared/qa-vm), not on this Mac
       platform: 'macos',
       project: 'Blip.xcodeproj',
       scheme: 'Blip',
