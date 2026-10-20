@@ -27,8 +27,15 @@ set -uo pipefail
 cd "$(dirname "$0")/.."
 SHARED="$(cd ../_shared/screenshots && pwd)"
 # shellcheck disable=SC1091
+# CAP_VM=1 (default) runs everything in the QA VM: no window, default, wallpaper or display change on this Mac,
+# and it cannot touch the owner's real Blip. CAP_VM=0 runs on this Mac. See _shared/screenshots/capture-vm.sh.
+CAP_VM="${CAP_VM:-1}"
 source "$SHARED/capture-lib.sh"   # cap_locales / cap_locale_args
-OUT="docs/appstore-screenshots/mac"; mkdir -p "$OUT/raw"
+type cap_vm_enabled >/dev/null 2>&1 || cap_vm_enabled() { return 1; }
+if [ "$CAP_VM" = 1 ] && ! type cap_vm_enable >/dev/null 2>&1; then
+  echo "✗ CAP_VM=1 but the shared lib has no VM mode (merge _shared capture-vm.sh, or run with CAP_VM=0)" >&2; exit 1
+fi
+OUT="${BLIP_SHOTS_OUT:-docs/appstore-screenshots/mac}"; mkdir -p "$OUT/raw"   # BLIP_SHOTS_OUT: capture elsewhere (test runs)
 WALL=/tmp/blip-wallpaper.png
 ALL_SCENES=(popover cpu memory disk network)
 
@@ -102,17 +109,29 @@ xcodebuild -project Blip.xcodeproj -scheme Blip -destination "platform=macOS" \
 BIN="$(cd "$(find .build-screenshots/Build/Products -name 'Blip.app' -maxdepth 3 | head -1)" && pwd)/Contents/MacOS/Blip"
 SHOT_APP=".build-screenshots/Build/Products/Debug/Blip.app/"
 [ -x "$BIN" ] || { echo "✗ no Blip build at $BIN" >&2; exit 1; }
+check_locked() {
 LOCKED=$(swift - <<'SWIFT' 2>/dev/null
 import CoreGraphics; import Foundation
 if let d = CGSessionCopyCurrentDictionary() as? [String:Any] { print(d["CGSSessionScreenIsLocked"] as? Int ?? 0) } else { print(0) }
 SWIFT
 )
-[ "$LOCKED" = "1" ] && { echo "✗ the Mac session is locked — unlock it and re-run" >&2; exit 1; }
+[ "$LOCKED" = "1" ] && { echo "✗ the session is locked — unlock it and re-run" >&2; exit 1; }
+return 0; }
+EXEC="$BIN"
+if [ "$CAP_VM" = 1 ]; then
+  # Built on this Mac (compile only); from here on everything runs in the QA VM, holding its lock.
+  cap_vm_enable; check_locked
+  EXEC="$(cap_vm_bin "$BIN")"
+  SHOT_APP="Blip.app/"      # pkill -f pattern: the guest path differs from the host's relative path
+else
+  check_locked
+fi
 
 # --- save state ---
 WP_STORE="$HOME/Library/Application Support/com.apple.wallpaper/Store/Index.plist"
 WP_BAK=/tmp/blip-wallpaper-Index.plist.bak
-[ -f "$WP_STORE" ] && cp "$WP_STORE" "$WP_BAK"
+if cap_vm_enabled; then WP_STORE=""; WP_BAK=""   # VM: the guest wallpaper is restored by capture-vm.sh, never this Mac's store
+else [ -f "$WP_STORE" ] && cp "$WP_STORE" "$WP_BAK"; fi
 read -r OM_W OM_H _ _ < <(swift "$SHARED/display-mode.swift" current 2>/dev/null)
 ORIG_DOCK=$(osascript -e 'tell application "System Events" to get autohide of dock preferences' 2>/dev/null)
 ORIG_WIDG=$(defaults read com.apple.WindowManager StandardHideWidgets 2>/dev/null || echo __M__)
@@ -128,7 +147,7 @@ restore() {
   [ -n "$RESTORED" ] && return 0; RESTORED=1
   echo "• restoring desktop…"
   [ -n "$DND_ENABLED" ] && { echo "• Do Not Disturb off"; shortcuts run "DND Off" >/dev/null 2>&1; }
-  if [ -f "$WP_BAK" ]; then cp "$WP_BAK" "$WP_STORE" 2>/dev/null; killall WallpaperAgent 2>/dev/null; fi
+  if [ -n "$WP_BAK" ] && [ -f "$WP_BAK" ]; then cp "$WP_BAK" "$WP_STORE" 2>/dev/null; killall WallpaperAgent 2>/dev/null; fi
   osascript -e "tell application \"System Events\" to set autohide of dock preferences to ${ORIG_DOCK:-false}" 2>/dev/null
   [ "$ORIG_WIDG" = __M__ ] && defaults delete com.apple.WindowManager StandardHideWidgets 2>/dev/null || defaults write com.apple.WindowManager StandardHideWidgets -int "$ORIG_WIDG" 2>/dev/null
   [ "$ORIG_ICON" = __M__ ] && defaults delete com.apple.finder CreateDesktop 2>/dev/null || defaults write com.apple.finder CreateDesktop -int "$ORIG_ICON" 2>/dev/null
@@ -141,7 +160,7 @@ restore() {
   [ -n "${OM_W:-}" ] && swift "$SHARED/display-mode.swift" set "$OM_W" "$OM_H" >/dev/null 2>&1
   [ -n "${WEATHER_WAS:-}" ] && open -a WeatherMenu 2>/dev/null
   IFS=',' read -ra A <<< "$HIDDEN_APPS"
-  for app in "${A[@]}"; do app="${app## }"; app="${app%% }"; [ -n "$app" ] && osascript -e "tell application \"System Events\" to set visible of process \"$app\" to true" 2>/dev/null; done
+  for app in ${A[@]+"${A[@]}"}; do app="${app## }"; app="${app%% }"; [ -n "$app" ] && osascript -e "tell application \"System Events\" to set visible of process \"$app\" to true" 2>/dev/null; done
   pkill -f "$SHOT_APP" 2>/dev/null
   [ -n "${REAL_BLIP:-}" ] && open -g "$REAL_BLIP" 2>/dev/null
   [ -n "${CAFF_PID:-}" ] && kill "$CAFF_PID" 2>/dev/null
@@ -159,7 +178,8 @@ else
   echo "• no 'DND On'/'DND Off' Shortcuts found — relying on the banner sweep (see header)"
 fi
 swift "$SHARED/gen-gradient.swift" "$WALL" 4096 3072 06b6d4 8b5cf6 ec4899 >/dev/null
-osascript -e "tell application \"System Events\" to set picture of desktop 1 to \"$WALL\"" 2>/dev/null
+if cap_vm_enabled; then cap_vm_sh "$_CVM_GQA/tools/vmprep" wallpaper set "$WALL" >/dev/null 2>&1
+else osascript -e "tell application \"System Events\" to set picture of desktop 1 to \"$WALL\"" 2>/dev/null; fi
 osascript -e 'tell application "System Events" to set autohide of dock preferences to true' 2>/dev/null
 defaults write com.apple.WindowManager StandardHideWidgets -bool true 2>/dev/null
 defaults write com.apple.finder CreateDesktop -bool false 2>/dev/null
@@ -167,6 +187,7 @@ defaults write com.apple.menuextra.clock IsAnalog -bool true 2>/dev/null
 defaults write com.apple.finder AppleLanguages -array en 2>/dev/null
 killall ControlCenter 2>/dev/null
 killall WindowManager Finder 2>/dev/null
+cap_vm_enabled && cap_vm_tidy_desktop   # guest: Dock/icons/widgets only go away via this recipe
 caffeinate -d -i -u -t 1800 >/dev/null 2>&1 &
 CAFF_PID=$!
 # The owner's own Blip would add a second status item — quit it (relaunched by restore).
@@ -187,12 +208,13 @@ if [ -n "$CAP_MODE" ]; then echo "• display mode: $CAP_MODE (16:10)"; else
 fi
 sleep 2
 defaults write com.apple.dock autohide -bool true 2>/dev/null; killall Dock 2>/dev/null  # res change re-shows Dock
+cap_vm_enabled && cap_vm_tidy_desktop   # a resolution change also brings the guest's widgets back
 sleep 2
 
 hide_others() {
   local A app
   IFS=',' read -ra A <<< "$HIDDEN_APPS"
-  for app in "${A[@]}"; do app="${app## }"; app="${app%% }"; [ -n "$app" ] && osascript -e "tell application \"System Events\" to set visible of process \"$app\" to false" 2>/dev/null; done
+  for app in ${A[@]+"${A[@]}"}; do app="${app## }"; app="${app%% }"; [ -n "$app" ] && osascript -e "tell application \"System Events\" to set visible of process \"$app\" to false" 2>/dev/null; done
   # Close any open Finder windows (they show the user's real files = PII).
   osascript -e 'tell application "Finder" to close every window' 2>/dev/null
   # Deterministic menu bar: Finder owns the menus while Blip is background-only.
@@ -231,7 +253,7 @@ capture_set() {   # capture_set <outdir> [asc-locale]
   killall Finder 2>/dev/null; sleep 3
   for scene in "${SCENES[@]}"; do
     pkill -f "$SHOT_APP" 2>/dev/null; sleep 1
-    "$BIN" -BlipScreenshotMode 1 -BlipScreenshotScene "$scene" ${extra[@]+"${extra[@]}"} >/dev/null 2>&1 &
+    "$EXEC" -BlipScreenshotMode 1 -BlipScreenshotScene "$scene" ${extra[@]+"${extra[@]}"} >/dev/null 2>&1 &
     sleep 3
     hide_others
     sleep 1.5
@@ -245,7 +267,8 @@ capture_set() {   # capture_set <outdir> [asc-locale]
       exit 3
     fi
     cp "$raw/$n-$scene.png" "$dir/$n-$scene.png"
-    sips -z 1800 2880 "$dir/$n-$scene.png" >/dev/null 2>&1          # 2x -> 2880x1800 (16:10, no distortion)
+    # VM: the guest's 16:10 mode is 1280x800 @2x = 2560x1600 px (an accepted Mac size); keep it native, no upscale.
+    cap_vm_enabled || sips -z 1800 2880 "$dir/$n-$scene.png" >/dev/null 2>&1   # 2x -> 2880x1800 (16:10, no distortion)
     echo "  ✓ ${loc:-en-US} $n-$scene.png (desktop rmse $d)"
   done
 }
