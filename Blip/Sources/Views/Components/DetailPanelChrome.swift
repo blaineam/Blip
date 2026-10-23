@@ -32,7 +32,47 @@ struct DetailPanelChrome<Content: View>: View {
             content
                 .padding(.top, -8)
         }
+        // A panel's brand wash (Bench) is painted here, behind the pin strip too, so it
+        // reaches the panel's top edge instead of starting in a seam below the strip.
+        .paintsPanelWash()
         .accessibilityElement(children: .contain)
         .accessibilityIdentifier("detail.\(section)")
+    }
+}
+
+// MARK: - Panel wash
+
+/// A full-bleed brand wash a detail panel asks its host to paint behind the WHOLE panel,
+/// chrome strip included. Painting it inside the panel stopped it short of the top edge
+/// (field-caught: the Bench gradient began under the pin strip, leaving a lighter band
+/// across the top of the panel).
+struct PanelWash: Equatable, Sendable {
+    var colors: [Color]
+    var start: UnitPoint = .topLeading
+    var end: UnitPoint = .bottomTrailing
+
+    var gradient: LinearGradient {
+        LinearGradient(colors: colors, startPoint: start, endPoint: end)
+    }
+}
+
+struct PanelWashKey: PreferenceKey {
+    static let defaultValue: PanelWash? = nil
+    static func reduce(value: inout PanelWash?, nextValue: () -> PanelWash?) {
+        value = nextValue() ?? value
+    }
+}
+
+extension View {
+    /// Asks the enclosing panel host to paint `wash` behind everything it wraps.
+    func panelWash(_ wash: PanelWash) -> some View {
+        preference(key: PanelWashKey.self, value: wash)
+    }
+
+    /// Paints the wash a wrapped panel asked for, edge to edge behind this view.
+    func paintsPanelWash() -> some View {
+        backgroundPreferenceValue(PanelWashKey.self) { wash in
+            if let wash { wash.gradient }
+        }
     }
 }

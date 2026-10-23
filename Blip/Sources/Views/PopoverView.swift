@@ -192,9 +192,10 @@ struct PopoverView: View {
             }
         }
         .frame(width: 260)
-        .background(
-            VisualEffectView(material: .popover, blendingMode: .behindWindow)
-        )
+        // No material of its own: NSPopover paints `.popover` across its whole frame, arrow
+        // included, and AppDelegate keeps that one layer active (see unifyPopoverMaterial).
+        // Stacking a second material here darkened the content against the arrow and the
+        // frame's inset, which drew a lighter band across the top of the popover.
         .onAppear {
             if let section = BlipScreenshotMode.expandedSection { expanded = section }
         }

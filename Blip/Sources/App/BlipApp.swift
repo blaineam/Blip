@@ -269,7 +269,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate, NSPo
         let cornerRadius: CGFloat = 20
         let inner: AnyView
         if let section = BlipScreenshotMode.section {
-            inner = AnyView(detailContent(for: section).frame(width: 260))
+            inner = AnyView(detailContent(for: section).frame(width: 260).paintsPanelWash())
         } else {
             inner = AnyView(PopoverView(monitor: monitor, onHoverSection: nil, benchEngine: benchEngine, onOpenSettings: nil).frame(width: 260))
         }
@@ -779,6 +779,14 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate, NSPo
         }
     }
 
+    func popoverWillShow(_ notification: Notification) {
+        unifyPopoverMaterial()
+    }
+
+    func popoverDidShow(_ notification: Notification) {
+        unifyPopoverMaterial()
+    }
+
     func popoverShouldDetach(_ popover: NSPopover) -> Bool {
         isPinned
     }
@@ -786,6 +794,31 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate, NSPo
     func popoverDidDetach(_ popover: NSPopover) {
         // A pinned window stays above other apps' windows, like the popover did.
         popover.contentViewController?.view.window?.level = .floating
+        unifyPopoverMaterial()
+    }
+
+    /// One material for the whole popover. NSPopover's frame already paints `.popover`
+    /// across the frame and the arrow, but that view follows the window's key state, and a
+    /// transient popover off an LSUIElement status item is rarely key, so it rendered the
+    /// dimmed, inactive variant. The content used to stack its own always-active material on
+    /// top to compensate, which made the content darker than the arrow and the frame's inset
+    /// (a lighter band across the top). Now the content paints nothing and the frame's own
+    /// layer is held active, so arrow, inset and content share one surface that matches the
+    /// detail panels (which use the same material, also held active).
+    private func unifyPopoverMaterial() {
+        guard let window = popover.contentViewController?.view.window,
+              let frameView = window.contentView?.superview ?? window.contentView else { return }
+        for effect in Self.visualEffectViews(in: frameView) {
+            effect.material = .popover
+            effect.state = .active
+        }
+    }
+
+    private static func visualEffectViews(in view: NSView) -> [NSVisualEffectView] {
+        var found: [NSVisualEffectView] = []
+        if let effect = view as? NSVisualEffectView { found.append(effect) }
+        for sub in view.subviews { found += visualEffectViews(in: sub) }
+        return found
     }
 
     func popoverDidClose(_ notification: Notification) {

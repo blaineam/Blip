@@ -26,12 +26,11 @@ struct BenchDetailPanel: View {
         // 260 like every other detail panel — the hover host sizes for that width, and a
         // wider view gets edge-clipped (field-caught: the intro text lost its first column).
         .frame(width: 260)
-        // Deliberate full-bleed brand wash — applied OUTSIDE the padding so it reaches the
-        // panel's edges (field-caught: an inset wash stopping 12pt short read as a glitch).
-        .background(
-            LinearGradient(colors: [Color.purple.opacity(0.16), Color.blue.opacity(0.06), .clear],
-                           startPoint: .topLeading, endPoint: .bottomTrailing)
-        )
+        // Deliberate full-bleed brand wash. The host (DetailPanelChrome) paints it behind
+        // the whole panel, pin strip included, so it reaches every edge (field-caught twice:
+        // an inset wash stopping 12 pt short, then one starting below the pin strip, both
+        // read as a seam).
+        .panelWash(PanelWash(colors: [Color.purple.opacity(0.16), Color.blue.opacity(0.06), .clear]))
     }
 
     private var header: some View {
