@@ -804,7 +804,9 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate, NSPo
     /// top to compensate, which made the content darker than the arrow and the frame's inset
     /// (a lighter band across the top). Now the content paints nothing and the frame's own
     /// layer is held active, so arrow, inset and content share one surface that matches the
-    /// detail panels (which use the same material, also held active).
+    /// detail panels (which use the same material, also held active). On macOS 26+ the frame's
+    /// Liquid Glass is tinted on top of that, see below. `-BlipDumpPopoverFrame` (DEBUG) writes
+    /// the frame's view tree to /tmp/blip-popover-frame.txt for the next time Apple moves it.
     private func unifyPopoverMaterial() {
         guard let window = popover.contentViewController?.view.window,
               let frameView = window.contentView?.superview ?? window.contentView else { return }
@@ -812,6 +814,51 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate, NSPo
             effect.material = .popover
             effect.state = .active
         }
+        // macOS 26+: the frame hosts a Liquid Glass view above that material, and the glass is
+        // what renders — paler and far more see-through than the `.popover` material the detail
+        // panels use. Hiding it leaves no background at all (field-tested), so instead the glass
+        // is tinted: a contrast overlay in the glass's own shape, caret included, that reads like
+        // the panels' material in both appearances. Found by type, so older systems are untouched.
+        if #available(macOS 26, *) {
+            for glass in Self.glassEffectViews(in: frameView) {
+                glass.tintColor = Self.popoverGlassTint
+            }
+        }
+        #if DEBUG
+        if Foundation.ProcessInfo.processInfo.arguments.contains("-BlipDumpPopoverFrame") {
+            var out = ""
+            func chain(_ t: AnyClass) -> String { var c: AnyClass? = t; var n: [String] = []; while let k = c { n.append(NSStringFromClass(k)); c = class_getSuperclass(k) }; return n.prefix(4).joined(separator: " < ") }
+            func dump(_ v: NSView, _ depth: Int) {
+                var extra = ""
+                if let e = v as? NSVisualEffectView { extra += " material=\(e.material.rawValue) state=\(e.state.rawValue) mask=\(e.maskImage.map { "\($0.size)" } ?? "nil")" }
+                if let l = v.layer { extra += " layerMask=\(l.mask.map { NSStringFromClass(type(of: $0)) } ?? "nil") radius=\(l.cornerRadius)" }
+                if #available(macOS 26, *), let g = v as? NSGlassEffectView { extra += " GLASS radius=\(g.cornerRadius) tint=\(String(describing: g.tintColor)) content=\(g.contentView.map { NSStringFromClass(type(of: $0)) } ?? "nil")" }
+                out += String(repeating: "  ", count: depth) + chain(type(of: v)) + " \(v.frame)" + extra + (v.isHidden ? " HIDDEN" : "") + "\n"
+                v.subviews.forEach { dump($0, depth + 1) }
+            }
+            var root: NSView = frameView
+            while let s = root.superview { root = s }
+            out += "POPOVER WINDOW \(NSStringFromClass(type(of: window))) appearance=\(window.effectiveAppearance.name.rawValue)\n"
+            dump(root, 0)
+            try? out.write(toFile: "/tmp/blip-popover-frame.txt", atomically: true, encoding: .utf8)
+        }
+        #endif
+    }
+
+    /// The contrast overlay for the popover's glass, matched to the `.popover` material the
+    /// detail panels draw: near-black in dark appearances, near-white in light ones.
+    private static let popoverGlassTint = NSColor(name: nil) { appearance in
+        let dark = appearance.bestMatch(from: [.aqua, .darkAqua, .vibrantLight, .vibrantDark])
+            .map { $0 == .darkAqua || $0 == .vibrantDark } ?? false
+        return dark ? NSColor(white: 0.10, alpha: 0.62) : NSColor(white: 0.96, alpha: 0.62)
+    }
+
+    @available(macOS 26, *)
+    private static func glassEffectViews(in view: NSView) -> [NSGlassEffectView] {
+        var found: [NSGlassEffectView] = []
+        if let glass = view as? NSGlassEffectView { found.append(glass) }
+        for sub in view.subviews { found += glassEffectViews(in: sub) }
+        return found
     }
 
     private static func visualEffectViews(in view: NSView) -> [NSVisualEffectView] {
