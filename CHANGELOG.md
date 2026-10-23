@@ -1,5 +1,13 @@
 # Changelog
 
+## 2.0.9 — 2026-10-23 (Mac)
+
+The Mac release. It carries every Mac fix listed under 2.0.8, which shipped on iOS only, plus the panel fixes below.
+
+### Fixed — Mac
+- **A lighter band across the top of the menu-bar popover.** The popover's own frame already paints the translucent material behind everything, arrow included, and the content stacked a second copy on top, so the content came out darker than the arrow and the sliver of frame above the first row. The content no longer paints its own material; the frame's single layer is held active instead, so arrow, frame and content are one surface, matching the detail panels.
+- **The Bench panel's purple wash stopped short of the top edge.** It was painted inside the panel, below the strip that holds the pin, leaving a seam across the top. Panels now hand their wash to the host, which paints it behind the whole panel, pin strip included.
+
 ## 2.0.8 — 2026-10-14 (iOS submitted; Mac follows)
 
 Optimized for iPhone Duo.
@@ -19,8 +27,6 @@ Fixes found while raising Blip's automated test coverage from 34% to 85%. Nothin
 - **The Speed tab showed an old server setting.** After typing a self-hosted server in Settings and going back, the source menu still said "My server (not set)" until something else redrew the screen. It updates immediately now.
 
 ### Fixed — Mac
-- **A lighter band across the top of the menu-bar popover.** The popover's own frame already paints the translucent material behind everything, arrow included, and the content stacked a second copy on top, so the content came out darker than the arrow and the sliver of frame above the first row. The content no longer paints its own material; the frame's single layer is held active instead, so arrow, frame and content are one surface, matching the detail panels.
-- **The Bench panel's purple wash stopped short of the top edge.** It was painted inside the panel, below the strip that holds the pin, leaving a seam across the top. Panels now hand their wash to the host, which paints it behind the whole panel, pin strip included.
 - **Picked colours drifted by one step.** Choosing a custom colour such as `3A7BD5` came back as `397BD5` because the hex value was truncated instead of rounded.
 - **The Speed Test row in the Disk and Network panels only opened from its icon, title and chevron.** Clicking the empty middle of the row did nothing; the whole row opens it now, like the Traceroute row below it.
 - **Kill in the direct (non-App Store) build could signal the wrong processes.** It accepted process ID 0 or 1. `ps` lists the kernel as PID 0, and signalling 0 reaches Blip's own process group while -1 reaches every process you own. It now refuses those IDs, like the helper already did.

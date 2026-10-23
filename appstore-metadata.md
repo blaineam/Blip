@@ -100,21 +100,22 @@ system monitor,cpu usage,memory pressure,menu bar,activity monitor,gpu,battery h
 Now on iPhone and iPad too. Live vitals, Blip Bench with Neural Engine scoring, graded speed tests, traceroute with a hop map — one free app across Mac and iOS.
 
 ## whats_new
+2.0.9 — Cleaner panels, and a round of small fixes.
 
-2.0.6 — Blip can keep your Mac awake and stay open while you work.
-
-* New Keep Awake: stop your Mac from sleeping for a set time or until you turn it off, and choose whether the display stays on. With Blip Helper installed, it can also keep running with the lid closed and jiggle the mouse so you never show as away.
-* Pin the menu-bar popover open as its own window, and open detail panels inline without losing your place.
-* Pin any detail panel into its own floating window that keeps updating live, so you can watch CPU, memory, network and more alongside your work.
-* The memory-pressure reading and the "Usage over time" chart title are now translated.
+* The menu-bar popover and its detail panels are one seamless surface again: no lighter band above the first row, and the Bench panel's purple wash reaches the top edge.
+* A colour you pick in Settings is saved exactly as entered instead of drifting by one step.
+* The Speed Test row in the Disk and Network panels opens from anywhere in the row, not just its icon and title.
+* Ping ignores stray replies that don't come from the target, and traceroute rejects targets that begin with a dash instead of misreading them as options.
+* A damaged or incomplete GeoIP database download is rejected with an error instead of crashing Blip.
 
 ## whats_new_macos
-2.0.6 — Blip can keep your Mac awake and stay open while you work.
+2.0.9 — Cleaner panels, and a round of small fixes.
 
-* New Keep Awake: stop your Mac from sleeping for a set time or until you turn it off, and choose whether the display stays on. With Blip Helper installed, it can also keep running with the lid closed and jiggle the mouse so you never show as away.
-* Pin the menu-bar popover open as its own window, and open detail panels inline without losing your place.
-* Pin any detail panel into its own floating window that keeps updating live, so you can watch CPU, memory, network and more alongside your work.
-* The memory-pressure reading and the "Usage over time" chart title are now translated.
+* The menu-bar popover and its detail panels are one seamless surface again: no lighter band above the first row, and the Bench panel's purple wash reaches the top edge.
+* A colour you pick in Settings is saved exactly as entered instead of drifting by one step.
+* The Speed Test row in the Disk and Network panels opens from anywhere in the row, not just its icon and title.
+* Ping ignores stray replies that don't come from the target, and traceroute rejects targets that begin with a dash instead of misreading them as options.
+* A damaged or incomplete GeoIP database download is rejected with an error instead of crashing Blip.
 
 ## whats_new_ios
 Optimized for iPhone Duo. Blip now fits both the folded and the opened display.
