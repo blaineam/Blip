@@ -804,9 +804,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate, NSPo
     /// top to compensate, which made the content darker than the arrow and the frame's inset
     /// (a lighter band across the top). Now the content paints nothing and the frame's own
     /// layer is held active, so arrow, inset and content share one surface that matches the
-    /// detail panels (which use the same material, also held active). On macOS 26+ the frame's
-    /// Liquid Glass layer is hidden too, or it would show instead of that material.
-    /// `-BlipDumpPopoverFrame` (DEBUG) writes the frame's view tree to /tmp/blip-popover-frame.txt.
+    /// detail panels (which use the same material, also held active).
     private func unifyPopoverMaterial() {
         guard let window = popover.contentViewController?.view.window,
               let frameView = window.contentView?.superview ?? window.contentView else { return }
@@ -814,36 +812,6 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate, NSPo
             effect.material = .popover
             effect.state = .active
         }
-        // macOS 26+: the frame also hosts a Liquid Glass view (NSGlassView) above that material,
-        // and the glass is what shows — lighter and far more see-through than the `.popover`
-        // material the detail panels use, so the popover read as a different surface. Hide the
-        // glass so the frame's own material shows, caret included. Matched by class name, so on
-        // a system without that view (macOS 15) or a renamed one nothing changes.
-        for glass in Self.glassViews(in: frameView) {
-            glass.isHidden = true
-        }
-        #if DEBUG
-        if Foundation.ProcessInfo.processInfo.arguments.contains("-BlipDumpPopoverFrame") {
-            var out = ""
-            func dump(_ v: NSView, _ depth: Int) {
-                let eff = (v as? NSVisualEffectView).map { " material=\($0.material.rawValue) state=\($0.state.rawValue)" } ?? ""
-                out += String(repeating: "  ", count: depth) + NSStringFromClass(type(of: v)) + " \(v.frame)" + eff + (v.isHidden ? " HIDDEN" : "") + "\n"
-                v.subviews.forEach { dump($0, depth + 1) }
-            }
-            var root: NSView = frameView
-            while let s = root.superview { root = s }
-            out += "POPOVER WINDOW \(NSStringFromClass(type(of: window))) appearance=\(window.effectiveAppearance.name.rawValue)\n"
-            dump(root, 0)
-            try? out.write(toFile: "/tmp/blip-popover-frame.txt", atomically: true, encoding: .utf8)
-        }
-        #endif
-    }
-
-    private static func glassViews(in view: NSView) -> [NSView] {
-        var found: [NSView] = []
-        if NSStringFromClass(type(of: view)).hasSuffix("NSGlassView") { found.append(view) }
-        for sub in view.subviews { found += glassViews(in: sub) }
-        return found
     }
 
     private static func visualEffectViews(in view: NSView) -> [NSVisualEffectView] {
