@@ -3,7 +3,10 @@ import IOKit
 import IOKit.ps
 import Darwin
 import AppKit
-#if canImport(Blip)
+#if canImport(Blip) && DEBUG
+// DEBUG too: a Release build of the helper after a Release build of Blip in the same
+// DerivedData can see the Blip module (release.yml builds them back to back), and a
+// @testable import of a module built without testability fails to resolve.
 // Compiled into BlipTests too (see project.yml); the Blip module supplies the shared types there.
 @testable import Blip
 #endif
