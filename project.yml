@@ -69,7 +69,7 @@ targets:
     sources:
       - path: BlipTests
       # The helper has no test target of its own: its daemon is compiled into this bundle
-      # (guarded by `canImport(Blip)` inside the file) so its polling logic runs under test.
+      # (guarded by `canImport(Blip) && DEBUG` inside the files) so its polling logic runs under test.
       - path: BlipHelper/Sources/HelperDaemon.swift
       - path: BlipHelper/Sources/HelperServer.swift
     dependencies:
