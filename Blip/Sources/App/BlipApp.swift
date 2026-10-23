@@ -804,8 +804,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate, NSPo
     /// top to compensate, which made the content darker than the arrow and the frame's inset
     /// (a lighter band across the top). Now the content paints nothing and the frame's own
     /// layer is held active, so arrow, inset and content share one surface that matches the
-    /// detail panels (which use the same material, also held active). On macOS 26+ the frame's
-    /// Liquid Glass is tinted on top of that, see below. `-BlipDumpPopoverFrame` (DEBUG) writes
+    /// detail panels (which use the same material, also held active). On macOS 26+ the same
+    /// material is placed inside the frame's Liquid Glass, see below. `-BlipDumpPopoverFrame` (DEBUG) writes
     /// the frame's view tree to /tmp/blip-popover-frame.txt for the next time Apple moves it.
     private func unifyPopoverMaterial() {
         guard let window = popover.contentViewController?.view.window,
@@ -816,12 +816,19 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate, NSPo
         }
         // macOS 26+: the frame hosts a Liquid Glass view above that material, and the glass is
         // what renders — paler and far more see-through than the `.popover` material the detail
-        // panels use. Hiding it leaves no background at all (field-tested), so instead the glass
-        // is tinted: a contrast overlay in the glass's own shape, caret included, that reads like
-        // the panels' material in both appearances. Found by type, so older systems are untouched.
+        // panels use. Hiding it leaves no background (field-tested), and tinting it only shifts
+        // the glass's colour, never its brightness (field-tested too). So the panels' own
+        // material goes INSIDE the glass as its content: the glass clips its content to its own
+        // outline, caret included, and the material over glass is exactly what the content area
+        // used to draw. Found by type, so older systems are untouched.
         if #available(macOS 26, *) {
-            for glass in Self.glassEffectViews(in: frameView) {
-                glass.tintColor = Self.popoverGlassTint
+            for glass in Self.glassEffectViews(in: frameView) where !(glass.contentView is PopoverGlassFill) {
+                let fill = PopoverGlassFill(frame: glass.bounds)
+                fill.autoresizingMask = [.width, .height]
+                fill.material = .popover
+                fill.blendingMode = .behindWindow
+                fill.state = .active
+                glass.contentView = fill
             }
         }
         #if DEBUG
@@ -845,13 +852,9 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate, NSPo
         #endif
     }
 
-    /// The contrast overlay for the popover's glass, matched to the `.popover` material the
-    /// detail panels draw: near-black in dark appearances, near-white in light ones.
-    private static let popoverGlassTint = NSColor(name: nil) { appearance in
-        let dark = appearance.bestMatch(from: [.aqua, .darkAqua, .vibrantLight, .vibrantDark])
-            .map { $0 == .darkAqua || $0 == .vibrantDark } ?? false
-        return dark ? NSColor(white: 0.10, alpha: 0.62) : NSColor(white: 0.96, alpha: 0.62)
-    }
+    /// The `.popover` material placed inside the popover's glass (macOS 26+); its own type so a
+    /// re-show can tell it from anything AppKit might put there.
+    private final class PopoverGlassFill: NSVisualEffectView {}
 
     @available(macOS 26, *)
     private static func glassEffectViews(in view: NSView) -> [NSGlassEffectView] {

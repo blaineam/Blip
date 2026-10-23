@@ -100,7 +100,7 @@ system monitor,cpu usage,memory pressure,menu bar,activity monitor,gpu,battery h
 Now on iPhone and iPad too. Live vitals, Blip Bench with Neural Engine scoring, graded speed tests, traceroute with a hop map — one free app across Mac and iOS.
 
 ## whats_new
-2.0.9 — Cleaner panels, and a round of small fixes.
+2.0.10 — Cleaner panels, and a round of small fixes.
 
 * The menu-bar popover and its detail panels are one seamless surface again: no lighter band above the first row, and the Bench panel's purple wash reaches the top edge.
 * A colour you pick in Settings is saved exactly as entered instead of drifting by one step.
@@ -109,7 +109,7 @@ Now on iPhone and iPad too. Live vitals, Blip Bench with Neural Engine scoring, 
 * A damaged or incomplete GeoIP database download is rejected with an error instead of crashing Blip.
 
 ## whats_new_macos
-2.0.9 — Cleaner panels, and a round of small fixes.
+2.0.10 — Cleaner panels, and a round of small fixes.
 
 * The menu-bar popover and its detail panels are one seamless surface again: no lighter band above the first row, and the Bench panel's purple wash reaches the top edge.
 * A colour you pick in Settings is saved exactly as entered instead of drifting by one step.

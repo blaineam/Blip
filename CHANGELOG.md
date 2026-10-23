@@ -1,9 +1,11 @@
 # Changelog
 
-## 2.0.10 — unreleased
+## 2.0.10 — 2026-10-23 (Mac)
+
+Supersedes 2.0.9, which was still in review and never reached users: same contents, plus the fix below.
 
 ### Fixed — Mac
-- **The menu-bar popover was paler than the detail panels on macOS 26 and later.** There the popover's frame draws Liquid Glass over its material, and the glass is what shows: lighter and far more see-through than the panels' surface. Hiding the glass leaves no background at all, so the glass is tinted instead, near-black in dark appearances and near-white in light ones, as a contrast overlay in the glass's own shape, caret included. The popover and the panels read as one surface again in both appearances.
+- **The menu-bar popover was paler than the detail panels on macOS 26 and later.** There the popover's frame draws Liquid Glass over its material, and the glass is what shows: lighter and far more see-through than the panels' surface. Hiding the glass leaves no background at all, and tinting it only shifts its colour, never its brightness. The panels' own material is now placed inside the glass as its content, which the glass clips to its outline, caret included, so popover and panels read as one surface again in both appearances.
 
 ## 2.0.9 — 2026-10-23 (Mac)
 
