@@ -41,7 +41,13 @@ final class AppDelegateWiringTests: XCTestCase {
     func testPopoverDelegateHooksWithoutAPopover() {
         let delegate = AppDelegate()
         let popover = NSPopover()
-        XCTAssertEqual(delegate.popoverShouldDetach(popover), UserDefaults.standard.bool(forKey: "popoverPinned"))
+        let defaults = UserDefaults.standard
+        let saved = defaults.object(forKey: "popoverPinned")
+        defer { if let saved { defaults.set(saved, forKey: "popoverPinned") } else { defaults.removeObject(forKey: "popoverPinned") } }
+        for pinned in [false, true] {
+            defaults.set(pinned, forKey: "popoverPinned")
+            XCTAssertEqual(delegate.popoverShouldDetach(popover), pinned)
+        }
         delegate.popoverDidDetach(popover)       // no content controller: must not crash
         delegate.popoverDidClose(Notification(name: NSPopover.didCloseNotification))
         delegate.windowWillClose(Notification(name: NSWindow.willCloseNotification))
