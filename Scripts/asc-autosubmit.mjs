@@ -330,9 +330,12 @@ const PLATFORM_SECTION_SUFFIX = { IOS: 'ios', MAC_OS: 'macos', TV_OS: 'tvos', VI
 // (translations) in the same release, and the shared section used to ship to both stores.
 // Repeat until stable: removing one comment must not splice its neighbours into a new one.
 function stripComments(t) {
-	let prev;
-	do { prev = t; t = t.replace(/<!--[\s\S]*?-->/g, ''); } while (t !== prev);
-	return t.replace(/<!--/g, '');
+	for (;;) {
+		const open = t.indexOf('<!--');
+		if (open === -1) return t;
+		const close = t.indexOf('-->', open + 4);
+		t = close === -1 ? t.slice(0, open) : t.slice(0, open) + t.slice(close + 3);
+	}
 }
 async function notesByLocale(dir, platform) {
 	const suffix = PLATFORM_SECTION_SUFFIX[platform];
