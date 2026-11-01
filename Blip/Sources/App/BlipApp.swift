@@ -808,7 +808,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate, NSPo
     /// material is placed inside the frame's Liquid Glass, see below. `-BlipDumpPopoverFrame` (DEBUG) writes
     /// the frame's view tree to /tmp/blip-popover-frame.txt for the next time Apple moves it.
     private func unifyPopoverMaterial() {
-        guard let window = popover.contentViewController?.view.window,
+        guard let window = popover?.contentViewController?.view.window,
               let frameView = window.contentView?.superview ?? window.contentView else { return }
         for effect in Self.visualEffectViews(in: frameView) {
             effect.material = .popover
