@@ -39,7 +39,13 @@ import { homedir } from 'node:os';
 import { execFileSync } from 'node:child_process';
 
 const API = 'https://api.appstoreconnect.apple.com';
-const die = (m) => { console.error(`✗ ${m}`); summary(`❌ ${m}`); process.exit(1); };
+// Messages can interpolate env/config-derived values (key ids, key paths): scrub anything
+// credential-shaped before it reaches the console or the job summary.
+const redact = (m) => String(m)
+	.replace(/-----BEGIN [\s\S]*?(-----END [^-]*-----|$)/g, '[redacted key]')
+	.replace(/\bAuthKey_[A-Z0-9]+\.p8\b/g, 'AuthKey_[redacted].p8')
+	.replace(/\beyJ[\w-]+\.[\w-]+\.[\w-]+\b/g, '[redacted token]');
+const die = (m) => { const safe = redact(m); console.error(`✗ ${safe}`); summary(`❌ ${safe}`); process.exit(1); };
 const log = (m) => console.log(`• ${m}`);
 const b64url = (b) => Buffer.from(b).toString('base64').replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
@@ -322,9 +328,15 @@ const PLATFORM_SECTION_SUFFIX = { IOS: 'ios', MAC_OS: 'macos', TV_OS: 'tvos', VI
 // A `## whats_new_<platform>` / `## promotional_text_<platform>` section wins over the shared
 // one for that platform: Blip 2.0.5 needed Mac-only notes (Keep Awake) and iOS-only notes
 // (translations) in the same release, and the shared section used to ship to both stores.
+// Repeat until stable: removing one comment must not splice its neighbours into a new one.
+function stripComments(t) {
+	let prev;
+	do { prev = t; t = t.replace(/<!--[\s\S]*?-->/g, ''); } while (t !== prev);
+	return t.replace(/<!--/g, '');
+}
 async function notesByLocale(dir, platform) {
 	const suffix = PLATFORM_SECTION_SUFFIX[platform];
-	const section = (md, key) => { const m = md.match(new RegExp(`^##\\s+${key}\\s*$\\n([\\s\\S]*?)(?=^##\\s+|\\s*$(?![\\s\\S]))`, 'm')); return m ? m[1].replace(/<!--[\s\S]*?-->/g, '').trim() : null; };
+	const section = (md, key) => { const m = md.match(new RegExp(`^##\\s+${key}\\s*$\\n([\\s\\S]*?)(?=^##\\s+|\\s*$(?![\\s\\S]))`, 'm')); return m ? stripComments(m[1]).trim() : null; };
 	const out = {}, promo = {};
 	let source = 'whats_new';
 	const { readdir } = await import('node:fs/promises');

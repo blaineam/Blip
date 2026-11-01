@@ -84,6 +84,9 @@ async function main() {
   const localHashes = new Set(localIdentitySHA1s());
   const usable = certs.filter((c) => {
     const der = Buffer.from(c.attributes.certificateContent, 'base64');
+    // SHA-1 is only an identifier here: `security find-identity` reports certificate
+    // fingerprints as SHA-1, so that is what we must compare against. Not a security use.
+    // codeql[js/weak-cryptographic-algorithm]
     const sha1 = createHash('sha1').update(der).digest('hex').toUpperCase();
     return localHashes.has(sha1);
   });
