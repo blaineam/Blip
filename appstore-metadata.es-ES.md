@@ -58,13 +58,9 @@ monitor sistema,uso cpu,memoria ram,barra menús,actividad,gpu,batería,temperat
 Ahora también en iPhone y iPad. Datos en vivo, Blip Bench con Neural Engine, tests con nota, traceroute con mapa de saltos — una app gratis para Mac e iOS.
 
 ## whats_new
-2.0.10: Paneles más limpios y una ronda de pequeñas correcciones.
+2.0.11 — Pequeña mejora de estabilidad.
 
-* El panel de la barra de menús y sus paneles de detalle vuelven a ser una única superficie continua: sin la franja más clara sobre la primera fila, y el tono morado del panel Bench llega hasta el borde superior.
-* El color que eliges en Ajustes se guarda exactamente como lo introduces, sin desviarse un paso.
-* La fila Prueba de velocidad de los paneles Disco y Red se abre al pulsar en cualquier parte de la fila, no solo en su icono y título.
-* Ping ignora las respuestas sueltas que no proceden del destino, y traceroute rechaza los destinos que empiezan por un guion en lugar de interpretarlos como opciones.
-* Una descarga dañada o incompleta de la base de datos GeoIP se rechaza con un error en lugar de hacer que Blip se cierre inesperadamente.
+* Una pequeña corrección de estabilidad en el popover de la barra de menús.
 
 ## description_ios
 Blip lleva a tu iPhone y iPad estadísticas fiables del dispositivo, un benchmark de verdad y herramientas de red completas — con la misma filosofía ultraligera de Blip para Mac, gratis y en una sola app.
@@ -92,13 +88,9 @@ Optimizada para iPhone Duo. Blip ahora se adapta tanto a la pantalla plegada com
 * Ping ignora las respuestas sueltas que no proceden del destino, y Traceroute rechaza los destinos que empiezan por un guion en lugar de interpretarlos como opciones.
 
 ## whats_new_macos
-2.0.10: Paneles más limpios y una ronda de pequeñas correcciones.
+2.0.11 — Pequeña mejora de estabilidad.
 
-* El panel de la barra de menús y sus paneles de detalle vuelven a ser una única superficie continua: sin la franja más clara sobre la primera fila, y el tono morado del panel Bench llega hasta el borde superior.
-* El color que eliges en Ajustes se guarda exactamente como lo introduces, sin desviarse un paso.
-* La fila Prueba de velocidad de los paneles Disco y Red se abre al pulsar en cualquier parte de la fila, no solo en su icono y título.
-* Ping ignora las respuestas sueltas que no proceden del destino, y traceroute rechaza los destinos que empiezan por un guion en lugar de interpretarlos como opciones.
-* Una descarga dañada o incompleta de la base de datos GeoIP se rechaza con un error en lugar de hacer que Blip se cierre inesperadamente.
+* Una pequeña corrección de estabilidad en el popover de la barra de menús.
 
 ## marketing_url
 https://wemiller.com/apps/blip/

@@ -58,13 +58,9 @@ systemmonitor,cpu auslastung,arbeitsspeicher,menüleiste,aktivitätsanzeige,gpu,
 Jetzt auch für iPhone und iPad. Live-Werte, Blip Bench mit Neural-Engine-Score, benotete Speedtests, Traceroute mit Hop-Karte — eine kostenlose App für Mac und iOS.
 
 ## whats_new
-2.0.10 – Aufgeräumtere Bereiche und eine Runde kleiner Fehlerbehebungen.
+2.0.11 – Kleine Stabilitätsverbesserung.
 
-* Das Menüleisten-Popover und seine Detailbereiche bilden wieder eine nahtlose Fläche: kein hellerer Streifen mehr über der ersten Zeile, und die lila Einfärbung des Bench-Bereichs reicht bis zum oberen Rand.
-* Eine in den Einstellungen gewählte Farbe wird jetzt exakt so gespeichert, wie du sie eingegeben hast, statt um eine Stufe abzuweichen.
-* Die Zeile „Speedtest“ in den Bereichen Festplatte und Netzwerk lässt sich jetzt an jeder Stelle öffnen, nicht nur über Symbol und Titel.
-* Ping ignoriert verirrte Antworten, die nicht vom Ziel stammen, und Traceroute weist Ziele zurück, die mit einem Bindestrich beginnen, statt sie fälschlich als Optionen zu deuten.
-* Ein beschädigter oder unvollständiger Download der GeoIP-Datenbank wird jetzt mit einer Fehlermeldung abgewiesen, statt Blip zum Absturz zu bringen.
+* Eine kleine Stabilitätskorrektur beim Menüleisten-Popover.
 
 ## description_ios
 Blip bringt aussagekräftige Gerätewerte, einen echten Benchmark und leistungsfähige Netzwerk-Tools auf dein iPhone und iPad — mit derselben federleichten Philosophie wie Blip für Mac, kostenlos und in einer App.
@@ -92,13 +88,9 @@ Für iPhone Duo optimiert. Blip passt jetzt zum zugeklappten und zum aufgeklappt
 * Ping ignoriert vereinzelte Antworten, die nicht vom Ziel stammen, und Traceroute lehnt Ziele, die mit einem Bindestrich beginnen, jetzt ab, statt sie als Optionen zu deuten.
 
 ## whats_new_macos
-2.0.10 – Aufgeräumtere Bereiche und eine Runde kleiner Fehlerbehebungen.
+2.0.11 – Kleine Stabilitätsverbesserung.
 
-* Das Menüleisten-Popover und seine Detailbereiche bilden wieder eine nahtlose Fläche: kein hellerer Streifen mehr über der ersten Zeile, und die lila Einfärbung des Bench-Bereichs reicht bis zum oberen Rand.
-* Eine in den Einstellungen gewählte Farbe wird jetzt exakt so gespeichert, wie du sie eingegeben hast, statt um eine Stufe abzuweichen.
-* Die Zeile „Speedtest“ in den Bereichen Festplatte und Netzwerk lässt sich jetzt an jeder Stelle öffnen, nicht nur über Symbol und Titel.
-* Ping ignoriert verirrte Antworten, die nicht vom Ziel stammen, und Traceroute weist Ziele zurück, die mit einem Bindestrich beginnen, statt sie fälschlich als Optionen zu deuten.
-* Ein beschädigter oder unvollständiger Download der GeoIP-Datenbank wird jetzt mit einer Fehlermeldung abgewiesen, statt Blip zum Absturz zu bringen.
+* Eine kleine Stabilitätskorrektur beim Menüleisten-Popover.
 
 ## marketing_url
 https://wemiller.com/apps/blip/

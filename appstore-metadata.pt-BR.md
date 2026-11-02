@@ -58,13 +58,9 @@ monitor de sistema,cpu,uso de memória,barra de menus,gpu,bateria,ventoinha,temp
 Agora também no iPhone e iPad. Dados ao vivo, Blip Bench com Neural Engine, testes com nota, traceroute com mapa de saltos — um app gratuito para Mac e iOS.
 
 ## whats_new
-2.0.10 — Painéis mais limpos e uma rodada de pequenas correções.
+2.0.11 — Pequena melhoria de estabilidade.
 
-* O popover da barra de menus e seus painéis de detalhes voltaram a ser uma superfície única e contínua: sem faixa mais clara acima da primeira linha, e o tom roxo do painel Bench chega até a borda superior.
-* Uma cor escolhida nos Ajustes é salva exatamente como foi inserida, sem desviar um passo.
-* A linha Teste de Velocidade nos painéis de Disco e Rede abre ao clicar em qualquer ponto dela, não só no ícone e no título.
-* O Ping ignora respostas perdidas que não vêm do destino, e o traceroute rejeita destinos que começam com hífen em vez de interpretá-los como opções.
-* Um download danificado ou incompleto do banco de dados GeoIP é rejeitado com um erro, em vez de travar o Blip.
+* Uma pequena correção de estabilidade no popover da barra de menus.
 
 ## description_ios
 O Blip traz para o seu iPhone e iPad estatísticas confiáveis do aparelho, um benchmark de verdade e ferramentas de rede completas — com a mesma filosofia ultraleve do Blip para Mac, gratuito e em um só app.
@@ -92,13 +88,9 @@ Otimizado para iPhone Duo. O Blip agora se ajusta tanto à tela dobrada quanto �
 * O Ping ignora respostas avulsas que não vêm do destino, e o Traceroute rejeita destinos que começam com hífen, em vez de interpretá-los como opções.
 
 ## whats_new_macos
-2.0.10 — Painéis mais limpos e uma rodada de pequenas correções.
+2.0.11 — Pequena melhoria de estabilidade.
 
-* O popover da barra de menus e seus painéis de detalhes voltaram a ser uma superfície única e contínua: sem faixa mais clara acima da primeira linha, e o tom roxo do painel Bench chega até a borda superior.
-* Uma cor escolhida nos Ajustes é salva exatamente como foi inserida, sem desviar um passo.
-* A linha Teste de Velocidade nos painéis de Disco e Rede abre ao clicar em qualquer ponto dela, não só no ícone e no título.
-* O Ping ignora respostas perdidas que não vêm do destino, e o traceroute rejeita destinos que começam com hífen em vez de interpretá-los como opções.
-* Um download danificado ou incompleto do banco de dados GeoIP é rejeitado com um erro, em vez de travar o Blip.
+* Uma pequena correção de estabilidade no popover da barra de menus.
 
 ## marketing_url
 https://wemiller.com/apps/blip/

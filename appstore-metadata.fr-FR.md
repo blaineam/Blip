@@ -58,13 +58,9 @@ moniteur système,cpu,processeur,mémoire,barre des menus,gpu,batterie,ventilate
 Désormais sur iPhone et iPad. Données en direct, Blip Bench avec score Neural Engine, tests de débit notés, traceroute avec carte des sauts — une app gratuite Mac et iOS.
 
 ## whats_new
-2.0.10 — Des panneaux plus nets, et une série de petites corrections.
+2.0.11 — Petite amélioration de stabilité.
 
-* La fenêtre de la barre des menus et ses panneaux de détails forment de nouveau une seule surface continue : plus de bande plus claire au‑dessus de la première ligne, et le voile violet du panneau Bench s'étend jusqu'au bord supérieur.
-* Une couleur choisie dans les Réglages est enregistrée exactement telle que saisie, sans dériver d'un cran.
-* La ligne Test de débit des panneaux Disque et Réseau s'ouvre d'un clic n'importe où sur la ligne, et plus seulement sur son icône ou son titre.
-* Ping ignore les réponses parasites qui ne proviennent pas de la cible, et traceroute refuse les cibles commençant par un tiret au lieu de les interpréter comme des options.
-* Un téléchargement de base GeoIP endommagé ou incomplet est rejeté avec un message d'erreur au lieu de faire planter Blip.
+* Une petite correction de stabilité pour la fenêtre contextuelle de la barre des menus.
 
 ## description_ios
 Blip apporte à votre iPhone et à votre iPad des statistiques fiables, un vrai benchmark et des outils réseau complets — avec la même philosophie ultralégère que Blip pour Mac, gratuitement et dans une seule app.
@@ -92,13 +88,9 @@ Optimisé pour iPhone Duo. Blip s’adapte désormais à l’écran replié comm
 * Ping ignore les réponses parasites qui ne viennent pas de la cible, et Traceroute refuse les cibles qui commencent par un tiret au lieu de les interpréter comme des options.
 
 ## whats_new_macos
-2.0.10 — Des panneaux plus nets, et une série de petites corrections.
+2.0.11 — Petite amélioration de stabilité.
 
-* La fenêtre de la barre des menus et ses panneaux de détails forment de nouveau une seule surface continue : plus de bande plus claire au‑dessus de la première ligne, et le voile violet du panneau Bench s'étend jusqu'au bord supérieur.
-* Une couleur choisie dans les Réglages est enregistrée exactement telle que saisie, sans dériver d'un cran.
-* La ligne Test de débit des panneaux Disque et Réseau s'ouvre d'un clic n'importe où sur la ligne, et plus seulement sur son icône ou son titre.
-* Ping ignore les réponses parasites qui ne proviennent pas de la cible, et traceroute refuse les cibles commençant par un tiret au lieu de les interpréter comme des options.
-* Un téléchargement de base GeoIP endommagé ou incomplet est rejeté avec un message d'erreur au lieu de faire planter Blip.
+* Une petite correction de stabilité pour la fenêtre contextuelle de la barre des menus.
 
 ## marketing_url
 https://wemiller.com/apps/blip/

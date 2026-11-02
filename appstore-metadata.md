@@ -100,22 +100,14 @@ system monitor,cpu usage,memory pressure,menu bar,activity monitor,gpu,battery h
 Now on iPhone and iPad too. Live vitals, Blip Bench with Neural Engine scoring, graded speed tests, traceroute with a hop map — one free app across Mac and iOS.
 
 ## whats_new
-2.0.10 — Cleaner panels, and a round of small fixes.
+2.0.11 — Small stability fix.
 
-* The menu-bar popover and its detail panels are one seamless surface again: no lighter band above the first row, and the Bench panel's purple wash reaches the top edge.
-* A colour you pick in Settings is saved exactly as entered instead of drifting by one step.
-* The Speed Test row in the Disk and Network panels opens from anywhere in the row, not just its icon and title.
-* Ping ignores stray replies that don't come from the target, and traceroute rejects targets that begin with a dash instead of misreading them as options.
-* A damaged or incomplete GeoIP database download is rejected with an error instead of crashing Blip.
+* A small stability fix in the menu-bar popover.
 
 ## whats_new_macos
-2.0.10 — Cleaner panels, and a round of small fixes.
+2.0.11 — Small stability fix.
 
-* The menu-bar popover and its detail panels are one seamless surface again: no lighter band above the first row, and the Bench panel's purple wash reaches the top edge.
-* A colour you pick in Settings is saved exactly as entered instead of drifting by one step.
-* The Speed Test row in the Disk and Network panels opens from anywhere in the row, not just its icon and title.
-* Ping ignores stray replies that don't come from the target, and traceroute rejects targets that begin with a dash instead of misreading them as options.
-* A damaged or incomplete GeoIP database download is rejected with an error instead of crashing Blip.
+* A small stability fix in the menu-bar popover.
 
 ## whats_new_ios
 Optimized for iPhone Duo. Blip now fits both the folded and the opened display.
