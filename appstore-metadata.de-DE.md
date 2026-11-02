@@ -80,12 +80,7 @@ Widgets — Bench-Score, Speicherplatz und letzter Speedtest auf deinem Home-Bil
 Keine Accounts, keine Werbung, kein Tracking. Blip zeigt genau das, was iOS einer regelkonformen App offen zur Verfügung stellt.
 
 ## whats_new_ios
-Für iPhone Duo optimiert. Blip passt jetzt zum zugeklappten und zum aufgeklappten Display.
-
-* Geschwindigkeitstests sind genauer: Ein fehlgeschlagener Test wird sauber beendet, und Serverfehler oder abgelehnte Uploads zählen nicht mehr als Ergebnis.
-* Geschwindigkeitstests für den Datenträger schlagen auf sehr schnellem Speicher nicht mehr fehl.
-* Der Tab „Speedtest“ zeigt deinen eigenen Server, sobald du ihn in den Einstellungen festlegst.
-* Ping ignoriert vereinzelte Antworten, die nicht vom Ziel stammen, und Traceroute lehnt Ziele, die mit einem Bindestrich beginnen, jetzt ab, statt sie als Optionen zu deuten.
+2.0.12 — Stabilitäts- und Sicherheitsupdates.
 
 ## whats_new_macos
 2.0.11 – Kleine Stabilitätsverbesserung.

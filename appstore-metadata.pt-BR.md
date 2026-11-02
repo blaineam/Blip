@@ -80,12 +80,7 @@ Widgets — pontuação do bench, armazenamento e último teste de velocidade na
 Sem contas, sem anúncios, sem rastreamento. Tudo o que o Blip mostra é o que o iOS disponibiliza abertamente para apps que seguem as regras.
 
 ## whats_new_ios
-Otimizado para iPhone Duo. O Blip agora se ajusta tanto à tela dobrada quanto à tela aberta.
-
-* Os testes de velocidade ficaram mais precisos: um teste com falha agora é interrompido corretamente, e erros do servidor ou envios recusados não contam mais como resultado.
-* Os testes de velocidade do disco não falham mais em armazenamento muito rápido.
-* A aba Velocidade mostra seu próprio servidor assim que você o define em Ajustes.
-* O Ping ignora respostas avulsas que não vêm do destino, e o Traceroute rejeita destinos que começam com hífen, em vez de interpretá-los como opções.
+2.0.12 — Atualizações de estabilidade e segurança.
 
 ## whats_new_macos
 2.0.11 — Pequena melhoria de estabilidade.

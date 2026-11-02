@@ -80,12 +80,7 @@ Widget — punteggio del benchmark, spazio di archiviazione e ultimo test di vel
 Nessun account, nessuna pubblicità, nessun tracciamento. Tutto ciò che Blip mostra è ciò che iOS mette apertamente a disposizione delle app che rispettano le regole.
 
 ## whats_new_ios
-Ottimizzato per iPhone Duo. Blip ora si adatta sia al display chiuso sia a quello aperto.
-
-* I test di velocità sono più precisi: un test fallito ora si interrompe correttamente, e gli errori del server o i caricamenti rifiutati non contano più come risultato.
-* I test di velocità del disco non falliscono più con archiviazione molto veloce.
-* Il pannello Speed mostra il tuo server non appena lo imposti nelle Impostazioni.
-* Ping ignora le risposte isolate che non provengono dalla destinazione, e Traceroute rifiuta le destinazioni che iniziano con un trattino invece di interpretarle come opzioni.
+2.0.12 — Aggiornamenti di stabilità e sicurezza.
 
 ## whats_new_macos
 2.0.11 — Piccolo miglioramento di stabilità.
