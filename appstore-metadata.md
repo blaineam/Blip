@@ -110,12 +110,7 @@ Now on iPhone and iPad too. Live vitals, Blip Bench with Neural Engine scoring, 
 * A small stability fix in the menu-bar popover.
 
 ## whats_new_ios
-Optimized for iPhone Duo. Blip now fits both the folded and the opened display.
-
-* Speed tests are more accurate: a failed test now stops cleanly, and server errors or refused uploads no longer count as results.
-* Disk speed tests no longer fail on very fast storage.
-* The Speed tab shows your own server as soon as you set it in Settings.
-* Ping ignores stray replies that don't come from the target, and traceroute rejects targets that begin with a dash instead of misreading them as options.
+2.0.12 — Stability and security updates.
 
 ## marketing_url
 https://wemiller.com/apps/blip/
