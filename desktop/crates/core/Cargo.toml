@@ -1,0 +1,19 @@
+[package]
+name = "blip-core"
+description = "Blip's platform-neutral core: models, formatting, BenchKit, speed test, traceroute stats, settings and strings."
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+publish.workspace = true
+
+[dependencies]
+serde.workspace = true
+serde_json.workspace = true
+ureq.workspace = true
+sha2 = "0.10"
+lzfse_rust = "0.2"
+rustfft = "6"
+maxminddb = "0.33"
+flate2 = "1"
+
+[dev-dependencies]
