@@ -76,9 +76,20 @@ impl KeepAwake {
         }
         #[cfg(all(unix, not(target_os = "macos")))]
         {
-            let what = if opts.keep_display_on { "idle:sleep" } else { "sleep" };
+            let what = if opts.keep_display_on {
+                "idle:sleep"
+            } else {
+                "sleep"
+            };
             let mut cmd = std::process::Command::new("systemd-inhibit");
-            cmd.args([&format!("--what={what}"), "--who=Blip", "--why=Keep Awake", "--mode=block", "sleep", "infinity"]);
+            cmd.args([
+                &format!("--what={what}"),
+                "--who=Blip",
+                "--why=Keep Awake",
+                "--mode=block",
+                "sleep",
+                "infinity",
+            ]);
             if opts.ignore_lid {
                 cmd.arg("--what=handle-lid-switch");
             }

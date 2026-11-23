@@ -39,7 +39,13 @@ pub fn exe_icon(path: &str) -> Option<(u32, u32, Vec<u8>)> {
                 let rgba: Vec<u8> = px
                     .chunks(4)
                     .flat_map(|c| {
-                        let a = if has_alpha { c[3] } else if c[0] | c[1] | c[2] != 0 { 255 } else { 0 };
+                        let a = if has_alpha {
+                            c[3]
+                        } else if c[0] | c[1] | c[2] != 0 {
+                            255
+                        } else {
+                            0
+                        };
                         [c[2], c[1], c[0], a]
                     })
                     .collect();

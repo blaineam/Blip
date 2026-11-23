@@ -127,7 +127,17 @@ pub fn system_fonts() -> SystemFonts {
     #[cfg(windows)]
     {
         let dir = std::env::var("WINDIR").unwrap_or_else(|_| "C:\\Windows".into()) + "\\Fonts\\";
-        let f = |names: &[&str]| first(&names.iter().map(|n| format!("{dir}{n}")).collect::<Vec<_>>().iter().map(String::as_str).collect::<Vec<_>>());
+        let f = |names: &[&str]| {
+            first(
+                &names
+                    .iter()
+                    .map(|n| format!("{dir}{n}"))
+                    .collect::<Vec<_>>()
+                    .iter()
+                    .map(String::as_str)
+                    .collect::<Vec<_>>(),
+            )
+        };
         SystemFonts {
             ui: f(&["segoeui.ttf"]),
             ui_bold: f(&["seguisb.ttf", "segoeuib.ttf"]),
@@ -143,14 +153,23 @@ pub fn system_fonts() -> SystemFonts {
     #[cfg(target_os = "macos")]
     {
         SystemFonts {
-            ui: first(&["/System/Library/Fonts/SFNS.ttf", "/System/Library/Fonts/Helvetica.ttc"]),
+            ui: first(&[
+                "/System/Library/Fonts/SFNS.ttf",
+                "/System/Library/Fonts/Helvetica.ttc",
+            ]),
             ui_bold: None,
-            mono: first(&["/System/Library/Fonts/SFNSMono.ttf", "/System/Library/Fonts/Menlo.ttc"]),
-            cjk: ["/System/Library/Fonts/Hiragino Sans GB.ttc", "/System/Library/Fonts/AppleSDGothicNeo.ttc"]
-                .iter()
-                .map(std::path::PathBuf::from)
-                .filter(|p| p.exists())
-                .collect(),
+            mono: first(&[
+                "/System/Library/Fonts/SFNSMono.ttf",
+                "/System/Library/Fonts/Menlo.ttc",
+            ]),
+            cjk: [
+                "/System/Library/Fonts/Hiragino Sans GB.ttc",
+                "/System/Library/Fonts/AppleSDGothicNeo.ttc",
+            ]
+            .iter()
+            .map(std::path::PathBuf::from)
+            .filter(|p| p.exists())
+            .collect(),
             symbols: None,
         }
     }

@@ -10,7 +10,10 @@ pub enum GeoStatus {
     Absent,
     /// 0…1, or negative while indeterminate.
     Downloading(f64),
-    Ready { build_epoch: u64, kind: String },
+    Ready {
+        build_epoch: u64,
+        kind: String,
+    },
     Failed(String),
 }
 
@@ -43,7 +46,13 @@ impl Default for GeoDb {
 
 impl GeoDb {
     pub fn new() -> Self {
-        let db = Self { inner: Arc::new(Mutex::new(Inner { status: GeoStatus::Absent, reader: None, downloading: false })) };
+        let db = Self {
+            inner: Arc::new(Mutex::new(Inner {
+                status: GeoStatus::Absent,
+                reader: None,
+                downloading: false,
+            })),
+        };
         db.load_if_present();
         db
     }
@@ -66,11 +75,15 @@ impl GeoDb {
             }
             Ok(bytes) => match maxminddb::Reader::from_source(bytes) {
                 Ok(r) => {
-                    g.status = GeoStatus::Ready { build_epoch: r.metadata().build_epoch, kind: r.metadata().database_type.clone() };
+                    g.status = GeoStatus::Ready {
+                        build_epoch: r.metadata().build_epoch,
+                        kind: r.metadata().database_type.clone(),
+                    };
                     g.reader = Some(Arc::new(r));
                 }
                 Err(_) => {
-                    g.status = GeoStatus::Failed("Installed database is unreadable — re-download to fix.".into());
+                    g.status =
+                        GeoStatus::Failed("Installed database is unreadable — re-download to fix.".into());
                     g.reader = None;
                 }
             },
@@ -143,14 +156,18 @@ impl GeoDb {
         }
         let stamp = crate::paths::data_dir().join("geoip-lastcheck.txt");
         let now = crate::model::now_unix();
-        let last: u64 = std::fs::read_to_string(&stamp).ok().and_then(|s| s.trim().parse().ok()).unwrap_or(0);
+        let last: u64 = std::fs::read_to_string(&stamp)
+            .ok()
+            .and_then(|s| s.trim().parse().ok())
+            .unwrap_or(0);
         if now.saturating_sub(last) < 86_400 {
             return;
         }
         let _ = std::fs::write(&stamp, now.to_string());
         let me = self.clone();
         std::thread::spawn(move || {
-            let installed = std::fs::read_to_string(crate::paths::data_dir().join("geoip-month.txt")).unwrap_or_default();
+            let installed =
+                std::fs::read_to_string(crate::paths::data_dir().join("geoip-month.txt")).unwrap_or_default();
             if let Some(newest) = newest_available_month() {
                 if newest.as_str() > installed.trim() {
                     me.download(notify);
@@ -166,7 +183,10 @@ pub fn candidate_months(year: i32, month: u32) -> Vec<(String, String)> {
     let (mut y, mut m) = (year, month as i32);
     for _ in 0..4 {
         let tag = format!("{y:04}-{m:02}");
-        out.push((tag.clone(), format!("https://download.db-ip.com/free/dbip-city-lite-{tag}.mmdb.gz")));
+        out.push((
+            tag.clone(),
+            format!("https://download.db-ip.com/free/dbip-city-lite-{tag}.mmdb.gz"),
+        ));
         m -= 1;
         if m == 0 {
             m = 12;
@@ -201,7 +221,10 @@ fn agent() -> ureq::Agent {
 fn newest_available_month() -> Option<String> {
     let (y, m) = current_year_month();
     let a = agent();
-    candidate_months(y, m).into_iter().find(|(_, url)| a.head(url).call().is_ok()).map(|(t, _)| t)
+    candidate_months(y, m)
+        .into_iter()
+        .find(|(_, url)| a.head(url).call().is_ok())
+        .map(|(t, _)| t)
 }
 
 fn fetch_and_install(progress: &dyn Fn(f64)) -> Result<String, String> {
@@ -221,12 +244,18 @@ fn fetch_and_install(progress: &dyn Fn(f64)) -> Result<String, String> {
                 continue;
             }
         };
-        let total: Option<u64> = resp.headers().get("content-length").and_then(|v| v.to_str().ok()).and_then(|v| v.parse().ok());
+        let total: Option<u64> = resp
+            .headers()
+            .get("content-length")
+            .and_then(|v| v.to_str().ok())
+            .and_then(|v| v.parse().ok());
         let mut gz = Vec::new();
         let mut reader = resp.body_mut().with_config().limit(200 * 1024 * 1024).reader();
         let mut buf = vec![0u8; 256 * 1024];
         loop {
-            let n = reader.read(&mut buf).map_err(|_| "Download failed.".to_string())?;
+            let n = reader
+                .read(&mut buf)
+                .map_err(|_| "Download failed.".to_string())?;
             if n == 0 {
                 break;
             }
@@ -234,7 +263,9 @@ fn fetch_and_install(progress: &dyn Fn(f64)) -> Result<String, String> {
             progress(total.map_or(-1.0, |t| gz.len() as f64 / t as f64));
         }
         let mut mmdb = Vec::new();
-        flate2::read::GzDecoder::new(&gz[..]).read_to_end(&mut mmdb).map_err(|_| "Download failed.".to_string())?;
+        flate2::read::GzDecoder::new(&gz[..])
+            .read_to_end(&mut mmdb)
+            .map_err(|_| "Download failed.".to_string())?;
         maxminddb::Reader::from_source(mmdb.as_slice()).map_err(|_| "Download failed.".to_string())?;
         crate::paths::write_atomic(&crate::paths::geoip_file(), &mmdb).map_err(|e| e.to_string())?;
         return Ok(tag);

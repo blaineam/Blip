@@ -25,18 +25,61 @@ pub struct Recommendation {
 /// Processes Blip never suggests quitting, even when they're the CPU hog.
 const SYSTEM_PROCESSES: &[&str] = &[
     // Windows
-    "system", "registry", "smss.exe", "csrss.exe", "wininit.exe", "winlogon.exe", "services.exe",
-    "lsass.exe", "svchost.exe", "dwm.exe", "explorer.exe", "fontdrvhost.exe", "sihost.exe",
-    "taskhostw.exe", "runtimebroker.exe", "searchhost.exe", "searchindexer.exe", "msmpeng.exe",
-    "memory compression", "audiodg.exe", "spoolsv.exe", "wmiprvse.exe", "ctfmon.exe",
-    "startmenuexperiencehost.exe", "shellexperiencehost.exe", "textinputhost.exe",
-    "securityhealthservice.exe", "trustedinstaller.exe", "tiworker.exe", "conhost.exe",
-    "system idle process", "secure system", "mpdefendercoreservice.exe", "smartscreen.exe",
-    "widgets.exe", "phoneexperiencehost.exe", "lockapp.exe", "systemsettings.exe",
+    "system",
+    "registry",
+    "smss.exe",
+    "csrss.exe",
+    "wininit.exe",
+    "winlogon.exe",
+    "services.exe",
+    "lsass.exe",
+    "svchost.exe",
+    "dwm.exe",
+    "explorer.exe",
+    "fontdrvhost.exe",
+    "sihost.exe",
+    "taskhostw.exe",
+    "runtimebroker.exe",
+    "searchhost.exe",
+    "searchindexer.exe",
+    "msmpeng.exe",
+    "memory compression",
+    "audiodg.exe",
+    "spoolsv.exe",
+    "wmiprvse.exe",
+    "ctfmon.exe",
+    "startmenuexperiencehost.exe",
+    "shellexperiencehost.exe",
+    "textinputhost.exe",
+    "securityhealthservice.exe",
+    "trustedinstaller.exe",
+    "tiworker.exe",
+    "conhost.exe",
+    "system idle process",
+    "secure system",
+    "mpdefendercoreservice.exe",
+    "smartscreen.exe",
+    "widgets.exe",
+    "phoneexperiencehost.exe",
+    "lockapp.exe",
+    "systemsettings.exe",
     // Linux
-    "systemd", "kthreadd", "xorg", "xwayland", "gnome-shell", "kwin_wayland", "kwin_x11",
-    "plasmashell", "pipewire", "pulseaudio", "dbus-daemon", "networkmanager", "journald",
-    "systemd-journald", "gamescope", "steamwebhelper",
+    "systemd",
+    "kthreadd",
+    "xorg",
+    "xwayland",
+    "gnome-shell",
+    "kwin_wayland",
+    "kwin_x11",
+    "plasmashell",
+    "pipewire",
+    "pulseaudio",
+    "dbus-daemon",
+    "networkmanager",
+    "journald",
+    "systemd-journald",
+    "gamescope",
+    "steamwebhelper",
 ];
 
 pub fn is_system_process(name: &str) -> bool {
@@ -47,12 +90,19 @@ pub fn analyze(s: &Snapshot) -> Vec<Recommendation> {
     use crate::Icon;
     let mut recs = Vec::new();
 
-    if let Some(p) = s.top_cpu.iter().find(|p| p.cpu > 85.0 && p.user_owned && !is_system_process(&p.name)) {
+    if let Some(p) = s
+        .top_cpu
+        .iter()
+        .find(|p| p.cpu > 85.0 && p.user_owned && !is_system_process(&p.name))
+    {
         recs.push(Recommendation {
             id: "cpu-hog".into(),
             severity: Severity::Warning,
             icon: Icon::Cpu,
-            title: tf("%@ is using %lld%% CPU", &[&display_name(&p.name), &(p.cpu as i64)]),
+            title: tf(
+                "%@ is using %lld%% CPU",
+                &[&display_name(&p.name), &(p.cpu as i64)],
+            ),
             detail: t("Quitting or restarting it would cut heat, fan noise, and battery drain."),
         });
     }
@@ -63,14 +113,19 @@ pub fn analyze(s: &Snapshot) -> Vec<Recommendation> {
             severity: Severity::Critical,
             icon: Icon::Memory,
             title: t("Memory pressure is high"),
-            detail: t("Close some apps or browser tabs — heavy swapping wears the SSD and slows things down."),
+            detail: t(
+                "Close some apps or browser tabs — heavy swapping wears the SSD and slows things down.",
+            ),
         });
     } else if s.memory.swap_used > 3_000_000_000 {
         recs.push(Recommendation {
             id: "mem-swap".into(),
             severity: Severity::Warning,
             icon: Icon::Memory,
-            title: tf("%@ of swap in use", &[&format!("{:.1} GB", s.memory.swap_used as f64 / 1e9)]),
+            title: tf(
+                "%@ of swap in use",
+                &[&format!("{:.1} GB", s.memory.swap_used as f64 / 1e9)],
+            ),
             detail: t("Frequent swapping adds SSD writes. Closing memory-hungry apps helps."),
         });
     }
@@ -79,7 +134,11 @@ pub fn analyze(s: &Snapshot) -> Vec<Recommendation> {
     if level >= ThermalLevel::Serious {
         recs.push(Recommendation {
             id: "thermal".into(),
-            severity: if level == ThermalLevel::Critical { Severity::Critical } else { Severity::Warning },
+            severity: if level == ThermalLevel::Critical {
+                Severity::Critical
+            } else {
+                Severity::Warning
+            },
             icon: Icon::Thermometer,
             title: tf("Your PC is running hot (%@)", &[&t(level.english())]),
             detail: t("Reduce load, improve airflow, or move off soft surfaces to avoid throttling."),
@@ -93,7 +152,9 @@ pub fn analyze(s: &Snapshot) -> Vec<Recommendation> {
                 severity: Severity::Warning,
                 icon: Icon::Disk,
                 title: tf("Startup disk is %lld%% full", &[&(v.usage_pct() as i64)]),
-                detail: t("Free up space — a nearly-full SSD slows down and has less room for wear-leveling."),
+                detail: t(
+                    "Free up space — a nearly-full SSD slows down and has less room for wear-leveling.",
+                ),
             });
         }
     }
@@ -137,7 +198,10 @@ pub fn analyze(s: &Snapshot) -> Vec<Recommendation> {
 
 /// "chrome.exe" → "chrome" for prose; Linux names pass through.
 pub fn display_name(name: &str) -> String {
-    name.strip_suffix(".exe").or_else(|| name.strip_suffix(".EXE")).unwrap_or(name).to_string()
+    name.strip_suffix(".exe")
+        .or_else(|| name.strip_suffix(".EXE"))
+        .unwrap_or(name)
+        .to_string()
 }
 
 #[cfg(test)]
@@ -150,8 +214,20 @@ mod tests {
     fn runaway_user_app_but_never_system() {
         let mut s = Snapshot::default();
         s.top_cpu = vec![
-            ProcessInfo { pid: 4, name: "svchost.exe".into(), cpu: 99.0, user_owned: true, ..Default::default() },
-            ProcessInfo { pid: 9, name: "chrome.exe".into(), cpu: 97.0, user_owned: true, ..Default::default() },
+            ProcessInfo {
+                pid: 4,
+                name: "svchost.exe".into(),
+                cpu: 99.0,
+                user_owned: true,
+                ..Default::default()
+            },
+            ProcessInfo {
+                pid: 9,
+                name: "chrome.exe".into(),
+                cpu: 97.0,
+                user_owned: true,
+                ..Default::default()
+            },
         ];
         let recs = analyze(&s);
         assert_eq!(recs.len(), 1);
@@ -164,7 +240,12 @@ mod tests {
         s.memory.pressure = 2;
         s.battery.present = true;
         s.battery.health_pct = Some(70.0);
-        s.disk.drives.push(DriveHealth { id: "0".into(), name: "NVMe".into(), critical_warning: Some(1), ..Default::default() });
+        s.disk.drives.push(DriveHealth {
+            id: "0".into(),
+            name: "NVMe".into(),
+            critical_warning: Some(1),
+            ..Default::default()
+        });
         let recs = analyze(&s);
         assert_eq!(recs.first().map(|r| r.severity), Some(Severity::Critical));
         assert_eq!(recs.last().map(|r| r.severity), Some(Severity::Info));

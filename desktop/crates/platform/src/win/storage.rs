@@ -21,9 +21,25 @@ const NVME_DATA_TYPE_LOG_PAGE: u32 = 2;
 const NVME_LOG_PAGE_HEALTH_INFO: u32 = 2;
 
 const BUS_NAMES: &[(u32, &str)] = &[
-    (1, "SCSI"), (2, "ATAPI"), (3, "ATA"), (4, "FireWire"), (5, "SSA"), (6, "Fibre"), (7, "USB"),
-    (8, "RAID"), (9, "iSCSI"), (10, "SAS"), (11, "SATA"), (12, "SD"), (13, "MMC"), (14, "Virtual"),
-    (15, "File-backed"), (16, "Spaces"), (17, "NVMe"), (18, "SCM"), (19, "UFS"),
+    (1, "SCSI"),
+    (2, "ATAPI"),
+    (3, "ATA"),
+    (4, "FireWire"),
+    (5, "SSA"),
+    (6, "Fibre"),
+    (7, "USB"),
+    (8, "RAID"),
+    (9, "iSCSI"),
+    (10, "SAS"),
+    (11, "SATA"),
+    (12, "SD"),
+    (13, "MMC"),
+    (14, "Virtual"),
+    (15, "File-backed"),
+    (16, "Spaces"),
+    (17, "NVMe"),
+    (18, "SCM"),
+    (19, "UFS"),
 ];
 
 fn query(dev: &Device, property: u32, extra: &[u8], out: &mut [u8]) -> Option<u32> {
@@ -43,13 +59,19 @@ fn query(dev: &Device, property: u32, extra: &[u8], out: &mut [u8]) -> Option<u3
 }
 
 fn u32_at(b: &[u8], o: usize) -> u32 {
-    b.get(o..o + 4).map(|s| u32::from_le_bytes(s.try_into().unwrap())).unwrap_or(0)
+    b.get(o..o + 4)
+        .map(|s| u32::from_le_bytes(s.try_into().unwrap()))
+        .unwrap_or(0)
 }
 fn u64_at(b: &[u8], o: usize) -> u64 {
-    b.get(o..o + 8).map(|s| u64::from_le_bytes(s.try_into().unwrap())).unwrap_or(0)
+    b.get(o..o + 8)
+        .map(|s| u64::from_le_bytes(s.try_into().unwrap()))
+        .unwrap_or(0)
 }
 fn i16_at(b: &[u8], o: usize) -> i16 {
-    b.get(o..o + 2).map(|s| i16::from_le_bytes(s.try_into().unwrap())).unwrap_or(0)
+    b.get(o..o + 2)
+        .map(|s| i16::from_le_bytes(s.try_into().unwrap()))
+        .unwrap_or(0)
 }
 fn cstr_at(b: &[u8], o: usize) -> String {
     if o == 0 || o >= b.len() {
@@ -87,11 +109,19 @@ fn drive(dev: &Device, n: u32) -> Option<DriveHealth> {
     let vendor = cstr_at(&buf, u32_at(&buf, 12) as usize);
     let product = cstr_at(&buf, u32_at(&buf, 16) as usize);
     let bus_type = u32_at(&buf, 28);
-    let bus = BUS_NAMES.iter().find(|(k, _)| *k == bus_type).map_or("Other", |(_, v)| v).to_string();
+    let bus = BUS_NAMES
+        .iter()
+        .find(|(k, _)| *k == bus_type)
+        .map_or("Other", |(_, v)| v)
+        .to_string();
     if bus_type == 14 || bus_type == 15 || bus_type == 16 {
         return None; // virtual disks, VHDs and Storage Spaces pools have no health of their own
     }
-    let mut name = if vendor.is_empty() || product.starts_with(&vendor) { product.clone() } else { format!("{vendor} {product}") };
+    let mut name = if vendor.is_empty() || product.starts_with(&vendor) {
+        product.clone()
+    } else {
+        format!("{vendor} {product}")
+    };
     if name.is_empty() {
         name = format!("Disk {n}");
     }
@@ -117,7 +147,10 @@ fn drive(dev: &Device, n: u32) -> Option<DriveHealth> {
     if query(dev, STORAGE_DEVICE_TEMPERATURE_PROPERTY, &[], &mut t).is_some() {
         let count = u16::from_le_bytes([t[12], t[13]]) as usize;
         // TemperatureInfo[] starts at 24; each entry 16 bytes, Temperature at +2 (°C).
-        let temps: Vec<i16> = (0..count.min(8)).map(|i| i16_at(&t, 24 + i * 16 + 2)).filter(|c| (-40..150).contains(c)).collect();
+        let temps: Vec<i16> = (0..count.min(8))
+            .map(|i| i16_at(&t, 24 + i * 16 + 2))
+            .filter(|c| (-40..150).contains(c))
+            .collect();
         if let Some(max) = temps.iter().max() {
             d.temperature_c = Some(*max as i32);
         }
@@ -134,8 +167,19 @@ fn drive(dev: &Device, n: u32) -> Option<DriveHealth> {
     } else {
         // ATA/SCSI: SMART prediction is the one bit Windows hands out cheaply.
         let mut pf = vec![0u8; 516];
-        if dev.ioctl_raw(IOCTL_STORAGE_PREDICT_FAILURE, None, (pf.as_mut_ptr() as _, pf.len() as u32)).is_some() {
-            d.smart_status = if u32_at(&pf, 0) != 0 { "Failing".into() } else { "Verified".into() };
+        if dev
+            .ioctl_raw(
+                IOCTL_STORAGE_PREDICT_FAILURE,
+                None,
+                (pf.as_mut_ptr() as _, pf.len() as u32),
+            )
+            .is_some()
+        {
+            d.smart_status = if u32_at(&pf, 0) != 0 {
+                "Failing".into()
+            } else {
+                "Verified".into()
+            };
         }
     }
     Some(d)
@@ -159,7 +203,9 @@ fn nvme_health(dev: &Device, d: &mut DriveHealth) {
     // STORAGE_PROTOCOL_DATA_DESCRIPTOR: Version, Size, then the 40-byte spec echo.
     let data_offset = u32_at(&out, 8 + 16) as usize;
     let start = 8 + data_offset;
-    let Some(log) = out.get(start..start + 512) else { return };
+    let Some(log) = out.get(start..start + 512) else {
+        return;
+    };
     if let Some(h) = decode_nvme_health(log) {
         d.critical_warning = Some(h.critical_warning);
         if h.temperature_c.is_some() && d.temperature_c.is_none() {
@@ -174,7 +220,11 @@ fn nvme_health(dev: &Device, d: &mut DriveHealth) {
         d.power_on_hours = Some(h.power_on_hours);
         d.unsafe_shutdowns = Some(h.unsafe_shutdowns);
         d.media_errors = Some(h.media_errors);
-        d.smart_status = if h.critical_warning == 0 { "Verified".into() } else { "Failing".into() };
+        d.smart_status = if h.critical_warning == 0 {
+            "Verified".into()
+        } else {
+            "Failing".into()
+        };
     }
 }
 

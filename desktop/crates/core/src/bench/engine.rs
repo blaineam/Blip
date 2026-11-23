@@ -98,7 +98,11 @@ impl BenchEngine {
             .and_then(|p| std::fs::read(p).ok())
             .and_then(|b| serde_json::from_slice(&b).ok())
             .unwrap_or_default();
-        let state = BenchState { last_result: history.last().cloned(), history, ..Default::default() };
+        let state = BenchState {
+            last_result: history.last().cloned(),
+            history,
+            ..Default::default()
+        };
         Self {
             state: Arc::new(Mutex::new(state)),
             cancel: Arc::new(AtomicBool::new(false)),
@@ -120,7 +124,11 @@ impl BenchEngine {
 
     pub fn personal_best(&self) -> Option<f64> {
         let s = self.state.lock().unwrap();
-        s.history.iter().filter(|r| r.profile == Profile::Full).map(|r| r.composite).reduce(f64::max)
+        s.history
+            .iter()
+            .filter(|r| r.profile == Profile::Full)
+            .map(|r| r.composite)
+            .reduce(f64::max)
     }
 
     pub fn cancel(&self) {
@@ -181,7 +189,11 @@ impl BenchEngine {
     fn finish(&self, result: Option<BenchResult>) {
         let mut s = self.state.lock().unwrap();
         s.running = false;
-        s.phase = if result.is_some() { Phase::Done } else { Phase::Idle };
+        s.phase = if result.is_some() {
+            Phase::Done
+        } else {
+            Phase::Idle
+        };
         s.progress = if result.is_some() { 1.0 } else { 0.0 };
         if let Some(r) = result {
             s.last_result = Some(r.clone());
@@ -210,7 +222,11 @@ impl BenchEngine {
         let cancel = self.cancel.clone();
         let cancelled = move || cancel.load(Ordering::Relaxed);
         let t = profile.per_workload_seconds();
-        let sustained_weight = if profile.sustained_seconds() > 0.0 { 0.45 } else { 0.0 };
+        let sustained_weight = if profile.sustained_seconds() > 0.0 {
+            0.45
+        } else {
+            0.0
+        };
         let leg_weight = (1.0 - sustained_weight) / 5.0;
         let mut progress: f64 = 0.0;
         let mut step = |me: &Self, phase: Phase, leg: Option<LiveLeg>| {
@@ -234,13 +250,21 @@ impl BenchEngine {
             return None;
         }
         let single_cat = score::category("Single-core", single);
-        step(self, Phase::MultiCore, Some(leg("single", "Single-core", single_cat.score)));
+        step(
+            self,
+            Phase::MultiCore,
+            Some(leg("single", "Single-core", single_cat.score)),
+        );
 
         // 2. All cores: every core runs the mix concurrently; throughputs sum.
-        let cores = std::thread::available_parallelism().map(|n| n.get()).unwrap_or(2).max(2);
+        let cores = std::thread::available_parallelism()
+            .map(|n| n.get())
+            .unwrap_or(2)
+            .max(2);
         let per_core: Vec<Vec<WorkloadResult>> = std::thread::scope(|sc| {
-            let handles: Vec<_> =
-                (0..cores).map(|_| sc.spawn(|| workloads::cpu_mix(t * 4.0, &cancelled))).collect();
+            let handles: Vec<_> = (0..cores)
+                .map(|_| sc.spawn(|| workloads::cpu_mix(t * 4.0, &cancelled)))
+                .collect();
             handles.into_iter().filter_map(|h| h.join().ok()).collect()
         });
         if cancelled() {
@@ -251,17 +275,26 @@ impl BenchEngine {
             .iter()
             .map(|r| WorkloadResult::new(&format!("multi.{}", &r.id[4..]), r.value, r.unit))
             .collect();
-        let per_core_avg: Vec<WorkloadResult> =
-            summed.iter().map(|r| WorkloadResult::new(&r.id, r.value / cores as f64, r.unit)).collect();
+        let per_core_avg: Vec<WorkloadResult> = summed
+            .iter()
+            .map(|r| WorkloadResult::new(&r.id, r.value / cores as f64, r.unit))
+            .collect();
         let multi_cat = CategoryScore {
             name: "All cores".into(),
             score: score::composite(&per_core_avg) * cores as f64,
             results: multi,
         };
-        step(self, Phase::Memory, Some(leg("multi", "All cores", multi_cat.score)));
+        step(
+            self,
+            Phase::Memory,
+            Some(leg("multi", "All cores", multi_cat.score)),
+        );
 
         // 3. Memory.
-        let mem = vec![workloads::memory_bandwidth(t, &cancelled), workloads::memory_latency(t, &cancelled)];
+        let mem = vec![
+            workloads::memory_bandwidth(t, &cancelled),
+            workloads::memory_latency(t, &cancelled),
+        ];
         if cancelled() {
             return None;
         }
@@ -274,7 +307,11 @@ impl BenchEngine {
             return None;
         }
         let gpu_cat = gpu.map(|r| score::category("GPU", vec![r]));
-        step(self, Phase::Neural, gpu_cat.as_ref().map(|c| leg("gpu", "GPU", c.score)));
+        step(
+            self,
+            Phase::Neural,
+            gpu_cat.as_ref().map(|c| leg("gpu", "GPU", c.score)),
+        );
 
         // 5. Neural: the Mac's leg is Vision's feature print. No OS-shipped model exists on
         // Windows/Linux, so it drops out here, like it does on Macs without the ML stack.
@@ -294,8 +331,9 @@ impl BenchEngine {
                     break;
                 }
                 let all: Vec<Vec<WorkloadResult>> = std::thread::scope(|sc| {
-                    let hs: Vec<_> =
-                        (0..cores).map(|_| sc.spawn(|| workloads::cpu_mix(bucket, &cancelled))).collect();
+                    let hs: Vec<_> = (0..cores)
+                        .map(|_| sc.spawn(|| workloads::cpu_mix(bucket, &cancelled)))
+                        .collect();
                     hs.into_iter().filter_map(|h| h.join().ok()).collect()
                 });
                 bucket_scores.push(score::composite(&sum_by_id(&all)));
@@ -307,7 +345,11 @@ impl BenchEngine {
                 };
                 samples.push(sample.clone());
                 let first = bucket_scores[0];
-                let rel = if first > 0.0 { bucket_scores[bucket_scores.len() - 1] / first * 100.0 } else { 100.0 };
+                let rel = if first > 0.0 {
+                    bucket_scores[bucket_scores.len() - 1] / first * 100.0
+                } else {
+                    100.0
+                };
                 let p = (progress + sustained_weight * (i + 1) as f64 / buckets as f64).min(1.0);
                 self.publish(
                     |s| {
@@ -332,8 +374,13 @@ impl BenchEngine {
             }
         }
 
-        let composite =
-            score::overall(&[Some(&single_cat), Some(&multi_cat), Some(&mem_cat), gpu_cat.as_ref(), None]);
+        let composite = score::overall(&[
+            Some(&single_cat),
+            Some(&multi_cat),
+            Some(&mem_cat),
+            gpu_cat.as_ref(),
+            None,
+        ]);
         Some(BenchResult {
             date: crate::model::now_unix(),
             profile,
@@ -352,7 +399,11 @@ impl BenchEngine {
 }
 
 fn leg(id: &'static str, name: &str, score: f64) -> LiveLeg {
-    LiveLeg { id, name: t(name), score }
+    LiveLeg {
+        id,
+        name: t(name),
+        score,
+    }
 }
 
 fn sum_by_id(per_core: &[Vec<WorkloadResult>]) -> Vec<WorkloadResult> {
@@ -398,12 +449,24 @@ mod tests {
     fn quick_profile_produces_a_result_and_history() {
         let dir = std::env::temp_dir().join(format!("blip-bench-test-{}", std::process::id()));
         let path = dir.join("bench.json");
-        let e = BenchEngine::new(Arc::new(NullThermal), Some(Arc::new(FakeGpu)), "Test".into(), "OS".into(), Some(path.clone()));
+        let e = BenchEngine::new(
+            Arc::new(NullThermal),
+            Some(Arc::new(FakeGpu)),
+            "Test".into(),
+            "OS".into(),
+            Some(path.clone()),
+        );
         let r = e.run_blocking(Profile::Quick).expect("result");
         assert!(r.composite > 0.0);
         assert_eq!(r.gpu.as_ref().map(|g| g.score.round()), Some(1000.0));
         assert!(r.neural.is_none());
-        let again = BenchEngine::new(Arc::new(NullThermal), None, "Test".into(), "OS".into(), Some(path));
+        let again = BenchEngine::new(
+            Arc::new(NullThermal),
+            None,
+            "Test".into(),
+            "OS".into(),
+            Some(path),
+        );
         assert_eq!(again.state().history.len(), 1);
         let _ = std::fs::remove_dir_all(dir);
     }

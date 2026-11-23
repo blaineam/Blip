@@ -4,7 +4,11 @@ use crate::fmt;
 use crate::model::Snapshot;
 use crate::speedtest::NetSpeedResult;
 
-pub fn markdown(s: &Snapshot, speeds: &[NetSpeedResult], bench: Option<&crate::bench::BenchResult>) -> String {
+pub fn markdown(
+    s: &Snapshot,
+    speeds: &[NetSpeedResult],
+    bench: Option<&crate::bench::BenchResult>,
+) -> String {
     let mut o = String::new();
     let mut line = |k: &str, v: String| o.push_str(&format!("| {k} | {v} |\n"));
     let _ = &mut line;
@@ -24,34 +28,75 @@ pub fn markdown(s: &Snapshot, speeds: &[NetSpeedResult], bench: Option<&crate::b
         vec![
             ("Model", s.cpu.model.clone()),
             ("Usage", fmt::percent(s.cpu.total)),
-            ("User / System", format!("{} / {}", fmt::percent(s.cpu.user), fmt::percent(s.cpu.system))),
-            ("Cores", format!("{} physical, {} logical", s.cpu.physical_cores, s.cpu.logical_cores)),
+            (
+                "User / System",
+                format!("{} / {}", fmt::percent(s.cpu.user), fmt::percent(s.cpu.system)),
+            ),
+            (
+                "Cores",
+                format!(
+                    "{} physical, {} logical",
+                    s.cpu.physical_cores, s.cpu.logical_cores
+                ),
+            ),
             (
                 "Load",
-                s.cpu.load.map(|l| format!("{:.2} {:.2} {:.2}", l[0], l[1], l[2])).unwrap_or_else(|| "—".into()),
+                s.cpu
+                    .load
+                    .map(|l| format!("{:.2} {:.2} {:.2}", l[0], l[1], l[2]))
+                    .unwrap_or_else(|| "—".into()),
             ),
         ],
     );
     table(
         "Memory",
         vec![
-            ("Used", format!("{} of {}", fmt::bytes(s.memory.used), fmt::bytes(s.memory.total))),
-            ("Committed", format!("{} of {}", fmt::bytes(s.memory.committed), fmt::bytes(s.memory.commit_limit))),
+            (
+                "Used",
+                format!("{} of {}", fmt::bytes(s.memory.used), fmt::bytes(s.memory.total)),
+            ),
+            (
+                "Committed",
+                format!(
+                    "{} of {}",
+                    fmt::bytes(s.memory.committed),
+                    fmt::bytes(s.memory.commit_limit)
+                ),
+            ),
             ("Cached", fmt::bytes(s.memory.cached)),
         ],
     );
     let mut disk_rows: Vec<(&str, String)> = Vec::new();
     for v in &s.disk.volumes {
-        disk_rows.push(("Volume", format!("{} {} — {} free of {}", v.mount, v.name, fmt::disk_bytes(v.free), fmt::disk_bytes(v.total))));
+        disk_rows.push((
+            "Volume",
+            format!(
+                "{} {} — {} free of {}",
+                v.mount,
+                v.name,
+                fmt::disk_bytes(v.free),
+                fmt::disk_bytes(v.total)
+            ),
+        ));
     }
     for d in &s.disk.drives {
-        let life = d.life_remaining().map(|l| format!("{l}% life")).unwrap_or_else(|| "life unknown".into());
+        let life = d
+            .life_remaining()
+            .map(|l| format!("{l}% life"))
+            .unwrap_or_else(|| "life unknown".into());
         let temp = d.temperature_c.map(|t| format!(", {t}°C")).unwrap_or_default();
         disk_rows.push(("Drive", format!("{} — {life}{temp}", d.name)));
     }
     table("Disk", disk_rows);
     let mut net = vec![
-        ("Down / Up", format!("{} / {}", fmt::speed(s.network.down_bps), fmt::speed(s.network.up_bps))),
+        (
+            "Down / Up",
+            format!(
+                "{} / {}",
+                fmt::speed(s.network.down_bps),
+                fmt::speed(s.network.up_bps)
+            ),
+        ),
         ("WAN ping", fmt::ms(s.network.ping_ms)),
         ("Router ping", fmt::ms(s.network.router_ping_ms)),
     ];
@@ -60,20 +105,45 @@ pub fn markdown(s: &Snapshot, speeds: &[NetSpeedResult], bench: Option<&crate::b
     }
     table("Network", net);
     if s.gpu.available {
-        table("GPU", vec![("Name", s.gpu.name.clone()), ("Usage", fmt::percent(s.gpu.utilization))]);
+        table(
+            "GPU",
+            vec![
+                ("Name", s.gpu.name.clone()),
+                ("Usage", fmt::percent(s.gpu.utilization)),
+            ],
+        );
     }
     if s.battery.present {
         table(
             "Battery",
             vec![
                 ("Charge", fmt::percent(s.battery.level)),
-                ("Health", s.battery.health_pct.map(fmt::percent).unwrap_or_else(|| "—".into())),
-                ("Cycles", s.battery.cycle_count.map(|c| c.to_string()).unwrap_or_else(|| "—".into())),
+                (
+                    "Health",
+                    s.battery
+                        .health_pct
+                        .map(fmt::percent)
+                        .unwrap_or_else(|| "—".into()),
+                ),
+                (
+                    "Cycles",
+                    s.battery
+                        .cycle_count
+                        .map(|c| c.to_string())
+                        .unwrap_or_else(|| "—".into()),
+                ),
             ],
         );
     }
     if let Some(b) = bench {
-        table("Blip Bench", vec![("Score", format!("{:.0}", b.composite)), ("Single-core", format!("{:.0}", b.single_core.score)), ("All cores", format!("{:.0}", b.multi_core.score))]);
+        table(
+            "Blip Bench",
+            vec![
+                ("Score", format!("{:.0}", b.composite)),
+                ("Single-core", format!("{:.0}", b.single_core.score)),
+                ("All cores", format!("{:.0}", b.multi_core.score)),
+            ],
+        );
     }
     if !speeds.is_empty() {
         out.push_str("## Speed tests\n\n| Down | Up | Ping |\n|---|---|---|\n");
@@ -87,6 +157,9 @@ pub fn markdown(s: &Snapshot, speeds: &[NetSpeedResult], bench: Option<&crate::b
         }
         out.push('\n');
     }
-    out.push_str(&format!("Uptime {} · generated by Blip\n", fmt::uptime(s.system.uptime_secs)));
+    out.push_str(&format!(
+        "Uptime {} · generated by Blip\n",
+        fmt::uptime(s.system.uptime_secs)
+    ));
     out
 }

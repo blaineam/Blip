@@ -170,8 +170,14 @@ impl Settings {
         ("pingTarget", "host — WAN ping target"),
         ("tracerouteTarget", "host — traceroute target"),
         ("speedTestServerKind", "public | selfhosted"),
-        ("speedTestOpenSpeedTestURL", "URL of a self-hosted OpenSpeedTest server"),
-        ("netSpeedAutoRun", "bool — interval network speed tests (self-hosted only)"),
+        (
+            "speedTestOpenSpeedTestURL",
+            "URL of a self-hosted OpenSpeedTest server",
+        ),
+        (
+            "netSpeedAutoRun",
+            "bool — interval network speed tests (self-hosted only)",
+        ),
         ("netSpeedInterval", "minutes (5–1440)"),
         ("diskSpeedAutoRun", "bool — interval disk speed tests"),
         ("diskSpeedInterval", "minutes (5–1440)"),
@@ -245,7 +251,13 @@ mod tests {
     #[test]
     fn uses_the_mac_keys() {
         let v = serde_json::to_value(Settings::default()).unwrap();
-        for key in ["showCPU", "showGPU", "pingTarget", "speedTestOpenSpeedTestURL", "geoipAutoUpdate"] {
+        for key in [
+            "showCPU",
+            "showGPU",
+            "pingTarget",
+            "speedTestOpenSpeedTestURL",
+            "geoipAutoUpdate",
+        ] {
             assert!(v.get(key).is_some(), "{key}");
         }
         for (key, _) in Settings::CLI_KEYS {

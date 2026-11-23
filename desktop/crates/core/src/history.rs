@@ -13,7 +13,10 @@ impl History {
     pub const DEFAULT_LEN: usize = 60;
 
     pub fn new(cap: usize) -> Self {
-        Self { cap, values: VecDeque::with_capacity(cap) }
+        Self {
+            cap,
+            values: VecDeque::with_capacity(cap),
+        }
     }
 
     pub fn push(&mut self, v: f64) {

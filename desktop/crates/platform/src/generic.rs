@@ -48,7 +48,11 @@ impl Sampler {
             ProcessRefreshKind::nothing().with_user(UpdateKind::Always),
         );
         let self_uid = sys.process(self_pid).and_then(|p| p.user_id().cloned());
-        let cpu_model = sys.cpus().first().map(|c| c.brand().trim().to_string()).unwrap_or_default();
+        let cpu_model = sys
+            .cpus()
+            .first()
+            .map(|c| c.brand().trim().to_string())
+            .unwrap_or_default();
         let static_info = SystemInfo {
             model: sysinfo::Product::name().unwrap_or_default(),
             manufacturer: sysinfo::Product::vendor_name().unwrap_or_default(),
@@ -60,7 +64,8 @@ impl Sampler {
         Self {
             sys,
             disks: Disks::new_with_refreshed_list().unwrap_or_else(|_| Disks::new().expect("disks")),
-            networks: Networks::new_with_refreshed_list().unwrap_or_else(|_| Networks::new().expect("networks")),
+            networks: Networks::new_with_refreshed_list()
+                .unwrap_or_else(|_| Networks::new().expect("networks")),
             users: Users::new_with_refreshed_list().unwrap_or_else(|_| Users::new().expect("users")),
             self_pid,
             self_uid,
@@ -100,7 +105,10 @@ impl Sampler {
         );
         self.disks.refresh(true);
 
-        let mut s = Snapshot { timestamp: now_unix(), ..Default::default() };
+        let mut s = Snapshot {
+            timestamp: now_unix(),
+            ..Default::default()
+        };
 
         // CPU
         let cores: Vec<f64> = self.sys.cpus().iter().map(|c| c.usage() as f64).collect();
@@ -112,7 +120,11 @@ impl Sampler {
         s.cpu.frequency_mhz = self.sys.cpus().first().map(|c| c.frequency()).filter(|f| *f > 0);
         #[cfg(not(windows))]
         {
-            let l = System::load_average().unwrap_or(sysinfo::LoadAvg { one: 0.0, five: 0.0, fifteen: 0.0 });
+            let l = System::load_average().unwrap_or(sysinfo::LoadAvg {
+                one: 0.0,
+                five: 0.0,
+                fifteen: 0.0,
+            });
             s.cpu.load = Some([l.one, l.five, l.fifteen]);
             s.cpu.user = s.cpu.total;
         }
@@ -152,7 +164,9 @@ impl Sampler {
                 is_system: mount.eq_ignore_ascii_case(&sys_root),
             });
         }
-        s.disk.volumes.sort_by_key(|v| (!v.is_system, v.removable, v.mount.clone()));
+        s.disk
+            .volumes
+            .sort_by_key(|v| (!v.is_system, v.removable, v.mount.clone()));
         if dt > 0.0 {
             s.disk.read_bps = (read_delta as f64 / dt) as u64;
             s.disk.write_bps = (write_delta as f64 / dt) as u64;
@@ -233,11 +247,19 @@ impl Sampler {
             let e = self.net_totals.entry(name.clone()).or_default();
             e.0 += data.received();
             e.1 += data.transmitted();
-            let (v4, v6): (Vec<_>, Vec<_>) = data.ip_networks().iter().map(|n| n.addr).partition(|a| a.is_ipv4());
+            let (v4, v6): (Vec<_>, Vec<_>) = data
+                .ip_networks()
+                .iter()
+                .map(|n| n.addr)
+                .partition(|a| a.is_ipv4());
             if v4.is_empty() && v6.is_empty() {
                 continue;
             }
-            let kind = if name.starts_with("utun") || name.starts_with("wg") || name.starts_with("tailscale") || name.starts_with("tun") {
+            let kind = if name.starts_with("utun")
+                || name.starts_with("wg")
+                || name.starts_with("tailscale")
+                || name.starts_with("tun")
+            {
                 InterfaceKind::Vpn
             } else if name.starts_with("wl") {
                 InterfaceKind::WiFi
@@ -268,7 +290,12 @@ impl Sampler {
             .iter()
             .find(|i| i.kind != InterfaceKind::Vpn && !i.ipv4.is_empty())
             .map(|i| i.id.clone());
-        s.network.vpn = s.network.interfaces.iter().find(|i| i.kind == InterfaceKind::Vpn).map(|i| i.name.clone());
+        s.network.vpn = s
+            .network
+            .interfaces
+            .iter()
+            .find(|i| i.kind == InterfaceKind::Vpn)
+            .map(|i| i.name.clone());
         s.network.connected = s.network.primary.is_some();
     }
 }
@@ -310,7 +337,10 @@ fn skip_mount(m: &str) -> bool {
     }
     #[cfg(all(unix, not(target_os = "macos")))]
     {
-        m.starts_with("/boot") || m.starts_with("/snap/") || m.starts_with("/run") || m.starts_with("/var/lib/docker")
+        m.starts_with("/boot")
+            || m.starts_with("/snap/")
+            || m.starts_with("/run")
+            || m.starts_with("/var/lib/docker")
     }
     #[cfg(windows)]
     {
@@ -379,8 +409,16 @@ mod tests {
 
     #[test]
     fn merges_helper_processes() {
-        let p = |n: &str, c: f64| ProcessInfo { name: n.into(), cpu: c, ..Default::default() };
-        let m = merge_by_name(&[p("chrome.exe", 30.0), p("code.exe", 25.0), p("chrome.exe", 20.0)], 5, |p| p.cpu);
+        let p = |n: &str, c: f64| ProcessInfo {
+            name: n.into(),
+            cpu: c,
+            ..Default::default()
+        };
+        let m = merge_by_name(
+            &[p("chrome.exe", 30.0), p("code.exe", 25.0), p("chrome.exe", 20.0)],
+            5,
+            |p| p.cpu,
+        );
         assert_eq!(m[0].name, "chrome.exe");
         assert_eq!(m[0].cpu, 50.0);
     }

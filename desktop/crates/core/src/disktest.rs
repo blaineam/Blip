@@ -106,7 +106,11 @@ pub fn run(
     cancelled: &dyn Fn() -> bool,
 ) -> Result<Option<DiskSpeedResult>, String> {
     let total = size_mb as usize * 1_000_000;
-    let path: PathBuf = dir.join(format!("blip-speedtest-{}-{}.bin", std::process::id(), crate::model::now_unix()));
+    let path: PathBuf = dir.join(format!(
+        "blip-speedtest-{}-{}.bin",
+        std::process::id(),
+        crate::model::now_unix()
+    ));
     struct Cleanup(PathBuf);
     impl Drop for Cleanup {
         fn drop(&mut self) {
@@ -209,8 +213,10 @@ pub struct DiskTester {
 
 impl DiskTester {
     pub fn new(history_path: Option<PathBuf>) -> Self {
-        let history: Vec<DiskSpeedResult> =
-            history_path.as_ref().and_then(|p| crate::paths::load_json(p)).unwrap_or_default();
+        let history: Vec<DiskSpeedResult> = history_path
+            .as_ref()
+            .and_then(|p| crate::paths::load_json(p))
+            .unwrap_or_default();
         Self {
             state: Arc::new(Mutex::new(DiskTestState {
                 last_result: history.last().cloned(),

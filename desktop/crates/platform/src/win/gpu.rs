@@ -21,21 +21,36 @@ pub struct Adapter {
 pub fn adapters() -> Vec<Adapter> {
     let mut out = Vec::new();
     // SAFETY: DXGI factory enumeration.
-    let Ok(factory) = (unsafe { CreateDXGIFactory1::<IDXGIFactory1>() }) else { return out };
+    let Ok(factory) = (unsafe { CreateDXGIFactory1::<IDXGIFactory1>() }) else {
+        return out;
+    };
     let mut i = 0;
     while let Ok(a) = unsafe { factory.EnumAdapters1(i) } {
         i += 1;
-        let Ok(d) = (unsafe { a.GetDesc1() }) else { continue };
+        let Ok(d) = (unsafe { a.GetDesc1() }) else {
+            continue;
+        };
         if d.Flags & DXGI_ADAPTER_FLAG_SOFTWARE.0 as u32 != 0 {
             continue;
         }
-        let len = d.Description.iter().position(|c| *c == 0).unwrap_or(d.Description.len());
+        let len = d
+            .Description
+            .iter()
+            .position(|c| *c == 0)
+            .unwrap_or(d.Description.len());
         let name = String::from_utf16_lossy(&d.Description[..len]);
         if name.contains("Microsoft Basic Render") {
             continue;
         }
-        let luid = format!("luid_0x{:08x}_0x{:08x}", d.AdapterLuid.HighPart as u32, d.AdapterLuid.LowPart);
-        out.push(Adapter { name, luid, dedicated: d.DedicatedVideoMemory as u64 });
+        let luid = format!(
+            "luid_0x{:08x}_0x{:08x}",
+            d.AdapterLuid.HighPart as u32, d.AdapterLuid.LowPart
+        );
+        out.push(Adapter {
+            name,
+            luid,
+            dedicated: d.DedicatedVideoMemory as u64,
+        });
     }
     out
 }
@@ -47,24 +62,33 @@ pub fn fill(out: &mut GpuStats, adapters: &[Adapter], pdh: &Pdh, nvml: Option<&N
     let mut per: HashMap<(String, String), f64> = HashMap::new();
     for (inst, v) in &engines {
         let lower = inst.to_ascii_lowercase();
-        let Some(luid) = extract(&lower, "luid_", 2) else { continue };
+        let Some(luid) = extract(&lower, "luid_", 2) else {
+            continue;
+        };
         let ty = lower.split("engtype_").nth(1).unwrap_or("other").to_string();
         *per.entry((luid, ty)).or_default() += v;
     }
     // Primary = the adapter with the most dedicated memory (the discrete GPU on hybrids),
     // unless another is far busier right now.
-    let busy = |luid: &str| per.iter().filter(|((l, _), _)| l == luid).map(|(_, v)| *v).fold(0.0, f64::max);
-    let Some(primary) = adapters
-        .iter()
-        .max_by(|a, b| (a.dedicated as f64 + busy(&a.luid) * 1e9).total_cmp(&(b.dedicated as f64 + busy(&b.luid) * 1e9)))
-    else {
+    let busy = |luid: &str| {
+        per.iter()
+            .filter(|((l, _), _)| l == luid)
+            .map(|(_, v)| *v)
+            .fold(0.0, f64::max)
+    };
+    let Some(primary) = adapters.iter().max_by(|a, b| {
+        (a.dedicated as f64 + busy(&a.luid) * 1e9).total_cmp(&(b.dedicated as f64 + busy(&b.luid) * 1e9))
+    }) else {
         return;
     };
     out.available = true;
     out.name = primary.name.clone();
     out.dedicated_total = Some(primary.dedicated).filter(|d| *d > 0);
-    let mut types: Vec<(String, f64)> =
-        per.iter().filter(|((l, _), _)| *l == primary.luid).map(|((_, t), v)| (pretty_engine(t), v.min(100.0))).collect();
+    let mut types: Vec<(String, f64)> = per
+        .iter()
+        .filter(|((l, _), _)| *l == primary.luid)
+        .map(|((_, t), v)| (pretty_engine(t), v.min(100.0)))
+        .collect();
     types.sort_by(|a, b| b.1.total_cmp(&a.1));
     out.utilization = types.first().map(|t| t.1).unwrap_or(0.0);
     out.engines = types;
@@ -114,7 +138,9 @@ fn pretty_engine(t: &str) -> String {
         "videoprocessing" => "Video Processing".into(),
         other => {
             let mut c = other.chars();
-            c.next().map(|f| f.to_uppercase().collect::<String>() + c.as_str()).unwrap_or_default()
+            c.next()
+                .map(|f| f.to_uppercase().collect::<String>() + c.as_str())
+                .unwrap_or_default()
         }
     }
 }
@@ -144,9 +170,16 @@ impl Nvml {
                 return None;
             }
             Some(Self {
-                get_handle: std::mem::transmute::<Raw, Handle>(GetProcAddress(lib, s!("nvmlDeviceGetHandleByIndex_v2"))?),
-                get_temp: std::mem::transmute::<Raw, Temp>(GetProcAddress(lib, s!("nvmlDeviceGetTemperature"))?),
-                get_fan: GetProcAddress(lib, s!("nvmlDeviceGetFanSpeed")).map(|f| std::mem::transmute::<Raw, FanFn>(f)),
+                get_handle: std::mem::transmute::<Raw, Handle>(GetProcAddress(
+                    lib,
+                    s!("nvmlDeviceGetHandleByIndex_v2"),
+                )?),
+                get_temp: std::mem::transmute::<Raw, Temp>(GetProcAddress(
+                    lib,
+                    s!("nvmlDeviceGetTemperature"),
+                )?),
+                get_fan: GetProcAddress(lib, s!("nvmlDeviceGetFanSpeed"))
+                    .map(|f| std::mem::transmute::<Raw, FanFn>(f)),
             })
         }
     }
@@ -176,7 +209,10 @@ mod tests {
     #[test]
     fn parses_engine_instance() {
         let i = "pid_1234_luid_0x00000000_0x0000d1b4_phys_0_eng_0_engtype_3d";
-        assert_eq!(extract(i, "luid_", 2).as_deref(), Some("luid_0x00000000_0x0000d1b4"));
+        assert_eq!(
+            extract(i, "luid_", 2).as_deref(),
+            Some("luid_0x00000000_0x0000d1b4")
+        );
         assert_eq!(pretty_engine("videodecode"), "Video Decode");
     }
 }

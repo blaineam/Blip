@@ -40,13 +40,20 @@ struct Counters {
 }
 
 fn if_counters(index: u32) -> Option<Counters> {
-    let mut row = MIB_IF_ROW2 { InterfaceIndex: index, ..Default::default() };
+    let mut row = MIB_IF_ROW2 {
+        InterfaceIndex: index,
+        ..Default::default()
+    };
     // SAFETY: row is a valid, index-initialised MIB_IF_ROW2.
     let rc = unsafe { GetIfEntry2(&mut row) };
     if rc.0 != 0 {
         return None;
     }
-    Some(Counters { in_octets: row.InOctets, out_octets: row.OutOctets, hardware: row.InterfaceAndOperStatusFlags._bitfield & 1 != 0 })
+    Some(Counters {
+        in_octets: row.InOctets,
+        out_octets: row.OutOctets,
+        hardware: row.InterfaceAndOperStatusFlags._bitfield & 1 != 0,
+    })
 }
 
 /// SOCKADDR → IpAddr.
@@ -85,9 +92,27 @@ pub fn is_vpn(description: &str, name: &str, if_type: u32) -> bool {
     let d = format!("{description} {name}").to_ascii_lowercase();
     if_type == IF_TYPE_PPP
         || [
-            "tailscale", "wireguard", "openvpn", "tap-windows", "wintun", "zerotier", "anyconnect", "globalprotect",
-            "fortinet", "forticlient", "nordlynx", "mullvad", "protonvpn", "expressvpn", "pangp", "juniper", "pulse secure",
-            "netextender", "sonicwall", "cloudflare warp", "vpn",
+            "tailscale",
+            "wireguard",
+            "openvpn",
+            "tap-windows",
+            "wintun",
+            "zerotier",
+            "anyconnect",
+            "globalprotect",
+            "fortinet",
+            "forticlient",
+            "nordlynx",
+            "mullvad",
+            "protonvpn",
+            "expressvpn",
+            "pangp",
+            "juniper",
+            "pulse secure",
+            "netextender",
+            "sonicwall",
+            "cloudflare warp",
+            "vpn",
         ]
         .iter()
         .any(|k| d.contains(k))
@@ -95,7 +120,14 @@ pub fn is_vpn(description: &str, name: &str, if_type: u32) -> bool {
 
 impl NetSampler {
     pub fn new() -> Self {
-        Self { prev: HashMap::new(), totals: (0, 0), wifi: HashMap::new(), wifi_at: None, metered: false, metered_at: None }
+        Self {
+            prev: HashMap::new(),
+            totals: (0, 0),
+            wifi: HashMap::new(),
+            wifi_at: None,
+            metered: false,
+            metered_at: None,
+        }
     }
 
     pub fn sample(&mut self, out: &mut NetworkStats, dt: f64) {
@@ -105,7 +137,15 @@ impl NetSampler {
         loop {
             buf = vec![0u64; (size as usize).div_ceil(8)];
             // SAFETY: buffer of `size` bytes, 8-aligned.
-            let rc = unsafe { GetAdaptersAddresses(AF_UNSPEC.0 as u32, flags, None, Some(buf.as_mut_ptr() as *mut IP_ADAPTER_ADDRESSES_LH), &mut size) };
+            let rc = unsafe {
+                GetAdaptersAddresses(
+                    AF_UNSPEC.0 as u32,
+                    flags,
+                    None,
+                    Some(buf.as_mut_ptr() as *mut IP_ADAPTER_ADDRESSES_LH),
+                    &mut size,
+                )
+            };
             if rc == 111 {
                 // ERROR_BUFFER_OVERFLOW: `size` now holds what's needed.
                 continue;
@@ -199,7 +239,11 @@ impl NetSampler {
                 // SAFETY: AdapterName is the "{GUID}" ANSI string.
                 unsafe { a.AdapterName.to_string() }.unwrap_or_default()
             };
-            let (ssid, signal) = self.wifi.get(&guid.to_ascii_lowercase()).cloned().map_or((None, None), |(s, q)| (Some(s), Some(q)));
+            let (ssid, signal) = self
+                .wifi
+                .get(&guid.to_ascii_lowercase())
+                .cloned()
+                .map_or((None, None), |(s, q)| (Some(s), Some(q)));
 
             if let Some(c) = if_counters(index) {
                 let prev = self.prev.insert(index, (c.in_octets, c.out_octets));
@@ -225,7 +269,8 @@ impl NetSampler {
                 mac,
                 gateway,
                 dns,
-                link_speed_bps: Some(a.ReceiveLinkSpeed.max(a.TransmitLinkSpeed)).filter(|s| *s > 0 && *s != u64::MAX),
+                link_speed_bps: Some(a.ReceiveLinkSpeed.max(a.TransmitLinkSpeed))
+                    .filter(|s| *s > 0 && *s != u64::MAX),
                 is_up: true,
                 ssid,
                 signal_pct: signal,
@@ -243,20 +288,37 @@ impl NetSampler {
 
         // Primary = the route to the internet; prefer its physical sibling for "Interface" when
         // the route is a full-tunnel VPN, but report the VPN either way.
-        out.primary = best.map(|b| b.to_string()).filter(|b| out.interfaces.iter().any(|i| &i.id == b));
+        out.primary = best
+            .map(|b| b.to_string())
+            .filter(|b| out.interfaces.iter().any(|i| &i.id == b));
         if out.primary.is_none() {
-            out.primary = out.interfaces.iter().find(|i| i.gateway.is_some()).map(|i| i.id.clone());
+            out.primary = out
+                .interfaces
+                .iter()
+                .find(|i| i.gateway.is_some())
+                .map(|i| i.id.clone());
         }
-        out.vpn = out.interfaces.iter().find(|i| i.kind == InterfaceKind::Vpn).map(|i| i.name.clone());
+        out.vpn = out
+            .interfaces
+            .iter()
+            .find(|i| i.kind == InterfaceKind::Vpn)
+            .map(|i| i.name.clone());
         let physical_primary = out
             .primary_interface()
             .filter(|i| i.kind != InterfaceKind::Vpn)
             .cloned()
-            .or_else(|| out.interfaces.iter().find(|i| i.kind != InterfaceKind::Vpn && i.gateway.is_some()).cloned());
+            .or_else(|| {
+                out.interfaces
+                    .iter()
+                    .find(|i| i.kind != InterfaceKind::Vpn && i.gateway.is_some())
+                    .cloned()
+            });
         if let Some(p) = &physical_primary {
             out.primary = Some(p.id.clone());
         }
-        out.router_ip = physical_primary.and_then(|i| i.gateway).filter(|g| g.parse::<Ipv4Addr>().is_ok());
+        out.router_ip = physical_primary
+            .and_then(|i| i.gateway)
+            .filter(|g| g.parse::<Ipv4Addr>().is_ok());
         out.connected = out.primary.is_some();
         out.metered = self.metered;
     }
@@ -277,17 +339,29 @@ impl NetSampler {
         // SAFETY: valid client handle.
         if unsafe { WlanEnumInterfaces(h, None, &mut list) } == 0 && !list.is_null() {
             let l = unsafe { &*list };
-            let items = unsafe { std::slice::from_raw_parts(l.InterfaceInfo.as_ptr(), l.dwNumberOfItems as usize) };
+            let items =
+                unsafe { std::slice::from_raw_parts(l.InterfaceInfo.as_ptr(), l.dwNumberOfItems as usize) };
             for info in items {
                 let mut size = 0u32;
                 let mut data: *mut core::ffi::c_void = std::ptr::null_mut();
                 // SAFETY: valid handle + interface GUID. Fails with ACCESS_DENIED when Windows
                 // location access is off for desktop apps (24H2+) — the SSID then stays hidden.
-                let rc = unsafe { WlanQueryInterface(h, &info.InterfaceGuid, wlan_intf_opcode_current_connection, None, &mut size, &mut data, None) };
+                let rc = unsafe {
+                    WlanQueryInterface(
+                        h,
+                        &info.InterfaceGuid,
+                        wlan_intf_opcode_current_connection,
+                        None,
+                        &mut size,
+                        &mut data,
+                        None,
+                    )
+                };
                 if rc == 0 && !data.is_null() {
                     let attrs = unsafe { &*(data as *const WLAN_CONNECTION_ATTRIBUTES) };
                     let s = &attrs.wlanAssociationAttributes.dot11Ssid;
-                    let ssid = String::from_utf8_lossy(&s.ucSSID[..(s.uSSIDLength as usize).min(32)]).to_string();
+                    let ssid =
+                        String::from_utf8_lossy(&s.ucSSID[..(s.uSSIDLength as usize).min(32)]).to_string();
                     let q = attrs.wlanAssociationAttributes.wlanSignalQuality.min(100) as u8;
                     self.wifi.insert(guid_string(&info.InterfaceGuid), (ssid, q));
                     unsafe { WlanFreeMemory(data) };
@@ -317,7 +391,9 @@ fn best_interface() -> Option<u32> {
     let sin = SOCKADDR_IN {
         sin_family: AF_INET,
         sin_addr: windows::Win32::Networking::WinSock::IN_ADDR {
-            S_un: windows::Win32::Networking::WinSock::IN_ADDR_0 { S_addr: u32::from_ne_bytes([1, 1, 1, 1]) },
+            S_un: windows::Win32::Networking::WinSock::IN_ADDR_0 {
+                S_addr: u32::from_ne_bytes([1, 1, 1, 1]),
+            },
         },
         ..Default::default()
     };
@@ -333,7 +409,10 @@ fn metered() -> windows::core::Result<bool> {
     let profile = NetworkInformation::GetInternetConnectionProfile()?;
     let cost = profile.GetConnectionCost()?;
     let t = cost.NetworkCostType()?;
-    Ok(t == NetworkCostType::Fixed || t == NetworkCostType::Variable || cost.Roaming()? || cost.OverDataLimit()?)
+    Ok(t == NetworkCostType::Fixed
+        || t == NetworkCostType::Variable
+        || cost.Roaming()?
+        || cost.OverDataLimit()?)
 }
 
 #[cfg(test)]

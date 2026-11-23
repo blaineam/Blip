@@ -1,0 +1,39 @@
+[package]
+name = "blip-desktop"
+description = "Blip for Windows: a featherlight system monitor in the notification area."
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+publish.workspace = true
+
+[lib]
+name = "blip_app"
+path = "src/lib.rs"
+
+[[bin]]
+name = "Blip"
+path = "src/main.rs"
+
+[[bin]]
+name = "blip-cli"
+path = "src/bin/blip-cli.rs"
+
+[dependencies]
+blip-core.workspace = true
+blip-platform.workspace = true
+serde_json.workspace = true
+eframe = { version = "0.37", default-features = false, features = ["glow", "default_fonts"] }
+tray-icon = "0.26"
+chrono = { version = "0.4", default-features = false, features = ["clock", "std"] }
+
+[target.'cfg(windows)'.dependencies]
+wry = { version = "0.57", default-features = false, features = ["os-webview"] }
+rfd = "0.18"
+raw-window-handle = "0.6"
+windows = { version = "0.62", features = ["Win32_Foundation", "Win32_System_Console", "Win32_System_Threading", "Win32_UI_WindowsAndMessaging", "Win32_Graphics_Dwm", "Win32_UI_Shell", "Win32_Security", "Win32_Graphics_Gdi", "Win32_UI_HiDpi", "Win32_System_Registry"] }
+
+[target.'cfg(windows)'.build-dependencies]
+winresource = "0.1"
+
+[dev-dependencies]
+egui_kittest = { version = "0.37", features = ["wgpu", "snapshot"] }

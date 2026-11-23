@@ -87,10 +87,19 @@ pub fn sample(out: &mut BatteryStats) {
 fn first_battery() -> Option<Device> {
     // SAFETY: standard SetupAPI enumeration; the list is destroyed before returning.
     unsafe {
-        let set = SetupDiGetClassDevsW(Some(&GUID_DEVCLASS_BATTERY), None, None, DIGCF_PRESENT | DIGCF_DEVICEINTERFACE).ok()?;
+        let set = SetupDiGetClassDevsW(
+            Some(&GUID_DEVCLASS_BATTERY),
+            None,
+            None,
+            DIGCF_PRESENT | DIGCF_DEVICEINTERFACE,
+        )
+        .ok()?;
         let mut result = None;
         for index in 0..4 {
-            let mut iface = SP_DEVICE_INTERFACE_DATA { cbSize: std::mem::size_of::<SP_DEVICE_INTERFACE_DATA>() as u32, ..Default::default() };
+            let mut iface = SP_DEVICE_INTERFACE_DATA {
+                cbSize: std::mem::size_of::<SP_DEVICE_INTERFACE_DATA>() as u32,
+                ..Default::default()
+            };
             if SetupDiEnumDeviceInterfaces(set, None, &GUID_DEVCLASS_BATTERY, index, &mut iface).is_err() {
                 break;
             }
@@ -111,7 +120,9 @@ fn first_battery() -> Option<Device> {
                 len += 1;
             }
             let path = String::from_utf16_lossy(std::slice::from_raw_parts(path_ptr, len));
-            if let Some(d) = Device::open(&path, GENERIC_READ | GENERIC_WRITE).or_else(|| Device::open(&path, GENERIC_READ)) {
+            if let Some(d) = Device::open(&path, GENERIC_READ | GENERIC_WRITE)
+                .or_else(|| Device::open(&path, GENERIC_READ))
+            {
                 result = Some(d);
                 break;
             }
@@ -124,40 +135,80 @@ fn first_battery() -> Option<Device> {
 fn details(dev: &Device, out: &mut BatteryStats) {
     let wait: u32 = 0;
     let mut tag: u32 = 0;
-    if dev.ioctl(IOCTL_BATTERY_QUERY_TAG, Some(&wait), &mut tag).is_none() || tag == 0 {
+    if dev
+        .ioctl(IOCTL_BATTERY_QUERY_TAG, Some(&wait), &mut tag)
+        .is_none()
+        || tag == 0
+    {
         return;
     }
     let mut info = BatteryInformation::default();
-    let q = BatteryQueryInformation { tag, level: BATTERY_INFORMATION_LEVEL, at_rate: 0 };
-    if dev.ioctl(IOCTL_BATTERY_QUERY_INFORMATION, Some(&q), &mut info).is_some() {
-        if info.designed_capacity > 0 && info.full_charged_capacity > 0 && info.designed_capacity != u32::MAX {
+    let q = BatteryQueryInformation {
+        tag,
+        level: BATTERY_INFORMATION_LEVEL,
+        at_rate: 0,
+    };
+    if dev
+        .ioctl(IOCTL_BATTERY_QUERY_INFORMATION, Some(&q), &mut info)
+        .is_some()
+    {
+        if info.designed_capacity > 0 && info.full_charged_capacity > 0 && info.designed_capacity != u32::MAX
+        {
             out.design_capacity_mwh = Some(info.designed_capacity);
             out.full_capacity_mwh = Some(info.full_charged_capacity);
-            out.health_pct = Some((info.full_charged_capacity as f64 / info.designed_capacity as f64 * 100.0).min(100.0));
+            out.health_pct =
+                Some((info.full_charged_capacity as f64 / info.designed_capacity as f64 * 100.0).min(100.0));
         }
         if info.cycle_count > 0 {
             out.cycle_count = Some(info.cycle_count);
         }
-        let chem = String::from_utf8_lossy(&info.chemistry).trim_matches(char::from(0)).trim().to_string();
+        let chem = String::from_utf8_lossy(&info.chemistry)
+            .trim_matches(char::from(0))
+            .trim()
+            .to_string();
         if !chem.is_empty() {
             out.chemistry = Some(chem);
         }
     }
     let mut tenths_kelvin: u32 = 0;
-    let q = BatteryQueryInformation { tag, level: BATTERY_TEMPERATURE_LEVEL, at_rate: 0 };
-    if dev.ioctl(IOCTL_BATTERY_QUERY_INFORMATION, Some(&q), &mut tenths_kelvin).is_some() && tenths_kelvin > 2000 {
+    let q = BatteryQueryInformation {
+        tag,
+        level: BATTERY_TEMPERATURE_LEVEL,
+        at_rate: 0,
+    };
+    if dev
+        .ioctl(IOCTL_BATTERY_QUERY_INFORMATION, Some(&q), &mut tenths_kelvin)
+        .is_some()
+        && tenths_kelvin > 2000
+    {
         out.temperature_c = Some(tenths_kelvin as f64 / 10.0 - 273.15);
     }
     if out.minutes_remaining.is_none() && !out.plugged_in {
         let mut secs: u32 = 0;
-        let q = BatteryQueryInformation { tag, level: BATTERY_ESTIMATED_TIME_LEVEL, at_rate: 0 };
-        if dev.ioctl(IOCTL_BATTERY_QUERY_INFORMATION, Some(&q), &mut secs).is_some() && secs != u32::MAX && secs > 0 {
+        let q = BatteryQueryInformation {
+            tag,
+            level: BATTERY_ESTIMATED_TIME_LEVEL,
+            at_rate: 0,
+        };
+        if dev
+            .ioctl(IOCTL_BATTERY_QUERY_INFORMATION, Some(&q), &mut secs)
+            .is_some()
+            && secs != u32::MAX
+            && secs > 0
+        {
             out.minutes_remaining = Some(secs / 60);
         }
     }
-    let ws = BatteryWaitStatus { tag, ..Default::default() };
+    let ws = BatteryWaitStatus {
+        tag,
+        ..Default::default()
+    };
     let mut st = BatteryStatus::default();
-    if dev.ioctl(IOCTL_BATTERY_QUERY_STATUS, Some(&ws), &mut st).is_some() && st.rate != BATTERY_UNKNOWN_RATE {
+    if dev
+        .ioctl(IOCTL_BATTERY_QUERY_STATUS, Some(&ws), &mut st)
+        .is_some()
+        && st.rate != BATTERY_UNKNOWN_RATE
+    {
         out.rate_mw = Some(st.rate);
         if st.power_state & 0x4 != 0 {
             out.charging = true;

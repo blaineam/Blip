@@ -36,7 +36,11 @@ pub fn ping(host: &str, timeout_ms: u32) -> Option<f64> {
 
 #[cfg(not(windows))]
 fn system_ping(ip: IpAddr, timeout_ms: u32) -> Option<f64> {
-    let mut cmd = std::process::Command::new(if ip.is_ipv6() && cfg!(target_os = "macos") { "ping6" } else { "ping" });
+    let mut cmd = std::process::Command::new(if ip.is_ipv6() && cfg!(target_os = "macos") {
+        "ping6"
+    } else {
+        "ping"
+    });
     cmd.arg("-c").arg("1");
     #[cfg(target_os = "macos")]
     cmd.arg("-t").arg(timeout_ms.div_ceil(1000).max(1).to_string());
@@ -45,7 +49,12 @@ fn system_ping(ip: IpAddr, timeout_ms: u32) -> Option<f64> {
     let out = cmd.arg(ip.to_string()).output().ok()?;
     let text = String::from_utf8_lossy(&out.stdout);
     let i = text.find("time=")?;
-    text[i + 5..].split_whitespace().next()?.trim_end_matches("ms").parse().ok()
+    text[i + 5..]
+        .split_whitespace()
+        .next()?
+        .trim_end_matches("ms")
+        .parse()
+        .ok()
 }
 
 #[cfg(not(windows))]
@@ -64,7 +73,10 @@ pub fn default_gateway() -> Option<String> {
     }
     #[cfg(not(target_os = "linux"))]
     {
-        let out = std::process::Command::new("route").args(["-n", "get", "default"]).output().ok()?;
+        let out = std::process::Command::new("route")
+            .args(["-n", "get", "default"])
+            .output()
+            .ok()?;
         String::from_utf8_lossy(&out.stdout)
             .lines()
             .find_map(|l| l.trim().strip_prefix("gateway:").map(|g| g.trim().to_string()))
@@ -87,7 +99,10 @@ struct PingerState {
 
 impl Pinger {
     pub fn start() -> Self {
-        let state = Arc::new(Mutex::new(PingerState { target: "1.1.1.1".into(), ..Default::default() }));
+        let state = Arc::new(Mutex::new(PingerState {
+            target: "1.1.1.1".into(),
+            ..Default::default()
+        }));
         let stop = Arc::new(AtomicBool::new(false));
         let (st, sp) = (state.clone(), stop.clone());
         std::thread::Builder::new()
@@ -173,7 +188,13 @@ impl Traceroute {
 
     pub fn snapshot(&self) -> TraceSnapshot {
         let g = self.inner.lock().unwrap();
-        TraceSnapshot { host: g.host.clone(), hops: g.acc.snapshot(), running: g.running, passes: g.passes, error: g.error.clone() }
+        TraceSnapshot {
+            host: g.host.clone(),
+            hops: g.acc.snapshot(),
+            running: g.running,
+            passes: g.passes,
+            error: g.error.clone(),
+        }
     }
 
     pub fn is_running(&self) -> bool {
@@ -189,12 +210,20 @@ impl Traceroute {
     /// Starts (or restarts) tracing `host`. `on_update` fires after every hop.
     pub fn start(&self, host: &str, on_update: Option<Arc<dyn Fn() + Send + Sync>>) -> Result<(), String> {
         if !blip_core::trace::is_valid_host(host) {
-            return Err(blip_core::tf("“%@” isn't a valid hostname or IP address.", &[&host]));
+            return Err(blip_core::tf(
+                "“%@” isn't a valid hostname or IP address.",
+                &[&host],
+            ));
         }
         let generation = {
             let mut g = self.inner.lock().unwrap();
             let generation = g.generation + 1;
-            *g = TraceInner { generation, host: host.to_string(), running: true, ..Default::default() };
+            *g = TraceInner {
+                generation,
+                host: host.to_string(),
+                running: true,
+                ..Default::default()
+            };
             generation
         };
         let inner = self.inner.clone();
@@ -259,20 +288,50 @@ fn probe_hop(ip: IpAddr, ttl: u32) -> (HopProbe, bool) {
     #[cfg(windows)]
     {
         match crate::win::icmp::echo(ip, Some(ttl as u8), 1000) {
-            Some(r) => (HopProbe { hop: ttl, host: r.from.map(|a| a.to_string()), rtt_ms: r.rtt_ms }, r.reached),
-            None => (HopProbe { hop: ttl, host: None, rtt_ms: None }, false),
+            Some(r) => (
+                HopProbe {
+                    hop: ttl,
+                    host: r.from.map(|a| a.to_string()),
+                    rtt_ms: r.rtt_ms,
+                },
+                r.reached,
+            ),
+            None => (
+                HopProbe {
+                    hop: ttl,
+                    host: None,
+                    rtt_ms: None,
+                },
+                false,
+            ),
         }
     }
     #[cfg(not(windows))]
     {
         // Portable fallback: one-probe traceroute to exactly this TTL.
         let out = std::process::Command::new("traceroute")
-            .args(["-n", "-q", "1", "-w", "1", "-f", &ttl.to_string(), "-m", &ttl.to_string(), &ip.to_string()])
+            .args([
+                "-n",
+                "-q",
+                "1",
+                "-w",
+                "1",
+                "-f",
+                &ttl.to_string(),
+                "-m",
+                &ttl.to_string(),
+                &ip.to_string(),
+            ])
             .output();
-        let text = out.map(|o| String::from_utf8_lossy(&o.stdout).to_string()).unwrap_or_default();
-        let probe = text.lines().find_map(HopProbe::parse).unwrap_or(HopProbe { hop: ttl, host: None, rtt_ms: None });
+        let text = out
+            .map(|o| String::from_utf8_lossy(&o.stdout).to_string())
+            .unwrap_or_default();
+        let probe = text.lines().find_map(HopProbe::parse).unwrap_or(HopProbe {
+            hop: ttl,
+            host: None,
+            rtt_ms: None,
+        });
         let reached = probe.host.as_deref() == Some(&ip.to_string());
         (HopProbe { hop: ttl, ..probe }, reached)
     }
 }
-

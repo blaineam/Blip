@@ -29,7 +29,11 @@ impl HopProbe {
                 host = Some(tok.to_string());
             }
         }
-        Some(HopProbe { hop, host, rtt_ms: rtt })
+        Some(HopProbe {
+            hop,
+            host,
+            rtt_ms: rtt,
+        })
     }
 }
 
@@ -107,7 +111,11 @@ impl HopAccumulator {
                 host: s.host.clone().unwrap_or_else(|| "*".into()),
                 sent: s.sent,
                 recv: s.recv,
-                loss_pct: if s.sent > 0 { (s.sent - s.recv) as f64 / s.sent as f64 * 100.0 } else { 0.0 },
+                loss_pct: if s.sent > 0 {
+                    (s.sent - s.recv) as f64 / s.sent as f64 * 100.0
+                } else {
+                    0.0
+                },
                 last_ms: s.last,
                 avg_ms: (s.recv > 0).then(|| s.total / s.recv as f64),
                 best_ms: s.best,
@@ -122,12 +130,16 @@ pub fn is_valid_host(host: &str) -> bool {
     !host.is_empty()
         && host.len() <= 253
         && !host.starts_with('-')
-        && host.chars().all(|c| c.is_ascii_alphanumeric() || matches!(c, '.' | '-' | ':'))
+        && host
+            .chars()
+            .all(|c| c.is_ascii_alphanumeric() || matches!(c, '.' | '-' | ':'))
 }
 
 /// Public, routable IPv4 — the hops worth geolocating.
 pub fn is_public_ipv4(ip: &str) -> bool {
-    let Ok(a) = ip.parse::<std::net::Ipv4Addr>() else { return false };
+    let Ok(a) = ip.parse::<std::net::Ipv4Addr>() else {
+        return false;
+    };
     let o = a.octets();
     !(a.is_private()
         || a.is_loopback()
@@ -148,9 +160,20 @@ mod tests {
     fn parses_hop_lines() {
         assert_eq!(
             HopProbe::parse(" 1  192.168.1.1  1.234 ms"),
-            Some(HopProbe { hop: 1, host: Some("192.168.1.1".into()), rtt_ms: Some(1.234) })
+            Some(HopProbe {
+                hop: 1,
+                host: Some("192.168.1.1".into()),
+                rtt_ms: Some(1.234)
+            })
         );
-        assert_eq!(HopProbe::parse(" 5  *"), Some(HopProbe { hop: 5, host: None, rtt_ms: None }));
+        assert_eq!(
+            HopProbe::parse(" 5  *"),
+            Some(HopProbe {
+                hop: 5,
+                host: None,
+                rtt_ms: None
+            })
+        );
         assert_eq!(HopProbe::parse("traceroute to 1.1.1.1"), None);
     }
 

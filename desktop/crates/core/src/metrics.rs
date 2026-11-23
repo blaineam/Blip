@@ -26,44 +26,234 @@ pub struct Metric {
 }
 
 pub const CATALOG: &[Metric] = &[
-    Metric { id: "cpu.usage", title: "CPU Usage", unit: Unit::Percent, has_history: true },
-    Metric { id: "cpu.user", title: "CPU Usage (User)", unit: Unit::Percent, has_history: false },
-    Metric { id: "cpu.system", title: "CPU Usage (System)", unit: Unit::Percent, has_history: false },
-    Metric { id: "cpu.load1", title: "Load Average (1 min)", unit: Unit::Count, has_history: false },
-    Metric { id: "cpu.load5", title: "Load Average (5 min)", unit: Unit::Count, has_history: false },
-    Metric { id: "cpu.load15", title: "Load Average (15 min)", unit: Unit::Count, has_history: false },
-    Metric { id: "memory.usage", title: "Memory Usage", unit: Unit::Percent, has_history: true },
-    Metric { id: "memory.used", title: "Memory Used", unit: Unit::Bytes, has_history: false },
-    Metric { id: "memory.free", title: "Memory Free", unit: Unit::Bytes, has_history: false },
-    Metric { id: "memory.swap", title: "Swap Used", unit: Unit::Bytes, has_history: false },
-    Metric { id: "memory.pressure", title: "Memory Pressure Level", unit: Unit::Level, has_history: false },
-    Metric { id: "memory.commit", title: "Committed Memory", unit: Unit::Percent, has_history: false },
-    Metric { id: "disk.usage", title: "Startup Disk Usage", unit: Unit::Percent, has_history: false },
-    Metric { id: "disk.free", title: "Startup Disk Free", unit: Unit::Bytes, has_history: false },
-    Metric { id: "disk.read", title: "Disk Read Speed", unit: Unit::BytesPerSecond, has_history: true },
-    Metric { id: "disk.write", title: "Disk Write Speed", unit: Unit::BytesPerSecond, has_history: true },
-    Metric { id: "disk.totalread", title: "Disk Data Read", unit: Unit::Bytes, has_history: false },
-    Metric { id: "disk.totalwritten", title: "Disk Data Written", unit: Unit::Bytes, has_history: false },
-    Metric { id: "disk.smartok", title: "Drive S.M.A.R.T. OK", unit: Unit::Level, has_history: false },
-    Metric { id: "disk.ssdlife", title: "SSD Life Remaining", unit: Unit::Percent, has_history: false },
-    Metric { id: "disk.temp", title: "Drive Temperature", unit: Unit::Celsius, has_history: false },
-    Metric { id: "gpu.usage", title: "GPU Usage", unit: Unit::Percent, has_history: true },
-    Metric { id: "net.down", title: "Download Speed", unit: Unit::BytesPerSecond, has_history: true },
-    Metric { id: "net.up", title: "Upload Speed", unit: Unit::BytesPerSecond, has_history: true },
-    Metric { id: "net.ping", title: "WAN Ping", unit: Unit::Milliseconds, has_history: false },
-    Metric { id: "net.routerping", title: "Router Ping", unit: Unit::Milliseconds, has_history: false },
-    Metric { id: "net.totaldown", title: "Total Downloaded", unit: Unit::Bytes, has_history: false },
-    Metric { id: "net.totalup", title: "Total Uploaded", unit: Unit::Bytes, has_history: false },
-    Metric { id: "battery.level", title: "Battery Level", unit: Unit::Percent, has_history: false },
-    Metric { id: "battery.health", title: "Battery Health", unit: Unit::Percent, has_history: false },
-    Metric { id: "battery.cycles", title: "Battery Cycle Count", unit: Unit::Count, has_history: false },
-    Metric { id: "battery.temp", title: "Battery Temperature", unit: Unit::Celsius, has_history: false },
-    Metric { id: "battery.minutesleft", title: "Battery Time Remaining", unit: Unit::Minutes, has_history: false },
-    Metric { id: "temp.cpu", title: "CPU Temperature", unit: Unit::Celsius, has_history: false },
-    Metric { id: "temp.gpu", title: "GPU Temperature", unit: Unit::Celsius, has_history: false },
-    Metric { id: "fan.rpm", title: "Fan Speed", unit: Unit::Rpm, has_history: false },
-    Metric { id: "system.uptime", title: "Uptime", unit: Unit::Seconds, has_history: false },
-    Metric { id: "system.thermal", title: "Thermal State", unit: Unit::Level, has_history: false },
+    Metric {
+        id: "cpu.usage",
+        title: "CPU Usage",
+        unit: Unit::Percent,
+        has_history: true,
+    },
+    Metric {
+        id: "cpu.user",
+        title: "CPU Usage (User)",
+        unit: Unit::Percent,
+        has_history: false,
+    },
+    Metric {
+        id: "cpu.system",
+        title: "CPU Usage (System)",
+        unit: Unit::Percent,
+        has_history: false,
+    },
+    Metric {
+        id: "cpu.load1",
+        title: "Load Average (1 min)",
+        unit: Unit::Count,
+        has_history: false,
+    },
+    Metric {
+        id: "cpu.load5",
+        title: "Load Average (5 min)",
+        unit: Unit::Count,
+        has_history: false,
+    },
+    Metric {
+        id: "cpu.load15",
+        title: "Load Average (15 min)",
+        unit: Unit::Count,
+        has_history: false,
+    },
+    Metric {
+        id: "memory.usage",
+        title: "Memory Usage",
+        unit: Unit::Percent,
+        has_history: true,
+    },
+    Metric {
+        id: "memory.used",
+        title: "Memory Used",
+        unit: Unit::Bytes,
+        has_history: false,
+    },
+    Metric {
+        id: "memory.free",
+        title: "Memory Free",
+        unit: Unit::Bytes,
+        has_history: false,
+    },
+    Metric {
+        id: "memory.swap",
+        title: "Swap Used",
+        unit: Unit::Bytes,
+        has_history: false,
+    },
+    Metric {
+        id: "memory.pressure",
+        title: "Memory Pressure Level",
+        unit: Unit::Level,
+        has_history: false,
+    },
+    Metric {
+        id: "memory.commit",
+        title: "Committed Memory",
+        unit: Unit::Percent,
+        has_history: false,
+    },
+    Metric {
+        id: "disk.usage",
+        title: "Startup Disk Usage",
+        unit: Unit::Percent,
+        has_history: false,
+    },
+    Metric {
+        id: "disk.free",
+        title: "Startup Disk Free",
+        unit: Unit::Bytes,
+        has_history: false,
+    },
+    Metric {
+        id: "disk.read",
+        title: "Disk Read Speed",
+        unit: Unit::BytesPerSecond,
+        has_history: true,
+    },
+    Metric {
+        id: "disk.write",
+        title: "Disk Write Speed",
+        unit: Unit::BytesPerSecond,
+        has_history: true,
+    },
+    Metric {
+        id: "disk.totalread",
+        title: "Disk Data Read",
+        unit: Unit::Bytes,
+        has_history: false,
+    },
+    Metric {
+        id: "disk.totalwritten",
+        title: "Disk Data Written",
+        unit: Unit::Bytes,
+        has_history: false,
+    },
+    Metric {
+        id: "disk.smartok",
+        title: "Drive S.M.A.R.T. OK",
+        unit: Unit::Level,
+        has_history: false,
+    },
+    Metric {
+        id: "disk.ssdlife",
+        title: "SSD Life Remaining",
+        unit: Unit::Percent,
+        has_history: false,
+    },
+    Metric {
+        id: "disk.temp",
+        title: "Drive Temperature",
+        unit: Unit::Celsius,
+        has_history: false,
+    },
+    Metric {
+        id: "gpu.usage",
+        title: "GPU Usage",
+        unit: Unit::Percent,
+        has_history: true,
+    },
+    Metric {
+        id: "net.down",
+        title: "Download Speed",
+        unit: Unit::BytesPerSecond,
+        has_history: true,
+    },
+    Metric {
+        id: "net.up",
+        title: "Upload Speed",
+        unit: Unit::BytesPerSecond,
+        has_history: true,
+    },
+    Metric {
+        id: "net.ping",
+        title: "WAN Ping",
+        unit: Unit::Milliseconds,
+        has_history: false,
+    },
+    Metric {
+        id: "net.routerping",
+        title: "Router Ping",
+        unit: Unit::Milliseconds,
+        has_history: false,
+    },
+    Metric {
+        id: "net.totaldown",
+        title: "Total Downloaded",
+        unit: Unit::Bytes,
+        has_history: false,
+    },
+    Metric {
+        id: "net.totalup",
+        title: "Total Uploaded",
+        unit: Unit::Bytes,
+        has_history: false,
+    },
+    Metric {
+        id: "battery.level",
+        title: "Battery Level",
+        unit: Unit::Percent,
+        has_history: false,
+    },
+    Metric {
+        id: "battery.health",
+        title: "Battery Health",
+        unit: Unit::Percent,
+        has_history: false,
+    },
+    Metric {
+        id: "battery.cycles",
+        title: "Battery Cycle Count",
+        unit: Unit::Count,
+        has_history: false,
+    },
+    Metric {
+        id: "battery.temp",
+        title: "Battery Temperature",
+        unit: Unit::Celsius,
+        has_history: false,
+    },
+    Metric {
+        id: "battery.minutesleft",
+        title: "Battery Time Remaining",
+        unit: Unit::Minutes,
+        has_history: false,
+    },
+    Metric {
+        id: "temp.cpu",
+        title: "CPU Temperature",
+        unit: Unit::Celsius,
+        has_history: false,
+    },
+    Metric {
+        id: "temp.gpu",
+        title: "GPU Temperature",
+        unit: Unit::Celsius,
+        has_history: false,
+    },
+    Metric {
+        id: "fan.rpm",
+        title: "Fan Speed",
+        unit: Unit::Rpm,
+        has_history: false,
+    },
+    Metric {
+        id: "system.uptime",
+        title: "Uptime",
+        unit: Unit::Seconds,
+        has_history: false,
+    },
+    Metric {
+        id: "system.thermal",
+        title: "Thermal State",
+        unit: Unit::Level,
+        has_history: false,
+    },
 ];
 
 pub fn find(id: &str) -> Option<&'static Metric> {
@@ -97,7 +287,11 @@ pub fn value(id: &str, s: &Snapshot) -> Option<f64> {
             if s.disk.drives.is_empty() {
                 return None;
             }
-            if s.disk.drives.iter().all(|d| d.is_healthy()) { 1.0 } else { 0.0 }
+            if s.disk.drives.iter().all(|d| d.is_healthy()) {
+                1.0
+            } else {
+                0.0
+            }
         }
         "disk.ssdlife" => drive?.life_remaining()? as f64,
         "disk.temp" => drive?.temperature_c? as f64,
@@ -152,7 +346,11 @@ mod tests {
     fn catalog_ids_are_unique_and_answerable() {
         let s = Snapshot::default();
         for (i, m) in CATALOG.iter().enumerate() {
-            assert!(CATALOG[i + 1..].iter().all(|o| o.id != m.id), "duplicate {}", m.id);
+            assert!(
+                CATALOG[i + 1..].iter().all(|o| o.id != m.id),
+                "duplicate {}",
+                m.id
+            );
             let _ = value(m.id, &s); // must not panic
         }
         assert_eq!(value("cpu.usage", &s), Some(0.0));

@@ -28,7 +28,11 @@ pub fn normalized(r: &WorkloadResult) -> Option<f64> {
     if r.value <= 0.0 {
         return None;
     }
-    Some(if lower_is_better(&r.id) { rf / r.value } else { r.value / rf })
+    Some(if lower_is_better(&r.id) {
+        rf / r.value
+    } else {
+        r.value / rf
+    })
 }
 
 /// Geometric mean of the normalized workloads × 1000, missing legs ignored.
@@ -48,12 +52,21 @@ pub struct CategoryScore {
 }
 
 pub fn category(name: &str, results: Vec<WorkloadResult>) -> CategoryScore {
-    CategoryScore { name: name.into(), score: composite(&results), results }
+    CategoryScore {
+        name: name.into(),
+        score: composite(&results),
+        results,
+    }
 }
 
 /// The headline number: geometric mean of the category scores that exist.
 pub fn overall(categories: &[Option<&CategoryScore>]) -> f64 {
-    let scores: Vec<f64> = categories.iter().flatten().map(|c| c.score).filter(|s| *s > 0.0).collect();
+    let scores: Vec<f64> = categories
+        .iter()
+        .flatten()
+        .map(|c| c.score)
+        .filter(|s| *s > 0.0)
+        .collect();
     if scores.is_empty() {
         return 0.0;
     }
@@ -113,7 +126,8 @@ pub struct BenchResult {
 
 impl BenchResult {
     pub fn throttle_percent_lost(&self) -> Option<i64> {
-        self.throttle_factor.map(|f| (((1.0 - f) * 100.0).round() as i64).max(0))
+        self.throttle_factor
+            .map(|f| (((1.0 - f) * 100.0).round() as i64).max(0))
     }
 }
 
@@ -138,7 +152,10 @@ mod tests {
             WorkloadResult::new("gpu.matmul", 0.0, BenchUnit::Gflops),
         ];
         assert!((composite(&r) - 2000.0).abs() < 1e-9);
-        let a = category("A", vec![WorkloadResult::new("cpu.fft", 4000.0, BenchUnit::FftPerSec)]);
+        let a = category(
+            "A",
+            vec![WorkloadResult::new("cpu.fft", 4000.0, BenchUnit::FftPerSec)],
+        );
         assert!((overall(&[Some(&a), None]) - 2000.0).abs() < 1e-9);
     }
 }

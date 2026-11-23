@@ -37,7 +37,12 @@ pub struct CategoryGrade {
     pub grade: Grade,
 }
 
-pub fn evaluate(down: f64, up: Option<f64>, unloaded_ms: Option<f64>, loaded_ms: Option<f64>) -> Vec<CategoryGrade> {
+pub fn evaluate(
+    down: f64,
+    up: Option<f64>,
+    unloaded_ms: Option<f64>,
+    loaded_ms: Option<f64>,
+) -> Vec<CategoryGrade> {
     let upv = up.unwrap_or(0.0);
     let bloat = loaded_ms.unwrap_or(0.0) - unloaded_ms.unwrap_or(0.0);
     let tg = |v: f64, a: f64, b: f64, c: f64| {
@@ -52,7 +57,9 @@ pub fn evaluate(down: f64, up: Option<f64>, unloaded_ms: Option<f64>, loaded_ms:
         }
     };
     let cap = |g: Grade| -> Grade {
-        let Some(loaded) = loaded_ms else { return g.min(Grade::B) };
+        let Some(loaded) = loaded_ms else {
+            return g.min(Grade::B);
+        };
         if loaded > 300.0 || bloat > 250.0 {
             return g.min(Grade::F);
         }
@@ -63,17 +70,45 @@ pub fn evaluate(down: f64, up: Option<f64>, unloaded_ms: Option<f64>, loaded_ms:
     };
     let call = tg(down, 10.0, 4.0, 1.5).min(tg(upv, 5.0, 2.5, 1.0));
     vec![
-        CategoryGrade { id: "browse", name: t("Browsing"), grade: tg(down, 25.0, 10.0, 3.0) },
-        CategoryGrade { id: "hd", name: t("HD streaming"), grade: tg(down, 15.0, 8.0, 5.0) },
-        CategoryGrade { id: "4k", name: t("4K streaming"), grade: tg(down, 50.0, 25.0, 15.0) },
-        CategoryGrade { id: "calls", name: t("Video calls"), grade: cap(call) },
-        CategoryGrade { id: "gaming", name: t("Cloud gaming"), grade: cap(tg(down, 45.0, 25.0, 10.0)) },
-        CategoryGrade { id: "uploads", name: t("Big uploads"), grade: tg(upv, 100.0, 30.0, 10.0) },
+        CategoryGrade {
+            id: "browse",
+            name: t("Browsing"),
+            grade: tg(down, 25.0, 10.0, 3.0),
+        },
+        CategoryGrade {
+            id: "hd",
+            name: t("HD streaming"),
+            grade: tg(down, 15.0, 8.0, 5.0),
+        },
+        CategoryGrade {
+            id: "4k",
+            name: t("4K streaming"),
+            grade: tg(down, 50.0, 25.0, 15.0),
+        },
+        CategoryGrade {
+            id: "calls",
+            name: t("Video calls"),
+            grade: cap(call),
+        },
+        CategoryGrade {
+            id: "gaming",
+            name: t("Cloud gaming"),
+            grade: cap(tg(down, 45.0, 25.0, 10.0)),
+        },
+        CategoryGrade {
+            id: "uploads",
+            name: t("Big uploads"),
+            grade: tg(upv, 100.0, 30.0, 10.0),
+        },
     ]
 }
 
 pub fn share_line(grades: &[CategoryGrade]) -> String {
-    grades.iter().map(|g| format!("{} {}", g.grade.letter(), g.name)).collect::<Vec<_>>().join(" · ")
+    grades
+        .iter()
+        .map(|g| format!("{} {}", g.grade.letter(), g.name))
+        .collect::<Vec<_>>()
+        .join(" · ")
 }
 
 #[cfg(test)]

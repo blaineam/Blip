@@ -4,10 +4,12 @@
 //! and records the original values on disk first, so a crash is undone at the next launch.
 
 use windows::core::{GUID, PWSTR};
-use windows::Win32::Foundation::{CloseHandle, HANDLE, HLOCAL, LocalFree};
+use windows::Win32::Foundation::{CloseHandle, LocalFree, HANDLE, HLOCAL};
 use windows::Win32::System::Power::*;
 use windows::Win32::System::SystemInformation::GetTickCount;
-use windows::Win32::System::Threading::{POWER_REQUEST_CONTEXT_SIMPLE_STRING, REASON_CONTEXT, REASON_CONTEXT_0};
+use windows::Win32::System::Threading::{
+    POWER_REQUEST_CONTEXT_SIMPLE_STRING, REASON_CONTEXT, REASON_CONTEXT_0,
+};
 use windows::Win32::UI::Input::KeyboardAndMouse::*;
 
 pub struct PowerRequest {
@@ -20,11 +22,16 @@ unsafe impl Send for PowerRequest {}
 
 impl PowerRequest {
     pub fn new(keep_display_on: bool) -> Result<Self, String> {
-        let mut reason: Vec<u16> = "Blip Keep Awake".encode_utf16().chain(std::iter::once(0)).collect();
+        let mut reason: Vec<u16> = "Blip Keep Awake"
+            .encode_utf16()
+            .chain(std::iter::once(0))
+            .collect();
         let ctx = REASON_CONTEXT {
             Version: 0,
             Flags: POWER_REQUEST_CONTEXT_SIMPLE_STRING,
-            Reason: REASON_CONTEXT_0 { SimpleReasonString: PWSTR(reason.as_mut_ptr()) },
+            Reason: REASON_CONTEXT_0 {
+                SimpleReasonString: PWSTR(reason.as_mut_ptr()),
+            },
         };
         // SAFETY: context + string live across the call.
         let handle = unsafe { PowerCreateRequest(&ctx) }.map_err(|e| e.message())?;
@@ -34,7 +41,10 @@ impl PowerRequest {
                 PowerSetRequest(handle, PowerRequestDisplayRequired).map_err(|e| e.message())?;
             }
         }
-        Ok(Self { handle, display: keep_display_on })
+        Ok(Self {
+            handle,
+            display: keep_display_on,
+        })
     }
 }
 
@@ -76,10 +86,25 @@ fn read(scheme: &GUID) -> Option<(u32, u32)> {
     let (mut ac, mut dc) = (0u32, 0u32);
     // SAFETY: GUID pointers to locals/consts; out-params.
     unsafe {
-        if PowerReadACValueIndex(None, Some(scheme), Some(&GUID_SYSTEM_BUTTON_SUBGROUP), Some(&GUID_LIDSWITCH_STATE_CHANGE), &mut ac).0 != 0 {
+        if PowerReadACValueIndex(
+            None,
+            Some(scheme),
+            Some(&GUID_SYSTEM_BUTTON_SUBGROUP),
+            Some(&GUID_LIDSWITCH_STATE_CHANGE),
+            &mut ac,
+        )
+        .0 != 0
+        {
             return None;
         }
-        if PowerReadDCValueIndex(None, Some(scheme), Some(&GUID_SYSTEM_BUTTON_SUBGROUP), Some(&GUID_LIDSWITCH_STATE_CHANGE), &mut dc) != 0 {
+        if PowerReadDCValueIndex(
+            None,
+            Some(scheme),
+            Some(&GUID_SYSTEM_BUTTON_SUBGROUP),
+            Some(&GUID_LIDSWITCH_STATE_CHANGE),
+            &mut dc,
+        ) != 0
+        {
             return None;
         }
     }
@@ -89,10 +114,25 @@ fn read(scheme: &GUID) -> Option<(u32, u32)> {
 fn write(scheme: &GUID, ac: u32, dc: u32) -> Result<(), String> {
     // SAFETY: as above.
     unsafe {
-        let a = PowerWriteACValueIndex(None, scheme, Some(&GUID_SYSTEM_BUTTON_SUBGROUP), Some(&GUID_LIDSWITCH_STATE_CHANGE), ac);
-        let d = PowerWriteDCValueIndex(None, scheme, Some(&GUID_SYSTEM_BUTTON_SUBGROUP), Some(&GUID_LIDSWITCH_STATE_CHANGE), dc);
+        let a = PowerWriteACValueIndex(
+            None,
+            scheme,
+            Some(&GUID_SYSTEM_BUTTON_SUBGROUP),
+            Some(&GUID_LIDSWITCH_STATE_CHANGE),
+            ac,
+        );
+        let d = PowerWriteDCValueIndex(
+            None,
+            scheme,
+            Some(&GUID_SYSTEM_BUTTON_SUBGROUP),
+            Some(&GUID_LIDSWITCH_STATE_CHANGE),
+            dc,
+        );
         if a.0 != 0 || d != 0 {
-            return Err("Windows didn't allow changing the lid action (your organization may manage power settings).".into());
+            return Err(
+                "Windows didn't allow changing the lid action (your organization may manage power settings)."
+                    .into(),
+            );
         }
         let _ = PowerSetActiveScheme(None, Some(scheme));
     }
@@ -113,7 +153,10 @@ impl LidOverride {
     pub fn engage() -> Result<Self, String> {
         let scheme = active_scheme().ok_or("No active power plan.")?;
         let (ac, dc) = read(&scheme).ok_or("This PC has no lid setting.")?;
-        let _ = blip_core::paths::write_atomic(&restore_file(), format!("{} {ac} {dc}", scheme.to_u128()).as_bytes());
+        let _ = blip_core::paths::write_atomic(
+            &restore_file(),
+            format!("{} {ac} {dc}", scheme.to_u128()).as_bytes(),
+        );
         write(&scheme, 0, 0)?;
         Ok(Self { scheme, ac, dc })
     }
@@ -121,7 +164,9 @@ impl LidOverride {
     /// Undo an override a previous Blip left behind (crash / power loss mid-session).
     pub fn restore_stale() {
         let path = restore_file();
-        let Ok(text) = std::fs::read_to_string(&path) else { return };
+        let Ok(text) = std::fs::read_to_string(&path) else {
+            return;
+        };
         let parts: Vec<&str> = text.split_whitespace().collect();
         if let [g, ac, dc] = parts[..] {
             if let (Ok(g), Ok(ac), Ok(dc)) = (g.parse::<u128>(), ac.parse(), dc.parse()) {
@@ -142,7 +187,10 @@ impl Drop for LidOverride {
 /// Nudges the pointer one pixel and back if the user has been idle for `idle_secs`, so chat
 /// apps don't flip to "Away". The move is relative and net zero.
 pub fn jiggle_if_idle(idle_secs: u32) {
-    let mut lii = LASTINPUTINFO { cbSize: std::mem::size_of::<LASTINPUTINFO>() as u32, dwTime: 0 };
+    let mut lii = LASTINPUTINFO {
+        cbSize: std::mem::size_of::<LASTINPUTINFO>() as u32,
+        dwTime: 0,
+    };
     // SAFETY: out-param.
     if !unsafe { GetLastInputInfo(&mut lii) }.as_bool() {
         return;
@@ -153,7 +201,16 @@ pub fn jiggle_if_idle(idle_secs: u32) {
     }
     let mv = |dx: i32| INPUT {
         r#type: INPUT_MOUSE,
-        Anonymous: INPUT_0 { mi: MOUSEINPUT { dx, dy: 0, mouseData: 0, dwFlags: MOUSEEVENTF_MOVE, time: 0, dwExtraInfo: 0 } },
+        Anonymous: INPUT_0 {
+            mi: MOUSEINPUT {
+                dx,
+                dy: 0,
+                mouseData: 0,
+                dwFlags: MOUSEEVENTF_MOVE,
+                time: 0,
+                dwExtraInfo: 0,
+            },
+        },
     };
     // SAFETY: two well-formed inputs.
     unsafe {

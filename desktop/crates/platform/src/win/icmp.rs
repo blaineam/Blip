@@ -26,7 +26,10 @@ pub fn echo(ip: IpAddr, ttl: Option<u8>, timeout_ms: u32) -> Option<EchoResult> 
 }
 
 fn options(ttl: Option<u8>) -> IP_OPTION_INFORMATION {
-    IP_OPTION_INFORMATION { Ttl: ttl.unwrap_or(128), ..Default::default() }
+    IP_OPTION_INFORMATION {
+        Ttl: ttl.unwrap_or(128),
+        ..Default::default()
+    }
 }
 
 fn echo4(ip: Ipv4Addr, ttl: Option<u8>, timeout_ms: u32) -> Option<EchoResult> {
@@ -59,17 +62,31 @@ fn echo4(ip: Ipv4Addr, ttl: Option<u8>, timeout_ms: u32) -> Option<EchoResult> {
         let _ = IcmpCloseHandle(h);
     }
     if n == 0 {
-        return Some(EchoResult { from: None, rtt_ms: None, reached: false });
+        return Some(EchoResult {
+            from: None,
+            rtt_ms: None,
+            reached: false,
+        });
     }
     // SAFETY: IP Helper wrote at least one ICMP_ECHO_REPLY at the start of the buffer.
     let r = unsafe { &*(reply.as_ptr() as *const ICMP_ECHO_REPLY) };
     let from = Ipv4Addr::from(r.Address.to_ne_bytes());
     match r.Status {
-        IP_SUCCESS => Some(EchoResult { from: Some(IpAddr::V4(from)), rtt_ms: Some(precise(r.RoundTripTime, elapsed)), reached: true }),
-        IP_TTL_EXPIRED_TRANSIT | IP_TIME_EXCEEDED | IP_TTL_EXPIRED_REASSEM => {
-            Some(EchoResult { from: Some(IpAddr::V4(from)), rtt_ms: Some(precise(r.RoundTripTime, elapsed)), reached: false })
-        }
-        _ => Some(EchoResult { from: None, rtt_ms: None, reached: false }),
+        IP_SUCCESS => Some(EchoResult {
+            from: Some(IpAddr::V4(from)),
+            rtt_ms: Some(precise(r.RoundTripTime, elapsed)),
+            reached: true,
+        }),
+        IP_TTL_EXPIRED_TRANSIT | IP_TIME_EXCEEDED | IP_TTL_EXPIRED_REASSEM => Some(EchoResult {
+            from: Some(IpAddr::V4(from)),
+            rtt_ms: Some(precise(r.RoundTripTime, elapsed)),
+            reached: false,
+        }),
+        _ => Some(EchoResult {
+            from: None,
+            rtt_ms: None,
+            reached: false,
+        }),
     }
 }
 
@@ -77,14 +94,37 @@ fn echo6(ip: Ipv6Addr, ttl: Option<u8>, timeout_ms: u32) -> Option<EchoResult> {
     // SAFETY: plain handle creation; closed below.
     let h = unsafe { Icmp6CreateFile() }.ok()?;
     let opts = options(ttl);
-    let src = SOCKADDR_IN6 { sin6_family: AF_INET6, ..Default::default() };
-    let dst = SOCKADDR_IN6 { sin6_family: AF_INET6, sin6_addr: IN6_ADDR { u: IN6_ADDR_0 { Byte: ip.octets() } }, ..Default::default() };
-    let mut reply = vec![0u64; (std::mem::size_of::<ICMPV6_ECHO_REPLY_LH>() + PAYLOAD.len() + 8 + 64) / 8 + 1];
+    let src = SOCKADDR_IN6 {
+        sin6_family: AF_INET6,
+        ..Default::default()
+    };
+    let dst = SOCKADDR_IN6 {
+        sin6_family: AF_INET6,
+        sin6_addr: IN6_ADDR {
+            u: IN6_ADDR_0 { Byte: ip.octets() },
+        },
+        ..Default::default()
+    };
+    let mut reply =
+        vec![0u64; (std::mem::size_of::<ICMPV6_ECHO_REPLY_LH>() + PAYLOAD.len() + 8 + 64) / 8 + 1];
     let reply_bytes = (reply.len() * 8) as u32;
     let start = Instant::now();
     // SAFETY: synchronous; buffers outlive the call.
     let n = unsafe {
-        Icmp6SendEcho2(h, None, None, None, &src, &dst, PAYLOAD.as_ptr() as _, PAYLOAD.len() as u16, Some(&opts), reply.as_mut_ptr() as _, reply_bytes, timeout_ms)
+        Icmp6SendEcho2(
+            h,
+            None,
+            None,
+            None,
+            &src,
+            &dst,
+            PAYLOAD.as_ptr() as _,
+            PAYLOAD.len() as u16,
+            Some(&opts),
+            reply.as_mut_ptr() as _,
+            reply_bytes,
+            timeout_ms,
+        )
     };
     let elapsed = start.elapsed().as_secs_f64() * 1000.0;
     // SAFETY: handle from Icmp6CreateFile.
@@ -92,20 +132,42 @@ fn echo6(ip: Ipv6Addr, ttl: Option<u8>, timeout_ms: u32) -> Option<EchoResult> {
         let _ = IcmpCloseHandle(h);
     }
     if n == 0 {
-        return Some(EchoResult { from: None, rtt_ms: None, reached: false });
+        return Some(EchoResult {
+            from: None,
+            rtt_ms: None,
+            reached: false,
+        });
     }
     // SAFETY: IP Helper wrote an ICMPV6_ECHO_REPLY at the start of the buffer.
     let r = unsafe { &*(reply.as_ptr() as *const ICMPV6_ECHO_REPLY_LH) };
     let words = r.Address.sin6_addr;
     let from = Ipv6Addr::new(
-        u16::from_be(words[0]), u16::from_be(words[1]), u16::from_be(words[2]), u16::from_be(words[3]),
-        u16::from_be(words[4]), u16::from_be(words[5]), u16::from_be(words[6]), u16::from_be(words[7]),
+        u16::from_be(words[0]),
+        u16::from_be(words[1]),
+        u16::from_be(words[2]),
+        u16::from_be(words[3]),
+        u16::from_be(words[4]),
+        u16::from_be(words[5]),
+        u16::from_be(words[6]),
+        u16::from_be(words[7]),
     );
     let rtt = Some(precise(r.RoundTripTime, elapsed));
     match r.Status {
-        IP_SUCCESS => Some(EchoResult { from: Some(IpAddr::V6(from)), rtt_ms: rtt, reached: true }),
-        IP_TTL_EXPIRED_TRANSIT | IP_TIME_EXCEEDED | IP_TTL_EXPIRED_REASSEM => Some(EchoResult { from: Some(IpAddr::V6(from)), rtt_ms: rtt, reached: false }),
-        _ => Some(EchoResult { from: None, rtt_ms: None, reached: false }),
+        IP_SUCCESS => Some(EchoResult {
+            from: Some(IpAddr::V6(from)),
+            rtt_ms: rtt,
+            reached: true,
+        }),
+        IP_TTL_EXPIRED_TRANSIT | IP_TIME_EXCEEDED | IP_TTL_EXPIRED_REASSEM => Some(EchoResult {
+            from: Some(IpAddr::V6(from)),
+            rtt_ms: rtt,
+            reached: false,
+        }),
+        _ => Some(EchoResult {
+            from: None,
+            rtt_ms: None,
+            reached: false,
+        }),
     }
 }
 

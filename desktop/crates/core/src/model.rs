@@ -49,10 +49,18 @@ pub struct MemoryStats {
 
 impl MemoryStats {
     pub fn usage_pct(&self) -> f64 {
-        if self.total == 0 { 0.0 } else { self.used as f64 / self.total as f64 * 100.0 }
+        if self.total == 0 {
+            0.0
+        } else {
+            self.used as f64 / self.total as f64 * 100.0
+        }
     }
     pub fn commit_pct(&self) -> f64 {
-        if self.commit_limit == 0 { 0.0 } else { self.committed as f64 / self.commit_limit as f64 * 100.0 }
+        if self.commit_limit == 0 {
+            0.0
+        } else {
+            self.committed as f64 / self.commit_limit as f64 * 100.0
+        }
     }
 }
 
@@ -74,7 +82,11 @@ impl Volume {
         self.total.saturating_sub(self.free)
     }
     pub fn usage_pct(&self) -> f64 {
-        if self.total == 0 { 0.0 } else { self.used() as f64 / self.total as f64 * 100.0 }
+        if self.total == 0 {
+            0.0
+        } else {
+            self.used() as f64 / self.total as f64 * 100.0
+        }
     }
 }
 

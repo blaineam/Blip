@@ -3,8 +3,14 @@ name: CI
 on:
   pull_request:
     branches: [main]
+    paths-ignore:
+      - 'desktop/**'
+      - '.github/workflows/windows.yml'
   push:
     branches: [main]
+    paths-ignore:
+      - 'desktop/**'
+      - '.github/workflows/windows.yml'
 
 permissions:
   contents: write

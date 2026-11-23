@@ -53,12 +53,18 @@ fn lookup(key: &str, col: usize) -> Option<&'static str> {
     if col == NONE {
         return None;
     }
-    TABLE.binary_search_by(|(k, _)| (*k).cmp(key)).ok().map(|i| TABLE[i].1[col]).filter(|s| !s.is_empty())
+    TABLE
+        .binary_search_by(|(k, _)| (*k).cmp(key))
+        .ok()
+        .map(|i| TABLE[i].1[col])
+        .filter(|s| !s.is_empty())
 }
 
 /// The UI string for `key` (its English text) in the user's language.
 pub fn t(key: &str) -> String {
-    lookup(key, LANG.load(Ordering::Relaxed)).map(str::to_owned).unwrap_or_else(|| key.to_owned())
+    lookup(key, LANG.load(Ordering::Relaxed))
+        .map(str::to_owned)
+        .unwrap_or_else(|| key.to_owned())
 }
 
 /// `t` + placeholder substitution. Handles the Apple-catalog specifiers the keys use —
@@ -91,7 +97,12 @@ pub fn format_apple(template: &str, args: &[&dyn std::fmt::Display]) -> String {
             j += 1;
         }
         if j < chars.len() && chars[j] == '$' && j > start {
-            index = chars[start..j].iter().collect::<String>().parse::<usize>().ok().map(|n| n - 1);
+            index = chars[start..j]
+                .iter()
+                .collect::<String>()
+                .parse::<usize>()
+                .ok()
+                .map(|n| n - 1);
             j += 1;
         } else {
             j = start;
@@ -149,7 +160,10 @@ mod tests {
 
     #[test]
     fn formats_apple_specifiers() {
-        assert_eq!(format_apple("%@ is using %lld%% CPU", &[&"Chrome", &97]), "Chrome is using 97% CPU");
+        assert_eq!(
+            format_apple("%@ is using %lld%% CPU", &[&"Chrome", &97]),
+            "Chrome is using 97% CPU"
+        );
         assert_eq!(format_apple("%2$@ / %1$@", &[&"a", &"b"]), "b / a");
         assert_eq!(format_apple("%.1f GB", &[&4.56]), "4.6 GB");
         assert_eq!(format_apple("no args", &[]), "no args");

@@ -54,7 +54,10 @@ impl WinSampler {
         let pdh = pdh::Pdh::new().map(|mut p| {
             p.add("cpu_user", "\\Processor(_Total)\\% User Time");
             p.add("cpu_priv", "\\Processor(_Total)\\% Privileged Time");
-            p.add("cpu_perf", "\\Processor Information(_Total)\\% Processor Performance");
+            p.add(
+                "cpu_perf",
+                "\\Processor Information(_Total)\\% Processor Performance",
+            );
             p.add("cpu_freq", "\\Processor Information(_Total)\\Processor Frequency");
             p.add("queue", "\\System\\Processor Queue Length");
             p.add("disk_read", "\\PhysicalDisk(_Total)\\Disk Read Bytes/sec");
@@ -63,7 +66,10 @@ impl WinSampler {
             p.add("gpu_engine", "\\GPU Engine(*)\\Utilization Percentage");
             p.add("gpu_dedicated", "\\GPU Adapter Memory(*)\\Dedicated Usage");
             p.add("gpu_shared", "\\GPU Adapter Memory(*)\\Shared Usage");
-            if !p.add("thermal", "\\Thermal Zone Information(*)\\High Precision Temperature") {
+            if !p.add(
+                "thermal",
+                "\\Thermal Zone Information(*)\\High Precision Temperature",
+            ) {
                 p.add("thermal_k", "\\Thermal Zone Information(*)\\Temperature");
             }
             p.add("pagefile", "\\Paging File(_Total)\\% Usage");
@@ -160,7 +166,12 @@ impl WinSampler {
             for (name, v) in pdh.array(if tenths { "thermal" } else { "thermal_k" }) {
                 let c = if tenths { v / 10.0 - 273.15 } else { v - 273.15 };
                 if (5.0..130.0).contains(&c) {
-                    let short = name.rsplit('.').next().unwrap_or(&name).trim_start_matches("\\_TZ").to_string();
+                    let short = name
+                        .rsplit('.')
+                        .next()
+                        .unwrap_or(&name)
+                        .trim_start_matches("\\_TZ")
+                        .to_string();
                     s.thermal.zones.push((short, c));
                 }
             }
@@ -172,12 +183,21 @@ impl WinSampler {
         s.thermal.cpu_c = s.thermal.zones.iter().map(|z| z.1).reduce(f64::max);
         if let Some(n) = &self.nvml {
             if let Some(pct) = n.fan_pct() {
-                s.thermal.fans.push(blip_core::model::Fan { name: "GPU".into(), rpm: pct, min_rpm: None, max_rpm: Some(100) });
+                s.thermal.fans.push(blip_core::model::Fan {
+                    name: "GPU".into(),
+                    rpm: pct,
+                    min_rpm: None,
+                    max_rpm: Some(100),
+                });
             }
         }
         let perf = s.cpu.performance_pct.unwrap_or(100.0);
         s.thermal.throttling = s.cpu.total > 50.0 && perf < 80.0;
-        let hot = s.thermal.cpu_c.unwrap_or(0.0).max(s.gpu.temperature_c.unwrap_or(0.0));
+        let hot = s
+            .thermal
+            .cpu_c
+            .unwrap_or(0.0)
+            .max(s.gpu.temperature_c.unwrap_or(0.0));
         s.thermal.level = if hot >= 98.0 {
             ThermalLevel::Critical
         } else if hot >= 90.0 || (s.thermal.throttling && perf < 55.0) {

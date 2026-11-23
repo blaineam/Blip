@@ -46,7 +46,11 @@ pub struct WorkloadResult {
 
 impl WorkloadResult {
     pub fn new(id: &str, value: f64, unit: BenchUnit) -> Self {
-        Self { id: id.into(), value, unit }
+        Self {
+            id: id.into(),
+            value,
+            unit,
+        }
     }
 }
 
@@ -128,8 +132,9 @@ pub fn fft(seconds: f64, cancelled: Cancelled) -> WorkloadResult {
     let n = 1024usize;
     let half = n / 2;
     let plan = rustfft::FftPlanner::<f32>::new().plan_fft_forward(half);
-    let input: Vec<Complex32> =
-        (0..half).map(|i| Complex32::new((i as f64 * 0.37).sin() as f32, 0.0)).collect();
+    let input: Vec<Complex32> = (0..half)
+        .map(|i| Complex32::new((i as f64 * 0.37).sin() as f32, 0.0))
+        .collect();
     let mut buf = input.clone();
     let mut scratch = vec![Complex32::default(); plan.get_inplace_scratch_len()];
     let twiddles: Vec<Complex32> = (0..half)

@@ -92,11 +92,24 @@ fn setup() -> windows::core::Result<Rig> {
     let mut errors = None;
     // SAFETY: source buffer + NUL-free length; out-params.
     unsafe {
-        D3DCompile(SHADER.as_ptr() as _, SHADER.len(), s!("blipbench"), None, None, s!("main"), s!("cs_5_0"), 1 << 15, 0, &mut code, Some(&mut errors))?;
+        D3DCompile(
+            SHADER.as_ptr() as _,
+            SHADER.len(),
+            s!("blipbench"),
+            None,
+            None,
+            s!("main"),
+            s!("cs_5_0"),
+            1 << 15,
+            0,
+            &mut code,
+            Some(&mut errors),
+        )?;
     }
     let code = code.ok_or_else(windows::core::Error::empty)?;
     // SAFETY: blob pointer/size from D3DCompile.
-    let bytes = unsafe { std::slice::from_raw_parts(code.GetBufferPointer() as *const u8, code.GetBufferSize()) };
+    let bytes =
+        unsafe { std::slice::from_raw_parts(code.GetBufferPointer() as *const u8, code.GetBufferSize()) };
     let mut cs = None;
     unsafe { device.CreateComputeShader(bytes, None, Some(&mut cs))? };
     let cs = cs.ok_or_else(windows::core::Error::empty)?;
@@ -108,12 +121,19 @@ fn setup() -> windows::core::Result<Rig> {
         let desc = D3D11_BUFFER_DESC {
             ByteWidth: (n2 * 4) as u32,
             Usage: D3D11_USAGE_DEFAULT,
-            BindFlags: if uav { D3D11_BIND_UNORDERED_ACCESS.0 as u32 } else { D3D11_BIND_SHADER_RESOURCE.0 as u32 },
+            BindFlags: if uav {
+                D3D11_BIND_UNORDERED_ACCESS.0 as u32
+            } else {
+                D3D11_BIND_SHADER_RESOURCE.0 as u32
+            },
             CPUAccessFlags: 0,
             MiscFlags: D3D11_RESOURCE_MISC_BUFFER_STRUCTURED.0 as u32,
             StructureByteStride: 4,
         };
-        let init = data.map(|d| D3D11_SUBRESOURCE_DATA { pSysMem: d.as_ptr() as _, ..Default::default() });
+        let init = data.map(|d| D3D11_SUBRESOURCE_DATA {
+            pSysMem: d.as_ptr() as _,
+            ..Default::default()
+        });
         let mut buf = None;
         // SAFETY: desc/init valid for the call.
         unsafe { device.CreateBuffer(&desc, init.as_ref().map(|i| i as *const _), Some(&mut buf))? };
@@ -127,7 +147,12 @@ fn setup() -> windows::core::Result<Rig> {
         Format: DXGI_FORMAT_UNKNOWN,
         ViewDimension: D3D_SRV_DIMENSION_BUFFER,
         Anonymous: D3D11_SHADER_RESOURCE_VIEW_DESC_0 {
-            Buffer: D3D11_BUFFER_SRV { Anonymous1: D3D11_BUFFER_SRV_0 { FirstElement: 0 }, Anonymous2: D3D11_BUFFER_SRV_1 { NumElements: n2 as u32 } },
+            Buffer: D3D11_BUFFER_SRV {
+                Anonymous1: D3D11_BUFFER_SRV_0 { FirstElement: 0 },
+                Anonymous2: D3D11_BUFFER_SRV_1 {
+                    NumElements: n2 as u32,
+                },
+            },
         },
     };
     let mut srv_a = None;
@@ -136,7 +161,13 @@ fn setup() -> windows::core::Result<Rig> {
     let uav_desc = D3D11_UNORDERED_ACCESS_VIEW_DESC {
         Format: DXGI_FORMAT_UNKNOWN,
         ViewDimension: D3D11_UAV_DIMENSION_BUFFER,
-        Anonymous: D3D11_UNORDERED_ACCESS_VIEW_DESC_0 { Buffer: D3D11_BUFFER_UAV { FirstElement: 0, NumElements: n2 as u32, Flags: 0 } },
+        Anonymous: D3D11_UNORDERED_ACCESS_VIEW_DESC_0 {
+            Buffer: D3D11_BUFFER_UAV {
+                FirstElement: 0,
+                NumElements: n2 as u32,
+                Flags: 0,
+            },
+        },
     };
     // SAFETY: views over our own buffers.
     unsafe {
@@ -147,11 +178,18 @@ fn setup() -> windows::core::Result<Rig> {
         ctx.CSSetShaderResources(0, Some(&[srv_a, srv_b]));
         ctx.CSSetUnorderedAccessViews(0, 1, Some(&uav), None);
     }
-    Ok(Rig { ctx, device, _bufs: vec![ba, bb, bc] })
+    Ok(Rig {
+        ctx,
+        device,
+        _bufs: vec![ba, bb, bc],
+    })
 }
 
 fn wait_idle(rig: &Rig) -> windows::core::Result<()> {
-    let desc = D3D11_QUERY_DESC { Query: D3D11_QUERY_EVENT, MiscFlags: 0 };
+    let desc = D3D11_QUERY_DESC {
+        Query: D3D11_QUERY_EVENT,
+        MiscFlags: 0,
+    };
     let mut q = None;
     // SAFETY: event query on our device.
     unsafe { rig.device.CreateQuery(&desc, Some(&mut q))? };
@@ -194,6 +232,10 @@ impl GpuCompute for D3DCompute {
             return None;
         }
         let flops = 2.0 * (N as f64).powi(3) * multiplies as f64;
-        Some(WorkloadResult::new("gpu.matmul", flops / elapsed / 1e9, BenchUnit::Gflops))
+        Some(WorkloadResult::new(
+            "gpu.matmul",
+            flops / elapsed / 1e9,
+            BenchUnit::Gflops,
+        ))
     }
 }

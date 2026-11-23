@@ -25,7 +25,10 @@ impl Pdh {
         let mut q = PDH_HQUERY::default();
         // SAFETY: out-pointer to a local.
         let rc = unsafe { PdhOpenQueryW(PCWSTR::null(), 0, &mut q) };
-        (rc == 0).then(|| Self { query: q, counters: HashMap::new() })
+        (rc == 0).then(|| Self {
+            query: q,
+            counters: HashMap::new(),
+        })
     }
 
     /// Adds a counter; silently skipped when this machine doesn't have it (e.g. no GPU counters
@@ -68,7 +71,9 @@ impl Pdh {
 
     /// Every instance of a wildcard counter: (instance name, value).
     pub fn array(&self, key: &str) -> Vec<(String, f64)> {
-        let Some(c) = self.counters.get(key) else { return Vec::new() };
+        let Some(c) = self.counters.get(key) else {
+            return Vec::new();
+        };
         let mut size = 0u32;
         let mut count = 0u32;
         // SAFETY: size query with a null buffer.
@@ -80,7 +85,8 @@ impl Pdh {
         let mut buf = vec![0u64; (size as usize).div_ceil(8)];
         let items = buf.as_mut_ptr() as *mut PDH_FMT_COUNTERVALUE_ITEM_W;
         // SAFETY: buffer is `size` bytes as PDH requested.
-        let rc = unsafe { PdhGetFormattedCounterArrayW(*c, FMT_DOUBLE_NOCAP, &mut size, &mut count, Some(items)) };
+        let rc =
+            unsafe { PdhGetFormattedCounterArrayW(*c, FMT_DOUBLE_NOCAP, &mut size, &mut count, Some(items)) };
         if rc != 0 {
             return Vec::new();
         }

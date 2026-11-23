@@ -39,7 +39,10 @@ pub enum SpeedPhase {
 
 impl SpeedPhase {
     pub fn is_running(&self) -> bool {
-        matches!(self, SpeedPhase::Latency | SpeedPhase::Download | SpeedPhase::Upload)
+        matches!(
+            self,
+            SpeedPhase::Latency | SpeedPhase::Download | SpeedPhase::Upload
+        )
     }
 }
 
@@ -90,8 +93,10 @@ pub struct SpeedTester {
 
 impl SpeedTester {
     pub fn new(ping: PingFn, history_path: Option<std::path::PathBuf>) -> Self {
-        let history: Vec<NetSpeedResult> =
-            history_path.as_ref().and_then(|p| crate::paths::load_json(p)).unwrap_or_default();
+        let history: Vec<NetSpeedResult> = history_path
+            .as_ref()
+            .and_then(|p| crate::paths::load_json(p))
+            .unwrap_or_default();
         Self {
             state: Arc::new(Mutex::new(SpeedState {
                 last_result: history.last().cloned(),
@@ -203,7 +208,11 @@ impl SpeedTester {
     fn capture_live(&self, mbps: f64, upload: bool) {
         let mut s = self.state.lock().unwrap();
         s.live_mbps = mbps;
-        let curve = if upload { &mut s.up_curve } else { &mut s.down_curve };
+        let curve = if upload {
+            &mut s.up_curve
+        } else {
+            &mut s.down_curve
+        };
         curve.push(mbps);
         if curve.len() > 240 {
             curve.remove(0);
@@ -263,7 +272,11 @@ impl SpeedTester {
         let error: Arc<Mutex<Option<String>>> = Arc::new(Mutex::new(None));
         let start = Instant::now();
         let deadline = start + Duration::from_secs_f64(PHASE_SECONDS);
-        let body: Arc<Vec<u8>> = Arc::new(if upload { vec![0u8; UPLOAD_CHUNK] } else { Vec::new() });
+        let body: Arc<Vec<u8>> = Arc::new(if upload {
+            vec![0u8; UPLOAD_CHUNK]
+        } else {
+            Vec::new()
+        });
         let agent: ureq::Agent = ureq::Agent::config_builder()
             .timeout_connect(Some(Duration::from_secs(5)))
             .timeout_global(Some(Duration::from_secs(30)))
@@ -271,8 +284,14 @@ impl SpeedTester {
             .into();
         let mut workers = Vec::new();
         for i in 0..PARALLELISM {
-            let (bytes, stop, error, body, agent, cancel) =
-                (bytes.clone(), stop.clone(), error.clone(), body.clone(), agent.clone(), self.cancel.clone());
+            let (bytes, stop, error, body, agent, cancel) = (
+                bytes.clone(),
+                stop.clone(),
+                error.clone(),
+                body.clone(),
+                agent.clone(),
+                self.cancel.clone(),
+            );
             let base = base.to_string();
             workers.push(std::thread::spawn(move || {
                 let mut n = i as u64;
@@ -371,7 +390,11 @@ impl SpeedTester {
         let base_bytes = at_warmup.unwrap_or(0);
         let measured = last_bytes.saturating_sub(base_bytes);
         if measured == 0 {
-            return Err(error.lock().unwrap().clone().unwrap_or_else(|| "Test failed".into()));
+            return Err(error
+                .lock()
+                .unwrap()
+                .clone()
+                .unwrap_or_else(|| "Test failed".into()));
         }
         let secs = (last_progress - warmup_end).as_secs_f64().max(0.001);
         Ok(measured as f64 * 8.0 / secs / 1e6)
@@ -392,7 +415,13 @@ impl SpeedTester {
         }
         self.set_phase(SpeedPhase::Download);
         let probe = LoadedProbe::start(self.ping.clone(), self.latency_host.clone());
-        Some(ExternalRun { tester: self.clone(), unloaded, probe: Some(probe), loaded: None, upload_started: false })
+        Some(ExternalRun {
+            tester: self.clone(),
+            unloaded,
+            probe: Some(probe),
+            loaded: None,
+            upload_started: false,
+        })
     }
 }
 
@@ -493,7 +522,11 @@ pub fn downsample(values: &[f64], target: usize) -> Option<Vec<f64>> {
         return Some(values.to_vec());
     }
     let stride = values.len() as f64 / target as f64;
-    Some((0..target).map(|i| values[((i as f64 * stride) as usize).min(values.len() - 1)]).collect())
+    Some(
+        (0..target)
+            .map(|i| values[((i as f64 * stride) as usize).min(values.len() - 1)])
+            .collect(),
+    )
 }
 
 /// Upload body that counts bytes as ureq pulls them off it.
@@ -524,8 +557,14 @@ mod tests {
 
     #[test]
     fn normalizes_server_entries() {
-        assert_eq!(normalize_base("192.168.1.50:3000/").as_deref(), Some("http://192.168.1.50:3000"));
-        assert_eq!(normalize_base(" https://ost.lan ").as_deref(), Some("https://ost.lan"));
+        assert_eq!(
+            normalize_base("192.168.1.50:3000/").as_deref(),
+            Some("http://192.168.1.50:3000")
+        );
+        assert_eq!(
+            normalize_base(" https://ost.lan ").as_deref(),
+            Some("https://ost.lan")
+        );
         assert_eq!(normalize_base("  "), None);
     }
 
@@ -563,7 +602,11 @@ mod tests {
                     }
                     if line.starts_with("GET") {
                         let body = vec![7u8; 4_000_000];
-                        let _ = write!(s, "HTTP/1.1 200 OK\r\nContent-Length: {}\r\nConnection: close\r\n\r\n", body.len());
+                        let _ = write!(
+                            s,
+                            "HTTP/1.1 200 OK\r\nContent-Length: {}\r\nConnection: close\r\n\r\n",
+                            body.len()
+                        );
                         let _ = s.write_all(&body);
                     } else {
                         let mut sink = vec![0u8; 65536];
@@ -574,13 +617,18 @@ mod tests {
                                 Ok(n) => left -= n,
                             }
                         }
-                        let _ = write!(s, "HTTP/1.1 200 OK\r\nContent-Length: 0\r\nConnection: close\r\n\r\n");
+                        let _ = write!(
+                            s,
+                            "HTTP/1.1 200 OK\r\nContent-Length: 0\r\nConnection: close\r\n\r\n"
+                        );
                     }
                 });
             }
         });
         let tester = SpeedTester::new(Arc::new(|_| Some(1.0)), None);
-        let r = tester.run_self_hosted_blocking(&format!("http://{addr}")).expect("run");
+        let r = tester
+            .run_self_hosted_blocking(&format!("http://{addr}"))
+            .expect("run");
         assert!(r.down_mbps > 0.0);
         assert!(r.up_mbps.unwrap_or(0.0) > 0.0);
         assert_eq!(r.ping_ms, Some(1.0));

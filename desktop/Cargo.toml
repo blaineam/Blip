@@ -7,7 +7,7 @@
 #   app              the tray app itself (egui), plus the `blip` command line.
 [workspace]
 resolver = "2"
-members = ["crates/core", "crates/platform"]
+members = ["crates/core", "crates/platform", "app"]
 
 [workspace.package]
 version = "2.1.0"
