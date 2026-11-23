@@ -59,6 +59,9 @@ pub struct BlipApp {
     theme: Option<ThemeChoice>,
     quitting: bool,
     pending_show: bool,
+    /// The popover has held focus since it was last shown (Windows can refuse focus to a
+    /// background app, so click-away only fires after a real focus → blur).
+    had_focus: bool,
 }
 
 impl BlipApp {
@@ -148,6 +151,7 @@ impl BlipApp {
             theme: None,
             quitting: false,
             pending_show: start_visible,
+            had_focus: false,
         }
     }
 
@@ -166,6 +170,7 @@ impl BlipApp {
             .anchor
             .and_then(|a| winsys::work_area_at(a.0 + a.2 / 2.0, a.1 + a.3 / 2.0));
         self.visible = true;
+        self.had_focus = false;
         self.shown_at = Instant::now();
         self.hover = None;
         self.place(ctx);
@@ -526,7 +531,11 @@ impl eframe::App for BlipApp {
 
             // Click-away closes (unless pinned, or focus moved to one of our own windows).
             let focused = ctx.input(|i| i.viewport().focused.unwrap_or(true));
+            if focused {
+                self.had_focus = true;
+            }
             if !settings.popover_pinned
+                && self.had_focus
                 && !focused
                 && !self.panel_focused
                 && !self.settings_focused

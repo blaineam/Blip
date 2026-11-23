@@ -59,6 +59,32 @@ Blip 2.0 brings a native companion app (`BlipMobile/`) to iPhone and iPad — th
 
 Same repo, same `xcodegen` project: build the `BlipMobile` scheme. Ships on the App Store as **Blip Stats** for iOS.
 
+## 🪟 Blip for Windows (preview)
+
+Blip runs on **Windows 10 and 11 (x64 and ARM64) without administrator rights**: no installer, no driver, no background service. It lives in the notification area and opens the same popover and live detail panels as the Mac. The source is in `desktop/`, a Rust workspace that a Linux build will share.
+
+- **Notification area:** mini bars (CPU / memory / disk / GPU, plus a connectivity dot), one icon per metric showing its number, or the logo alone. The tooltip carries the numbers.
+- **Popover + panels:** hover a row for its live panel, or switch to inline. You can pin the popover open, drag it off, or pin any panel into its own window.
+- **CPU:** total, user and kernel time, per-core load, a Unix-style load average derived from the run queue, P- and E-core counts on hybrid CPUs, and clock speed versus base (Windows' honest throttling signal). Top processes show app icons, and you can end your own processes.
+- **Memory:** in use, available, cached, committed versus commit limit, page file, paged and non-paged pool, and a pressure level.
+- **Disk:** every volume, live I/O and active time. Drive health without admin: model, bus, SSD or HDD, temperature, and for NVMe the full SMART/Health log (life remaining, spare, data written and read, power-on hours, unsafe shutdowns). The uncached disk speed test runs on any drive.
+- **Network:** 64-bit throughput counters, WAN and router ping (IcmpSendEcho, unprivileged), adapters, Wi-Fi name and signal, VPN detection, metered-connection awareness, and the WAN IP on request. Also the OpenSpeedTest speed test (the public test runs through WebView2) with connection grades, and live traceroute/MTR with the offline DB-IP map.
+- **GPU:** per-engine load and dedicated/shared memory from the same counters Task Manager reads, plus NVIDIA temperature through NVML.
+- **Battery:** charge, wear (full versus design capacity), cycle count, temperature, power draw and chemistry.
+- **Blip Bench:** the same workloads and frozen reference units as the Mac and iPhone, with the GPU leg on Direct3D 11 compute.
+- **Keep Awake:** timed or until turned off, optionally keeping the display on. "Stay awake with the lid closed" sets the lid action for the session and restores it afterwards, even after a crash. There's also an idle mouse jiggle.
+- **`blip-cli`:** the Windows counterpart of the Mac's Shortcuts actions. It covers `metric <id>` (the same 37 ids), `snapshot`, `ping`, `trace`, `speedtest`, `disktest`, `bench`, `awake`, and `get`/`set` for settings.
+- **Localized** in the same nine languages as the Mac.
+
+**What Windows keeps behind admin rights or drivers:** fan RPM and CPU die temperature need a kernel driver, so Blip shows ACPI thermal zones, GPU and drive temperatures, and clock throttling instead. SATA drives report temperature and the SMART pass/fail prediction; their full attribute tables need admin. Windows has no OS-shipped ML model, so the benchmark's Neural leg drops out.
+
+```powershell
+# Build from source (Rust stable)
+cd desktop
+cargo build --release -p blip-desktop      # target\release\Blip.exe + blip-cli.exe
+cargo test --workspace
+```
+
 ## 📦 Install
 
 ### Mac App Store

@@ -13,8 +13,8 @@ import sys
 
 LANGS = ["de", "es", "fr", "it", "ja", "ko", "pt-BR", "zh-Hans"]
 ROOT = pathlib.Path(__file__).resolve().parent.parent
-MAC = json.loads((ROOT.parent / "Blip/Resources/Localizable.xcstrings").read_text())["strings"]
-OWN = json.loads((ROOT / "tools/desktop_strings.json").read_text())
+MAC = json.loads((ROOT.parent / "Blip/Resources/Localizable.xcstrings").read_text(encoding="utf-8"))["strings"]
+OWN = json.loads((ROOT / "tools/desktop_strings.json").read_text(encoding="utf-8"))
 
 table = {}
 for key, entry in MAC.items():
@@ -57,5 +57,5 @@ out = [
 for k in keys:
     out.append(f"    ({lit(k)}, [{', '.join(lit(v) for v in table[k])}]),")
 out.append("];")
-(ROOT / "crates/core/src/strings.rs").write_text("\n".join(out) + "\n")
+(ROOT / "crates/core/src/strings.rs").write_text("\n".join(out) + "\n", encoding="utf-8", newline="\n")
 print(f"{len(keys)} strings ({len(OWN)} desktop-only)")

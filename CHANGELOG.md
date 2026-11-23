@@ -1,5 +1,17 @@
 # Changelog
 
+## Unreleased — Blip for Windows (preview)
+
+### Added — Windows
+- **Blip for Windows 10 and 11, x64 and ARM64, no administrator rights.** It lives in the notification area with the Mac's popover and live detail panels: CPU, Memory, Disk, Network, GPU, Thermal, Bench, Battery and Keep Awake. Everything comes from APIs open to standard users: performance counters, IP Helper ICMP, storage and battery IOCTLs, DXGI, NVML and Direct3D 11.
+- **Drive health without admin.** Physical drives are opened with no access rights, which is enough for the NVMe SMART/Health log (life remaining, spare, data written and read, power-on hours, unsafe shutdowns) and drive temperature sensors.
+- **Traceroute without admin.** Echoes with rising TTLs through `IcmpSendEcho2`, folded into the same MTR statistics as the Mac, with the offline DB-IP map drawn over a Natural Earth coastline.
+- **Blip Bench on Windows.** It uses the same workloads, inputs and frozen Blip 2.0 reference units, and the GPU leg runs a 1024³ matrix multiply as a Direct3D 11 compute shader. The hashing, compression and FFT come from Rust libraries rather than Apple frameworks, so scores are close to the Mac's but not bit-for-bit identical.
+- **Public OpenSpeedTest test in a hidden WebView2,** driven and read the same way the Mac drives it in WKWebView. Self-hosted servers are measured natively and can run on a schedule, which pauses on metered connections.
+- **Keep Awake** uses a Windows power request. Lid-closed mode sets the active plan's lid action to "Do nothing" for the session, saving the original first so a crash is undone at the next launch.
+- **`blip-cli`,** the counterpart of the Mac's Shortcuts actions, with the same metric ids and settings keys.
+- **CI on real Windows.** `windows.yml` lints, tests and builds on x64 and ARM64 runners. It includes live checks of every Windows source as a standard user, plus offscreen renders of every panel.
+
 ## 2.0.10 — 2026-10-23 (Mac)
 
 Supersedes 2.0.9, which was still in review and never reached users: same contents, plus the fix below.
