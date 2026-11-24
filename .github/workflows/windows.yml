@@ -98,7 +98,8 @@ jobs:
           # Runners may lack OpenGL 2 for the window; the install itself doesn't need it.
           if (Get-Process Blip -ErrorAction SilentlyContinue) { "installed copy is running" } else { "installed copy didn't stay up (no GPU on the runner)" }
           (Start-Process -PassThru "$dir\Blip.exe" -ArgumentList '--uninstall','--quiet').WaitForExit()
-          Start-Sleep 5
+          # The exe can't delete itself: a hidden cmd removes the folder ~2 s after it exits.
+          Start-Sleep 8
           if (Get-Process Blip -ErrorAction SilentlyContinue) { throw "Blip still running after uninstall" }
           if (Test-Path "$dir\Blip.exe") { throw "files left behind" }
           if (Test-Path 'HKCU:\Software\Microsoft\Windows\CurrentVersion\Uninstall\Blip') { throw "Settings › Apps entry left" }

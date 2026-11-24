@@ -4,9 +4,9 @@
 pub mod battery;
 pub mod bus;
 pub mod gpu;
-pub mod gpubench;
+pub use crate::gpubench;
 pub mod hwmon;
-pub mod icmp;
+pub use crate::icmp;
 pub mod icons;
 pub mod netinfo;
 pub mod power;

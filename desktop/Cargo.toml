@@ -4,10 +4,11 @@
 #                    stats, GeoIP, settings, strings. Unit-tested on every host.
 #   crates/platform  the metric sources: native Win32 on Windows, /proc + /sys + D-Bus on Linux,
 #                    over a portable sysinfo base.
+#   crates/android   the JNI bridge Blip for Android (../android) loads: the same core on phones.
 #   app              the tray app itself (egui), plus the `blip` command line.
 [workspace]
 resolver = "2"
-members = ["crates/core", "crates/platform", "app"]
+members = ["crates/core", "crates/platform", "crates/android", "app"]
 
 [workspace.package]
 version = "2.1.0"

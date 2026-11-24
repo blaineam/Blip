@@ -5,6 +5,7 @@
 use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Clone, Default, Serialize, Deserialize)]
+#[serde(default)]
 pub struct CpuStats {
     /// 0–100.
     pub total: f64,
@@ -28,6 +29,7 @@ pub struct CpuStats {
 }
 
 #[derive(Debug, Clone, Default, Serialize, Deserialize)]
+#[serde(default)]
 pub struct MemoryStats {
     pub total: u64,
     pub used: u64,
@@ -65,6 +67,7 @@ impl MemoryStats {
 }
 
 #[derive(Debug, Clone, Default, Serialize, Deserialize)]
+#[serde(default)]
 pub struct Volume {
     pub name: String,
     /// "C:\" on Windows, "/" on Linux.
@@ -94,6 +97,7 @@ impl Volume {
 /// some of it to standard users (temperature, NVMe health log on most inbox drivers), the rest
 /// needs admin and simply stays `None`.
 #[derive(Debug, Clone, Default, Serialize, Deserialize)]
+#[serde(default)]
 pub struct DriveHealth {
     pub id: String,
     pub name: String,
@@ -125,6 +129,7 @@ impl DriveHealth {
 }
 
 #[derive(Debug, Clone, Default, Serialize, Deserialize)]
+#[serde(default)]
 pub struct DiskStats {
     pub volumes: Vec<Volume>,
     pub read_bps: u64,
@@ -144,6 +149,7 @@ impl DiskStats {
 }
 
 #[derive(Debug, Clone, Default, Serialize, Deserialize)]
+#[serde(default)]
 pub struct GpuStats {
     pub name: String,
     pub utilization: f64,
@@ -157,6 +163,7 @@ pub struct GpuStats {
 }
 
 #[derive(Debug, Clone, Default, Serialize, Deserialize)]
+#[serde(default)]
 pub struct Interface {
     pub id: String,
     /// "Wi-Fi", "Ethernet", "Tailscale"…
@@ -186,6 +193,7 @@ pub enum InterfaceKind {
 }
 
 #[derive(Debug, Clone, Default, Serialize, Deserialize)]
+#[serde(default)]
 pub struct NetworkStats {
     pub connected: bool,
     pub primary: Option<String>,
@@ -211,6 +219,7 @@ impl NetworkStats {
 }
 
 #[derive(Debug, Clone, Default, Serialize, Deserialize)]
+#[serde(default)]
 pub struct BatteryStats {
     pub present: bool,
     pub level: f64,
@@ -229,6 +238,7 @@ pub struct BatteryStats {
 }
 
 #[derive(Debug, Clone, Default, Serialize, Deserialize)]
+#[serde(default)]
 pub struct Fan {
     pub name: String,
     pub rpm: u32,
@@ -237,6 +247,7 @@ pub struct Fan {
 }
 
 #[derive(Debug, Clone, Default, Serialize, Deserialize)]
+#[serde(default)]
 pub struct ThermalStats {
     pub cpu_c: Option<f64>,
     pub gpu_c: Option<f64>,
@@ -274,6 +285,7 @@ impl ThermalLevel {
 }
 
 #[derive(Debug, Clone, Default, Serialize, Deserialize)]
+#[serde(default)]
 pub struct ProcessInfo {
     pub pid: u32,
     pub name: String,
@@ -288,6 +300,7 @@ pub struct ProcessInfo {
 }
 
 #[derive(Debug, Clone, Default, Serialize, Deserialize)]
+#[serde(default)]
 pub struct SystemInfo {
     pub uptime_secs: u64,
     pub model: String,
@@ -300,6 +313,7 @@ pub struct SystemInfo {
 }
 
 #[derive(Debug, Clone, Default, Serialize, Deserialize)]
+#[serde(default)]
 pub struct Snapshot {
     pub cpu: CpuStats,
     pub memory: MemoryStats,

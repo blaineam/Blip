@@ -474,9 +474,14 @@ pub fn uninstall(quiet: bool) {
     if let Some(dir) = install_dir() {
         set_on_path(&dir, false);
         if is_installed_copy() {
+            // Raw, not `.arg()`: Rust would escape the inner quotes as \" (C runtime rules), which
+            // cmd.exe doesn't understand, and the rmdir would never run. `cmd /c` takes the rest
+            // of the line as-is. Started from %TEMP% so it isn't holding the folder it deletes.
             let script = format!("ping 127.0.0.1 -n 3 >nul & rmdir /s /q \"{}\"", dir.display());
             let _ = Command::new("cmd.exe")
-                .args(["/c", &script])
+                .raw_arg("/c")
+                .raw_arg(&script)
+                .current_dir(std::env::temp_dir())
                 .creation_flags(CREATE_NO_WINDOW)
                 .spawn();
         } else {

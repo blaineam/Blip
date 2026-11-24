@@ -1,7 +1,7 @@
 //! Reachability: ping, router ping, traceroute/MTR and the WAN address. On Windows every probe
 //! is `IcmpSendEcho2` from IP Helper — unprivileged, unlike raw sockets — and a traceroute is
 //! just echoes with rising TTLs, so Blip needs no `tracert.exe` and no admin. On Linux the same
-//! happens over unprivileged ping sockets (`crate::linux::icmp`); only where a distro disables
+//! happens over unprivileged ping sockets (`crate::icmp`); only where a distro disables
 //! those (or on macOS dev hosts) are the system `ping`/`traceroute` tools used.
 
 use std::net::{IpAddr, ToSocketAddrs};
@@ -29,9 +29,9 @@ pub fn ping(host: &str, timeout_ms: u32) -> Option<f64> {
     {
         crate::win::icmp::echo(ip, None, timeout_ms).and_then(|r| r.rtt_ms.filter(|_| r.reached))
     }
-    #[cfg(target_os = "linux")]
-    if crate::linux::icmp::available() {
-        return crate::linux::icmp::echo(ip, None, timeout_ms).and_then(|r| r.rtt_ms.filter(|_| r.reached));
+    #[cfg(any(target_os = "linux", target_os = "android"))]
+    if crate::icmp::available() {
+        return crate::icmp::echo(ip, None, timeout_ms).and_then(|r| r.rtt_ms.filter(|_| r.reached));
     }
     #[cfg(not(windows))]
     {
@@ -311,9 +311,9 @@ fn probe_hop(ip: IpAddr, ttl: u32) -> (HopProbe, bool) {
             ),
         }
     }
-    #[cfg(target_os = "linux")]
-    if crate::linux::icmp::available() {
-        let r = crate::linux::icmp::echo(ip, Some(ttl.min(255) as u8), 1000);
+    #[cfg(any(target_os = "linux", target_os = "android"))]
+    if crate::icmp::available() {
+        let r = crate::icmp::echo(ip, Some(ttl.min(255) as u8), 1000);
         return match r {
             Some(r) => (
                 HopProbe {

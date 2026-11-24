@@ -9,6 +9,14 @@
 //! and die temperatures, which Linux hands to users and Windows doesn't).
 
 mod generic;
+/// Blip Bench's GPU leg on Vulkan/GLES (Linux, and Android's Vulkan).
+#[cfg(any(target_os = "linux", target_os = "android"))]
+#[path = "linux/gpubench.rs"]
+pub mod gpubench;
+/// Unprivileged ICMP (ping sockets) — shared by Linux and Android, which allows them for apps.
+#[cfg(any(target_os = "linux", target_os = "android"))]
+#[path = "linux/icmp.rs"]
+pub mod icmp;
 #[cfg(target_os = "linux")]
 pub mod linux;
 pub mod net;
@@ -34,11 +42,11 @@ pub fn gpu_compute() -> Option<Arc<dyn GpuCompute>> {
     {
         win::d3d::D3DCompute::new().map(|g| Arc::new(g) as Arc<dyn GpuCompute>)
     }
-    #[cfg(target_os = "linux")]
+    #[cfg(any(target_os = "linux", target_os = "android"))]
     {
-        Some(Arc::new(linux::gpubench::WgpuCompute) as Arc<dyn GpuCompute>)
+        Some(Arc::new(gpubench::WgpuCompute) as Arc<dyn GpuCompute>)
     }
-    #[cfg(not(any(windows, target_os = "linux")))]
+    #[cfg(not(any(windows, target_os = "linux", target_os = "android")))]
     {
         None
     }
