@@ -49,7 +49,7 @@ pub fn show(ui: &mut egui::Ui, app: &App, drafts: &mut Drafts) {
             ui.painter().image(tex.id(), r, egui::Rect::from_min_max(egui::pos2(0.0, 0.0), egui::pos2(1.0, 1.0)), egui::Color32::WHITE);
             ui.vertical(|ui| {
                 ui.label(RichText::new("Blip").font(theme::bold(18.0)));
-                ui.label(RichText::new(format!("v{}", env!("CARGO_PKG_VERSION"))).size(10.5).color(secondary(ui)));
+                ui.label(RichText::new(format!("v{}", crate::VERSION)).size(10.5).color(secondary(ui)));
             });
         });
 
@@ -61,6 +61,12 @@ pub fn show(ui: &mut egui::Ui, app: &App, drafts: &mut Drafts) {
             }
             if let Some(e) = &drafts.autostart_error {
                 ui.label(RichText::new(e).size(10.5).color(theme::RED));
+            }
+            // Running the downloaded exe: offer the per-user install (Start menu, Settings › Apps,
+            // blip-cli on PATH).
+            #[cfg(windows)]
+            if !crate::install::is_installed_copy() && ui.button(t("Install Blip…")).clicked() && crate::install::install_from_settings() {
+                crate::QUIT_REQUESTED.store(true, std::sync::atomic::Ordering::Relaxed);
             }
             ui.horizontal(|ui| {
                 ui.label(t("Appearance"));

@@ -55,7 +55,8 @@ jobs:
         run: |
           sudo apt-get update -qq
           # Xvfb + a software GL/Vulkan stack for the GUI launch and the offscreen renders.
-          sudo apt-get install -y -qq xvfb dbus-x11 mesa-vulkan-drivers libgl1-mesa-dri libegl1 fonts-dejavu-core >/dev/null
+          # (libxkbcommon-x11 is on every X11 desktop; bare runners lack it.)
+          sudo apt-get install -y -qq xvfb dbus-x11 mesa-vulkan-drivers libgl1-mesa-dri libegl1 libxkbcommon-x11-0 fonts-dejavu-core >/dev/null
           pip3 install --break-system-packages --quiet ziglang cargo-zigbuild
 
       - name: Strings are current

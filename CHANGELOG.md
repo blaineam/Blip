@@ -19,6 +19,9 @@
 
 ## Blip for Windows (preview)
 
+### Added — Windows installer
+- **`Blip.exe` installs itself, per user, without admin,** the same way Glint does. Opened from a download, it offers to copy itself and `blip-cli.exe` to `%LOCALAPPDATA%\Programs\Blip`, add a Start menu shortcut and a Settings › Apps entry with an uninstaller, start at login, and put `blip-cli` on your user PATH. Running a newer download offers to update the installed copy; running the same or an older one opens it. Choosing No keeps Blip portable, and Settings › General offers *Install Blip…* later. `--install` and `--uninstall --quiet` do it without questions. Updates and uninstalls ask the running Blip to quit first, so Keep Awake's lid change is undone. CI checks the full install → verify → uninstall round trip as a standard user on x64 and ARM64.
+
 First preview: `windows-v2.1.0-preview.1`, a GitHub prerelease with x64 and ARM64 zips.
 
 ### Added — Windows

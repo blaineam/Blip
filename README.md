@@ -78,7 +78,7 @@ Blip runs on **Windows 10 and 11 (x64 and ARM64) without administrator rights**:
 
 **What Windows keeps behind admin rights or drivers:** fan RPM and CPU die temperature need a kernel driver, so Blip shows ACPI thermal zones, GPU and drive temperatures, and clock throttling instead. SATA drives report temperature and the SMART pass/fail prediction; their full attribute tables need admin. Windows has no OS-shipped ML model, so the benchmark's Neural leg drops out.
 
-**Try it:** preview builds are on [Releases](../../releases) as `windows-v*` prereleases. Unzip and run `Blip.exe`; they aren't code-signed yet, so SmartScreen asks once (More info › Run anyway).
+**Try it:** preview builds are on [Releases](../../releases) as `windows-v*` prereleases. Unzip and run `Blip.exe`. It offers to install itself for your user (no admin): Start menu, Settings › Apps with an uninstaller, launch at login, `blip-cli` on your PATH, and in-place updates from newer downloads. You can also choose No and run it portably. The builds aren't code-signed yet, so SmartScreen asks once (More info › Run anyway).
 
 ```powershell
 # Build from source (Rust stable)

@@ -47,6 +47,12 @@ jobs:
           rustup target add ${{ matrix.target }}
           rustup component add clippy rustfmt
 
+      - name: Version from tag
+        if: startsWith(github.ref, 'refs/tags/windows-v')
+        shell: bash
+        # Baked into the exe so the installer can tell one preview from the next.
+        run: echo "BLIP_VERSION=${GITHUB_REF_NAME#windows-v}" >> "$GITHUB_ENV"
+
       - name: Strings are current
         run: python tools/gen_strings.py && git diff --exit-code -- crates/core/src/strings.rs
 
@@ -74,6 +80,31 @@ jobs:
           $exe bench --quick
           $exe disktest --size 128
           ls -l target/${{ matrix.target }}/release/*.exe
+
+      - name: Install / uninstall round trip (standard user)
+        shell: pwsh
+        run: |
+          $exe = "target/${{ matrix.target }}/release/Blip.exe"
+          (Start-Process -PassThru $exe -ArgumentList '--install').WaitForExit()  # not -Wait: that also waits for the Blip it launches
+          Start-Sleep 3
+          $dir = "$env:LOCALAPPDATA\Programs\Blip"
+          if (!(Test-Path "$dir\Blip.exe") -or !(Test-Path "$dir\blip-cli.exe")) { throw "exes not copied" }
+          $u = Get-ItemProperty 'HKCU:\Software\Microsoft\Windows\CurrentVersion\Uninstall\Blip'
+          "Installed $($u.DisplayVersion) at $($u.InstallLocation); uninstall: $($u.UninstallString)"
+          if ((Get-ItemProperty HKCU:\Environment).Path -notlike "*Programs\Blip*") { throw "not on the user PATH" }
+          if (!(Test-Path "$env:APPDATA\Microsoft\Windows\Start Menu\Programs\Blip.lnk")) { throw "no Start menu shortcut" }
+          if (!((Get-ItemProperty 'HKCU:\Software\Microsoft\Windows\CurrentVersion\Run').Blip -like "*Programs\Blip\Blip.exe*")) { throw "no login entry" }
+          & "$dir\blip-cli.exe" --version
+          # Runners may lack OpenGL 2 for the window; the install itself doesn't need it.
+          if (Get-Process Blip -ErrorAction SilentlyContinue) { "installed copy is running" } else { "installed copy didn't stay up (no GPU on the runner)" }
+          (Start-Process -PassThru "$dir\Blip.exe" -ArgumentList '--uninstall','--quiet').WaitForExit()
+          Start-Sleep 5
+          if (Get-Process Blip -ErrorAction SilentlyContinue) { throw "Blip still running after uninstall" }
+          if (Test-Path "$dir\Blip.exe") { throw "files left behind" }
+          if (Test-Path 'HKCU:\Software\Microsoft\Windows\CurrentVersion\Uninstall\Blip') { throw "Settings › Apps entry left" }
+          if ((Get-ItemProperty HKCU:\Environment).Path -like "*Programs\Blip*") { throw "PATH entry left" }
+          if ((Get-ItemProperty 'HKCU:\Software\Microsoft\Windows\CurrentVersion\Run').Blip) { throw "login entry left" }
+          "round trip OK"
 
       - uses: actions/upload-artifact@v4
         with:

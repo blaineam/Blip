@@ -179,6 +179,26 @@
     "pt-BR": "Ao lado do menu (ao passar)",
     "zh-Hans": "菜单旁（悬停）"
   },
+  "Blip can install itself for your user: it is copied to your user folder, added to the Start menu and to Settings › Apps, and starts at login. No administrator rights are needed.": {
+    "de": "Blip kann sich für deinen Benutzer installieren: Es wird in deinen Benutzerordner kopiert, ins Startmenü und unter Einstellungen › Apps eingetragen und startet bei der Anmeldung. Administratorrechte sind nicht nötig.",
+    "es": "Blip puede instalarse para tu usuario: se copia en tu carpeta de usuario, se añade al menú Inicio y a Configuración › Aplicaciones, y se abre al iniciar sesión. No hacen falta permisos de administrador.",
+    "fr": "Blip peut s’installer pour votre utilisateur : il est copié dans votre dossier utilisateur, ajouté au menu Démarrer et à Paramètres › Applications, et s’ouvre à l’ouverture de session. Aucun droit d’administrateur n’est nécessaire.",
+    "it": "Blip può installarsi per il tuo utente: viene copiato nella tua cartella utente, aggiunto al menu Start e a Impostazioni › App, e si avvia all’accesso. Non servono diritti di amministratore.",
+    "ja": "Blip をこのユーザー用にインストールできます。ユーザーフォルダにコピーされ、スタートメニューと「設定 › アプリ」に追加され、サインイン時に起動します。管理者権限は必要ありません。",
+    "ko": "Blip을 이 사용자용으로 설치할 수 있습니다. 사용자 폴더에 복사되고 시작 메뉴와 설정 › 앱에 추가되며 로그인할 때 실행됩니다. 관리자 권한은 필요 없습니다.",
+    "pt-BR": "O Blip pode se instalar para o seu usuário: ele é copiado para a sua pasta de usuário, adicionado ao menu Iniciar e a Configurações › Aplicativos, e abre ao iniciar a sessão. Não são necessárias permissões de administrador.",
+    "zh-Hans": "Blip 可以为当前用户安装:它会被复制到你的用户文件夹,添加到“开始”菜单和“设置 › 应用”,并在登录时启动。无需管理员权限。"
+  },
+  "Blip couldn't be installed: %@": {
+    "de": "Blip konnte nicht installiert werden: %@",
+    "es": "No se pudo instalar Blip: %@",
+    "fr": "Impossible d’installer Blip : %@",
+    "it": "Impossibile installare Blip: %@",
+    "ja": "Blip をインストールできませんでした: %@",
+    "ko": "Blip을 설치하지 못했습니다: %@",
+    "pt-BR": "Não foi possível instalar o Blip: %@",
+    "zh-Hans": "无法安装 Blip:%@"
+  },
   "Blip is free and open source. If it's useful to you, you can chip in.": {
     "de": "Blip ist kostenlos und Open Source. Wenn es dir nützt, kannst du etwas beisteuern.",
     "es": "Blip es gratuito y de código abierto. Si te resulta útil, puedes contribuir.",
@@ -208,6 +228,16 @@
     "ko": "Blip v%@ · %@ MB",
     "pt-BR": "Blip v%@ · %@ MB",
     "zh-Hans": "Blip v%@ · %@ MB"
+  },
+  "Blip was uninstalled.": {
+    "de": "Blip wurde deinstalliert.",
+    "es": "Blip se ha desinstalado.",
+    "fr": "Blip a été désinstallé.",
+    "it": "Blip è stato disinstallato.",
+    "ja": "Blip をアンインストールしました。",
+    "ko": "Blip을 제거했습니다.",
+    "pt-BR": "O Blip foi desinstalado.",
+    "zh-Hans": "已卸载 Blip。"
   },
   "CPU clock vs base": {
     "de": "CPU-Takt ggü. Basistakt",
@@ -288,6 +318,16 @@
     "ko": "폴더 선택…",
     "pt-BR": "Escolher pasta…",
     "zh-Hans": "选择文件夹…"
+  },
+  "Choose No to keep running it from where it is.": {
+    "de": "Wähle „Nein“, um es weiter von hier aus zu starten.",
+    "es": "Elige No para seguir ejecutándolo desde donde está.",
+    "fr": "Choisissez Non pour continuer à l’exécuter depuis son emplacement actuel.",
+    "it": "Scegli No per continuare a eseguirlo da dove si trova.",
+    "ja": "「いいえ」を選ぶと、今の場所から実行し続けます。",
+    "ko": "현재 위치에서 계속 실행하려면 ‘아니요’를 선택하세요.",
+    "pt-BR": "Escolha Não para continuar executando-o de onde está.",
+    "zh-Hans": "选择“否”可继续从当前位置运行。"
   },
   "Color bars by utilization": {
     "de": "Balken nach Auslastung einfärben",
@@ -548,6 +588,26 @@
     "ko": "메뉴 안(클릭)",
     "pt-BR": "Dentro do menu (clique)",
     "zh-Hans": "菜单内（点击）"
+  },
+  "Install Blip?": {
+    "de": "Blip installieren?",
+    "es": "¿Instalar Blip?",
+    "fr": "Installer Blip ?",
+    "it": "Installare Blip?",
+    "ja": "Blip をインストールしますか?",
+    "ko": "Blip을 설치할까요?",
+    "pt-BR": "Instalar o Blip?",
+    "zh-Hans": "安装 Blip?"
+  },
+  "Install Blip…": {
+    "de": "Blip installieren …",
+    "es": "Instalar Blip…",
+    "fr": "Installer Blip…",
+    "it": "Installa Blip…",
+    "ja": "Blip をインストール…",
+    "ko": "Blip 설치…",
+    "pt-BR": "Instalar o Blip…",
+    "zh-Hans": "安装 Blip…"
   },
   "Installed database is unreadable — re-download to fix.": {
     "de": "Die installierte Datenbank ist unlesbar – zum Beheben erneut laden.",
@@ -1259,6 +1319,16 @@
     "pt-BR": "A CPU está reduzindo a velocidade sob carga — limites térmicos ou de energia.",
     "zh-Hans": "CPU 在负载下自行降速 — 受温度或功耗限制。"
   },
+  "The installed Blip is %@. Update it to %@?": {
+    "de": "Installiert ist Blip %@. Auf %@ aktualisieren?",
+    "es": "El Blip instalado es la versión %@. ¿Actualizarlo a %@?",
+    "fr": "Le Blip installé est en version %@. Le mettre à jour vers %@ ?",
+    "it": "Il Blip installato è la versione %@. Aggiornarlo alla %@?",
+    "ja": "インストールされている Blip は %@ です。%@ にアップデートしますか?",
+    "ko": "설치된 Blip은 %@입니다. %@(으)로 업데이트할까요?",
+    "pt-BR": "O Blip instalado é a versão %@. Atualizar para %@?",
+    "zh-Hans": "已安装的 Blip 版本为 %@。要更新到 %@ 吗?"
+  },
   "The map needs the free offline GeoIP database (about 130 MB).": {
     "de": "Die Karte benötigt die kostenlose Offline-GeoIP-Datenbank (ca. 130 MB).",
     "es": "El mapa necesita la base de datos GeoIP gratuita sin conexión (unos 130 MB).",
@@ -1308,6 +1378,16 @@
     "ko": "이 PC는 표준 사용자에게 온도를 제공하지 않습니다.",
     "pt-BR": "Este PC não informa temperaturas a usuários padrão.",
     "zh-Hans": "此电脑不向标准用户报告温度。"
+  },
+  "This removes Blip, its Start menu entry and its settings.": {
+    "de": "Dadurch werden Blip, sein Startmenüeintrag und seine Einstellungen entfernt.",
+    "es": "Se eliminarán Blip, su entrada del menú Inicio y su configuración.",
+    "fr": "Blip, son raccourci du menu Démarrer et ses réglages seront supprimés.",
+    "it": "Verranno rimossi Blip, la sua voce nel menu Start e le sue impostazioni.",
+    "ja": "Blip、スタートメニューの項目、設定が削除されます。",
+    "ko": "Blip과 시작 메뉴 항목, 설정이 제거됩니다.",
+    "pt-BR": "Isso remove o Blip, o atalho do menu Iniciar e os ajustes dele.",
+    "zh-Hans": "这将移除 Blip、其“开始”菜单项及其设置。"
   },
   "Time remaining": {
     "de": "Restzeit",
@@ -1369,6 +1449,16 @@
     "pt-BR": "Desativar",
     "zh-Hans": "关闭"
   },
+  "Uninstall Blip?": {
+    "de": "Blip deinstallieren?",
+    "es": "¿Desinstalar Blip?",
+    "fr": "Désinstaller Blip ?",
+    "it": "Disinstallare Blip?",
+    "ja": "Blip をアンインストールしますか?",
+    "ko": "Blip을 제거할까요?",
+    "pt-BR": "Desinstalar o Blip?",
+    "zh-Hans": "卸载 Blip?"
+  },
   "Unsafe Shutdowns": {
     "de": "Unsichere Abschaltungen",
     "es": "Apagados forzados",
@@ -1398,6 +1488,16 @@
     "ko": "끌 때까지",
     "pt-BR": "Até desativar",
     "zh-Hans": "直到关闭"
+  },
+  "Update Blip?": {
+    "de": "Blip aktualisieren?",
+    "es": "¿Actualizar Blip?",
+    "fr": "Mettre à jour Blip ?",
+    "it": "Aggiornare Blip?",
+    "ja": "Blip をアップデートしますか?",
+    "ko": "Blip을 업데이트할까요?",
+    "pt-BR": "Atualizar o Blip?",
+    "zh-Hans": "更新 Blip?"
   },
   "Update Now": {
     "de": "Jetzt aktualisieren",

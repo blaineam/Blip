@@ -402,6 +402,11 @@ impl eframe::App for BlipApp {
             });
             self.theme = Some(settings.theme);
         }
+        if crate::QUIT_REQUESTED.swap(false, std::sync::atomic::Ordering::Relaxed) {
+            self.quitting = true;
+            self.app.stop_awake();
+            ctx.send_viewport_cmd(ViewportCommand::Close);
+        }
         while let Ok(ev) = self.events.try_recv() {
             match ev {
                 UiEvent::TrayClick(rect) => {
@@ -638,9 +643,12 @@ pub fn run(start_visible: bool) -> eframe::Result<()> {
     let (tx, rx) = channel();
     {
         let tx = tx.clone();
-        if !winsys::claim_single_instance(move || {
-            let _ = tx.send(UiEvent::Show);
-        }) {
+        if !winsys::claim_single_instance(
+            move || {
+                let _ = tx.send(UiEvent::Show);
+            },
+            || crate::QUIT_REQUESTED.store(true, std::sync::atomic::Ordering::Relaxed),
+        ) {
             return Ok(());
         }
     }

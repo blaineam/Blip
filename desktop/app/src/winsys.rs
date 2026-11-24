@@ -26,7 +26,10 @@ mod imp {
     use super::WorkArea;
 
     /// Returns false when another Blip is already running (after asking it to show itself).
-    pub fn claim_single_instance(on_show: impl Fn() + Send + 'static) -> bool {
+    pub fn claim_single_instance(
+        on_show: impl Fn() + Send + 'static,
+        on_quit: impl Fn() + Send + 'static,
+    ) -> bool {
         // SAFETY: named kernel objects in the session namespace; handles live for the process.
         unsafe {
             let _mutex = CreateMutexW(None, true, w!("Local\\BlipDesktop.Instance"));
@@ -35,6 +38,16 @@ mod imp {
                     let _ = SetEvent(ev);
                 }
                 return false;
+            }
+            // The installer/uninstaller asks a running Blip to quit through this event.
+            if let Ok(ev) = CreateEventW(None, false, false, w!("Local\\BlipDesktop.Quit")) {
+                let raw = ev.0 as isize;
+                std::thread::spawn(move || {
+                    let h = windows::Win32::Foundation::HANDLE(raw as _);
+                    if WaitForSingleObject(h, INFINITE).0 == 0 {
+                        on_quit();
+                    }
+                });
             }
             if let Ok(ev) = CreateEventW(None, false, false, w!("Local\\BlipDesktop.Show")) {
                 let raw = ev.0 as isize;
@@ -50,6 +63,34 @@ mod imp {
             std::mem::forget(_mutex);
         }
         true
+    }
+
+    /// Asks a running Blip to quit and waits (up to 8 s) until it has exited.
+    pub fn close_running() {
+        // SAFETY: opening and signalling our own named objects.
+        unsafe {
+            let Ok(ev) = OpenEventW(EVENT_MODIFY_STATE, false, w!("Local\\BlipDesktop.Quit")) else {
+                return;
+            };
+            let _ = SetEvent(ev);
+            let _ = windows::Win32::Foundation::CloseHandle(ev);
+            let deadline = std::time::Instant::now() + std::time::Duration::from_secs(8);
+            while std::time::Instant::now() < deadline {
+                match OpenMutexW(
+                    SYNCHRONIZATION_SYNCHRONIZE,
+                    false,
+                    w!("Local\\BlipDesktop.Instance"),
+                ) {
+                    Ok(m) => {
+                        let _ = windows::Win32::Foundation::CloseHandle(m);
+                        std::thread::sleep(std::time::Duration::from_millis(100));
+                    }
+                    Err(_) => break,
+                }
+            }
+            // Let the process release its exe file.
+            std::thread::sleep(std::time::Duration::from_millis(400));
+        }
     }
 
     pub fn work_area_at(x: f32, y: f32) -> Option<WorkArea> {
@@ -127,7 +168,10 @@ mod imp {
     }
 
     /// Returns false when another Blip is already running (after asking it to show itself).
-    pub fn claim_single_instance(on_show: impl Fn() + Send + 'static) -> bool {
+    pub fn claim_single_instance(
+        on_show: impl Fn() + Send + 'static,
+        on_quit: impl Fn() + Send + 'static,
+    ) -> bool {
         let Some(a) = addr() else { return true };
         match UnixListener::bind_addr(&a) {
             Ok(l) => {
@@ -136,8 +180,12 @@ mod imp {
                     .spawn(move || {
                         for mut c in l.incoming().flatten() {
                             let mut b = [0u8; 4];
-                            if c.read(&mut b).is_ok_and(|n| n > 0) && &b == b"show" {
-                                on_show();
+                            if c.read(&mut b).is_ok_and(|n| n > 0) {
+                                match &b {
+                                    b"show" => on_show(),
+                                    b"quit" => on_quit(),
+                                    _ => {}
+                                }
                             }
                         }
                     })
@@ -174,7 +222,10 @@ mod imp {
 #[cfg(not(any(windows, target_os = "linux")))]
 mod imp {
     use super::WorkArea;
-    pub fn claim_single_instance(_on_show: impl Fn() + Send + 'static) -> bool {
+    pub fn claim_single_instance(
+        _on_show: impl Fn() + Send + 'static,
+        _on_quit: impl Fn() + Send + 'static,
+    ) -> bool {
         true
     }
     pub fn work_area_at(_x: f32, _y: f32) -> Option<WorkArea> {
