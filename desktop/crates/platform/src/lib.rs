@@ -5,9 +5,12 @@
 //! The portable layer (`sysinfo`) covers CPU, memory, processes, volumes and interface counters
 //! on every OS; Windows then layers native sources on top for what Task Manager shows and
 //! `sysinfo` doesn't (user/kernel split, clock %, disk I/O, GPU engines, battery wear, NVMe
-//! health, adapters, ICMP).
+//! health, adapters, ICMP), and Linux does the same from /proc, /sys and D-Bus (plus fan RPM
+//! and die temperatures, which Linux hands to users and Windows doesn't).
 
 mod generic;
+#[cfg(target_os = "linux")]
+pub mod linux;
 pub mod net;
 #[cfg(windows)]
 mod win;
@@ -25,13 +28,17 @@ pub fn ping(host: &str) -> Option<f64> {
     net::ping(host, 1000)
 }
 
-/// The GPU leg of Blip Bench (Direct3D 11 compute on Windows).
+/// The GPU leg of Blip Bench (Direct3D 11 compute on Windows, Vulkan/GLES compute on Linux).
 pub fn gpu_compute() -> Option<Arc<dyn GpuCompute>> {
     #[cfg(windows)]
     {
         win::d3d::D3DCompute::new().map(|g| Arc::new(g) as Arc<dyn GpuCompute>)
     }
-    #[cfg(not(windows))]
+    #[cfg(target_os = "linux")]
+    {
+        Some(Arc::new(linux::gpubench::WgpuCompute) as Arc<dyn GpuCompute>)
+    }
+    #[cfg(not(any(windows, target_os = "linux")))]
     {
         None
     }
@@ -43,7 +50,18 @@ pub fn kill_process(pid: u32) -> Result<(), String> {
     {
         win::process::kill(pid)
     }
-    #[cfg(not(windows))]
+    #[cfg(target_os = "linux")]
+    {
+        // SAFETY: kill(2) on a pid; the kernel enforces ownership.
+        if unsafe { libc::kill(pid as libc::pid_t, libc::SIGTERM) } == 0 {
+            Ok(())
+        } else if std::io::Error::last_os_error().raw_os_error() == Some(libc::EPERM) {
+            Err("Access is denied.".into())
+        } else {
+            Err("Couldn't end that process.".into())
+        }
+    }
+    #[cfg(not(any(windows, target_os = "linux")))]
     {
         let ok = std::process::Command::new("kill")
             .arg(pid.to_string())
@@ -64,7 +82,11 @@ pub fn ui_language() -> String {
     {
         win::system::ui_language()
     }
-    #[cfg(not(windows))]
+    #[cfg(target_os = "linux")]
+    {
+        linux::system::ui_language()
+    }
+    #[cfg(not(any(windows, target_os = "linux")))]
     {
         std::env::var("LC_ALL")
             .or_else(|_| std::env::var("LC_MESSAGES"))
@@ -77,13 +99,17 @@ pub fn ui_language() -> String {
     }
 }
 
-/// Start Blip when the user signs in (HKCU Run key on Windows — no admin).
+/// Start Blip when the user signs in (HKCU Run key on Windows, XDG autostart on Linux).
 pub fn set_launch_at_login(enabled: bool) -> Result<(), String> {
     #[cfg(windows)]
     {
         win::system::set_launch_at_login(enabled)
     }
-    #[cfg(not(windows))]
+    #[cfg(target_os = "linux")]
+    {
+        linux::system::set_launch_at_login(enabled)
+    }
+    #[cfg(not(any(windows, target_os = "linux")))]
     {
         let _ = enabled;
         Err("Not supported on this platform yet.".into())
@@ -95,7 +121,11 @@ pub fn launch_at_login() -> bool {
     {
         win::system::launch_at_login()
     }
-    #[cfg(not(windows))]
+    #[cfg(target_os = "linux")]
+    {
+        linux::system::launch_at_login()
+    }
+    #[cfg(not(any(windows, target_os = "linux")))]
     {
         false
     }
@@ -175,19 +205,38 @@ pub fn system_fonts() -> SystemFonts {
     }
     #[cfg(all(unix, not(target_os = "macos")))]
     {
-        SystemFonts {
-            ui: first(&[
+        // fontconfig first (what the rest of the desktop renders with), then known paths.
+        #[cfg(target_os = "linux")]
+        let fc = linux::system::fc_match;
+        #[cfg(not(target_os = "linux"))]
+        let fc = |_: &str| None::<std::path::PathBuf>;
+        let ui = fc("sans-serif").or_else(|| {
+            first(&[
                 "/usr/share/fonts/truetype/ubuntu/Ubuntu-R.ttf",
                 "/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf",
                 "/usr/share/fonts/dejavu/DejaVuSans.ttf",
                 "/usr/share/fonts/noto/NotoSans-Regular.ttf",
-            ]),
-            ui_bold: None,
-            mono: first(&[
+                "/usr/share/fonts/TTF/DejaVuSans.ttf",
+            ])
+        });
+        let ui_bold = fc("sans-serif:weight=600").filter(|b| Some(b) != ui.as_ref());
+        let mono = fc("monospace").or_else(|| {
+            first(&[
                 "/usr/share/fonts/truetype/dejavu/DejaVuSansMono.ttf",
                 "/usr/share/fonts/dejavu/DejaVuSansMono.ttf",
-            ]),
-            cjk: [
+                "/usr/share/fonts/TTF/DejaVuSansMono.ttf",
+            ])
+        });
+        let mut cjk: Vec<std::path::PathBuf> = Vec::new();
+        for lang in ["ja", "ko", "zh-cn", "zh-tw"] {
+            if let Some(p) = fc(&format!("sans-serif:lang={lang}")) {
+                if Some(&p) != ui.as_ref() && !cjk.contains(&p) {
+                    cjk.push(p);
+                }
+            }
+        }
+        if cjk.is_empty() {
+            cjk = [
                 "/usr/share/fonts/opentype/noto/NotoSansCJK-Regular.ttc",
                 "/usr/share/fonts/noto-cjk/NotoSansCJK-Regular.ttc",
                 "/usr/share/fonts/google-noto-cjk/NotoSansCJK-Regular.ttc",
@@ -195,7 +244,13 @@ pub fn system_fonts() -> SystemFonts {
             .iter()
             .map(std::path::PathBuf::from)
             .filter(|p| p.exists())
-            .collect(),
+            .collect();
+        }
+        SystemFonts {
+            ui,
+            ui_bold,
+            mono,
+            cjk,
             symbols: None,
         }
     }
@@ -221,9 +276,40 @@ pub fn exe_icon(path: &str) -> Option<(u32, u32, Vec<u8>)> {
     {
         win::icons::exe_icon(path)
     }
-    #[cfg(not(windows))]
+    #[cfg(target_os = "linux")]
+    {
+        linux::icons::exe_icon(path)
+    }
+    #[cfg(not(any(windows, target_os = "linux")))]
     {
         let _ = path;
+        None
+    }
+}
+
+/// Whether the desktop shows tray icons. Always true on Windows; on Linux, whether a
+/// StatusNotifierItem host is running (stock GNOME without the AppIndicator extension has none,
+/// and Blip then opens as a window instead).
+pub fn tray_host_available() -> bool {
+    #[cfg(target_os = "linux")]
+    {
+        linux::system::tray_host_available()
+    }
+    #[cfg(not(target_os = "linux"))]
+    {
+        true
+    }
+}
+
+/// The desktop's usable area (minus panels) as [x, y, width, height] in physical pixels, where
+/// the OS says (X11 `_NET_WORKAREA`; Windows answers per monitor in the app's `winsys`).
+pub fn work_area() -> Option<[i32; 4]> {
+    #[cfg(target_os = "linux")]
+    {
+        linux::power::work_area()
+    }
+    #[cfg(not(target_os = "linux"))]
+    {
         None
     }
 }

@@ -1,8 +1,8 @@
 //! Keep Awake. Windows: a power request (the API `powercfg /requests` lists), the lid-close
 //! action set to "Do nothing" on the active plan for the duration (a per-user power-plan write —
 //! no admin on default policy; restored on release, on quit, and on the next launch if Blip
-//! died mid-session), and an idle mouse jiggle. Linux/mac dev hosts: `systemd-inhibit` /
-//! `caffeinate`.
+//! died mid-session), and an idle mouse jiggle. Linux: a logind inhibitor plus the desktop's
+//! idle inhibit (`crate::linux::power`). macOS dev hosts: `caffeinate`.
 
 use std::sync::atomic::{AtomicBool, Ordering};
 use std::sync::Arc;
@@ -21,7 +21,9 @@ pub struct KeepAwake {
     request: Option<crate::win::power::PowerRequest>,
     #[cfg(windows)]
     lid: Option<crate::win::power::LidOverride>,
-    #[cfg(not(windows))]
+    #[cfg(target_os = "linux")]
+    inhibitor: Option<crate::linux::power::Inhibitor>,
+    #[cfg(target_os = "macos")]
     child: Option<std::process::Child>,
     jiggler: Option<Arc<AtomicBool>>,
     pub last_error: Option<String>,
@@ -44,9 +46,25 @@ impl KeepAwake {
         {
             crate::win::power::LidOverride::supported()
         }
-        #[cfg(not(windows))]
+        #[cfg(target_os = "linux")]
+        {
+            crate::linux::power::has_lid()
+        }
+        #[cfg(not(any(windows, target_os = "linux")))]
         {
             false
+        }
+    }
+
+    /// The idle mouse jiggle works here (everywhere but Wayland sessions on Linux).
+    pub fn jiggle_supported() -> bool {
+        #[cfg(target_os = "linux")]
+        {
+            crate::linux::power::jiggle_supported()
+        }
+        #[cfg(not(target_os = "linux"))]
+        {
+            cfg!(windows)
         }
     }
 
@@ -74,29 +92,10 @@ impl KeepAwake {
             let flags = if opts.keep_display_on { "-di" } else { "-i" };
             self.child = std::process::Command::new("caffeinate").arg(flags).spawn().ok();
         }
-        #[cfg(all(unix, not(target_os = "macos")))]
-        {
-            let what = if opts.keep_display_on {
-                "idle:sleep"
-            } else {
-                "sleep"
-            };
-            let mut cmd = std::process::Command::new("systemd-inhibit");
-            cmd.args([
-                &format!("--what={what}"),
-                "--who=Blip",
-                "--why=Keep Awake",
-                "--mode=block",
-                "sleep",
-                "infinity",
-            ]);
-            if opts.ignore_lid {
-                cmd.arg("--what=handle-lid-switch");
-            }
-            self.child = cmd.spawn().ok();
-            if self.child.is_none() {
-                self.last_error = Some("systemd-inhibit isn't available.".into());
-            }
+        #[cfg(target_os = "linux")]
+        match crate::linux::power::Inhibitor::engage(opts.keep_display_on, opts.ignore_lid) {
+            Ok(i) => self.inhibitor = Some(i),
+            Err(e) => self.last_error = Some(e),
         }
         if opts.jiggle {
             let stop = Arc::new(AtomicBool::new(false));
@@ -113,6 +112,8 @@ impl KeepAwake {
                         }
                         #[cfg(windows)]
                         crate::win::power::jiggle_if_idle(60);
+                        #[cfg(target_os = "linux")]
+                        crate::linux::power::jiggle_if_idle(60);
                     }
                 })
                 .ok();
@@ -127,7 +128,11 @@ impl KeepAwake {
             self.request = None;
             self.lid = None;
         }
-        #[cfg(not(windows))]
+        #[cfg(target_os = "linux")]
+        {
+            self.inhibitor = None;
+        }
+        #[cfg(target_os = "macos")]
         if let Some(mut c) = self.child.take() {
             let _ = c.kill();
             let _ = c.wait();

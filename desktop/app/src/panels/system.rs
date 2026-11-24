@@ -375,23 +375,33 @@ pub fn thermal(ui: &mut egui::Ui, c: &mut Ctx) {
             ui.horizontal(|ui| {
                 theme::icon(ui, Icon::Fan, 11.0, secondary(ui));
                 ui.label(RichText::new(&f.name).size(11.0));
+                // NVML reports % of max (max_rpm = 100); Linux hwmon reports real RPM.
+                let percent = f.max_rpm == Some(100) && f.rpm <= 100;
+                let (fill, text) = if percent {
+                    (f.rpm as f64, format!("{}%", f.rpm))
+                } else {
+                    let top = f.max_rpm.unwrap_or(0).max(f.rpm).max(5000) as f64;
+                    (f.rpm as f64 / top * 100.0, blip_core::tf("%lld RPM", &[&f.rpm]))
+                };
                 widgets::usage_bar(
                     ui,
                     c.width - 110.0,
                     5.0,
-                    f.rpm as f64,
+                    fill,
                     theme::category_color(crate::theme::Category::Thermal),
                 );
-                ui.label(RichText::new(format!("{}%", f.rpm)).font(FontId::monospace(10.5)));
+                ui.label(RichText::new(text).font(FontId::monospace(10.5)));
             });
         }
     }
-    ui.add_space(4.0);
-    ui.label(
-        RichText::new(t("Windows keeps CPU sensors and fan speeds behind kernel drivers; Blip shows what it can read without admin rights."))
-            .size(10.0)
-            .color(theme::tertiary(ui)),
-    );
+    if cfg!(windows) {
+        ui.add_space(4.0);
+        ui.label(
+            RichText::new(t("Windows keeps CPU sensors and fan speeds behind kernel drivers; Blip shows what it can read without admin rights."))
+                .size(10.0)
+                .color(theme::tertiary(ui)),
+        );
+    }
 }
 
 pub fn battery(ui: &mut egui::Ui, c: &mut Ctx) {
@@ -517,7 +527,8 @@ pub fn awake(ui: &mut egui::Ui, c: &mut Ctx) {
                             keep_display_on: settings.keep_awake_display,
                             ignore_lid: settings.keep_awake_lid_closed
                                 && blip_platform::KeepAwake::lid_supported(),
-                            jiggle: settings.keep_awake_jiggle,
+                            jiggle: settings.keep_awake_jiggle
+                                && blip_platform::KeepAwake::jiggle_supported(),
                         },
                     );
                 }
@@ -535,15 +546,18 @@ pub fn awake(ui: &mut egui::Ui, c: &mut Ctx) {
                 t("Stay awake with the lid closed"),
             )
             .changed();
-        ui.label(
-            RichText::new(t("Sets the lid action to “Do nothing” while Keep Awake is on, and puts it back when it ends, when Blip quits, or at 10% battery."))
-                .size(10.0)
-                .color(theme::tertiary(ui)),
-        );
+        let note = if cfg!(target_os = "linux") {
+            t("Asks the system to ignore the lid while Keep Awake is on. It lets go when Keep Awake ends, when Blip quits or crashes, or at 10% battery.")
+        } else {
+            t("Sets the lid action to “Do nothing” while Keep Awake is on, and puts it back when it ends, when Blip quits, or at 10% battery.")
+        };
+        ui.label(RichText::new(note).size(10.0).color(theme::tertiary(ui)));
     }
-    changed |= ui
-        .checkbox(&mut settings.keep_awake_jiggle, t("Jiggle the mouse when idle"))
-        .changed();
+    if blip_platform::KeepAwake::jiggle_supported() {
+        changed |= ui
+            .checkbox(&mut settings.keep_awake_jiggle, t("Jiggle the mouse when idle"))
+            .changed();
+    }
     if let Some(e) = c.app.awake.lock().unwrap().last_error.clone() {
         ui.label(RichText::new(e).size(10.5).color(theme::ORANGE));
     }
@@ -566,7 +580,7 @@ pub fn awake(ui: &mut egui::Ui, c: &mut Ctx) {
                 AwakeOptions {
                     keep_display_on: settings.keep_awake_display,
                     ignore_lid: settings.keep_awake_lid_closed && blip_platform::KeepAwake::lid_supported(),
-                    jiggle: settings.keep_awake_jiggle,
+                    jiggle: settings.keep_awake_jiggle && blip_platform::KeepAwake::jiggle_supported(),
                 },
             );
         }

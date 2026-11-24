@@ -1,4 +1,4 @@
-//! Small Windows integrations the app shell needs: single instance (a second launch opens the
+//! Small OS integrations the app shell needs: single instance (a second launch opens the
 //! running Blip), the monitor work area around the tray, and the taskbar's light/dark mode.
 
 #[derive(Debug, Clone, Copy)]
@@ -111,7 +111,67 @@ mod imp {
     }
 }
 
-#[cfg(not(windows))]
+#[cfg(target_os = "linux")]
+mod imp {
+    use std::io::{Read, Write};
+    use std::os::linux::net::SocketAddrExt;
+    use std::os::unix::net::{SocketAddr, UnixListener, UnixStream};
+
+    use super::WorkArea;
+
+    /// An abstract-namespace socket (no file to clean up after a crash), one per user.
+    fn addr() -> Option<SocketAddr> {
+        use std::os::unix::fs::MetadataExt;
+        let uid = std::fs::metadata("/proc/self").ok()?.uid();
+        SocketAddr::from_abstract_name(format!("com.blainemiller.Blip.{uid}").as_bytes()).ok()
+    }
+
+    /// Returns false when another Blip is already running (after asking it to show itself).
+    pub fn claim_single_instance(on_show: impl Fn() + Send + 'static) -> bool {
+        let Some(a) = addr() else { return true };
+        match UnixListener::bind_addr(&a) {
+            Ok(l) => {
+                std::thread::Builder::new()
+                    .name("blip-instance".into())
+                    .spawn(move || {
+                        for mut c in l.incoming().flatten() {
+                            let mut b = [0u8; 4];
+                            if c.read(&mut b).is_ok_and(|n| n > 0) && &b == b"show" {
+                                on_show();
+                            }
+                        }
+                    })
+                    .ok();
+                true
+            }
+            Err(_) => {
+                if let Ok(mut c) = UnixStream::connect_addr(&a) {
+                    let _ = c.write_all(b"show");
+                    return false;
+                }
+                true
+            }
+        }
+    }
+
+    /// X11 `_NET_WORKAREA` (physical px); the scale is filled in by the caller from egui.
+    pub fn work_area_at(_x: f32, _y: f32) -> Option<WorkArea> {
+        let [x, y, w, h] = blip_platform::work_area()?;
+        Some(WorkArea {
+            left: x as f32,
+            top: y as f32,
+            right: (x + w) as f32,
+            bottom: (y + h) as f32,
+            scale: 0.0,
+        })
+    }
+
+    pub fn light_taskbar() -> bool {
+        false
+    }
+}
+
+#[cfg(not(any(windows, target_os = "linux")))]
 mod imp {
     use super::WorkArea;
     pub fn claim_single_instance(_on_show: impl Fn() + Send + 'static) -> bool {

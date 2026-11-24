@@ -1,6 +1,23 @@
 # Changelog
 
-## Unreleased — Blip for Windows (preview)
+## Unreleased — Blip for Linux (preview)
+
+### Added — Linux
+- **Blip for Linux, x64, arm64 and armv7, no root.** One build per architecture runs on any distribution with glibc 2.28 or newer: Ubuntu, Debian and Raspberry Pi OS, Fedora, Rocky/Alma/RHEL 8+, Arch and SteamOS desktop mode. Its only hard dependency is glibc; X11, Wayland, OpenGL, Vulkan and NVML are loaded if present. It lives in the system tray (StatusNotifierItem: KDE, Ubuntu's GNOME, Xfce, Cinnamon, MATE, LXQt, Raspberry Pi OS). Right-click opens a Blip / Settings / Quit menu. Where there's no tray it opens as a window.
+- **Sensors Windows hides:** CPU package and die temperatures, GPU and drive temperatures, and fan RPM from hwmon and thermal zones. Throttling comes from Intel throttle counters, the Raspberry Pi firmware's throttle flags, or clock speed against base clock.
+- **Drive health without root** through UDisks2: NVMe life remaining, spare, data read and written, power-on hours, unsafe shutdowns and media errors, plus ATA SMART status. Model, bus, SSD/HDD and temperature come from sysfs.
+- **CPU, memory and disk detail from /proc:** user/kernel split, real load averages, page cache, zram, memory pressure from PSI, and per-disk I/O with active time and since-boot totals.
+- **GPU load per driver:** AMD busy % and VRAM, Intel busy from RC6 residency, Raspberry Pi V3D per queue, NVIDIA through NVML, with names from the system's PCI ID database. Blip Bench's GPU leg runs the Windows GEMM as a WGSL compute shader on Vulkan or GLES 3.1, and skips software rasterisers.
+- **Network:** interface kinds, link speed, the default route and DNS. Wi-Fi name, signal and bitrate and metered networks come from NetworkManager. Ping and traceroute/MTR use unprivileged ICMP ping sockets, falling back to the system tools where a distro disables them.
+- **Keep Awake:** a logind sleep inhibitor (plus the lid switch on laptops) that logind drops if Blip dies, the desktop's idle inhibit via the XDG portal or ScreenSaver, and the mouse jiggle via XTest on X11.
+- **Desktop integration:** process icons from installed apps, fonts via fontconfig, a single instance over an abstract socket, file dialogs through the XDG portal, XDG autostart for launch at login, and a per-user `install.sh` (`~/.local`, no root).
+- **CI on real Linux:** `linux.yml` builds and tests on x64 and arm64 runners, with live checks of every Linux source and a GUI launch under Xvfb. It runs each glibc-2.28 build inside Rocky Linux 8, Ubuntu, Debian, Fedora and Arch containers, and a `linux-v*` tag publishes tarballs as a prerelease.
+
+### Fixed — Windows/Linux builds
+- **Linux TLS no longer depends on the distro's OpenSSL.** Windows still uses the OS's TLS (SChannel); Linux builds bundle rustls, so one binary works on Rocky 8 (OpenSSL 1.1) and Ubuntu 24.04 (OpenSSL 3) alike.
+- **Thirteen duplicate source files** (`win/* 2.rs`, iCloud conflict copies) had been committed alongside the real ones. They're removed, and the desktop `.gitignore` now refuses such copies.
+
+## Blip for Windows (preview)
 
 First preview: `windows-v2.1.0-preview.1`, a GitHub prerelease with x64 and ARM64 zips.
 

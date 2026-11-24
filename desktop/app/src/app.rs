@@ -62,6 +62,9 @@ pub struct BlipApp {
     /// The popover has held focus since it was last shown (Windows can refuse focus to a
     /// background app, so click-away only fires after a real focus → blur).
     had_focus: bool,
+    /// No tray on this desktop (Linux without a StatusNotifierItem host): Blip lives in an
+    /// ordinary window that stays open and can be dragged; Quit closes it.
+    no_tray: bool,
 }
 
 impl BlipApp {
@@ -71,6 +74,7 @@ impl BlipApp {
         tx: Sender<UiEvent>,
         rx: Receiver<UiEvent>,
         start_visible: bool,
+        no_tray: bool,
     ) -> Self {
         let ctx = cc.egui_ctx.clone();
         theme::install_fonts(&ctx);
@@ -90,40 +94,49 @@ impl BlipApp {
         // Tray events arrive on the UI thread's message loop; forward them and wake egui (the
         // window may be hidden, so nothing else would).
         {
+            let (menu_tx, menu_ctx) = (tx.clone(), ctx.clone());
             let tx = tx.clone();
             let ctx = ctx.clone();
             tray_icon::TrayIconEvent::set_event_handler(Some(move |e: tray_icon::TrayIconEvent| {
                 if let tray_icon::TrayIconEvent::Click {
                     rect,
-                    button: tray_icon::MouseButton::Left,
+                    position,
+                    button,
                     button_state: tray_icon::MouseButtonState::Up,
                     ..
                 } = e
                 {
-                    let r = (
-                        rect.position.x as f32,
-                        rect.position.y as f32,
-                        rect.size.width as f32,
-                        rect.size.height as f32,
-                    );
-                    let _ = tx.send(UiEvent::TrayClick(Some(r)));
-                    ctx.request_repaint();
-                } else if let tray_icon::TrayIconEvent::Click {
-                    rect,
-                    button: tray_icon::MouseButton::Right,
-                    button_state: tray_icon::MouseButtonState::Up,
-                    ..
-                } = e
-                {
-                    let r = (
-                        rect.position.x as f32,
-                        rect.position.y as f32,
-                        rect.size.width as f32,
-                        rect.size.height as f32,
-                    );
-                    let _ = tx.send(UiEvent::TrayClick(Some(r)));
+                    // Windows reports the icon's rect. A StatusNotifierItem host (Linux) only
+                    // passes the click point — use a small box around it (or nothing, on
+                    // Wayland hosts that send 0,0).
+                    let r = if rect.size.width > 0 {
+                        Some((
+                            rect.position.x as f32,
+                            rect.position.y as f32,
+                            rect.size.width as f32,
+                            rect.size.height as f32,
+                        ))
+                    } else if position.x > 0.0 || position.y > 0.0 {
+                        Some((position.x as f32 - 12.0, position.y as f32 - 12.0, 24.0, 24.0))
+                    } else {
+                        None
+                    };
+                    let _ = button;
+                    let _ = tx.send(UiEvent::TrayClick(r));
                     ctx.request_repaint();
                 }
+            }));
+            // Linux: the tray host draws the right-click menu itself from these items.
+            let (tx, ctx) = (menu_tx, menu_ctx);
+            tray_icon::menu::MenuEvent::set_event_handler(Some(move |e: tray_icon::menu::MenuEvent| {
+                let ev = match e.id.0.as_str() {
+                    "open" => UiEvent::Show,
+                    "settings" => UiEvent::OpenSettings,
+                    "quit" => UiEvent::Quit,
+                    _ => return,
+                };
+                let _ = tx.send(ev);
+                ctx.request_repaint();
             }));
         }
         let _ = tx;
@@ -158,8 +171,9 @@ impl BlipApp {
             light_taskbar: winsys::light_taskbar(),
             theme: None,
             quitting: false,
-            pending_show: start_visible,
+            pending_show: start_visible || no_tray,
             had_focus: false,
+            no_tray,
         }
     }
 
@@ -176,7 +190,13 @@ impl BlipApp {
         }
         self.work = self
             .anchor
-            .and_then(|a| winsys::work_area_at(a.0 + a.2 / 2.0, a.1 + a.3 / 2.0));
+            .and_then(|a| winsys::work_area_at(a.0 + a.2 / 2.0, a.1 + a.3 / 2.0))
+            .map(|mut w| {
+                if w.scale <= 0.0 {
+                    w.scale = ctx.pixels_per_point();
+                }
+                w
+            });
         self.visible = true;
         self.had_focus = false;
         self.shown_at = Instant::now();
@@ -210,7 +230,7 @@ impl BlipApp {
 
     /// Places the popover next to the tray icon, on whichever edge the taskbar is.
     fn place(&mut self, ctx: &egui::Context) {
-        if self.app.settings().popover_pinned && self.pos != Pos2::ZERO {
+        if (self.app.settings().popover_pinned || self.no_tray) && self.pos != Pos2::ZERO {
             return;
         }
         let work = self.work_points(ctx);
@@ -370,7 +390,7 @@ impl eframe::App for BlipApp {
     }
 
     fn logic(&mut self, ctx: &egui::Context, _frame: &mut eframe::Frame) {
-        if self.tray.is_none() {
+        if self.tray.is_none() && !self.no_tray {
             self.tray = Some(Tray::new());
         }
         let settings = self.app.settings();
@@ -517,7 +537,7 @@ impl eframe::App for BlipApp {
                     self.place(&ctx);
                 }
             }
-            if out.drag && settings.popover_pinned {
+            if out.drag && (settings.popover_pinned || self.no_tray) {
                 ctx.send_viewport_cmd(ViewportCommand::StartDrag);
             }
             if let Some(id) = out.dismiss {
@@ -543,6 +563,7 @@ impl eframe::App for BlipApp {
                 self.had_focus = true;
             }
             if !settings.popover_pinned
+                && !self.no_tray
                 && self.had_focus
                 && !focused
                 && !self.panel_focused
@@ -627,24 +648,36 @@ pub fn run(start_visible: bool) -> eframe::Result<()> {
     if first_run {
         app.update_settings(|s| s.first_run_done = true);
     }
-    let options = eframe::NativeOptions {
+    let no_tray = !blip_platform::tray_host_available();
+    #[allow(unused_mut)]
+    let mut options = eframe::NativeOptions {
         viewport: ViewportBuilder::default()
             .with_title("Blip")
             .with_app_id("com.blainemiller.Blip")
             .with_decorations(false)
             .with_transparent(true)
             .with_resizable(false)
-            .with_taskbar(false)
+            .with_taskbar(no_tray)
             .with_always_on_top()
             .with_visible(false)
             .with_inner_size(Vec2::new(popover::WIDTH, 300.0)),
         persist_window: false,
         ..Default::default()
     };
+    // Wayland doesn't let a client place its own windows, so a tray popover there opens wherever
+    // the compositor likes. Under XWayland (every GNOME/KDE session) it can sit by the tray, so
+    // prefer X11 whenever a display is available; BLIP_WAYLAND=1 opts out.
+    #[cfg(target_os = "linux")]
+    if std::env::var_os("DISPLAY").is_some() && std::env::var_os("BLIP_WAYLAND").is_none() {
+        options.event_loop_builder = Some(Box::new(|b| {
+            use winit::platform::x11::EventLoopBuilderExtX11;
+            b.with_x11();
+        }));
+    }
     let show_now = start_visible || first_run;
     eframe::run_native(
         "Blip",
         options,
-        Box::new(move |cc| Ok(Box::new(BlipApp::new(cc, app, tx, rx, show_now)))),
+        Box::new(move |cc| Ok(Box::new(BlipApp::new(cc, app, tx, rx, show_now, no_tray)))),
     )
 }

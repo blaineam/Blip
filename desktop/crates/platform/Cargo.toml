@@ -1,6 +1,6 @@
 [package]
 name = "blip-platform"
-description = "Blip's metric sources: native Win32 on Windows (no admin), sysinfo-backed elsewhere."
+description = "Blip's metric sources: native Win32 on Windows and /proc, /sys and D-Bus on Linux, all without admin."
 version.workspace = true
 edition.workspace = true
 license.workspace = true
@@ -9,6 +9,18 @@ publish.workspace = true
 [dependencies]
 blip-core.workspace = true
 sysinfo = { version = "0.40", default-features = false, features = ["system", "disk", "network", "component", "user"] }
+
+[target.'cfg(target_os = "linux")'.dependencies]
+libc = "0.2"
+png = "0.18"
+# D-Bus: UDisks2 (drive SMART), NetworkManager (Wi-Fi, metered), logind + the desktop portal
+# (Keep Awake), power-profiles-daemon. Already in the graph through the tray's ksni backend.
+zbus = { version = "5", default-features = false, features = ["blocking-api", "async-io"] }
+# X11 work area, idle time and the mouse jiggle (XTest) — pure Rust, no libX11 needed.
+x11rb = { version = "0.13", default-features = false, features = ["xtest", "screensaver"] }
+# Blip Bench's GPU leg: Vulkan (or GLES 3.1) compute.
+wgpu = { version = "30", default-features = false, features = ["std", "parking_lot", "vulkan", "gles", "wgsl"] }
+pollster = "0.4"
 
 [target.'cfg(windows)'.dependencies]
 windows-core = "0.62"

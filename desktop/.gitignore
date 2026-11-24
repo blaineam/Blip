@@ -1,1 +1,4 @@
 /target
+# iCloud conflict copies ("mod 2.rs") must never be committed.
+* 2.*
+* 2

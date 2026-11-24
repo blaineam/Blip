@@ -9,11 +9,16 @@ publish.workspace = true
 [dependencies]
 serde.workspace = true
 serde_json.workspace = true
-ureq.workspace = true
 sha2 = "0.10"
 lzfse_rust = "0.2"
 rustfft = "6"
 maxminddb = "0.33"
 flate2 = "1"
+
+[target.'cfg(windows)'.dependencies]
+ureq = { workspace = true, features = ["native-tls"] }
+
+[target.'cfg(not(windows))'.dependencies]
+ureq = { workspace = true, features = ["rustls"] }
 
 [dev-dependencies]

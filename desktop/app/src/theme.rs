@@ -376,6 +376,11 @@ pub fn paint_icon(p: &egui::Painter, rect: Rect, icon: Icon, color: Color32) {
             line((2.0, 12.5), (3.0, 10.0));
             line((14.0, 12.5), (13.0, 10.0));
         }
+        Icon::Linux => {
+            p.rect_stroke(rr(1.5, 2.5, 14.5, 13.5), 2.0 * u, st, k);
+            poly(&[(4.0, 5.5), (6.5, 8.0), (4.0, 10.5)], false);
+            line((8.0, 10.5), (12.0, 10.5));
+        }
         Icon::Windows => {
             for (x, y) in [(2.5, 2.5), (8.5, 2.5), (2.5, 8.5), (8.5, 8.5)] {
                 p.rect_filled(rr(x, y, x + 5.0, y + 5.0), 0.0, color);

@@ -29,6 +29,8 @@ pub struct Sampler {
     disk_totals: (u64, u64),
     #[cfg(windows)]
     win: crate::win::WinSampler,
+    #[cfg(target_os = "linux")]
+    linux: crate::linux::LinuxSampler,
 }
 
 impl Default for Sampler {
@@ -79,6 +81,8 @@ impl Sampler {
             disk_totals: (0, 0),
             #[cfg(windows)]
             win: crate::win::WinSampler::new(),
+            #[cfg(target_os = "linux")]
+            linux: crate::linux::LinuxSampler::new(),
         }
     }
 
@@ -142,10 +146,20 @@ impl Sampler {
         let sys_root = system_root();
         let mut read_delta = 0u64;
         let mut write_delta = 0u64;
+        let mut seen_devices: Vec<String> = Vec::new();
         for d in self.disks.iter() {
             let mount = d.mount_point().display().to_string();
-            if d.total_space() == 0 || skip_mount(&mount) {
+            if d.total_space() == 0 || skip_mount(&mount) || skip_fs(&d.file_system().to_string_lossy()) {
                 continue;
+            }
+            // Bind mounts (SteamOS mounts one partition at /home, /var, /opt, /srv…) are one
+            // volume: keep the first, shortest mount of each device.
+            let dev = d.name().to_string_lossy().to_string();
+            if cfg!(target_os = "linux") && dev.starts_with("/dev/") {
+                if seen_devices.contains(&dev) {
+                    continue;
+                }
+                seen_devices.push(dev);
             }
             let u = d.usage();
             read_delta += u.read_bytes;
@@ -222,6 +236,8 @@ impl Sampler {
 
         #[cfg(windows)]
         self.win.sample(&mut s, dt, &mut self.load);
+        #[cfg(target_os = "linux")]
+        self.linux.sample(&mut s, dt);
 
         let (wan, router) = self.pinger.latest();
         s.network.ping_ms = wan;
@@ -230,6 +246,10 @@ impl Sampler {
             self.pinger.set_router(&gw);
         }
         s.memory.pressure = pressure(&s.memory);
+        #[cfg(target_os = "linux")]
+        if let Some(p) = crate::linux::LinuxSampler::pressure() {
+            s.memory.pressure = s.memory.pressure.max(p);
+        }
         s
     }
 
@@ -330,6 +350,22 @@ fn system_root() -> String {
     }
 }
 
+/// Read-only images and memory-backed filesystems aren't storage the user manages.
+fn skip_fs(fs: &str) -> bool {
+    matches!(
+        fs,
+        "squashfs"
+            | "overlay"
+            | "tmpfs"
+            | "devtmpfs"
+            | "efivarfs"
+            | "ramfs"
+            | "erofs"
+            | "iso9660"
+            | "fuse.portal"
+    )
+}
+
 fn skip_mount(m: &str) -> bool {
     #[cfg(target_os = "macos")]
     {
@@ -339,6 +375,8 @@ fn skip_mount(m: &str) -> bool {
     {
         m.starts_with("/boot")
             || m.starts_with("/snap/")
+            || m.starts_with("/var/snap/")
+            || m.starts_with("/efi")
             || m.starts_with("/run")
             || m.starts_with("/var/lib/docker")
     }

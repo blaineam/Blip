@@ -205,7 +205,7 @@ pub fn show(
             }
             foot(
                 ui,
-                Icon::Windows,
+                if cfg!(windows) { Icon::Windows } else { Icon::Linux },
                 format!("{} {}", snap.system.os_name, snap.system.os_version).trim(),
                 true,
             );

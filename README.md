@@ -87,6 +87,27 @@ cargo build --release -p blip-desktop      # target\release\Blip.exe + blip-cli.
 cargo test --workspace
 ```
 
+## 🐧 Blip for Linux (preview)
+
+The same Rust app runs on **Linux without root**: x64, arm64 and armv7, one build per architecture for every distribution with glibc 2.28 or newer. That covers Ubuntu, Debian and Raspberry Pi OS (64- and 32-bit), Fedora, Rocky/Alma/RHEL 8+, Arch and SteamOS desktop mode. It sits in the system tray (StatusNotifierItem) and opens the same popover and panels. On a desktop without a tray, such as stock GNOME without the AppIndicator extension, it opens as a window.
+
+- **More than Windows can show without admin:** real fan RPM and CPU die temperatures (hwmon), drive S.M.A.R.T. and NVMe health through UDisks2, true load averages, memory pressure stall info (PSI) and zram, and since-boot disk totals.
+- **GPU:** AMD (busy %, VRAM, GTT), Intel (busy from RC6 residency), Raspberry Pi 4/5 V3D per-queue load, and NVIDIA through NVML. Blip Bench's GPU leg runs the same 1024³ matrix multiply as Windows, on Vulkan or GLES compute.
+- **Network:** Wi-Fi name, signal and bitrate plus metered networks from NetworkManager. Ping and traceroute/MTR use unprivileged ICMP ping sockets, the same way `tracepath` does.
+- **Keep Awake:** a systemd-logind inhibitor (sleep, plus the lid switch if you ask), which logind drops automatically if Blip quits or crashes. The desktop's idle timer is held through the XDG portal. The idle mouse jiggle works on X11 sessions.
+- **Installs per user:** extract the tarball and run `./install.sh`, which writes only to `~/.local`. It adds the app-menu entry and icons, and Settings can turn on launch at login (XDG autostart).
+
+**Limits:** Wayland doesn't let apps place their own windows, so Blip prefers XWayland where a display exists. The public OpenSpeedTest test opens in your browser; self-hosted servers are measured and graphed in Blip.
+
+**Try it:** preview builds are on [Releases](../../releases) as `linux-v*` prereleases.
+
+```bash
+# Build from source on Linux (Rust stable)
+cd desktop
+cargo build --release -p blip-desktop      # target/release/Blip + blip-cli
+cargo test --workspace
+```
+
 ## 📦 Install
 
 ### Mac App Store

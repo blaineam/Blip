@@ -1,6 +1,6 @@
 [package]
 name = "blip-desktop"
-description = "Blip for Windows: a featherlight system monitor in the notification area."
+description = "Blip for Windows and Linux: a featherlight system monitor in the notification area / system tray."
 version.workspace = true
 edition.workspace = true
 license.workspace = true
@@ -26,9 +26,16 @@ eframe = { version = "0.37", default-features = false, features = ["glow", "defa
 tray-icon = { version = "0.26", default-features = false, features = ["ksni"] }
 chrono = { version = "0.4", default-features = false, features = ["clock", "std"] }
 
+[target.'cfg(any(windows, target_os = "linux"))'.dependencies]
+rfd = "0.18"
+
+[target.'cfg(target_os = "linux")'.dependencies]
+eframe = { version = "0.37", default-features = false, features = ["x11", "wayland"] }
+# Only for EventLoopBuilderExtX11 (prefer XWayland so the popover can sit by the tray).
+winit = { version = "0.30", default-features = false, features = ["x11"] }
+
 [target.'cfg(windows)'.dependencies]
 wry = { version = "0.57", default-features = false }
-rfd = "0.18"
 raw-window-handle = "0.6"
 windows = { version = "0.62", features = ["Win32_Foundation", "Win32_System_Console", "Win32_System_Threading", "Win32_UI_WindowsAndMessaging", "Win32_Graphics_Dwm", "Win32_UI_Shell", "Win32_Security", "Win32_Graphics_Gdi", "Win32_UI_HiDpi", "Win32_System_Registry"] }
 

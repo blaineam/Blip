@@ -99,6 +99,16 @@
     "pt-BR": "Tempo ativo",
     "zh-Hans": "活动时间"
   },
+  "Asks the system to ignore the lid while Keep Awake is on. It lets go when Keep Awake ends, when Blip quits or crashes, or at 10% battery.": {
+    "de": "Bittet das System, den Deckel zu ignorieren, solange „Wach halten“ aktiv ist. Das endet mit „Wach halten“, wenn Blip beendet wird oder abstürzt, oder bei 10 % Akku.",
+    "es": "Pide al sistema que ignore la tapa mientras Mantener activo está encendido. Se libera cuando termina, cuando Blip se cierra o falla, o con un 10 % de batería.",
+    "fr": "Demande au système d’ignorer l’écran rabattu tant que Garder éveillé est actif. Cela cesse quand Garder éveillé se termine, quand Blip quitte ou plante, ou à 10 % de batterie.",
+    "it": "Chiede al sistema di ignorare il coperchio finché Mantieni attivo è acceso. Si rilascia quando finisce, quando Blip si chiude o si arresta, o al 10% di batteria.",
+    "ja": "スリープ防止の間、蓋を閉じても無視するようシステムに依頼します。スリープ防止の終了時、Blip の終了・クラッシュ時、またはバッテリー残量 10% で解除されます。",
+    "ko": "깨어 있기가 켜져 있는 동안 덮개를 무시하도록 시스템에 요청합니다. 깨어 있기가 끝나거나, Blip이 종료되거나 충돌하거나, 배터리가 10%가 되면 해제됩니다.",
+    "pt-BR": "Pede ao sistema para ignorar a tampa enquanto Manter ativo estiver ligado. Libera quando terminar, quando o Blip fechar ou travar, ou com 10% de bateria.",
+    "zh-Hans": "保持唤醒期间请求系统忽略合盖。保持唤醒结束、Blip 退出或崩溃，或电量降至 10% 时自动解除。"
+  },
   "Automatic tests skip drives below 30% life remaining.": {
     "de": "Automatische Tests überspringen Laufwerke mit unter 30 % Restlebensdauer.",
     "es": "Las pruebas automáticas omiten unidades con menos del 30 % de vida restante.",
@@ -759,6 +769,16 @@
     "pt-BR": "Abrir pasta de dados",
     "zh-Hans": "打开数据文件夹"
   },
+  "Opens OpenSpeedTest's public test in your browser. To graph results here, use a self-hosted server.": {
+    "de": "Öffnet den öffentlichen Test von OpenSpeedTest im Browser. Für Diagramme hier einen selbst gehosteten Server verwenden.",
+    "es": "Abre la prueba pública de OpenSpeedTest en tu navegador. Para graficar resultados aquí, usa un servidor propio.",
+    "fr": "Ouvre le test public d'OpenSpeedTest dans votre navigateur. Pour en tracer les résultats ici, utilisez un serveur auto-hébergé.",
+    "it": "Apre il test pubblico di OpenSpeedTest nel browser. Per tracciare i risultati qui, usa un server self-hosted.",
+    "ja": "OpenSpeedTest の公開テストをブラウザで開きます。結果をここでグラフ表示するには、セルフホストのサーバを使ってください。",
+    "ko": "OpenSpeedTest 공개 테스트를 브라우저에서 엽니다. 결과를 여기에서 그래프로 보려면 자체 호스팅 서버를 사용하세요.",
+    "pt-BR": "Abre o teste público do OpenSpeedTest no navegador. Para ver os resultados em gráfico aqui, use um servidor próprio.",
+    "zh-Hans": "在浏览器中打开 OpenSpeedTest 公共测试。如需在此绘制结果图表，请使用自托管服务器。"
+  },
   "Page file used": {
     "de": "Auslagerungsdatei belegt",
     "es": "Archivo de paginación usado",
@@ -1318,6 +1338,16 @@
     "ko": "Traceroute 대상",
     "pt-BR": "Destino do traceroute",
     "zh-Hans": "路由跟踪目标"
+  },
+  "Tray icons need a desktop with a system tray. On GNOME, turn on the AppIndicator extension; without a tray, Blip opens as a window.": {
+    "de": "Tray-Symbole brauchen eine Arbeitsumgebung mit Systemleiste. Unter GNOME die AppIndicator-Erweiterung aktivieren; ohne Systemleiste öffnet sich Blip als Fenster.",
+    "es": "Los iconos de bandeja necesitan un escritorio con bandeja del sistema. En GNOME, activa la extensión AppIndicator; sin bandeja, Blip se abre como ventana.",
+    "fr": "Les icônes de la zone de notification exigent un bureau qui en possède une. Sous GNOME, activez l'extension AppIndicator ; sans zone de notification, Blip s'ouvre dans une fenêtre.",
+    "it": "Le icone nell'area di notifica richiedono un desktop che ne abbia una. Su GNOME attiva l'estensione AppIndicator; senza, Blip si apre in una finestra.",
+    "ja": "トレイアイコンにはシステムトレイのあるデスクトップが必要です。GNOME では AppIndicator 拡張機能を有効にしてください。トレイがない場合、Blip はウインドウで開きます。",
+    "ko": "트레이 아이콘은 시스템 트레이가 있는 데스크톱에서 표시됩니다. GNOME에서는 AppIndicator 확장을 켜세요. 트레이가 없으면 Blip이 창으로 열립니다.",
+    "pt-BR": "Ícones de bandeja precisam de um desktop com bandeja do sistema. No GNOME, ative a extensão AppIndicator; sem bandeja, o Blip abre como janela.",
+    "zh-Hans": "托盘图标需要带系统托盘的桌面。在 GNOME 上请启用 AppIndicator 扩展；没有托盘时，Blip 会以窗口打开。"
   },
   "Try Again": {
     "de": "Erneut versuchen",

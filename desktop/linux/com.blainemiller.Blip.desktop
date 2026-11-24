@@ -1,0 +1,13 @@
+[Desktop Entry]
+Type=Application
+Name=Blip
+GenericName=System Monitor
+Comment=A featherlight system monitor in the system tray
+Exec=Blip --show
+Icon=com.blainemiller.Blip
+Terminal=false
+Categories=System;Monitor;Utility;
+Keywords=cpu;memory;disk;network;gpu;battery;temperature;speed test;benchmark;
+StartupNotify=false
+StartupWMClass=com.blainemiller.Blip
+SingleMainWindow=true

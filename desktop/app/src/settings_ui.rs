@@ -105,7 +105,11 @@ pub fn show(ui: &mut egui::Ui, app: &App, drafts: &mut Drafts) {
                     }
                 });
             }
-            note(ui, &t("Windows may tuck new icons into the overflow (^). Drag Blip onto the taskbar to keep it visible."));
+            if cfg!(target_os = "linux") {
+                note(ui, &t("Tray icons need a desktop with a system tray. On GNOME, turn on the AppIndicator extension; without a tray, Blip opens as a window."));
+            } else {
+                note(ui, &t("Windows may tuck new icons into the overflow (^). Drag Blip onto the taskbar to keep it visible."));
+            }
             ui.separator();
             ui.horizontal(|ui| {
                 ui.label(t("Colors"));

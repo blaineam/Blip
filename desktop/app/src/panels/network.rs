@@ -235,11 +235,12 @@ fn speed_test(ui: &mut egui::Ui, c: &mut Ctx) {
     let self_hosted_base = blip_core::speedtest::normalize_base(&c.settings.speed_test_open_speed_test_url);
     match kind {
         SpeedServerKind::Public => {
-            ui.label(
-                RichText::new(t("Runs OpenSpeedTest's public test in the background and graphs the result here. Public infra — manual runs only."))
-                    .size(10.0)
-                    .color(theme::tertiary(ui)),
-            );
+            let note = if cfg!(windows) {
+                t("Runs OpenSpeedTest's public test in the background and graphs the result here. Public infra — manual runs only.")
+            } else {
+                t("Opens OpenSpeedTest's public test in your browser. To graph results here, use a self-hosted server.")
+            };
+            ui.label(RichText::new(note).size(10.0).color(theme::tertiary(ui)));
         }
         SpeedServerKind::SelfHosted => match &self_hosted_base {
             Some(b) => {
@@ -296,7 +297,11 @@ fn speed_test(ui: &mut egui::Ui, c: &mut Ctx) {
             )
             .clicked()
         {
-            c.app.start_speed_test();
+            if kind == SpeedServerKind::Public && !cfg!(windows) {
+                blip_platform::open("https://openspeedtest.com/?run");
+            } else {
+                c.app.start_speed_test();
+            }
         }
     }
     if let SpeedPhase::Failed(msg) = &st.phase {

@@ -265,6 +265,9 @@ pub fn tooltip(s: &Snapshot) -> String {
 /// Owns the tray icon(s) and re-renders them when the picture changes.
 pub struct Tray {
     icons: Vec<(String, TrayIcon)>,
+    /// Linux: the menu the tray host shows on right-click (SNI hosts don't forward the click).
+    #[cfg(target_os = "linux")]
+    menu: tray_icon::menu::Menu,
     last: Vec<(String, Vec<u8>)>,
     style: Option<TrayStyle>,
     last_tip: String,
@@ -274,6 +277,18 @@ impl Tray {
     pub fn new() -> Self {
         Self {
             icons: Vec::new(),
+            #[cfg(target_os = "linux")]
+            menu: {
+                use tray_icon::menu::{Menu, MenuItem, PredefinedMenuItem};
+                let m = Menu::new();
+                let _ = m.append_items(&[
+                    &MenuItem::with_id("open", "Blip", true, None),
+                    &MenuItem::with_id("settings", blip_core::t("Settings"), true, None),
+                    &PredefinedMenuItem::separator(),
+                    &MenuItem::with_id("quit", blip_core::t("Quit Blip"), true, None),
+                ]);
+                m
+            },
             last: Vec::new(),
             style: None,
             last_tip: String::new(),
@@ -304,12 +319,18 @@ impl Tray {
             for (id, canvas) in wanted.drain(..) {
                 let px = canvas.px.clone();
                 if let Some(icon) = canvas.icon() {
-                    if let Ok(t) = TrayIconBuilder::new()
+                    #[allow(unused_mut)]
+                    let mut b = TrayIconBuilder::new()
                         .with_id(id.clone())
                         .with_icon(icon)
-                        .with_tooltip("Blip")
-                        .build()
+                        .with_tooltip("Blip");
+                    #[cfg(target_os = "linux")]
                     {
+                        b = b
+                            .with_menu(Box::new(self.menu.clone()))
+                            .with_menu_on_left_click(false);
+                    }
+                    if let Ok(t) = b.build() {
                         self.icons.push((id.clone(), t));
                         self.last.push((id, px));
                     }

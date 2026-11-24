@@ -45,6 +45,8 @@ pub enum Icon {
     Clock,
     Computer,
     Windows,
+    /// A terminal prompt: the OS footer on Linux.
+    Linux,
     Speed,
     Route,
     Map,

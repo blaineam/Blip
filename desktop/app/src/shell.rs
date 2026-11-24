@@ -2,7 +2,7 @@
 
 /// Folder picker for the disk test location.
 pub fn pick_folder() -> Option<String> {
-    #[cfg(windows)]
+    #[cfg(any(windows, target_os = "linux"))]
     {
         rfd::FileDialog::new()
             .set_title(blip_core::t(
@@ -11,7 +11,7 @@ pub fn pick_folder() -> Option<String> {
             .pick_folder()
             .map(|p| p.display().to_string())
     }
-    #[cfg(not(windows))]
+    #[cfg(not(any(windows, target_os = "linux")))]
     {
         None
     }
@@ -23,12 +23,12 @@ pub fn save_snapshot(markdown: &str) -> Option<String> {
         "Blip Snapshot {}.md",
         chrono::Local::now().format("%Y-%m-%d %H%M")
     );
-    #[cfg(windows)]
+    #[cfg(any(windows, target_os = "linux"))]
     let path = rfd::FileDialog::new()
         .set_file_name(&name)
         .add_filter("Markdown", &["md"])
         .save_file();
-    #[cfg(not(windows))]
+    #[cfg(not(any(windows, target_os = "linux")))]
     let path = std::env::var("HOME")
         .ok()
         .map(|h| std::path::PathBuf::from(h).join("Desktop").join(&name));

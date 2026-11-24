@@ -1,11 +1,62 @@
-//! A believable Windows laptop for screenshots, UI tests and `Blip.exe --demo`.
+//! A believable laptop for screenshots, UI tests and `Blip --demo`: Windows 11, or the same
+//! machine on Ubuntu when built for Linux (or with BLIP_DEMO_OS=linux).
 
 use blip_core::model::*;
 
 use crate::state::Histories;
 
-#[allow(clippy::field_reassign_with_default)]
 pub fn snapshot() -> Snapshot {
+    let mut s = windows_snapshot();
+    if cfg!(target_os = "linux") || std::env::var("BLIP_DEMO_OS").as_deref() == Ok("linux") {
+        linuxify(&mut s);
+    }
+    s
+}
+
+/// The same machine running Ubuntu: Linux paths and names, real fan RPM, no Windows pools.
+fn linuxify(s: &mut Snapshot) {
+    s.cpu.load = Some([1.42, 1.18, 0.97]);
+    s.memory.paged_pool = None;
+    s.memory.nonpaged_pool = None;
+    s.memory.compressed = Some(310 * 1_048_576);
+    s.disk.volumes[0].name = "/".into();
+    s.disk.volumes[0].mount = "/".into();
+    s.disk.volumes[0].file_system = "ext4".into();
+    s.disk.volumes[1].mount = "/media/you/Backup".into();
+    if let Some(i) = s.network.interfaces.first_mut() {
+        i.id = "wlp0s20f3".into();
+        i.name = "wlp0s20f3".into();
+        i.description = "Wi-Fi".into();
+    }
+    s.network.primary = Some("wlp0s20f3".into());
+    s.thermal.zones = vec![("acpitz".into(), 48.0), ("x86_pkg_temp".into(), 52.0)];
+    s.thermal.fans = vec![Fan {
+        name: "Fan".into(),
+        rpm: 2900,
+        min_rpm: None,
+        max_rpm: None,
+    }];
+    s.battery.chemistry = Some("Li-poly".into());
+    s.system.os_name = "Ubuntu".into();
+    s.system.os_version = "24.04.1 LTS".into();
+    s.system.host_name = "laptop".into();
+    for list in [&mut s.top_cpu, &mut s.top_memory] {
+        for p in list.iter_mut() {
+            p.name = match p.name.as_str() {
+                "msedge.exe" => "firefox",
+                "Code.exe" => "code",
+                "Teams.exe" => "slack",
+                "explorer.exe" => "gnome-shell",
+                "Spotify.exe" => "spotify",
+                other => other,
+            }
+            .into();
+        }
+    }
+}
+
+#[allow(clippy::field_reassign_with_default)]
+fn windows_snapshot() -> Snapshot {
     let mut s = Snapshot::default();
     s.cpu = CpuStats {
         total: 31.0,
