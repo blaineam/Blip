@@ -1,11 +1,13 @@
 # Blip for Windows: format, lint, test (including live checks of every Windows-native source,
 # as the runner's standard user) and build on x64 and ARM64 for every change to desktop/.
-# Release builds are attached to GitHub Releases by release.yml.
+# Pushing (or dispatching at) a `windows-v*` tag also publishes both builds as a GitHub prerelease;
+# the Mac release.yml only listens for `v*` tags, so the two never collide.
 name: Windows
 
 on:
   push:
     branches: [main]
+    tags: ['windows-v*']   # path filters are not evaluated for tag pushes
     paths:
       - 'desktop/**'
       - '.github/workflows/windows.yml'
@@ -13,7 +15,7 @@ on:
     paths:
       - 'desktop/**'
       - '.github/workflows/windows.yml'
-  workflow_dispatch: {}
+  workflow_dispatch: {}   # dispatch at a windows-v* tag ref when the tagged commit carries [ci skip]
 
 permissions:
   contents: read
@@ -80,3 +82,39 @@ jobs:
             desktop/target/${{ matrix.target }}/release/Blip.exe
             desktop/target/${{ matrix.target }}/release/blip-cli.exe
           retention-days: 14
+
+  prerelease:
+    if: startsWith(github.ref, 'refs/tags/windows-v')
+    needs: build
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: actions/download-artifact@v4
+        with:
+          path: dist
+
+      - name: Package
+        run: |
+          cd dist
+          for d in Blip-windows-*; do
+            arch=x64; case "$d" in *aarch64*) arch=arm64;; esac
+            (cd "$d" && zip -9 "../Blip-${GITHUB_REF_NAME#windows-v}-windows-$arch.zip" Blip.exe blip-cli.exe)
+          done
+          sha256sum *.zip > SHA256SUMS.txt
+          cat SHA256SUMS.txt
+
+      - name: Publish prerelease
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          notes=desktop/RELEASE_NOTES.md
+          if gh release view "$GITHUB_REF_NAME" >/dev/null 2>&1; then
+            gh release upload "$GITHUB_REF_NAME" dist/*.zip dist/SHA256SUMS.txt --clobber
+          else
+            gh release create "$GITHUB_REF_NAME" dist/*.zip dist/SHA256SUMS.txt \
+              --prerelease --latest=false --verify-tag \
+              --title "Blip for Windows ${GITHUB_REF_NAME#windows-v} (preview)" --notes-file "$notes"
+          fi

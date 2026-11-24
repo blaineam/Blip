@@ -31,8 +31,14 @@ backend in `crates/platform` (the portable sysinfo layer already runs there).
 - [x] Offscreen render check of popover + all 9 panels, light and dark.
 - [ ] First run on a real Windows desktop by the owner (tray click → popover placement, focus /
       click-away, WebView2 public test, lid override on a laptop, NVMe health on real drives).
-- [ ] Release wiring: attach `Blip-windows-{x64,arm64}.zip` to GitHub Releases (release.yml
-      job, like Glint), code signing, winget/Scoop manifests. Landing-page mention at release.
+- [x] Prerelease wiring: a `windows-v*` tag makes windows.yml publish
+      `Blip-<ver>-windows-{x64,arm64}.zip` + SHA256SUMS as a GitHub prerelease (notes from
+      RELEASE_NOTES.md). If the tagged commit has `[ci skip]`, dispatch:
+      `gh workflow run windows.yml --ref windows-v<ver>`.
+- [ ] Final release: code signing, winget/Scoop manifests, landing-page mention.
+- [x] No GTK/glib anywhere in Cargo.lock: tray-icon uses `ksni` (D-Bus SNI), wry has no
+      `os-webview`. Keep it that way on Linux: SNI tray (KDE/SteamOS native; GNOME needs the
+      AppIndicator extension), and the public speed test either skips WebKitGTK or uses webkit6.
 - [ ] Linux: Ubuntu / Raspberry Pi OS (arm64) / Rocky 8 (glibc 2.28 build) / SteamOS
       (Flatpak or AppImage). Needs: hwmon temps + fans (sysinfo Components / /sys/class/hwmon),
       /sys/class/power_supply battery, /proc/diskstats, NVMe via `/sys/class/nvme` (health log
