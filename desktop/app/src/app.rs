@@ -77,7 +77,15 @@ impl BlipApp {
         theme::install_styles(&ctx);
         let rp_ctx = ctx.clone();
         app.set_repaint(Arc::new(move || rp_ctx.request_repaint()));
-        app.start_sampler();
+        if std::env::args().any(|a| a == "--demo") {
+            // Fixed sample data for screenshots: nothing is measured.
+            let mut live = app.live.write().unwrap();
+            live.snapshot = crate::demo::snapshot();
+            live.history = crate::demo::histories();
+            live.samples = 60;
+        } else {
+            app.start_sampler();
+        }
 
         // Tray events arrive on the UI thread's message loop; forward them and wake egui (the
         // window may be hidden, so nothing else would).

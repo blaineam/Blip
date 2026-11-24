@@ -12,6 +12,33 @@ use windows::Win32::Graphics::Direct3D::Fxc::D3DCompile;
 use windows::Win32::Graphics::Direct3D::*;
 use windows::Win32::Graphics::Direct3D11::*;
 use windows::Win32::Graphics::Dxgi::Common::DXGI_FORMAT_UNKNOWN;
+use windows::Win32::Graphics::Dxgi::{
+    CreateDXGIFactory1, IDXGIAdapter1, IDXGIFactory1, DXGI_ADAPTER_FLAG_SOFTWARE,
+};
+
+/// Microsoft's software adapters (Basic Render Driver / WARP) would "benchmark" the CPU.
+const MICROSOFT_VENDOR: u32 = 0x1414;
+
+/// The real GPU with the most dedicated memory (the discrete one on hybrid laptops).
+fn hardware_adapter() -> Option<IDXGIAdapter1> {
+    // SAFETY: DXGI enumeration.
+    let factory = unsafe { CreateDXGIFactory1::<IDXGIFactory1>() }.ok()?;
+    let mut best: Option<(usize, IDXGIAdapter1)> = None;
+    let mut i = 0;
+    while let Ok(a) = unsafe { factory.EnumAdapters1(i) } {
+        i += 1;
+        let Ok(d) = (unsafe { a.GetDesc1() }) else {
+            continue;
+        };
+        if d.Flags & DXGI_ADAPTER_FLAG_SOFTWARE.0 as u32 != 0 || d.VendorId == MICROSOFT_VENDOR {
+            continue;
+        }
+        if best.as_ref().is_none_or(|(mem, _)| d.DedicatedVideoMemory > *mem) {
+            best = Some((d.DedicatedVideoMemory, a));
+        }
+    }
+    best.map(|(_, a)| a)
+}
 
 const N: u32 = 1024;
 
@@ -69,13 +96,14 @@ struct Rig {
 }
 
 fn setup() -> windows::core::Result<Rig> {
+    let adapter = hardware_adapter().ok_or_else(windows::core::Error::empty)?;
     let mut device = None;
     let mut ctx = None;
-    // SAFETY: standard device creation with out-params.
+    // SAFETY: standard device creation with out-params (an explicit adapter needs UNKNOWN).
     unsafe {
         D3D11CreateDevice(
-            None,
-            D3D_DRIVER_TYPE_HARDWARE,
+            &adapter,
+            D3D_DRIVER_TYPE_UNKNOWN,
             HMODULE::default(),
             D3D11_CREATE_DEVICE_FLAG(0),
             Some(&[D3D_FEATURE_LEVEL_11_0]),
@@ -215,9 +243,14 @@ impl GpuCompute for D3DCompute {
     fn matmul(&self, seconds: f64, cancelled: &(dyn Fn() -> bool + Sync)) -> Option<WorkloadResult> {
         let rig = setup().ok()?;
         let groups = N / 64;
-        // Warm-up: pipeline creation / first dispatch isn't throughput.
+        // Warm-up: pipeline creation / first dispatch isn't throughput. A GPU that needs more
+        // than two seconds for one 1024³ multiply is a software fallback; drop the leg.
+        let warm = Instant::now();
         unsafe { rig.ctx.Dispatch(groups, groups, 1) };
         wait_idle(&rig).ok()?;
+        if warm.elapsed().as_secs_f64() > 2.0 {
+            return None;
+        }
         let mut multiplies = 0u64;
         let start = Instant::now();
         while start.elapsed().as_secs_f64() < seconds && !cancelled() {

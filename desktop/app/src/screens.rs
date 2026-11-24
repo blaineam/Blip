@@ -32,6 +32,9 @@ fn setup(ctx: &egui::Context, dark: bool) {
 #[test]
 fn render_popover_and_panels() {
     let app = Shared::new();
+    if let Ok(lang) = std::env::var("BLIP_SHOTS_LANG") {
+        blip_core::i18n::set_language(&lang);
+    }
     {
         let mut live = app.live.write().unwrap();
         live.snapshot = crate::demo::snapshot();

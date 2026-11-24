@@ -1,21 +1,49 @@
 # Blip for Windows (then Linux): port ledger
 
-Rust workspace. The plan is native Win32 for every metric, egui for the UI, and nothing that needs admin. Linux would come later as a second backend in `crates/platform`.
+Rust workspace: native Win32 metrics, egui UI, tray icon, no admin. Linux later as a second
+backend in `crates/platform` (the portable sysinfo layer already runs there).
 
-## Done (builds and tests pass on macOS)
-- `crates/core` (31 tests): models, formatting, history, recommendations, connection grades, MTR stats + host validation, BenchKit port (same frozen references; D3D11 GPU leg is injected, the Neural leg drops out), self-hosted OpenSpeedTest tester + `ExternalRun` hook for the public widget, uncached disk benchmark (NO_BUFFERING / O_DIRECT), DB-IP GeoIP, settings (Mac `@AppStorage` keys + CLI get/set), metric catalog (Mac ids), Markdown export, i18n (`tools/gen_strings.py` pulls in all 421 Mac translations).
-- `crates/platform`: portable sysinfo sampler, pinger, MTR session, Keep Awake front end (3 tests).
-- `crates/platform/src/win/` is written but has **not been compiled yet**: pdh, icmp (ping + TTL traceroute), adapters (IP Helper, WLAN, metered), battery IOCTLs, storage (NVMe health log with zero-access handle), gpu (DXGI + PDH engines + NVML), d3d (bench compute), power (power request, lid override with crash restore, jiggle), dev.
+## Layout
+- `crates/core`: models, formatting, history, recommendations, grades, MTR stats, BenchKit
+  (frozen Blip 2.0 references), OpenSpeedTest tester (+ `ExternalRun` for the public widget),
+  uncached disk test, GeoIP, settings (Mac keys), metric catalog (Mac ids), Markdown export,
+  i18n (`tools/gen_strings.py`: Mac catalog + `tools/desktop_strings.json`).
+- `crates/platform`: `Sampler` (sysinfo base + `win/` overrides), pinger, MTR, Keep Awake, kill,
+  autostart, fonts, exe icons. `win/`: pdh, icmp, adapters (+WLAN, metered), battery IOCTLs,
+  storage (NVMe health log with zero-access handle), gpu (DXGI + PDH + NVML), d3d (bench GEMM),
+  power (request, lid override with crash restore, jiggle), system, process, icons.
+  `tests/windows_live.rs` exercises every source on a real Windows runner.
+- `app`: `Blip.exe` (tray app) + `blip-cli.exe`. `app.rs` shell, `popover.rs`, `panels/`,
+  `settings_ui.rs`, `tray.rs` (bars/numbers/logo icons), `publictest.rs` (hidden WebView2),
+  `screens.rs` offscreen renders (`BLIP_SHOTS_DIR=… cargo test -p blip-desktop render`),
+  `demo.rs` sample data.
 
-## Next
-1. `win/mod.rs` (WinSampler: PDH CPU user/kernel/perf %/queue → LoadAvg, PhysicalDisk I/O, thermal zones + level, GPU, battery, drives every 60 s, adapters, OS/model from registry, P/E cores; `ensure_winrt`), `win/system.rs` (ui_language, HKCU Run autostart, ShellExecute, has_lid), `win/process.rs` (OpenProcess+TerminateProcess), `win/icons.rs` (ExtractIconExW → RGBA).
-2. Cross-check: `cargo clippy --target x86_64-pc-windows-msvc -p blip-platform -- -D warnings` (rustup cargo, `CARGO_TARGET_DIR` outside iCloud).
-3. `app/`: eframe/egui tray app (tray-icon; Bars/Numbers/Logo icons), popover + hover detail panels (immediate viewports), pin/detach, Settings window, Segoe UI + Segoe Fluent Icons + CJK fonts loaded from the OS, public OpenSpeedTest via a hidden WebView2 (wry), traceroute map (Natural Earth outline), `blip` CLI (metric/bench/speedtest/disktest/trace/get/set), manifest asInvoker + icon via winresource.
-4. Desktop-only strings in `tools/desktop_strings.json` (8 languages), e.g. "Your PC is running hot (%@)".
-5. CI `.github/workflows/windows.yml` (fmt/clippy/test/build x64+arm64), release job attaching `Blip-windows-{x64,arm64}.exe`, README/CHANGELOG/site.
-6. Linux backends: Ubuntu, Raspberry Pi OS (arm64), Rocky 8 (glibc 2.28 build), SteamOS (Flatpak/AppImage).
+## Dev loop (macOS host)
+- Toolchain: rustup's cargo first in PATH; `CARGO_TARGET_DIR` outside iCloud.
+- `cargo clippy --workspace --all-targets --target x86_64-pc-windows-msvc -- -D warnings`
+  (and `aarch64-pc-windows-msvc`, and the host) — all three must be clean.
+- `cargo test --workspace` on the host; Windows behaviour is verified by `windows.yml`
+  (dispatch it: pushes carry `[ci skip]` because Blip's Xcode Cloud builds every main push).
+- `cargo fmt --all`, `python3 tools/gen_strings.py` after adding UI strings.
+
+## Status
+- [x] Core, platform, Windows layer, app shell, panels, Settings, CLI, CI.
+- [x] Offscreen render check of popover + all 9 panels, light and dark.
+- [ ] First run on a real Windows desktop by the owner (tray click → popover placement, focus /
+      click-away, WebView2 public test, lid override on a laptop, NVMe health on real drives).
+- [ ] Release wiring: attach `Blip-windows-{x64,arm64}.zip` to GitHub Releases (release.yml
+      job, like Glint), code signing, winget/Scoop manifests. Landing-page mention at release.
+- [ ] Linux: Ubuntu / Raspberry Pi OS (arm64) / Rocky 8 (glibc 2.28 build) / SteamOS
+      (Flatpak or AppImage). Needs: hwmon temps + fans (sysinfo Components / /sys/class/hwmon),
+      /sys/class/power_supply battery, /proc/diskstats, NVMe via `/sys/class/nvme` (health log
+      needs root → smartctl-free fallback to temp only), tray via StatusNotifierItem
+      (tray-icon's GTK/appindicator backend), O_DIRECT disk test (done), systemd-inhibit Keep
+      Awake (done), traceroute via unprivileged ICMP datagram sockets.
 
 ## Windows parity limits (no admin)
-- No fan RPM and no CPU die temperature: both need a kernel driver. Blip shows ACPI thermal zones, NVIDIA GPU temps via NVML, drive temps, and clock throttling instead.
-- SATA SMART attributes need admin, so SATA drives show temperature and pass/fail prediction only.
-- There's no Neural bench leg on Windows.
+- No fan RPM and no CPU die temperature: both need a kernel driver. Blip shows ACPI thermal
+  zones, NVIDIA GPU temperature and fan % (NVML), drive temperatures, and clock-vs-base throttling.
+- SATA SMART attribute tables need admin, so SATA drives show temperature + pass/fail prediction.
+- Bench has no Neural leg (no OS-shipped model); the GPU leg is D3D11 compute. Its scores are close
+  to the Mac's, but they come from different libraries.
+- SSID needs Windows location access on 24H2+; without it the Wi-Fi name stays hidden.

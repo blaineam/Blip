@@ -1,1 +1,1512 @@
-{}
+{
+  "%lld cores (%lld performance · %lld efficiency) · %lld threads": {
+    "de": "%lld Kerne (%lld Performance · %lld Effizienz) · %lld Threads",
+    "es": "%lld núcleos (%lld de rendimiento · %lld de eficiencia) · %lld hilos",
+    "fr": "%lld cœurs (%lld performance · %lld efficacité) · %lld threads",
+    "it": "%lld core (%lld performance · %lld efficienza) · %lld thread",
+    "ja": "%lld コア（P コア %lld · E コア %lld）· %lld スレッド",
+    "ko": "%lld코어(성능 %lld · 효율 %lld) · %lld스레드",
+    "pt-BR": "%lld núcleos (%lld de desempenho · %lld de eficiência) · %lld threads",
+    "zh-Hans": "%lld 核（%lld 性能核 · %lld 能效核）· %lld 线程"
+  },
+  "%lld cores · %lld threads": {
+    "de": "%lld Kerne · %lld Threads",
+    "es": "%lld núcleos · %lld hilos",
+    "fr": "%lld cœurs · %lld threads",
+    "it": "%lld core · %lld thread",
+    "ja": "%lld コア · %lld スレッド",
+    "ko": "%lld코어 · %lld스레드",
+    "pt-BR": "%lld núcleos · %lld threads",
+    "zh-Hans": "%lld 核 · %lld 线程"
+  },
+  "%lld h ago": {
+    "de": "vor %lld Std.",
+    "es": "hace %lld h",
+    "fr": "il y a %lld h",
+    "it": "%lld h fa",
+    "ja": "%lld 時間前",
+    "ko": "%lld시간 전",
+    "pt-BR": "há %lld h",
+    "zh-Hans": "%lld 小时前"
+  },
+  "%lld min ago": {
+    "de": "vor %lld Min.",
+    "es": "hace %lld min",
+    "fr": "il y a %lld min",
+    "it": "%lld min fa",
+    "ja": "%lld 分前",
+    "ko": "%lld분 전",
+    "pt-BR": "há %lld min",
+    "zh-Hans": "%lld 分钟前"
+  },
+  "%lld passes": {
+    "de": "%lld Durchgänge",
+    "es": "%lld pasadas",
+    "fr": "%lld passages",
+    "it": "%lld passaggi",
+    "ja": "%lld 回",
+    "ko": "%lld회",
+    "pt-BR": "%lld passagens",
+    "zh-Hans": "%lld 轮"
+  },
+  "1 hour": {
+    "de": "1 Stunde",
+    "es": "1 hora",
+    "fr": "1 heure",
+    "it": "1 ora",
+    "ja": "1時間",
+    "ko": "1시간",
+    "pt-BR": "1 hora",
+    "zh-Hans": "1 小时"
+  },
+  "2 hours": {
+    "de": "2 Stunden",
+    "es": "2 horas",
+    "fr": "2 heures",
+    "it": "2 ore",
+    "ja": "2時間",
+    "ko": "2시간",
+    "pt-BR": "2 horas",
+    "zh-Hans": "2 小时"
+  },
+  "4 hours": {
+    "de": "4 Stunden",
+    "es": "4 horas",
+    "fr": "4 heures",
+    "it": "4 ore",
+    "ja": "4時間",
+    "ko": "4시간",
+    "pt-BR": "4 horas",
+    "zh-Hans": "4 小时"
+  },
+  "About 6 seconds, no sustained phase": {
+    "de": "Etwa 6 Sekunden, ohne Dauerlastphase",
+    "es": "Unos 6 segundos, sin fase sostenida",
+    "fr": "Environ 6 secondes, sans phase soutenue",
+    "it": "Circa 6 secondi, senza fase prolungata",
+    "ja": "約6秒、持続負荷なし",
+    "ko": "약 6초, 지속 부하 없음",
+    "pt-BR": "Cerca de 6 segundos, sem fase sustentada",
+    "zh-Hans": "约 6 秒，无持续负载阶段"
+  },
+  "Active time": {
+    "de": "Aktive Zeit",
+    "es": "Tiempo activo",
+    "fr": "Temps d'activité",
+    "it": "Tempo attivo",
+    "ja": "アクティブな時間",
+    "ko": "활성 시간",
+    "pt-BR": "Tempo ativo",
+    "zh-Hans": "活动时间"
+  },
+  "Automatic tests skip drives below 30% life remaining.": {
+    "de": "Automatische Tests überspringen Laufwerke mit unter 30 % Restlebensdauer.",
+    "es": "Las pruebas automáticas omiten unidades con menos del 30 % de vida restante.",
+    "fr": "Les tests automatiques ignorent les disques sous 30 % de durée de vie restante.",
+    "it": "I test automatici saltano le unità con meno del 30% di vita residua.",
+    "ja": "残り寿命が30%未満のドライブは自動テストの対象外です。",
+    "ko": "남은 수명이 30% 미만인 드라이브는 자동 테스트에서 제외됩니다.",
+    "pt-BR": "Testes automáticos ignoram unidades com menos de 30% de vida útil restante.",
+    "zh-Hans": "自动测试会跳过剩余寿命低于 30% 的驱动器。"
+  },
+  "Automatic tests skip metered connections.": {
+    "de": "Automatische Tests überspringen getaktete Verbindungen.",
+    "es": "Las pruebas automáticas omiten las conexiones de uso medido.",
+    "fr": "Les tests automatiques ignorent les connexions limitées.",
+    "it": "I test automatici saltano le connessioni a consumo.",
+    "ja": "従量制課金接続では自動テストを行いません。",
+    "ko": "데이터 통신 연결에서는 자동 테스트를 건너뜁니다.",
+    "pt-BR": "Testes automáticos ignoram conexões limitadas.",
+    "zh-Hans": "自动测试会跳过按流量计费的连接。"
+  },
+  "Available": {
+    "de": "Verfügbar",
+    "es": "Disponible",
+    "fr": "Disponible",
+    "it": "Disponibile",
+    "ja": "利用可能",
+    "ko": "사용 가능",
+    "pt-BR": "Disponível",
+    "zh-Hans": "可用"
+  },
+  "Available Spare": {
+    "de": "Verfügbare Reserve",
+    "es": "Reserva disponible",
+    "fr": "Réserve disponible",
+    "it": "Riserva disponibile",
+    "ja": "使用可能な予備",
+    "ko": "사용 가능한 예비",
+    "pt-BR": "Reserva disponível",
+    "zh-Hans": "可用备用空间"
+  },
+  "Bars": {
+    "de": "Balken",
+    "es": "Barras",
+    "fr": "Barres",
+    "it": "Barre",
+    "ja": "バー",
+    "ko": "막대",
+    "pt-BR": "Barras",
+    "zh-Hans": "条形图"
+  },
+  "Battery saver": {
+    "de": "Stromsparmodus",
+    "es": "Ahorro de batería",
+    "fr": "Économiseur de batterie",
+    "it": "Risparmio batteria",
+    "ja": "バッテリー節約機能",
+    "ko": "배터리 절약 모드",
+    "pt-BR": "Economia de bateria",
+    "zh-Hans": "节电模式"
+  },
+  "Beside the menu (hover)": {
+    "de": "Neben dem Menü (Hover)",
+    "es": "Junto al menú (al pasar)",
+    "fr": "À côté du menu (survol)",
+    "it": "Accanto al menu (passaggio)",
+    "ja": "メニューの横（ホバー）",
+    "ko": "메뉴 옆(포인터 올림)",
+    "pt-BR": "Ao lado do menu (ao passar)",
+    "zh-Hans": "菜单旁（悬停）"
+  },
+  "Blip is free and open source. If it's useful to you, you can chip in.": {
+    "de": "Blip ist kostenlos und Open Source. Wenn es dir nützt, kannst du etwas beisteuern.",
+    "es": "Blip es gratuito y de código abierto. Si te resulta útil, puedes contribuir.",
+    "fr": "Blip est gratuit et open source. S'il vous est utile, vous pouvez contribuer.",
+    "it": "Blip è gratuito e open source. Se ti è utile, puoi contribuire.",
+    "ja": "Blip は無料のオープンソースです。役に立ったら、ぜひ支援をご検討ください。",
+    "ko": "Blip은 무료 오픈 소스입니다. 유용하다면 후원해 주세요.",
+    "pt-BR": "O Blip é gratuito e de código aberto. Se ele for útil para você, você pode contribuir.",
+    "zh-Hans": "Blip 免费且开源。如果它对你有用，欢迎支持一下。"
+  },
+  "Blip runs as you — no administrator rights, no drivers, no background service.": {
+    "de": "Blip läuft mit deinem Konto – ohne Administratorrechte, Treiber oder Hintergrunddienst.",
+    "es": "Blip se ejecuta con tu usuario: sin derechos de administrador, sin controladores, sin servicio en segundo plano.",
+    "fr": "Blip s'exécute sous votre compte — sans droits d'administrateur, pilotes ni service en arrière-plan.",
+    "it": "Blip viene eseguito con il tuo account — senza diritti di amministratore, driver o servizi in background.",
+    "ja": "Blip はあなたのアカウントで動作します — 管理者権限、ドライバー、バックグラウンドサービスは不要です。",
+    "ko": "Blip은 사용자 계정으로 실행됩니다 — 관리자 권한, 드라이버, 백그라운드 서비스가 필요 없습니다.",
+    "pt-BR": "O Blip roda com a sua conta — sem direitos de administrador, drivers ou serviço em segundo plano.",
+    "zh-Hans": "Blip 以你的身份运行 — 无需管理员权限、驱动程序或后台服务。"
+  },
+  "Blip v%@ · %@ MB": {
+    "de": "Blip v%@ · %@ MB",
+    "es": "Blip v%@ · %@ MB",
+    "fr": "Blip v%@ · %@ Mo",
+    "it": "Blip v%@ · %@ MB",
+    "ja": "Blip v%@ · %@ MB",
+    "ko": "Blip v%@ · %@ MB",
+    "pt-BR": "Blip v%@ · %@ MB",
+    "zh-Hans": "Blip v%@ · %@ MB"
+  },
+  "CPU clock vs base": {
+    "de": "CPU-Takt ggü. Basistakt",
+    "es": "Reloj de CPU vs. base",
+    "fr": "Fréquence CPU vs base",
+    "it": "Clock CPU vs base",
+    "ja": "CPU クロック（ベース比）",
+    "ko": "CPU 클럭(기본 대비)",
+    "pt-BR": "Clock da CPU vs. base",
+    "zh-Hans": "CPU 频率（相对基准）"
+  },
+  "Cached": {
+    "de": "Im Cache",
+    "es": "En caché",
+    "fr": "En cache",
+    "it": "In cache",
+    "ja": "キャッシュ済み",
+    "ko": "캐시됨",
+    "pt-BR": "Em cache",
+    "zh-Hans": "已缓存"
+  },
+  "Capacity (full / design)": {
+    "de": "Kapazität (voll / Nenn)",
+    "es": "Capacidad (completa / diseño)",
+    "fr": "Capacité (pleine / nominale)",
+    "it": "Capacità (piena / progetto)",
+    "ja": "容量（満充電 / 設計）",
+    "ko": "용량(완충 / 설계)",
+    "pt-BR": "Capacidade (total / projeto)",
+    "zh-Hans": "容量（满电 / 设计）"
+  },
+  "Category": {
+    "de": "Kategorie",
+    "es": "Categoría",
+    "fr": "Catégorie",
+    "it": "Categoria",
+    "ja": "カテゴリ",
+    "ko": "카테고리",
+    "pt-BR": "Categoria",
+    "zh-Hans": "分类"
+  },
+  "Change the target in Settings › Network.": {
+    "de": "Ändere das Ziel unter Einstellungen › Netzwerk.",
+    "es": "Cambia el destino en Ajustes › Red.",
+    "fr": "Modifiez la cible dans Réglages › Réseau.",
+    "it": "Cambia la destinazione in Impostazioni › Rete.",
+    "ja": "対象は「設定 › ネットワーク」で変更できます。",
+    "ko": "설정 › 네트워크에서 대상을 변경하세요.",
+    "pt-BR": "Altere o destino em Ajustes › Rede.",
+    "zh-Hans": "可在“设置 › 网络”中更改目标。"
+  },
+  "Charging rate": {
+    "de": "Laderate",
+    "es": "Velocidad de carga",
+    "fr": "Vitesse de charge",
+    "it": "Velocità di ricarica",
+    "ja": "充電レート",
+    "ko": "충전 속도",
+    "pt-BR": "Taxa de carga",
+    "zh-Hans": "充电速率"
+  },
+  "Chemistry": {
+    "de": "Zellchemie",
+    "es": "Química",
+    "fr": "Chimie",
+    "it": "Chimica",
+    "ja": "化学組成",
+    "ko": "화학 조성",
+    "pt-BR": "Química",
+    "zh-Hans": "化学成分"
+  },
+  "Choose Folder…": {
+    "de": "Ordner auswählen…",
+    "es": "Elegir carpeta…",
+    "fr": "Choisir un dossier…",
+    "it": "Scegli cartella…",
+    "ja": "フォルダを選択…",
+    "ko": "폴더 선택…",
+    "pt-BR": "Escolher pasta…",
+    "zh-Hans": "选择文件夹…"
+  },
+  "Color bars by utilization": {
+    "de": "Balken nach Auslastung einfärben",
+    "es": "Colorear barras según el uso",
+    "fr": "Colorer les barres selon l'utilisation",
+    "it": "Colora le barre in base all'utilizzo",
+    "ja": "使用率に応じてバーを色分け",
+    "ko": "사용률에 따라 막대 색상 표시",
+    "pt-BR": "Colorir barras conforme o uso",
+    "zh-Hans": "按占用率为条形图着色"
+  },
+  "Colors": {
+    "de": "Farben",
+    "es": "Colores",
+    "fr": "Couleurs",
+    "it": "Colori",
+    "ja": "色",
+    "ko": "색상",
+    "pt-BR": "Cores",
+    "zh-Hans": "颜色"
+  },
+  "Committed": {
+    "de": "Zugesichert",
+    "es": "Confirmada",
+    "fr": "Validée",
+    "it": "Allocata",
+    "ja": "コミット済み",
+    "ko": "커밋됨",
+    "pt-BR": "Confirmada",
+    "zh-Hans": "已提交"
+  },
+  "Copied": {
+    "de": "Kopiert",
+    "es": "Copiado",
+    "fr": "Copié",
+    "it": "Copiato",
+    "ja": "コピーしました",
+    "ko": "복사됨",
+    "pt-BR": "Copiado",
+    "zh-Hans": "已复制"
+  },
+  "Copy": {
+    "de": "Kopieren",
+    "es": "Copiar",
+    "fr": "Copier",
+    "it": "Copia",
+    "ja": "コピー",
+    "ko": "복사",
+    "pt-BR": "Copiar",
+    "zh-Hans": "复制"
+  },
+  "Couldn't reach openspeedtest.com. Check your connection, or use a self-hosted server.": {
+    "de": "openspeedtest.com ist nicht erreichbar. Prüfe deine Verbindung oder nutze einen selbst gehosteten Server.",
+    "es": "No se pudo conectar con openspeedtest.com. Revisa tu conexión o usa un servidor autoalojado.",
+    "fr": "Impossible de joindre openspeedtest.com. Vérifiez votre connexion ou utilisez un serveur auto-hébergé.",
+    "it": "Impossibile raggiungere openspeedtest.com. Controlla la connessione o usa un server personale.",
+    "ja": "openspeedtest.com に接続できませんでした。接続を確認するか、セルフホストサーバを使用してください。",
+    "ko": "openspeedtest.com에 연결할 수 없습니다. 연결을 확인하거나 직접 호스팅 서버를 사용하세요.",
+    "pt-BR": "Não foi possível acessar openspeedtest.com. Verifique sua conexão ou use um servidor auto-hospedado.",
+    "zh-Hans": "无法连接 openspeedtest.com。请检查网络连接，或使用自建服务器。"
+  },
+  "Couldn't resolve that host.": {
+    "de": "Dieser Host konnte nicht aufgelöst werden.",
+    "es": "No se pudo resolver ese host.",
+    "fr": "Impossible de résoudre cet hôte.",
+    "it": "Impossibile risolvere l'host.",
+    "ja": "そのホストを解決できませんでした。",
+    "ko": "해당 호스트를 확인할 수 없습니다.",
+    "pt-BR": "Não foi possível resolver esse host.",
+    "zh-Hans": "无法解析该主机。"
+  },
+  "Custom": {
+    "de": "Eigene",
+    "es": "Personalizado",
+    "fr": "Personnalisé",
+    "it": "Personalizzato",
+    "ja": "カスタム",
+    "ko": "사용자 지정",
+    "pt-BR": "Personalizado",
+    "zh-Hans": "自定"
+  },
+  "DNS": {
+    "de": "DNS",
+    "es": "DNS",
+    "fr": "DNS",
+    "it": "DNS",
+    "ja": "DNS",
+    "ko": "DNS",
+    "pt-BR": "DNS",
+    "zh-Hans": "DNS"
+  },
+  "Dark": {
+    "de": "Dunkel",
+    "es": "Oscuro",
+    "fr": "Sombre",
+    "it": "Scuro",
+    "ja": "ダーク",
+    "ko": "다크",
+    "pt-BR": "Escuro",
+    "zh-Hans": "深色"
+  },
+  "Data Read": {
+    "de": "Gelesene Daten",
+    "es": "Datos leídos",
+    "fr": "Données lues",
+    "it": "Dati letti",
+    "ja": "読み込みデータ量",
+    "ko": "읽은 데이터",
+    "pt-BR": "Dados lidos",
+    "zh-Hans": "数据读取量"
+  },
+  "Data Written": {
+    "de": "Geschriebene Daten",
+    "es": "Datos escritos",
+    "fr": "Données écrites",
+    "it": "Dati scritti",
+    "ja": "書き込みデータ量",
+    "ko": "쓴 데이터",
+    "pt-BR": "Dados gravados",
+    "zh-Hans": "数据写入量"
+  },
+  "Dedicated memory": {
+    "de": "Dedizierter Speicher",
+    "es": "Memoria dedicada",
+    "fr": "Mémoire dédiée",
+    "it": "Memoria dedicata",
+    "ja": "専用メモリ",
+    "ko": "전용 메모리",
+    "pt-BR": "Memória dedicada",
+    "zh-Hans": "专用内存"
+  },
+  "Download failed.": {
+    "de": "Download fehlgeschlagen.",
+    "es": "La descarga falló.",
+    "fr": "Échec du téléchargement.",
+    "it": "Download non riuscito.",
+    "ja": "ダウンロードに失敗しました。",
+    "ko": "다운로드에 실패했습니다.",
+    "pt-BR": "Falha no download.",
+    "zh-Hans": "下载失败。"
+  },
+  "Download timed out.": {
+    "de": "Zeitüberschreitung beim Download.",
+    "es": "Se agotó el tiempo de descarga.",
+    "fr": "Le téléchargement a expiré.",
+    "it": "Timeout del download.",
+    "ja": "ダウンロードがタイムアウトしました。",
+    "ko": "다운로드 시간이 초과되었습니다.",
+    "pt-BR": "O download expirou.",
+    "zh-Hans": "下载超时。"
+  },
+  "Drive Health": {
+    "de": "Laufwerkszustand",
+    "es": "Salud de la unidad",
+    "fr": "État du disque",
+    "it": "Stato dell'unità",
+    "ja": "ドライブの健全性",
+    "ko": "드라이브 상태",
+    "pt-BR": "Saúde da unidade",
+    "zh-Hans": "驱动器健康度"
+  },
+  "Engines": {
+    "de": "Engines",
+    "es": "Motores",
+    "fr": "Moteurs",
+    "it": "Motori",
+    "ja": "エンジン",
+    "ko": "엔진",
+    "pt-BR": "Mecanismos",
+    "zh-Hans": "引擎"
+  },
+  "Every": {
+    "de": "Alle",
+    "es": "Cada",
+    "fr": "Toutes les",
+    "it": "Ogni",
+    "ja": "間隔",
+    "ko": "간격",
+    "pt-BR": "A cada",
+    "zh-Hans": "每隔"
+  },
+  "Failing": {
+    "de": "Fehlerhaft",
+    "es": "Con fallos",
+    "fr": "Défaillant",
+    "it": "In avaria",
+    "ja": "異常あり",
+    "ko": "이상 있음",
+    "pt-BR": "Com falhas",
+    "zh-Hans": "异常"
+  },
+  "GPU counters aren't available on this PC.": {
+    "de": "GPU-Zähler sind auf diesem PC nicht verfügbar.",
+    "es": "Los contadores de GPU no están disponibles en este PC.",
+    "fr": "Les compteurs GPU ne sont pas disponibles sur ce PC.",
+    "it": "I contatori GPU non sono disponibili su questo PC.",
+    "ja": "この PC では GPU カウンターを利用できません。",
+    "ko": "이 PC에서는 GPU 카운터를 사용할 수 없습니다.",
+    "pt-BR": "Os contadores de GPU não estão disponíveis neste PC.",
+    "zh-Hans": "此电脑上无法使用 GPU 计数器。"
+  },
+  "GPU leg unavailable on this PC — the score uses the other categories.": {
+    "de": "GPU-Teil auf diesem PC nicht verfügbar – der Score nutzt die anderen Kategorien.",
+    "es": "La parte de GPU no está disponible en este PC: la puntuación usa las demás categorías.",
+    "fr": "Volet GPU indisponible sur ce PC — le score utilise les autres catégories.",
+    "it": "Parte GPU non disponibile su questo PC — il punteggio usa le altre categorie.",
+    "ja": "この PC では GPU 項目を測定できません — スコアは他のカテゴリで算出します。",
+    "ko": "이 PC에서는 GPU 항목을 사용할 수 없습니다 — 점수는 다른 항목으로 계산됩니다.",
+    "pt-BR": "Etapa de GPU indisponível neste PC — a pontuação usa as outras categorias.",
+    "zh-Hans": "此电脑无法测试 GPU 项 — 得分基于其他类别。"
+  },
+  "I/O over time": {
+    "de": "I/O im Zeitverlauf",
+    "es": "E/S a lo largo del tiempo",
+    "fr": "E/S dans le temps",
+    "it": "I/O nel tempo",
+    "ja": "I/O の推移",
+    "ko": "시간에 따른 I/O",
+    "pt-BR": "E/S ao longo do tempo",
+    "zh-Hans": "I/O 趋势"
+  },
+  "IP geolocation by": {
+    "de": "IP-Geolokalisierung von",
+    "es": "Geolocalización IP de",
+    "fr": "Géolocalisation IP par",
+    "it": "Geolocalizzazione IP di",
+    "ja": "IP 位置情報の提供:",
+    "ko": "IP 위치 정보 제공:",
+    "pt-BR": "Geolocalização de IP por",
+    "zh-Hans": "IP 地理定位来源："
+  },
+  "IP geolocation by DB-IP": {
+    "de": "IP-Geolokalisierung von DB-IP",
+    "es": "Geolocalización IP de DB-IP",
+    "fr": "Géolocalisation IP par DB-IP",
+    "it": "Geolocalizzazione IP di DB-IP",
+    "ja": "IP 位置情報の提供: DB-IP",
+    "ko": "IP 위치 정보 제공: DB-IP",
+    "pt-BR": "Geolocalização de IP por DB-IP",
+    "zh-Hans": "IP 地理定位来源：DB-IP"
+  },
+  "IPv6": {
+    "de": "IPv6",
+    "es": "IPv6",
+    "fr": "IPv6",
+    "it": "IPv6",
+    "ja": "IPv6",
+    "ko": "IPv6",
+    "pt-BR": "IPv6",
+    "zh-Hans": "IPv6"
+  },
+  "Inline (click)": {
+    "de": "Im Menü (Klick)",
+    "es": "Dentro del menú (clic)",
+    "fr": "Dans le menu (clic)",
+    "it": "Nel menu (clic)",
+    "ja": "メニュー内（クリック）",
+    "ko": "메뉴 안(클릭)",
+    "pt-BR": "Dentro do menu (clique)",
+    "zh-Hans": "菜单内（点击）"
+  },
+  "Installed database is unreadable — re-download to fix.": {
+    "de": "Die installierte Datenbank ist unlesbar – zum Beheben erneut laden.",
+    "es": "La base de datos instalada no se puede leer: vuelve a descargarla.",
+    "fr": "La base de données installée est illisible — retéléchargez-la pour corriger.",
+    "it": "Il database installato è illeggibile — scaricalo di nuovo per risolvere.",
+    "ja": "インストール済みのデータベースを読み込めません — 再ダウンロードしてください。",
+    "ko": "설치된 데이터베이스를 읽을 수 없습니다 — 다시 다운로드하세요.",
+    "pt-BR": "O banco de dados instalado está ilegível — baixe novamente para corrigir.",
+    "zh-Hans": "已安装的数据库无法读取 — 请重新下载以修复。"
+  },
+  "Keep the PC plugged in and other apps quiet for the most honest score.": {
+    "de": "Für den aussagekräftigsten Score: PC am Netz lassen und andere Apps ruhen lassen.",
+    "es": "Para una puntuación más fiel, mantén el PC enchufado y las demás apps en reposo.",
+    "fr": "Pour un score fidèle, gardez le PC branché et les autres apps au repos.",
+    "it": "Per un punteggio più fedele, tieni il PC collegato e le altre app inattive.",
+    "ja": "正確なスコアを得るには、PC を電源に接続し、他のアプリを休ませてください。",
+    "ko": "가장 정확한 점수를 위해 PC를 전원에 연결하고 다른 앱을 쉬게 하세요.",
+    "pt-BR": "Para uma pontuação mais fiel, mantenha o PC na tomada e os outros apps ociosos.",
+    "zh-Hans": "为获得最真实的得分，请保持电脑接通电源，并让其他应用保持空闲。"
+  },
+  "Language": {
+    "de": "Sprache",
+    "es": "Idioma",
+    "fr": "Langue",
+    "it": "Lingua",
+    "ja": "言語",
+    "ko": "언어",
+    "pt-BR": "Idioma",
+    "zh-Hans": "语言"
+  },
+  "Launch at login": {
+    "de": "Bei der Anmeldung öffnen",
+    "es": "Abrir al iniciar sesión",
+    "fr": "Ouvrir à la session",
+    "it": "Apri al login",
+    "ja": "ログイン時に起動",
+    "ko": "로그인 시 실행",
+    "pt-BR": "Abrir ao iniciar sessão",
+    "zh-Hans": "登录时启动"
+  },
+  "Light": {
+    "de": "Hell",
+    "es": "Claro",
+    "fr": "Clair",
+    "it": "Chiaro",
+    "ja": "ライト",
+    "ko": "라이트",
+    "pt-BR": "Claro",
+    "zh-Hans": "浅色"
+  },
+  "Link speed": {
+    "de": "Verbindungsgeschwindigkeit",
+    "es": "Velocidad de vínculo",
+    "fr": "Vitesse de liaison",
+    "it": "Velocità di collegamento",
+    "ja": "リンク速度",
+    "ko": "링크 속도",
+    "pt-BR": "Velocidade do link",
+    "zh-Hans": "链接速度"
+  },
+  "Load Average": {
+    "de": "Durchschnittliche Last",
+    "es": "Carga media",
+    "fr": "Charge moyenne",
+    "it": "Carico medio",
+    "ja": "ロードアベレージ",
+    "ko": "평균 부하",
+    "pt-BR": "Carga média",
+    "zh-Hans": "平均负载"
+  },
+  "Logo only": {
+    "de": "Nur Logo",
+    "es": "Solo logotipo",
+    "fr": "Logo seul",
+    "it": "Solo logo",
+    "ja": "ロゴのみ",
+    "ko": "로고만",
+    "pt-BR": "Só o logo",
+    "zh-Hans": "仅徽标"
+  },
+  "MAC Address": {
+    "de": "MAC-Adresse",
+    "es": "Dirección MAC",
+    "fr": "Adresse MAC",
+    "it": "Indirizzo MAC",
+    "ja": "MAC アドレス",
+    "ko": "MAC 주소",
+    "pt-BR": "Endereço MAC",
+    "zh-Hans": "MAC 地址"
+  },
+  "Measure what this PC can actually do — CPU, memory, and GPU throughput scored in Blip's fixed reference units, plus how much it loses under sustained load.": {
+    "de": "Miss, was dieser PC wirklich leisten kann – CPU-, Arbeitsspeicher- und GPU-Durchsatz in Blips festen Referenzeinheiten, plus wie viel unter Dauerlast verloren geht.",
+    "es": "Mide lo que este PC puede hacer realmente: rendimiento de CPU, memoria y GPU en las unidades de referencia fijas de Blip, más cuánto pierde bajo carga sostenida.",
+    "fr": "Mesurez ce que ce PC peut vraiment faire — débit CPU, mémoire et GPU noté dans les unités de référence fixes de Blip, plus ce qu'il perd sous charge soutenue.",
+    "it": "Misura cosa può fare davvero questo PC — throughput di CPU, memoria e GPU nelle unità di riferimento fisse di Blip, più quanto perde sotto carico prolungato.",
+    "ja": "この PC の実力を測定します。CPU・メモリ・GPU のスループットを Blip の固定リファレンス単位でスコア化し、持続負荷でどれだけ低下するかも計測します。",
+    "ko": "이 PC의 실제 성능을 측정합니다. CPU·메모리·GPU 처리량을 Blip의 고정 기준 단위로 점수화하고, 지속 부하에서 얼마나 떨어지는지도 확인합니다.",
+    "pt-BR": "Meça o que este PC pode fazer de verdade — throughput de CPU, memória e GPU nas unidades de referência fixas do Blip, além de quanto ele perde sob carga sustentada.",
+    "zh-Hans": "测出这台电脑的真实实力——以 Blip 的固定基准单位为 CPU、内存和 GPU 吞吐量打分，并测量持续负载下的性能损失。"
+  },
+  "Measuring latency…": {
+    "de": "Latenz wird gemessen…",
+    "es": "Midiendo latencia…",
+    "fr": "Mesure de la latence…",
+    "it": "Misurazione latenza…",
+    "ja": "遅延を測定中…",
+    "ko": "지연 시간 측정 중…",
+    "pt-BR": "Medindo latência…",
+    "zh-Hans": "正在测量延迟…"
+  },
+  "Media Errors": {
+    "de": "Medienfehler",
+    "es": "Errores de medios",
+    "fr": "Erreurs de support",
+    "it": "Errori del supporto",
+    "ja": "メディアエラー",
+    "ko": "미디어 오류",
+    "pt-BR": "Erros de mídia",
+    "zh-Hans": "介质错误"
+  },
+  "Metered connection": {
+    "de": "Getaktete Verbindung",
+    "es": "Conexión de uso medido",
+    "fr": "Connexion limitée",
+    "it": "Connessione a consumo",
+    "ja": "従量制課金接続",
+    "ko": "데이터 통신 연결",
+    "pt-BR": "Conexão limitada",
+    "zh-Hans": "按流量计费的连接"
+  },
+  "Network status dot": {
+    "de": "Netzwerk-Statuspunkt",
+    "es": "Punto de estado de red",
+    "fr": "Point d'état réseau",
+    "it": "Indicatore stato rete",
+    "ja": "ネットワーク状態ドット",
+    "ko": "네트워크 상태 점",
+    "pt-BR": "Ponto de status da rede",
+    "zh-Hans": "网络状态圆点"
+  },
+  "Network unavailable": {
+    "de": "Netzwerk nicht verfügbar",
+    "es": "Red no disponible",
+    "fr": "Réseau indisponible",
+    "it": "Rete non disponibile",
+    "ja": "ネットワークを利用できません",
+    "ko": "네트워크 사용 불가",
+    "pt-BR": "Rede indisponível",
+    "zh-Hans": "网络不可用"
+  },
+  "No internet connection.": {
+    "de": "Keine Internetverbindung.",
+    "es": "No hay conexión a Internet.",
+    "fr": "Aucune connexion Internet.",
+    "it": "Nessuna connessione a Internet.",
+    "ja": "インターネットに接続されていません。",
+    "ko": "인터넷에 연결되어 있지 않습니다.",
+    "pt-BR": "Sem conexão com a internet.",
+    "zh-Hans": "没有互联网连接。"
+  },
+  "No public hops to plot yet.": {
+    "de": "Noch keine öffentlichen Hops zum Anzeigen.",
+    "es": "Aún no hay saltos públicos que mostrar.",
+    "fr": "Aucun saut public à afficher pour l'instant.",
+    "it": "Ancora nessun hop pubblico da mostrare.",
+    "ja": "表示できるパブリックなホップはまだありません。",
+    "ko": "아직 표시할 공개 홉이 없습니다.",
+    "pt-BR": "Ainda não há saltos públicos para mostrar.",
+    "zh-Hans": "暂无可标注的公网跃点。"
+  },
+  "Not connected": {
+    "de": "Nicht verbunden",
+    "es": "No conectado",
+    "fr": "Non connecté",
+    "it": "Non connesso",
+    "ja": "未接続",
+    "ko": "연결되지 않음",
+    "pt-BR": "Não conectado",
+    "zh-Hans": "未连接"
+  },
+  "Notification area": {
+    "de": "Infobereich",
+    "es": "Área de notificación",
+    "fr": "Zone de notification",
+    "it": "Area di notifica",
+    "ja": "通知領域",
+    "ko": "알림 영역",
+    "pt-BR": "Área de notificação",
+    "zh-Hans": "通知区域"
+  },
+  "Numbers": {
+    "de": "Zahlen",
+    "es": "Números",
+    "fr": "Chiffres",
+    "it": "Numeri",
+    "ja": "数値",
+    "ko": "숫자",
+    "pt-BR": "Números",
+    "zh-Hans": "数字"
+  },
+  "On battery": {
+    "de": "Batteriebetrieb",
+    "es": "Con batería",
+    "fr": "Sur batterie",
+    "it": "A batteria",
+    "ja": "バッテリー駆動",
+    "ko": "배터리 사용 중",
+    "pt-BR": "Na bateria",
+    "zh-Hans": "使用电池"
+  },
+  "Open data folder": {
+    "de": "Datenordner öffnen",
+    "es": "Abrir carpeta de datos",
+    "fr": "Ouvrir le dossier de données",
+    "it": "Apri cartella dati",
+    "ja": "データフォルダを開く",
+    "ko": "데이터 폴더 열기",
+    "pt-BR": "Abrir pasta de dados",
+    "zh-Hans": "打开数据文件夹"
+  },
+  "Page file used": {
+    "de": "Auslagerungsdatei belegt",
+    "es": "Archivo de paginación usado",
+    "fr": "Fichier d'échange utilisé",
+    "it": "File di paging usato",
+    "ja": "ページファイル使用量",
+    "ko": "페이지 파일 사용량",
+    "pt-BR": "Arquivo de paginação usado",
+    "zh-Hans": "已用页面文件"
+  },
+  "Paged / non-paged pool": {
+    "de": "Ausgelagerter / nicht ausgel. Pool",
+    "es": "Bloque paginado / no paginado",
+    "fr": "Réserve paginée / non paginée",
+    "it": "Pool di paging / non di paging",
+    "ja": "ページ / 非ページ プール",
+    "ko": "페이징 / 비페이징 풀",
+    "pt-BR": "Pool paginado / não paginado",
+    "zh-Hans": "分页 / 非分页缓冲池"
+  },
+  "Paused on metered connections.": {
+    "de": "Bei getakteten Verbindungen pausiert.",
+    "es": "En pausa con conexiones de uso medido.",
+    "fr": "En pause sur les connexions limitées.",
+    "it": "In pausa sulle connessioni a consumo.",
+    "ja": "従量制課金接続では一時停止します。",
+    "ko": "데이터 통신 연결에서는 일시 정지됩니다.",
+    "pt-BR": "Pausado em conexões limitadas.",
+    "zh-Hans": "按流量计费的连接上已暂停。"
+  },
+  "Personal best": {
+    "de": "Persönlicher Bestwert",
+    "es": "Mejor marca personal",
+    "fr": "Record personnel",
+    "it": "Record personale",
+    "ja": "自己ベスト",
+    "ko": "개인 최고 기록",
+    "pt-BR": "Melhor marca pessoal",
+    "zh-Hans": "个人最佳"
+  },
+  "Pick a writable folder on the drive you want to benchmark.": {
+    "de": "Wähle einen beschreibbaren Ordner auf dem Laufwerk, das du testen willst.",
+    "es": "Elige una carpeta con permiso de escritura en la unidad que quieras medir.",
+    "fr": "Choisissez un dossier accessible en écriture sur le disque à tester.",
+    "it": "Scegli una cartella scrivibile sull'unità da testare.",
+    "ja": "ベンチマークするドライブ上の書き込み可能なフォルダを選んでください。",
+    "ko": "벤치마크할 드라이브에서 쓰기 가능한 폴더를 선택하세요.",
+    "pt-BR": "Escolha uma pasta gravável na unidade que deseja testar.",
+    "zh-Hans": "请在要测试的驱动器上选择一个可写入的文件夹。"
+  },
+  "Pin this panel into its own window": {
+    "de": "Diesen Bereich in ein eigenes Fenster anheften",
+    "es": "Fijar este panel en su propia ventana",
+    "fr": "Épingler ce panneau dans sa propre fenêtre",
+    "it": "Fissa questo pannello in una finestra a sé",
+    "ja": "このパネルを独立したウィンドウに固定",
+    "ko": "이 패널을 별도 창으로 고정",
+    "pt-BR": "Fixar este painel em uma janela própria",
+    "zh-Hans": "将此面板固定到独立窗口"
+  },
+  "Ping (idle)": {
+    "de": "Ping (Leerlauf)",
+    "es": "Ping (en reposo)",
+    "fr": "Ping (au repos)",
+    "it": "Ping (a riposo)",
+    "ja": "Ping（アイドル）",
+    "ko": "Ping(유휴)",
+    "pt-BR": "Ping (ocioso)",
+    "zh-Hans": "Ping（空闲）"
+  },
+  "Ping (loaded)": {
+    "de": "Ping (unter Last)",
+    "es": "Ping (con carga)",
+    "fr": "Ping (en charge)",
+    "it": "Ping (sotto carico)",
+    "ja": "Ping（負荷時）",
+    "ko": "Ping(부하)",
+    "pt-BR": "Ping (com carga)",
+    "zh-Hans": "Ping（负载）"
+  },
+  "Ping target": {
+    "de": "Ping-Ziel",
+    "es": "Destino de ping",
+    "fr": "Cible du ping",
+    "it": "Destinazione ping",
+    "ja": "Ping 対象",
+    "ko": "Ping 대상",
+    "pt-BR": "Destino do ping",
+    "zh-Hans": "Ping 目标"
+  },
+  "Plots traceroute hops with DB-IP's free City Lite database, stored on this PC. Nothing is downloaded until you ask.": {
+    "de": "Zeigt Traceroute-Hops mit der kostenlosen City-Lite-Datenbank von DB-IP an, gespeichert auf diesem PC. Es wird nichts geladen, bevor du es willst.",
+    "es": "Sitúa los saltos del traceroute con la base de datos gratuita City Lite de DB-IP, guardada en este PC. No se descarga nada hasta que lo pidas.",
+    "fr": "Situe les sauts du traceroute avec la base gratuite City Lite de DB-IP, stockée sur ce PC. Rien n'est téléchargé sans votre demande.",
+    "it": "Traccia gli hop del traceroute con il database gratuito City Lite di DB-IP, salvato su questo PC. Nulla viene scaricato finché non lo chiedi.",
+    "ja": "DB-IP の無料 City Lite データベース（この PC に保存）で Traceroute のホップを地図に表示します。指示するまで何もダウンロードしません。",
+    "ko": "이 PC에 저장된 DB-IP의 무료 City Lite 데이터베이스로 Traceroute 홉을 지도에 표시합니다. 요청하기 전에는 아무것도 다운로드하지 않습니다.",
+    "pt-BR": "Posiciona os saltos do traceroute com o banco de dados gratuito City Lite da DB-IP, armazenado neste PC. Nada é baixado até você pedir.",
+    "zh-Hans": "使用存储在此电脑上的 DB-IP 免费 City Lite 数据库标定路由跟踪跃点。在你请求之前不会下载任何内容。"
+  },
+  "Plugged in, not charging": {
+    "de": "Angeschlossen, wird nicht geladen",
+    "es": "Enchufado, no se está cargando",
+    "fr": "Branché, pas en charge",
+    "it": "Collegato, non in carica",
+    "ja": "電源に接続、充電していません",
+    "ko": "전원 연결됨, 충전 안 함",
+    "pt-BR": "Conectado, não está carregando",
+    "zh-Hans": "已接通电源，未充电"
+  },
+  "Popover": {
+    "de": "Menü",
+    "es": "Menú",
+    "fr": "Menu",
+    "it": "Menu",
+    "ja": "メニュー",
+    "ko": "메뉴",
+    "pt-BR": "Menu",
+    "zh-Hans": "菜单"
+  },
+  "Power Cycles": {
+    "de": "Einschaltvorgänge",
+    "es": "Ciclos de encendido",
+    "fr": "Cycles d'alimentation",
+    "it": "Cicli di accensione",
+    "ja": "電源投入回数",
+    "ko": "전원 켜짐 횟수",
+    "pt-BR": "Ciclos de energia",
+    "zh-Hans": "通电次数"
+  },
+  "Power draw": {
+    "de": "Leistungsaufnahme",
+    "es": "Consumo",
+    "fr": "Consommation",
+    "it": "Consumo",
+    "ja": "消費電力",
+    "ko": "전력 소비",
+    "pt-BR": "Consumo",
+    "zh-Hans": "功耗"
+  },
+  "Power-On Hours": {
+    "de": "Betriebsstunden",
+    "es": "Horas de encendido",
+    "fr": "Heures de fonctionnement",
+    "it": "Ore di accensione",
+    "ja": "通電時間",
+    "ko": "전원 켜짐 시간",
+    "pt-BR": "Horas ligado",
+    "zh-Hans": "通电时间"
+  },
+  "Public test didn't finish. Try again, or use a self-hosted server.": {
+    "de": "Der öffentliche Test wurde nicht abgeschlossen. Versuch es erneut oder nutze einen selbst gehosteten Server.",
+    "es": "La prueba pública no terminó. Inténtalo de nuevo o usa un servidor autoalojado.",
+    "fr": "Le test public ne s'est pas terminé. Réessayez ou utilisez un serveur auto-hébergé.",
+    "it": "Il test pubblico non è terminato. Riprova o usa un server personale.",
+    "ja": "パブリックテストが完了しませんでした。再試行するか、セルフホストサーバを使用してください。",
+    "ko": "공개 테스트가 완료되지 않았습니다. 다시 시도하거나 직접 호스팅 서버를 사용하세요.",
+    "pt-BR": "O teste público não terminou. Tente novamente ou use um servidor auto-hospedado.",
+    "zh-Hans": "公共测试未完成。请重试，或使用自建服务器。"
+  },
+  "Public test timed out. Try again, or use a self-hosted server.": {
+    "de": "Zeitüberschreitung beim öffentlichen Test. Versuch es erneut oder nutze einen selbst gehosteten Server.",
+    "es": "La prueba pública agotó el tiempo de espera. Inténtalo de nuevo o usa un servidor autoalojado.",
+    "fr": "Le test public a expiré. Réessayez ou utilisez un serveur auto-hébergé.",
+    "it": "Timeout del test pubblico. Riprova o usa un server personale.",
+    "ja": "パブリックテストがタイムアウトしました。再試行するか、セルフホストサーバを使用してください。",
+    "ko": "공개 테스트 시간이 초과되었습니다. 다시 시도하거나 직접 호스팅 서버를 사용하세요.",
+    "pt-BR": "O teste público expirou. Tente novamente ou use um servidor auto-hospedado.",
+    "zh-Hans": "公共测试超时。请重试，或使用自建服务器。"
+  },
+  "Quick run": {
+    "de": "Schnelllauf",
+    "es": "Prueba rápida",
+    "fr": "Test rapide",
+    "it": "Test rapido",
+    "ja": "クイック測定",
+    "ko": "빠른 측정",
+    "pt-BR": "Teste rápido",
+    "zh-Hans": "快速测试"
+  },
+  "Quit Blip": {
+    "de": "Blip beenden",
+    "es": "Salir de Blip",
+    "fr": "Quitter Blip",
+    "it": "Esci da Blip",
+    "ja": "Blip を終了",
+    "ko": "Blip 종료",
+    "pt-BR": "Encerrar Blip",
+    "zh-Hans": "退出 Blip"
+  },
+  "Random 4K read": {
+    "de": "Zufälliges 4K-Lesen",
+    "es": "Lectura aleatoria 4K",
+    "fr": "Lecture aléatoire 4K",
+    "it": "Lettura casuale 4K",
+    "ja": "ランダム 4K 読み込み",
+    "ko": "4K 무작위 읽기",
+    "pt-BR": "Leitura aleatória 4K",
+    "zh-Hans": "4K 随机读取"
+  },
+  "Random reads…": {
+    "de": "Zufälliges Lesen…",
+    "es": "Lecturas aleatorias…",
+    "fr": "Lectures aléatoires…",
+    "it": "Letture casuali…",
+    "ja": "ランダム読み込み中…",
+    "ko": "무작위 읽기 중…",
+    "pt-BR": "Leituras aleatórias…",
+    "zh-Hans": "正在随机读取…"
+  },
+  "Read (lifetime)": {
+    "de": "Gelesen (gesamt)",
+    "es": "Leído (total)",
+    "fr": "Lu (total)",
+    "it": "Letti (totale)",
+    "ja": "累計読み込み",
+    "ko": "총 읽기",
+    "pt-BR": "Lido (total)",
+    "zh-Hans": "读取总量"
+  },
+  "Reading…": {
+    "de": "Lesen…",
+    "es": "Leyendo…",
+    "fr": "Lecture…",
+    "it": "Lettura…",
+    "ja": "読み込み中…",
+    "ko": "읽는 중…",
+    "pt-BR": "Lendo…",
+    "zh-Hans": "正在读取…"
+  },
+  "Report an issue": {
+    "de": "Problem melden",
+    "es": "Informar de un problema",
+    "fr": "Signaler un problème",
+    "it": "Segnala un problema",
+    "ja": "問題を報告",
+    "ko": "문제 신고",
+    "pt-BR": "Relatar um problema",
+    "zh-Hans": "报告问题"
+  },
+  "Restore dismissed suggestions": {
+    "de": "Ausgeblendete Vorschläge wiederherstellen",
+    "es": "Restaurar sugerencias descartadas",
+    "fr": "Restaurer les suggestions ignorées",
+    "it": "Ripristina suggerimenti ignorati",
+    "ja": "閉じた提案を元に戻す",
+    "ko": "닫은 제안 복원",
+    "pt-BR": "Restaurar sugestões dispensadas",
+    "zh-Hans": "恢复已忽略的建议"
+  },
+  "Running at %lld%% of base clock under load": {
+    "de": "Unter Last bei %lld%% des Basistakts",
+    "es": "Funciona al %lld%% del reloj base bajo carga",
+    "fr": "Tourne à %lld%% de la fréquence de base en charge",
+    "it": "Sotto carico gira al %lld%% del clock base",
+    "ja": "負荷時はベースクロックの %lld%% で動作中",
+    "ko": "부하 시 기본 클럭의 %lld%%로 동작 중",
+    "pt-BR": "Rodando a %lld%% do clock base sob carga",
+    "zh-Hans": "负载下以基准频率的 %lld%% 运行"
+  },
+  "Saved %@": {
+    "de": "Gespeichert: %@",
+    "es": "Guardado: %@",
+    "fr": "Enregistré : %@",
+    "it": "Salvato: %@",
+    "ja": "保存しました: %@",
+    "ko": "저장됨: %@",
+    "pt-BR": "Salvo: %@",
+    "zh-Hans": "已保存：%@"
+  },
+  "Server busy (rate-limited). Wait a moment, or pick an OpenSpeedTest LAN server in Settings.": {
+    "de": "Server ausgelastet (Ratenbegrenzung). Warte kurz oder wähle in den Einstellungen einen OpenSpeedTest-LAN-Server.",
+    "es": "Servidor ocupado (límite de solicitudes). Espera un momento o elige un servidor LAN de OpenSpeedTest en Ajustes.",
+    "fr": "Serveur occupé (limitation de débit). Patientez un instant ou choisissez un serveur LAN OpenSpeedTest dans Réglages.",
+    "it": "Server occupato (limite di richieste). Attendi un momento o scegli un server LAN OpenSpeedTest in Impostazioni.",
+    "ja": "サーバが混雑しています（レート制限）。しばらく待つか、設定で OpenSpeedTest の LAN サーバを選んでください。",
+    "ko": "서버가 바쁩니다(요청 제한). 잠시 기다리거나 설정에서 OpenSpeedTest LAN 서버를 선택하세요.",
+    "pt-BR": "Servidor ocupado (limite de requisições). Aguarde um pouco ou escolha um servidor LAN do OpenSpeedTest em Ajustes.",
+    "zh-Hans": "服务器繁忙（请求受限）。请稍候，或在“设置”中选择 OpenSpeedTest 局域网服务器。"
+  },
+  "Server rejected the request (403). Try an OpenSpeedTest LAN server in Settings.": {
+    "de": "Der Server hat die Anfrage abgelehnt (403). Probiere in den Einstellungen einen OpenSpeedTest-LAN-Server.",
+    "es": "El servidor rechazó la solicitud (403). Prueba un servidor LAN de OpenSpeedTest en Ajustes.",
+    "fr": "Le serveur a refusé la requête (403). Essayez un serveur LAN OpenSpeedTest dans Réglages.",
+    "it": "Il server ha rifiutato la richiesta (403). Prova un server LAN OpenSpeedTest in Impostazioni.",
+    "ja": "サーバがリクエストを拒否しました（403）。設定で OpenSpeedTest の LAN サーバを試してください。",
+    "ko": "서버가 요청을 거부했습니다(403). 설정에서 OpenSpeedTest LAN 서버를 사용해 보세요.",
+    "pt-BR": "O servidor recusou a requisição (403). Experimente um servidor LAN do OpenSpeedTest em Ajustes.",
+    "zh-Hans": "服务器拒绝了请求（403）。请在“设置”中尝试 OpenSpeedTest 局域网服务器。"
+  },
+  "Set your server's address in Settings.": {
+    "de": "Lege die Adresse deines Servers in den Einstellungen fest.",
+    "es": "Indica la dirección de tu servidor en Ajustes.",
+    "fr": "Définissez l'adresse de votre serveur dans Réglages.",
+    "it": "Imposta l'indirizzo del tuo server in Impostazioni.",
+    "ja": "設定でサーバのアドレスを指定してください。",
+    "ko": "설정에서 서버 주소를 지정하세요.",
+    "pt-BR": "Defina o endereço do seu servidor em Ajustes.",
+    "zh-Hans": "请在“设置”中填写服务器地址。"
+  },
+  "Sets the lid action to “Do nothing” while Keep Awake is on, and puts it back when it ends, when Blip quits, or at 10% battery.": {
+    "de": "Setzt die Deckelaktion auf „Nichts unternehmen“, solange „Wach halten“ aktiv ist, und stellt sie zurück, wenn es endet, Blip beendet wird oder bei 10 % Batterie.",
+    "es": "Cambia la acción de la tapa a «No hacer nada» mientras Mantener activo está encendido, y la restaura al terminar, al cerrar Blip o con un 10 % de batería.",
+    "fr": "Règle l'action du capot sur « Ne rien faire » tant que Garder éveillé est actif, puis la rétablit à la fin, quand Blip est quitté ou à 10 % de batterie.",
+    "it": "Imposta l'azione del coperchio su “Non fare nulla” finché Mantieni attivo è acceso e la ripristina al termine, alla chiusura di Blip o al 10% di batteria.",
+    "ja": "スリープ防止中はカバーを閉じたときの動作を「何もしない」に設定し、終了時、Blip の終了時、またはバッテリー残量10%で元に戻します。",
+    "ko": "깨어 있기가 켜져 있는 동안 덮개 동작을 “아무 것도 안 함”으로 설정하고, 끝나거나 Blip이 종료되거나 배터리가 10%가 되면 되돌립니다.",
+    "pt-BR": "Define a ação da tampa como “Não fazer nada” enquanto o Manter ativo estiver ligado e a restaura quando terminar, quando o Blip for encerrado ou com 10% de bateria.",
+    "zh-Hans": "保持唤醒开启期间将合盖操作设为“不采取任何操作”，并在其结束、Blip 退出或电量降到 10% 时恢复。"
+  },
+  "Shared memory": {
+    "de": "Gemeinsamer Speicher",
+    "es": "Memoria compartida",
+    "fr": "Mémoire partagée",
+    "it": "Memoria condivisa",
+    "ja": "共有メモリ",
+    "ko": "공유 메모리",
+    "pt-BR": "Memória compartilhada",
+    "zh-Hans": "共享内存"
+  },
+  "Show suggestions": {
+    "de": "Vorschläge anzeigen",
+    "es": "Mostrar sugerencias",
+    "fr": "Afficher les suggestions",
+    "it": "Mostra suggerimenti",
+    "ja": "提案を表示",
+    "ko": "제안 표시",
+    "pt-BR": "Mostrar sugestões",
+    "zh-Hans": "显示建议"
+  },
+  "Size": {
+    "de": "Größe",
+    "es": "Tamaño",
+    "fr": "Taille",
+    "it": "Dimensione",
+    "ja": "サイズ",
+    "ko": "크기",
+    "pt-BR": "Tamanho",
+    "zh-Hans": "大小"
+  },
+  "Source code": {
+    "de": "Quellcode",
+    "es": "Código fuente",
+    "fr": "Code source",
+    "it": "Codice sorgente",
+    "ja": "ソースコード",
+    "ko": "소스 코드",
+    "pt-BR": "Código-fonte",
+    "zh-Hans": "源代码"
+  },
+  "Starting…": {
+    "de": "Wird gestartet…",
+    "es": "Iniciando…",
+    "fr": "Démarrage…",
+    "it": "Avvio…",
+    "ja": "開始中…",
+    "ko": "시작 중…",
+    "pt-BR": "Iniciando…",
+    "zh-Hans": "正在启动…"
+  },
+  "Stops this PC from going to sleep, for a while or until you turn it off.": {
+    "de": "Verhindert, dass dieser PC in den Energiesparmodus wechselt – für eine Weile oder bis du es ausschaltest.",
+    "es": "Evita que este PC entre en suspensión, durante un rato o hasta que lo desactives.",
+    "fr": "Empêche ce PC de se mettre en veille, pour un moment ou jusqu'à ce que vous le désactiviez.",
+    "it": "Impedisce a questo PC di andare in sospensione, per un po' o finché non lo disattivi.",
+    "ja": "この PC がスリープしないようにします。一定時間、またはオフにするまで。",
+    "ko": "이 PC가 절전 모드로 전환되지 않게 합니다. 일정 시간 동안 또는 끌 때까지.",
+    "pt-BR": "Impede que este PC entre em suspensão, por um tempo ou até você desativar.",
+    "zh-Hans": "阻止这台电脑进入睡眠，持续一段时间或直到你关闭。"
+  },
+  "Style": {
+    "de": "Stil",
+    "es": "Estilo",
+    "fr": "Style",
+    "it": "Stile",
+    "ja": "スタイル",
+    "ko": "스타일",
+    "pt-BR": "Estilo",
+    "zh-Hans": "样式"
+  },
+  "Support Future Development": {
+    "de": "Weiterentwicklung unterstützen",
+    "es": "Apoya el desarrollo futuro",
+    "fr": "Soutenir le développement futur",
+    "it": "Sostieni lo sviluppo futuro",
+    "ja": "今後の開発を支援",
+    "ko": "향후 개발 후원하기",
+    "pt-BR": "Apoie o desenvolvimento futuro",
+    "zh-Hans": "支持后续开发"
+  },
+  "Sustained": {
+    "de": "Dauerlast",
+    "es": "Sostenido",
+    "fr": "Soutenu",
+    "it": "Prolungato",
+    "ja": "持続負荷",
+    "ko": "지속 부하",
+    "pt-BR": "Sustentado",
+    "zh-Hans": "持续负载"
+  },
+  "System drive": {
+    "de": "Systemlaufwerk",
+    "es": "Unidad del sistema",
+    "fr": "Lecteur système",
+    "it": "Unità di sistema",
+    "ja": "システムドライブ",
+    "ko": "시스템 드라이브",
+    "pt-BR": "Unidade do sistema",
+    "zh-Hans": "系统驱动器"
+  },
+  "Takes about 90 seconds and runs every core flat out.": {
+    "de": "Dauert etwa 90 Sekunden und lastet alle Kerne voll aus.",
+    "es": "Tarda unos 90 segundos y lleva todos los núcleos al máximo.",
+    "fr": "Dure environ 90 secondes et pousse tous les cœurs à fond.",
+    "it": "Richiede circa 90 secondi e porta tutti i core al massimo.",
+    "ja": "約90秒かかり、すべてのコアをフル稼働させます。",
+    "ko": "약 90초가 걸리며 모든 코어를 최대로 가동합니다.",
+    "pt-BR": "Leva cerca de 90 segundos e usa todos os núcleos no máximo.",
+    "zh-Hans": "约需 90 秒，所有核心将满负荷运行。"
+  },
+  "Target": {
+    "de": "Ziel",
+    "es": "Destino",
+    "fr": "Cible",
+    "it": "Destinazione",
+    "ja": "対象",
+    "ko": "대상",
+    "pt-BR": "Destino",
+    "zh-Hans": "目标"
+  },
+  "Test automatically": {
+    "de": "Automatisch testen",
+    "es": "Probar automáticamente",
+    "fr": "Tester automatiquement",
+    "it": "Testa automaticamente",
+    "ja": "自動的にテスト",
+    "ko": "자동으로 테스트",
+    "pt-BR": "Testar automaticamente",
+    "zh-Hans": "自动测试"
+  },
+  "Test failed": {
+    "de": "Test fehlgeschlagen",
+    "es": "La prueba falló",
+    "fr": "Échec du test",
+    "it": "Test non riuscito",
+    "ja": "テストに失敗しました",
+    "ko": "테스트 실패",
+    "pt-BR": "Falha no teste",
+    "zh-Hans": "测试失败"
+  },
+  "Test location": {
+    "de": "Testort",
+    "es": "Ubicación de la prueba",
+    "fr": "Emplacement du test",
+    "it": "Posizione del test",
+    "ja": "テストの場所",
+    "ko": "테스트 위치",
+    "pt-BR": "Local do teste",
+    "zh-Hans": "测试位置"
+  },
+  "Test size": {
+    "de": "Testgröße",
+    "es": "Tamaño de la prueba",
+    "fr": "Taille du test",
+    "it": "Dimensione test",
+    "ja": "テストサイズ",
+    "ko": "테스트 크기",
+    "pt-BR": "Tamanho do teste",
+    "zh-Hans": "测试大小"
+  },
+  "The CPU is slowing itself down under load — heat or power limits.": {
+    "de": "Die CPU drosselt sich unter Last – wegen Hitze- oder Leistungsgrenzen.",
+    "es": "La CPU se ralentiza bajo carga por límites de temperatura o de energía.",
+    "fr": "Le CPU ralentit sous charge — limites thermiques ou d'alimentation.",
+    "it": "La CPU rallenta sotto carico — limiti termici o di alimentazione.",
+    "ja": "負荷時に CPU が自ら速度を落としています — 熱または電力の制限です。",
+    "ko": "부하 시 CPU가 스스로 속도를 낮추고 있습니다 — 발열 또는 전력 제한.",
+    "pt-BR": "A CPU está reduzindo a velocidade sob carga — limites térmicos ou de energia.",
+    "zh-Hans": "CPU 在负载下自行降速 — 受温度或功耗限制。"
+  },
+  "The map needs the free offline GeoIP database (about 130 MB).": {
+    "de": "Die Karte benötigt die kostenlose Offline-GeoIP-Datenbank (ca. 130 MB).",
+    "es": "El mapa necesita la base de datos GeoIP gratuita sin conexión (unos 130 MB).",
+    "fr": "La carte nécessite la base GeoIP hors ligne gratuite (environ 130 Mo).",
+    "it": "La mappa richiede il database GeoIP offline gratuito (circa 130 MB).",
+    "ja": "マップには無料のオフライン GeoIP データベース（約 130 MB）が必要です。",
+    "ko": "지도에는 무료 오프라인 GeoIP 데이터베이스(약 130 MB)가 필요합니다.",
+    "pt-BR": "O mapa precisa do banco de dados GeoIP offline gratuito (cerca de 130 MB).",
+    "zh-Hans": "地图需要免费的离线 GeoIP 数据库（约 130 MB）。"
+  },
+  "The public test needs WebView2 (Windows). Use a self-hosted server here.": {
+    "de": "Der öffentliche Test benötigt WebView2 (Windows). Nutze hier einen selbst gehosteten Server.",
+    "es": "La prueba pública necesita WebView2 (Windows). Usa aquí un servidor autoalojado.",
+    "fr": "Le test public nécessite WebView2 (Windows). Utilisez ici un serveur auto-hébergé.",
+    "it": "Il test pubblico richiede WebView2 (Windows). Qui usa un server personale.",
+    "ja": "パブリックテストには WebView2（Windows）が必要です。ここではセルフホストサーバを使用してください。",
+    "ko": "공개 테스트에는 WebView2(Windows)가 필요합니다. 여기서는 직접 호스팅 서버를 사용하세요.",
+    "pt-BR": "O teste público precisa do WebView2 (Windows). Use um servidor auto-hospedado aqui.",
+    "zh-Hans": "公共测试需要 WebView2（Windows）。此处请使用自建服务器。"
+  },
+  "The public test runs on OpenSpeedTest's donated servers, so it's manual-only. Self-host a server to test on a schedule.": {
+    "de": "Der öffentliche Test läuft auf gespendeten Servern von OpenSpeedTest und ist daher nur manuell möglich. Für geplante Tests betreibe einen eigenen Server.",
+    "es": "La prueba pública usa servidores donados a OpenSpeedTest, así que solo es manual. Aloja tu propio servidor para pruebas programadas.",
+    "fr": "Le test public tourne sur des serveurs offerts à OpenSpeedTest ; il est donc manuel uniquement. Hébergez votre propre serveur pour des tests planifiés.",
+    "it": "Il test pubblico gira su server donati a OpenSpeedTest, quindi è solo manuale. Ospita un server personale per i test programmati.",
+    "ja": "パブリックテストは OpenSpeedTest に寄贈されたサーバで動作するため、手動実行のみです。定期的にテストするにはサーバをセルフホストしてください。",
+    "ko": "공개 테스트는 OpenSpeedTest에 기부된 서버에서 실행되므로 수동으로만 가능합니다. 예약 테스트를 하려면 서버를 직접 호스팅하세요.",
+    "pt-BR": "O teste público roda em servidores doados ao OpenSpeedTest, por isso é só manual. Hospede seu próprio servidor para testar de forma agendada.",
+    "zh-Hans": "公共测试运行在捐赠给 OpenSpeedTest 的服务器上，因此仅支持手动运行。自建服务器即可定时测试。"
+  },
+  "Thermal zone": {
+    "de": "Thermische Zone",
+    "es": "Zona térmica",
+    "fr": "Zone thermique",
+    "it": "Zona termica",
+    "ja": "サーマルゾーン",
+    "ko": "열 영역",
+    "pt-BR": "Zona térmica",
+    "zh-Hans": "热区"
+  },
+  "This PC doesn't report temperatures to standard users.": {
+    "de": "Dieser PC meldet Standardbenutzern keine Temperaturen.",
+    "es": "Este PC no informa de temperaturas a usuarios estándar.",
+    "fr": "Ce PC ne communique pas les températures aux utilisateurs standard.",
+    "it": "Questo PC non comunica le temperature agli utenti standard.",
+    "ja": "この PC は標準ユーザーに温度を報告しません。",
+    "ko": "이 PC는 표준 사용자에게 온도를 제공하지 않습니다.",
+    "pt-BR": "Este PC não informa temperaturas a usuários padrão.",
+    "zh-Hans": "此电脑不向标准用户报告温度。"
+  },
+  "Time remaining": {
+    "de": "Restzeit",
+    "es": "Tiempo restante",
+    "fr": "Temps restant",
+    "it": "Tempo residuo",
+    "ja": "残り時間",
+    "ko": "남은 시간",
+    "pt-BR": "Tempo restante",
+    "zh-Hans": "剩余时间"
+  },
+  "Timed out": {
+    "de": "Zeitüberschreitung",
+    "es": "Tiempo agotado",
+    "fr": "Délai dépassé",
+    "it": "Tempo scaduto",
+    "ja": "タイムアウト",
+    "ko": "시간 초과",
+    "pt-BR": "Tempo esgotado",
+    "zh-Hans": "超时"
+  },
+  "Traceroute target": {
+    "de": "Traceroute-Ziel",
+    "es": "Destino del traceroute",
+    "fr": "Cible du traceroute",
+    "it": "Destinazione traceroute",
+    "ja": "Traceroute の対象",
+    "ko": "Traceroute 대상",
+    "pt-BR": "Destino do traceroute",
+    "zh-Hans": "路由跟踪目标"
+  },
+  "Try Again": {
+    "de": "Erneut versuchen",
+    "es": "Reintentar",
+    "fr": "Réessayer",
+    "it": "Riprova",
+    "ja": "再試行",
+    "ko": "다시 시도",
+    "pt-BR": "Tentar novamente",
+    "zh-Hans": "重试"
+  },
+  "Turn Off": {
+    "de": "Ausschalten",
+    "es": "Desactivar",
+    "fr": "Désactiver",
+    "it": "Disattiva",
+    "ja": "オフにする",
+    "ko": "끄기",
+    "pt-BR": "Desativar",
+    "zh-Hans": "关闭"
+  },
+  "Unsafe Shutdowns": {
+    "de": "Unsichere Abschaltungen",
+    "es": "Apagados forzados",
+    "fr": "Arrêts brutaux",
+    "it": "Spegnimenti forzati",
+    "ja": "異常シャットダウン",
+    "ko": "비정상 종료",
+    "pt-BR": "Desligamentos forçados",
+    "zh-Hans": "异常关机"
+  },
+  "Until off": {
+    "de": "Bis zum Ausschalten",
+    "es": "Hasta desactivarlo",
+    "fr": "Jusqu'à désactivation",
+    "it": "Fino allo spegnimento",
+    "ja": "オフにするまで",
+    "ko": "끌 때까지",
+    "pt-BR": "Até desativar",
+    "zh-Hans": "直到关闭"
+  },
+  "Until turned off": {
+    "de": "Bis zum Ausschalten",
+    "es": "Hasta desactivarlo",
+    "fr": "Jusqu'à désactivation",
+    "it": "Fino allo spegnimento",
+    "ja": "オフにするまで",
+    "ko": "끌 때까지",
+    "pt-BR": "Até desativar",
+    "zh-Hans": "直到关闭"
+  },
+  "Update Now": {
+    "de": "Jetzt aktualisieren",
+    "es": "Actualizar ahora",
+    "fr": "Mettre à jour",
+    "it": "Aggiorna ora",
+    "ja": "今すぐ更新",
+    "ko": "지금 업데이트",
+    "pt-BR": "Atualizar agora",
+    "zh-Hans": "立即更新"
+  },
+  "Update automatically each month": {
+    "de": "Monatlich automatisch aktualisieren",
+    "es": "Actualizar automáticamente cada mes",
+    "fr": "Mettre à jour automatiquement chaque mois",
+    "it": "Aggiorna automaticamente ogni mese",
+    "ja": "毎月自動的に更新",
+    "ko": "매월 자동 업데이트",
+    "pt-BR": "Atualizar automaticamente todo mês",
+    "zh-Hans": "每月自动更新"
+  },
+  "Update every": {
+    "de": "Aktualisieren alle",
+    "es": "Actualizar cada",
+    "fr": "Actualiser toutes les",
+    "it": "Aggiorna ogni",
+    "ja": "更新間隔",
+    "ko": "업데이트 간격",
+    "pt-BR": "Atualizar a cada",
+    "zh-Hans": "更新间隔"
+  },
+  "Use System Drive": {
+    "de": "Systemlaufwerk verwenden",
+    "es": "Usar unidad del sistema",
+    "fr": "Utiliser le lecteur système",
+    "it": "Usa unità di sistema",
+    "ja": "システムドライブを使用",
+    "ko": "시스템 드라이브 사용",
+    "pt-BR": "Usar unidade do sistema",
+    "zh-Hans": "使用系统驱动器"
+  },
+  "VPN address": {
+    "de": "VPN-Adresse",
+    "es": "Dirección VPN",
+    "fr": "Adresse VPN",
+    "it": "Indirizzo VPN",
+    "ja": "VPN アドレス",
+    "ko": "VPN 주소",
+    "pt-BR": "Endereço VPN",
+    "zh-Hans": "VPN 地址"
+  },
+  "VPN: %@": {
+    "de": "VPN: %@",
+    "es": "VPN: %@",
+    "fr": "VPN : %@",
+    "it": "VPN: %@",
+    "ja": "VPN: %@",
+    "ko": "VPN: %@",
+    "pt-BR": "VPN: %@",
+    "zh-Hans": "VPN：%@"
+  },
+  "Verified": {
+    "de": "Geprüft",
+    "es": "Verificado",
+    "fr": "Vérifié",
+    "it": "Verificato",
+    "ja": "確認済み",
+    "ko": "확인됨",
+    "pt-BR": "Verificado",
+    "zh-Hans": "已验证"
+  },
+  "Wi-Fi": {
+    "de": "WLAN",
+    "es": "Wi-Fi",
+    "fr": "Wi-Fi",
+    "it": "Wi-Fi",
+    "ja": "Wi-Fi",
+    "ko": "Wi-Fi",
+    "pt-BR": "Wi-Fi",
+    "zh-Hans": "WLAN"
+  },
+  "Windows keeps CPU sensors and fan speeds behind kernel drivers; Blip shows what it can read without admin rights.": {
+    "de": "Windows schützt CPU-Sensoren und Lüfterdrehzahlen hinter Kerneltreibern; Blip zeigt, was ohne Administratorrechte lesbar ist.",
+    "es": "Windows protege los sensores de la CPU y la velocidad de los ventiladores tras controladores del kernel; Blip muestra lo que puede leer sin derechos de administrador.",
+    "fr": "Windows réserve les capteurs CPU et la vitesse des ventilateurs aux pilotes noyau ; Blip affiche ce qu'il peut lire sans droits d'administrateur.",
+    "it": "Windows tiene sensori CPU e velocità delle ventole dietro driver del kernel; Blip mostra ciò che può leggere senza diritti di amministratore.",
+    "ja": "Windows では CPU センサーとファン速度はカーネルドライバー経由でしか取得できません。Blip は管理者権限なしで読み取れる情報を表示します。",
+    "ko": "Windows는 CPU 센서와 팬 속도를 커널 드라이버 뒤에 두고 있습니다. Blip은 관리자 권한 없이 읽을 수 있는 정보를 표시합니다.",
+    "pt-BR": "O Windows deixa sensores da CPU e velocidade das ventoinhas atrás de drivers de kernel; o Blip mostra o que consegue ler sem direitos de administrador.",
+    "zh-Hans": "Windows 将 CPU 传感器和风扇转速置于内核驱动之后；Blip 显示无需管理员权限即可读取的内容。"
+  },
+  "Windows may tuck new icons into the overflow (^). Drag Blip onto the taskbar to keep it visible.": {
+    "de": "Windows blendet neue Symbole evtl. im Überlaufbereich (^) aus. Zieh Blip auf die Taskleiste, damit es sichtbar bleibt.",
+    "es": "Windows puede ocultar los iconos nuevos en el área de desbordamiento (^). Arrastra Blip a la barra de tareas para mantenerlo visible.",
+    "fr": "Windows peut ranger les nouvelles icônes dans le menu de dépassement (^). Faites glisser Blip sur la barre des tâches pour le garder visible.",
+    "it": "Windows potrebbe nascondere le nuove icone nel menu di overflow (^). Trascina Blip sulla barra delle applicazioni per tenerlo visibile.",
+    "ja": "Windows は新しいアイコンをオーバーフロー（^）に隠すことがあります。Blip をタスクバーにドラッグすると常に表示されます。",
+    "ko": "Windows는 새 아이콘을 오버플로(^)에 숨길 수 있습니다. Blip을 작업 표시줄로 드래그하면 계속 표시됩니다.",
+    "pt-BR": "O Windows pode esconder novos ícones no menu de excesso (^). Arraste o Blip para a barra de tarefas para mantê-lo visível.",
+    "zh-Hans": "Windows 可能会将新图标收进溢出区（^）。将 Blip 拖到任务栏上即可保持可见。"
+  },
+  "Writing…": {
+    "de": "Schreiben…",
+    "es": "Escribiendo…",
+    "fr": "Écriture…",
+    "it": "Scrittura…",
+    "ja": "書き込み中…",
+    "ko": "쓰는 중…",
+    "pt-BR": "Gravando…",
+    "zh-Hans": "正在写入…"
+  },
+  "Written (lifetime)": {
+    "de": "Geschrieben (gesamt)",
+    "es": "Escrito (total)",
+    "fr": "Écrit (total)",
+    "it": "Scritti (totale)",
+    "ja": "累計書き込み",
+    "ko": "총 쓰기",
+    "pt-BR": "Gravado (total)",
+    "zh-Hans": "写入总量"
+  },
+  "Your PC is running hot (%@)": {
+    "de": "Dein PC läuft heiß (%@)",
+    "es": "Tu PC se está calentando (%@)",
+    "fr": "Votre PC chauffe (%@)",
+    "it": "Il PC si sta scaldando (%@)",
+    "ja": "PC が高温になっています（%@）",
+    "ko": "PC가 뜨거워지고 있습니다(%@)",
+    "pt-BR": "Seu PC está esquentando (%@)",
+    "zh-Hans": "你的电脑温度偏高（%@）"
+  },
+  "just now": {
+    "de": "gerade eben",
+    "es": "ahora mismo",
+    "fr": "à l'instant",
+    "it": "adesso",
+    "ja": "たった今",
+    "ko": "방금",
+    "pt-BR": "agora mesmo",
+    "zh-Hans": "刚刚"
+  }
+}

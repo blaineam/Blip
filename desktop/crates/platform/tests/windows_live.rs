@@ -154,8 +154,14 @@ fn launch_at_login_round_trip() {
 
 #[test]
 fn gpu_bench_leg_runs_or_drops_out() {
-    // Runners have no GPU: D3D11 hardware creation fails and the leg must drop out cleanly.
+    // Runners have no GPU, only Microsoft's software adapter: the leg must drop out, fast.
+    let start = std::time::Instant::now();
     let r = blip_platform::gpu_compute().and_then(|g| g.matmul(0.5, &|| false));
+    assert!(
+        start.elapsed() < Duration::from_secs(15),
+        "GPU leg took {:?}",
+        start.elapsed()
+    );
     println!("gpu.matmul = {r:?}");
     if let Some(r) = r {
         assert!(r.value > 0.0);
