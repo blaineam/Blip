@@ -99,6 +99,10 @@ jobs:
 
       - name: Install / uninstall round trip (standard user)
         shell: pwsh
+        env:
+          # Without a GPU the installed copy can't open its window; don't let the error box
+          # keep that process alive through the uninstall.
+          BLIP_NO_DIALOG: '1'
         run: |
           $exe = "target/${{ matrix.target }}/release/Blip.exe"
           (Start-Process -PassThru $exe -ArgumentList '--install').WaitForExit()  # not -Wait: that also waits for the Blip it launches
