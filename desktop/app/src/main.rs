@@ -47,8 +47,37 @@ fn main() {
         }
     }
 
-    if let Err(e) = blip_app::app::run(!background && has("--show")) {
-        eprintln!("Blip couldn't start: {e}");
-        std::process::exit(1);
+    blip_core::log(&format!(
+        "Blip {} starting ({} {}, args {args:?})",
+        blip_app::VERSION,
+        std::env::consts::OS,
+        std::env::consts::ARCH
+    ));
+    // The release build aborts on panic and has no console: say what happened before dying.
+    std::panic::set_hook(Box::new(|info| {
+        let text = info.to_string();
+        blip_core::log(&format!("crash: {text}"));
+        fatal(&text);
+    }));
+    match blip_app::app::run(!background && has("--show")) {
+        Ok(()) => blip_core::log("quit"),
+        Err(e) => {
+            blip_core::log(&format!("couldn't start: {e}"));
+            fatal(&e.to_string());
+            std::process::exit(1);
+        }
+    }
+}
+
+/// Tells the user why Blip is closing. `BLIP_NO_DIALOG` skips the box (CI, scripts).
+fn fatal(reason: &str) {
+    let message = format!(
+        "Blip couldn't run:\n\n{reason}\n\nDetails are in {}",
+        blip_core::paths::log_file().display()
+    );
+    eprintln!("{message}");
+    #[cfg(windows)]
+    if std::env::var_os("BLIP_NO_DIALOG").is_none() {
+        blip_app::install::error_box(&message);
     }
 }

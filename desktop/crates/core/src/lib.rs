@@ -8,6 +8,7 @@ pub mod geoip;
 pub mod grades;
 pub mod history;
 pub mod i18n;
+pub mod log;
 pub mod metrics;
 pub mod model;
 pub mod paths;
@@ -18,6 +19,7 @@ mod strings;
 pub mod trace;
 
 pub use i18n::{t, tf};
+pub use log::log;
 
 /// Semantic icons; the UI maps them to the platform's symbol font (Segoe Fluent Icons on
 /// Windows), the way the Mac maps them to SF Symbols.

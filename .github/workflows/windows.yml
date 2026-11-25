@@ -81,6 +81,20 @@ jobs:
           $exe disktest --size 128
           ls -l target/${{ matrix.target }}/release/*.exe
 
+      # Evidence, not a gate: hosted runners have no GPU, so the window may legitimately fail
+      # there. The log says how far startup got and why it stopped.
+      - name: Launch the tray app and print its log
+        shell: pwsh
+        env:
+          BLIP_DATA_DIR: ${{ runner.temp }}\blip-launch
+          BLIP_NO_DIALOG: '1'
+        run: |
+          $p = Start-Process -PassThru "target/${{ matrix.target }}/release/Blip.exe" -ArgumentList '--portable','--show' -RedirectStandardError "$env:RUNNER_TEMP\blip-stderr.txt"
+          Start-Sleep 15
+          if ($p.HasExited) { "Blip EXITED with code $($p.ExitCode)" } else { "Blip is still running after 15 s"; Stop-Process -Id $p.Id -Force }
+          "--- blip.log"; Get-Content "$env:BLIP_DATA_DIR\blip.log" -ErrorAction SilentlyContinue
+          "--- stderr"; Get-Content "$env:RUNNER_TEMP\blip-stderr.txt" -ErrorAction SilentlyContinue
+
       - name: Install / uninstall round trip (standard user)
         shell: pwsh
         run: |

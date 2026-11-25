@@ -65,6 +65,8 @@ pub struct BlipApp {
     /// No tray on this desktop (Linux without a StatusNotifierItem host): Blip lives in an
     /// ordinary window that stays open and can be dragged; Quit closes it.
     no_tray: bool,
+    /// Logic passes so far (capped): see the startup re-hide in `logic`.
+    startup_passes: u8,
 }
 
 impl BlipApp {
@@ -121,7 +123,7 @@ impl BlipApp {
                     } else {
                         None
                     };
-                    let _ = button;
+                    blip_core::log(&format!("tray click {button:?}: icon {rect:?} at {position:?}"));
                     let _ = tx.send(UiEvent::TrayClick(r));
                     ctx.request_repaint();
                 }
@@ -174,6 +176,7 @@ impl BlipApp {
             pending_show: start_visible || no_tray,
             had_focus: false,
             no_tray,
+            startup_passes: 0,
         }
     }
 
@@ -202,6 +205,13 @@ impl BlipApp {
         self.shown_at = Instant::now();
         self.hover = None;
         self.place(ctx);
+        blip_core::log(&format!(
+            "popover shown at {:?} (icon {:?}, work area {:?}, scale {})",
+            self.pos,
+            self.anchor,
+            self.work,
+            ctx.pixels_per_point()
+        ));
         ctx.send_viewport_cmd(ViewportCommand::Visible(true));
         ctx.send_viewport_cmd(ViewportCommand::Focus);
         ctx.request_repaint();
@@ -390,6 +400,19 @@ impl eframe::App for BlipApp {
     }
 
     fn logic(&mut self, ctx: &egui::Context, _frame: &mut eframe::Frame) {
+        // eframe forces the window visible after its first painted frame, whatever we asked for.
+        // While the popover is closed, hide it again: otherwise a start in the tray leaves an
+        // empty, transparent, always-on-top window swallowing clicks.
+        if self.startup_passes < 5 {
+            if self.startup_passes == 0 {
+                blip_core::log("first frame");
+            }
+            self.startup_passes += 1;
+            if !self.visible && !self.pending_show {
+                ctx.send_viewport_cmd(ViewportCommand::Visible(false));
+            }
+            ctx.request_repaint_after(Duration::from_millis(100));
+        }
         if self.tray.is_none() && !self.no_tray {
             self.tray = Some(Tray::new());
         }
@@ -638,8 +661,26 @@ impl eframe::App for BlipApp {
     }
 }
 
+/// "OpenGL 4.6 · NVIDIA GeForce …" for the log.
+fn gl_description(cc: &eframe::CreationContext) -> String {
+    use eframe::glow::HasContext as _;
+    let Some(gl) = &cc.gl else {
+        return "no OpenGL context".into();
+    };
+    // SAFETY: string queries on the current context.
+    unsafe {
+        format!(
+            "OpenGL {} · {}",
+            gl.get_parameter_string(eframe::glow::VERSION),
+            gl.get_parameter_string(eframe::glow::RENDERER)
+        )
+    }
+}
+
 pub fn run(start_visible: bool) -> eframe::Result<()> {
+    blip_core::log("loading settings and metric sources");
     let app = Shared::new();
+    blip_core::log("sources ready");
     let (tx, rx) = channel();
     {
         let tx = tx.clone();
@@ -649,6 +690,7 @@ pub fn run(start_visible: bool) -> eframe::Result<()> {
             },
             || crate::QUIT_REQUESTED.store(true, std::sync::atomic::Ordering::Relaxed),
         ) {
+            blip_core::log("another Blip is already running; asked it to show itself");
             return Ok(());
         }
     }
@@ -683,9 +725,16 @@ pub fn run(start_visible: bool) -> eframe::Result<()> {
         }));
     }
     let show_now = start_visible || first_run;
+    blip_core::log(&format!(
+        "opening window (tray host: {}, show: {show_now})",
+        !no_tray
+    ));
     eframe::run_native(
         "Blip",
         options,
-        Box::new(move |cc| Ok(Box::new(BlipApp::new(cc, app, tx, rx, show_now, no_tray)))),
+        Box::new(move |cc| {
+            blip_core::log(&format!("graphics ready: {}", gl_description(cc)));
+            Ok(Box::new(BlipApp::new(cc, app, tx, rx, show_now, no_tray)))
+        }),
     )
 }

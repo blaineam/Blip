@@ -264,6 +264,10 @@ fn message(title: &str, text: &str, style: MESSAGEBOX_STYLE) -> bool {
     unsafe { MessageBoxW(None, &HSTRING::from(text), &HSTRING::from(title), style) == IDYES }
 }
 
+pub fn error_box(text: &str) {
+    message("Blip", text, MB_OK | MB_ICONERROR);
+}
+
 /// Asks a running Blip to quit and waits until it has (it releases Keep Awake on the way out).
 pub fn close_running() {
     crate::winsys::close_running();

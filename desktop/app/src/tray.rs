@@ -330,9 +330,13 @@ impl Tray {
                             .with_menu(Box::new(self.menu.clone()))
                             .with_menu_on_left_click(false);
                     }
-                    if let Ok(t) = b.build() {
-                        self.icons.push((id.clone(), t));
-                        self.last.push((id, px));
+                    match b.build() {
+                        Ok(t) => {
+                            blip_core::log(&format!("tray icon '{id}' created"));
+                            self.icons.push((id.clone(), t));
+                            self.last.push((id, px));
+                        }
+                        Err(e) => blip_core::log(&format!("tray icon '{id}' failed: {e}")),
                     }
                 }
             }
