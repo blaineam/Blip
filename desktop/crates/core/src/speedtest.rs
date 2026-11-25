@@ -277,7 +277,7 @@ impl SpeedTester {
         } else {
             Vec::new()
         });
-        let agent: ureq::Agent = ureq::Agent::config_builder()
+        let agent: ureq::Agent = crate::http_agent()
             .timeout_connect(Some(Duration::from_secs(5)))
             .timeout_global(Some(Duration::from_secs(30)))
             .build()

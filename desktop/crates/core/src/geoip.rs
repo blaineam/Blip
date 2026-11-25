@@ -211,7 +211,7 @@ fn current_year_month() -> (i32, u32) {
 }
 
 fn agent() -> ureq::Agent {
-    ureq::Agent::config_builder()
+    crate::http_agent()
         .timeout_global(Some(std::time::Duration::from_secs(300)))
         .user_agent("Blip (desktop)")
         .build()

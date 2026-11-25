@@ -356,19 +356,21 @@ impl BlipApp {
             focused = ui.ctx().input(|i| i.viewport().focused.unwrap_or(false));
             ui.ctx()
                 .send_viewport_cmd(ViewportCommand::OuterPosition(Pos2::new(x, y)));
-            let frame = card_frame(ui);
-            let r = frame.show(ui, |ui| {
-                egui::ScrollArea::vertical()
-                    .max_height(max_h - 24.0)
-                    .auto_shrink([false, true])
-                    .show(ui, |ui| {
-                        actions = self.panel_ctx_run(ui, sec, panels::WIDTH, false);
-                    });
+            let hgt = crate::fit::height_for_content(ui, w, max_h, |ui| {
+                card_frame(ui).show(ui, |ui| {
+                    egui::ScrollArea::vertical()
+                        .max_height(max_h - 24.0)
+                        .auto_shrink([false, true])
+                        .show(ui, |ui| {
+                            actions = self.panel_ctx_run(ui, sec, panels::WIDTH, false);
+                        });
+                });
             });
-            let hgt = r.response.rect.height();
             measured = Vec2::new(w, hgt.min(max_h));
             if (hgt.min(max_h) - h).abs() > 1.0 {
                 ui.ctx().send_viewport_cmd(ViewportCommand::InnerSize(measured));
+                // Another pass so the position follows the new height.
+                ui.ctx().request_repaint();
             }
         });
         self.panel_size = measured;
@@ -496,28 +498,31 @@ impl eframe::App for BlipApp {
             let frame = card_frame(ui).inner_margin(egui::Margin::symmetric(0, 6));
             let mut out = popover::Outcome::default();
             let max_h = self.work_points(&ctx).height() - 16.0;
-            let r = frame.show(ui, |ui| {
-                ui.set_width(width);
-                egui::ScrollArea::vertical()
-                    .max_height(max_h)
-                    .auto_shrink([false, true])
-                    .show(ui, |ui| {
-                        let app = self.app.clone();
-                        let active = if inline { self.expanded } else { self.hover };
-                        out = popover::show(ui, &app, &snap, &settings, active, &mut |ui, sec| {
-                            let a = self.panel_ctx_run(ui, sec, width - 20.0, false);
-                            self.handle_actions(a);
+            let outer = width + frame.total_margin().sum().x;
+            let height = crate::fit::height_for_content(ui, outer, max_h + 12.0, |ui| {
+                frame.show(ui, |ui| {
+                    ui.set_width(width);
+                    egui::ScrollArea::vertical()
+                        .max_height(max_h)
+                        .auto_shrink([false, true])
+                        .show(ui, |ui| {
+                            let app = self.app.clone();
+                            let active = if inline { self.expanded } else { self.hover };
+                            out = popover::show(ui, &app, &snap, &settings, active, &mut |ui, sec| {
+                                let a = self.panel_ctx_run(ui, sec, width - 20.0, false);
+                                self.handle_actions(a);
+                            });
                         });
-                    });
-                if let Some((msg, at)) = &self.toast {
-                    if at.elapsed() < Duration::from_secs(4) {
-                        ui.add_space(2.0);
-                        ui.label(egui::RichText::new(msg).size(10.5).color(theme::ORANGE));
-                        ctx.request_repaint_after(Duration::from_millis(500));
+                    if let Some((msg, at)) = &self.toast {
+                        if at.elapsed() < Duration::from_secs(4) {
+                            ui.add_space(2.0);
+                            ui.label(egui::RichText::new(msg).size(10.5).color(theme::ORANGE));
+                            ctx.request_repaint_after(Duration::from_millis(500));
+                        }
                     }
-                }
+                });
             });
-            let new_size = Vec2::new(width, r.response.rect.height());
+            let new_size = Vec2::new(width, height);
             if (new_size - self.size).length() > 0.5 {
                 self.size = new_size;
                 ctx.send_viewport_cmd(ViewportCommand::InnerSize(new_size));

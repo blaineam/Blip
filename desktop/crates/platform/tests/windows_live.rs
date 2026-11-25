@@ -176,3 +176,30 @@ fn uncached_disk_test_on_the_system_drive() {
     println!("disk test {r:?}");
     assert!(r.write_mbps > 0.0 && r.read_mbps > 0.0);
 }
+
+/// The map download exactly as the Network panel runs it: https, gunzip, open, look up.
+#[test]
+fn geoip_database_downloads_and_answers() {
+    use blip_core::geoip::{GeoDb, GeoStatus};
+    let dir = std::env::temp_dir().join(format!("blip-geo-{}", std::process::id()));
+    std::env::set_var("BLIP_DATA_DIR", &dir);
+    let db = GeoDb::new();
+    db.download(None);
+    let start = std::time::Instant::now();
+    loop {
+        match db.status() {
+            GeoStatus::Ready { kind, .. } => {
+                println!("database ready: {kind} in {:?}", start.elapsed());
+                break;
+            }
+            GeoStatus::Failed(e) => panic!("download failed: {e}"),
+            _ => assert!(start.elapsed().as_secs() < 600, "download timed out"),
+        }
+        std::thread::sleep(Duration::from_millis(500));
+    }
+    let point = db.lookup("8.8.8.8").expect("lookup");
+    println!("8.8.8.8 → {point:?}");
+    println!("public address lookup ok: {}", blip_core::wan_ip().is_some());
+    db.remove();
+    let _ = std::fs::remove_dir_all(dir);
+}

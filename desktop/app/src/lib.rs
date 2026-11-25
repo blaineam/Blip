@@ -14,6 +14,7 @@ pub static QUIT_REQUESTED: std::sync::atomic::AtomicBool = std::sync::atomic::At
 pub mod app;
 pub mod cli;
 pub mod demo;
+mod fit;
 #[cfg(windows)]
 pub mod install;
 mod panels;

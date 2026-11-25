@@ -20,6 +20,8 @@
 ## Blip for Windows (preview)
 
 ### Fixed — Windows
+- **HTTPS no longer crashes Blip.** In preview.2, downloading the traceroute map crashed the app, and so would any other https request: the public IP, the map update check, and https speed-test servers. Windows' own TLS was compiled in but never selected. Every HTTP client now selects it, and CI makes real https requests and downloads the map database on x64 and ARM64.
+- **Detail panels use the screen's height.** The fly-out panels (and the popover) were stuck near their starting height and scrolled, because they measured themselves inside their own window. They now grow to fit their content, up to the height of the screen's work area.
 - **Blip.exe now starts.** In `windows-v2.1.0-preview.1` it crashed while creating its window, before the tray icon appeared, with no message: loading the metric sources had put the main thread in COM's multithreaded mode, and the window library needs the single-threaded one (`OleInitialize failed: RPC_E_CHANGED_MODE`). The UI thread now claims its mode first. CI had only tested the data sources and the command line; it now launches the app and fails on a crash.
 - **Starting in the tray no longer leaves an invisible window** on top of other apps.
 - **Startup problems are visible:** `blip.log` in the data folder records each startup step, the graphics driver, tray icon errors, tray clicks and crashes, and a fatal error shows a message box.
