@@ -1,3 +1,7 @@
+> **Fixed since preview.1:** preview.1 crashed at startup, before the tray icon appeared, with no message. This build fixes that crash. It hasn't been run on a PC with a graphics card yet, so the tray icon and popover are what to check first.
+>
+> **If anything goes wrong,** send `%APPDATA%\Blip\blip.log`. It records each startup step, your graphics driver, tray clicks and any crash, and a fatal error now shows a message box. Blip needs OpenGL 2.0 or newer.
+
 **Preview build of Blip for Windows 10 and 11.** No administrator rights, ever. Unzip and run `Blip.exe`. It offers to **install itself for your user**: it's copied to `%LOCALAPPDATA%\Programs\Blip`, added to the Start menu and to Settings › Apps (uninstall it there like any app), started at login, and `blip-cli` is put on your PATH. Choose **No** to keep running it portably from wherever you unzipped it; Settings › General offers *Install Blip…* later. Running a newer download offers to update the installed copy. It sits in the notification area (drag it out of the ^ overflow to keep it visible).
 
 For scripted installs: `Blip.exe --install` (silent), and `Blip.exe --uninstall --quiet`.
