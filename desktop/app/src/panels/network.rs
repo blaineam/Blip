@@ -356,20 +356,8 @@ fn speed_test(ui: &mut egui::Ui, c: &mut Ctx) {
         ui.horizontal_wrapped(|ui| {
             ui.spacing_mut().item_spacing = Vec2::new(4.0, 3.0);
             for g in &grades {
-                let col = grade_color(g.grade);
-                egui::Frame::new()
-                    .fill(col.gamma_multiply(0.18))
-                    .corner_radius(4.0)
-                    .inner_margin(egui::Margin::symmetric(5, 1))
-                    .show(ui, |ui| {
-                        ui.label(
-                            RichText::new(format!("{} {}", g.grade.letter(), g.name))
-                                .size(10.0)
-                                .color(col),
-                        );
-                    })
-                    .response
-                    .on_hover_text(g.grade.word());
+                let text = format!("{} {}", g.grade.letter(), g.name);
+                widgets::badge(ui, &text, grade_color(g.grade)).on_hover_text(g.grade.word());
             }
         });
         ui.label(

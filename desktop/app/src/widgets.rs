@@ -378,3 +378,71 @@ pub fn process_row(
     );
     action
 }
+
+/// A tinted capsule of one line of text. It's a single widget of known size, so in a wrapped row
+/// a badge that doesn't fit moves to the next line whole. (A `Frame` around a label can't: the
+/// row hands it the leftover width and the text wraps inside, one letter per line.)
+pub fn badge(ui: &mut egui::Ui, text: &str, color: egui::Color32) -> egui::Response {
+    let galley = ui
+        .painter()
+        .layout_no_wrap(text.to_string(), egui::FontId::proportional(10.0), color);
+    let pad = egui::vec2(5.0, 2.0);
+    let (rect, response) = ui.allocate_exact_size(galley.size() + pad * 2.0, egui::Sense::hover());
+    if ui.is_rect_visible(rect) {
+        ui.painter().rect_filled(rect, 4.0, color.gamma_multiply(0.18));
+        ui.painter().galley(rect.min + pad, galley, color);
+    }
+    response.widget_info(|| egui::WidgetInfo::labeled(egui::Role::Label, true, text));
+    response
+}
+
+#[cfg(test)]
+mod badge_tests {
+    use super::*;
+    use egui_kittest::Harness;
+    use std::sync::{Arc, Mutex};
+
+    /// The speed test's grades in a panel-width row, in the longest languages too.
+    #[test]
+    fn badges_wrap_whole() {
+        let names = [
+            "A Browsing",
+            "A HD streaming",
+            "A 4K streaming",
+            "A Video calls",
+            "A Cloud gaming",
+            "B Videoanrufe in Gruppen",
+        ];
+        let rects = Arc::new(Mutex::new(Vec::new()));
+        let seen = rects.clone();
+        let mut h = Harness::builder()
+            .with_size(egui::vec2(320.0, 600.0))
+            .build_ui(move |ui| {
+                let area = egui::Rect::from_min_size(ui.cursor().min, egui::vec2(280.0, 500.0));
+                ui.scope_builder(egui::UiBuilder::new().max_rect(area), |ui| {
+                    ui.horizontal_wrapped(|ui| {
+                        *seen.lock().unwrap() = names
+                            .iter()
+                            .map(|n| badge(ui, n, egui::Color32::GREEN).rect)
+                            .collect();
+                    });
+                });
+            });
+        h.run_steps(3);
+        let rects = rects.lock().unwrap().clone();
+        assert_eq!(rects.len(), names.len());
+        let line = rects[0].height();
+        let left = rects[0].left();
+        for (r, n) in rects.iter().zip(names) {
+            assert!(
+                line < 20.0 && (r.height() - line).abs() < 1.0,
+                "{n} is not one line: {r:?}"
+            );
+            assert!(r.right() <= left + 281.0, "{n} overflows the panel: {r:?}");
+        }
+        assert!(
+            rects.last().unwrap().top() > rects[0].top(),
+            "wraps to a second line"
+        );
+    }
+}

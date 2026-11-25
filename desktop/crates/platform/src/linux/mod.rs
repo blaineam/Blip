@@ -57,12 +57,10 @@ impl LinuxSampler {
 
     pub fn sample(&mut self, s: &mut Snapshot, dt: f64) {
         // Identity
-        if !self.model.0.is_empty() {
-            s.system.model = self.model.0.clone();
-        }
-        if !self.model.1.is_empty() {
-            s.system.manufacturer = self.model.1.clone();
-        }
+        // Always replace the portable layer's values: it passes firmware placeholders through.
+        // (An empty model makes the UI show the computer's name.)
+        s.system.model = self.model.0.clone();
+        s.system.manufacturer = self.model.1.clone();
         if s.cpu.model.is_empty() || s.cpu.model.chars().all(|c| c.is_ascii_digit()) {
             if let Some(m) = &self.cpu_model {
                 s.cpu.model = m.clone();

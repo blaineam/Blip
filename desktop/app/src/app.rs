@@ -354,8 +354,6 @@ impl BlipApp {
         ctx.show_viewport_immediate(ViewportId::from_hash_of("blip-detail"), builder, |ui, _| {
             hovered = ui.ctx().input(|i| i.pointer.has_pointer());
             focused = ui.ctx().input(|i| i.viewport().focused.unwrap_or(false));
-            ui.ctx()
-                .send_viewport_cmd(ViewportCommand::OuterPosition(Pos2::new(x, y)));
             let hgt = crate::fit::height_for_content(ui, w, max_h, |ui| {
                 card_frame(ui).show(ui, |ui| {
                     egui::ScrollArea::vertical()
@@ -367,9 +365,11 @@ impl BlipApp {
                 });
             });
             measured = Vec2::new(w, hgt.min(max_h));
+            // Position and size travel through `builder`, which egui turns into window commands
+            // only when they change. Never send a viewport command every frame: each one forces
+            // another repaint, which had Blip redrawing non-stop while a panel was open.
             if (hgt.min(max_h) - h).abs() > 1.0 {
-                ui.ctx().send_viewport_cmd(ViewportCommand::InnerSize(measured));
-                // Another pass so the position follows the new height.
+                // One more pass applies the new height (and the position that follows from it).
                 ui.ctx().request_repaint();
             }
         });

@@ -93,21 +93,36 @@ pub fn model() -> (String, String) {
     let product = reg_string(HKEY_LOCAL_MACHINE, key, "SystemProductName").unwrap_or_default();
     let family = reg_string(HKEY_LOCAL_MACHINE, key, "SystemFamily").unwrap_or_default();
     let maker = reg_string(HKEY_LOCAL_MACHINE, key, "SystemManufacturer").unwrap_or_default();
+    let board = reg_string(HKEY_LOCAL_MACHINE, key, "BaseBoardProduct").unwrap_or_default();
+    let board_maker = reg_string(HKEY_LOCAL_MACHINE, key, "BaseBoardManufacturer").unwrap_or_default();
+    // Self-built PCs report the firmware template's placeholders.
     let junk = |s: &str| {
-        s.is_empty()
-            || s.to_ascii_lowercase().contains("to be filled")
-            || s.eq_ignore_ascii_case("system product name")
-            || s.eq_ignore_ascii_case("default string")
+        let l = s.to_ascii_lowercase();
+        l.is_empty()
+            || l.contains("to be filled")
+            || l == "system product name"
+            || l == "system manufacturer"
+            || l == "default string"
     };
     // Lenovo puts the marketing name in SystemFamily ("ThinkPad X1 Carbon Gen 11").
     let model = if maker.eq_ignore_ascii_case("LENOVO") && !junk(&family) {
         family
-    } else if junk(&product) {
-        String::new()
-    } else {
+    } else if !junk(&product) {
         product
+    } else if !junk(&board) {
+        // The motherboard ("ROG STRIX B650E-F") says more than a placeholder.
+        board
+    } else {
+        String::new()
     };
-    (model, if junk(&maker) { String::new() } else { maker })
+    let maker = if !junk(&maker) {
+        maker
+    } else if !junk(&board_maker) {
+        board_maker
+    } else {
+        String::new()
+    };
+    (model, maker)
 }
 
 pub fn cpu_model() -> Option<String> {

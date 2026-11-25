@@ -18,8 +18,13 @@ pub fn model() -> (String, String) {
         return (m, maker);
     }
     let dmi = |f: &str| read_trim(Path::new("/sys/class/dmi/id").join(f)).filter(|s| !junk(s));
-    let vendor = dmi("sys_vendor").unwrap_or_default();
-    let product = dmi("product_name").unwrap_or_default();
+    // Self-built PCs have placeholders here; the motherboard's name says more.
+    let vendor = dmi("sys_vendor")
+        .or_else(|| dmi("board_vendor"))
+        .unwrap_or_default();
+    let product = dmi("product_name")
+        .or_else(|| dmi("board_name"))
+        .unwrap_or_default();
     let product = match (vendor.as_str(), product.as_str()) {
         ("Valve", "Jupiter") => "Steam Deck".to_string(),
         ("Valve", "Galileo") => "Steam Deck OLED".to_string(),
@@ -32,7 +37,11 @@ pub fn model() -> (String, String) {
 
 fn junk(s: &str) -> bool {
     let l = s.to_ascii_lowercase();
-    l.contains("to be filled") || l.contains("default string") || l == "system product name" || l == "none"
+    l.contains("to be filled")
+        || l.contains("default string")
+        || l == "system product name"
+        || l == "system manufacturer"
+        || l == "none"
 }
 
 /// "Cortex-A76" for ARM cores (whose /proc/cpuinfo has no model name).

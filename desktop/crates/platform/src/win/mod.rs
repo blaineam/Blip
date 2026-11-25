@@ -101,12 +101,10 @@ impl WinSampler {
         // Identity
         s.system.os_name = self.os.0.clone();
         s.system.os_version = self.os.1.clone();
-        if !self.model.0.is_empty() {
-            s.system.model = self.model.0.clone();
-        }
-        if !self.model.1.is_empty() {
-            s.system.manufacturer = self.model.1.clone();
-        }
+        // Always replace the portable layer's values: it passes firmware placeholders through.
+        // (An empty model makes the UI show the computer's name.)
+        s.system.model = self.model.0.clone();
+        s.system.manufacturer = self.model.1.clone();
         s.system.uptime_secs = system::uptime_secs();
         if let Some(m) = &self.cpu_model {
             s.cpu.model = m.clone();

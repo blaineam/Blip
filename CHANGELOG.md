@@ -20,6 +20,9 @@
 ## Blip for Windows (preview)
 
 ### Fixed — Windows
+- **Blip no longer pegs a CPU core while a detail panel is open.** The fly-out re-sent its window position on every frame, and each command forces another frame, so it redrew without pause (Blip's own suggestion reported 100% CPU). Position and size now change only when they actually differ.
+- **Speed-test grade badges wrap properly.** A badge that didn't fit the row was squeezed into a column one letter wide, leaving a large gap under the results.
+- **Self-built PCs no longer show "System Product Name".** The motherboard's name is shown instead of the firmware placeholder (on Linux too).
 - **HTTPS no longer crashes Blip.** In preview.2, downloading the traceroute map crashed the app, and so would any other https request: the public IP, the map update check, and https speed-test servers. Windows' own TLS was compiled in but never selected. Every HTTP client now selects it, and CI makes real https requests and downloads the map database on x64 and ARM64.
 - **Detail panels use the screen's height.** The fly-out panels (and the popover) were stuck near their starting height and scrolled, because they measured themselves inside their own window. They now grow to fit their content, up to the height of the screen's work area.
 - **Blip.exe now starts.** In `windows-v2.1.0-preview.1` it crashed while creating its window, before the tray icon appeared, with no message: loading the metric sources had put the main thread in COM's multithreaded mode, and the window library needs the single-threaded one (`OleInitialize failed: RPC_E_CHANGED_MODE`). The UI thread now claims its mode first. CI had only tested the data sources and the command line; it now launches the app and fails on a crash.
@@ -29,7 +32,7 @@
 ### Added — Windows installer
 - **`Blip.exe` installs itself, per user, without admin,** the same way Glint does. Opened from a download, it offers to copy itself and `blip-cli.exe` to `%LOCALAPPDATA%\Programs\Blip`, add a Start menu shortcut and a Settings › Apps entry with an uninstaller, start at login, and put `blip-cli` on your user PATH. Running a newer download offers to update the installed copy; running the same or an older one opens it. Choosing No keeps Blip portable, and Settings › General offers *Install Blip…* later. `--install` and `--uninstall --quiet` do it without questions. Updates and uninstalls ask the running Blip to quit first, so Keep Awake's lid change is undone. CI checks the full install → verify → uninstall round trip as a standard user on x64 and ARM64.
 
-Previews are GitHub prereleases with x64 and ARM64 zips: `windows-v2.1.0-preview.3` (current). `preview.2` crashes on any https request and `preview.1` at startup.
+Previews are GitHub prereleases with x64 and ARM64 zips: `windows-v2.1.0-preview.4` (current). `preview.2` crashes on any https request and `preview.1` at startup.
 
 ### Added — Windows
 - **Blip for Windows 10 and 11, x64 and ARM64, no administrator rights.** It lives in the notification area with the Mac's popover and live detail panels: CPU, Memory, Disk, Network, GPU, Thermal, Bench, Battery and Keep Awake. Everything comes from APIs open to standard users: performance counters, IP Helper ICMP, storage and battery IOCTLs, DXGI, NVML and Direct3D 11.

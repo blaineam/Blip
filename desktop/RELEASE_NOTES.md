@@ -1,8 +1,9 @@
-> **Fixed since preview.2:**
-> - Downloading the traceroute map no longer crashes Blip. The same crash hit **Show public IP** and any https speed-test server.
-> - The fly-out detail panels, and the popover, now grow to fit their content, up to the height of your screen.
+> **Fixed since preview.3:**
+> - Blip no longer uses a full CPU core while a detail panel is open.
+> - The speed test's grade badges wrap onto new lines instead of squeezing into a one-letter column.
+> - Self-built PCs show the motherboard's name instead of "System Product Name".
 >
-> preview.1 crashed at startup and preview.2 on any https request: use this one.
+> Use this one: preview.1 crashed at startup and preview.2 on any https request.
 >
 > **If anything goes wrong,** send `%APPDATA%\Blip\blip.log`. Blip needs OpenGL 2.0 or newer.
 
