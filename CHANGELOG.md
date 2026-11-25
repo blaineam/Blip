@@ -29,7 +29,7 @@
 ### Added — Windows installer
 - **`Blip.exe` installs itself, per user, without admin,** the same way Glint does. Opened from a download, it offers to copy itself and `blip-cli.exe` to `%LOCALAPPDATA%\Programs\Blip`, add a Start menu shortcut and a Settings › Apps entry with an uninstaller, start at login, and put `blip-cli` on your user PATH. Running a newer download offers to update the installed copy; running the same or an older one opens it. Choosing No keeps Blip portable, and Settings › General offers *Install Blip…* later. `--install` and `--uninstall --quiet` do it without questions. Updates and uninstalls ask the running Blip to quit first, so Keep Awake's lid change is undone. CI checks the full install → verify → uninstall round trip as a standard user on x64 and ARM64.
 
-Previews are GitHub prereleases with x64 and ARM64 zips: `windows-v2.1.0-preview.2` (current), and `preview.1`, which crashes at startup.
+Previews are GitHub prereleases with x64 and ARM64 zips: `windows-v2.1.0-preview.3` (current). `preview.2` crashes on any https request and `preview.1` at startup.
 
 ### Added — Windows
 - **Blip for Windows 10 and 11, x64 and ARM64, no administrator rights.** It lives in the notification area with the Mac's popover and live detail panels: CPU, Memory, Disk, Network, GPU, Thermal, Bench, Battery and Keep Awake. Everything comes from APIs open to standard users: performance counters, IP Helper ICMP, storage and battery IOCTLs, DXGI, NVML and Direct3D 11.
