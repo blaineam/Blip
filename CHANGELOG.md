@@ -19,6 +19,11 @@
 
 ## Blip for Windows (preview)
 
+### Fixed — Windows
+- **Blip.exe now starts.** In `windows-v2.1.0-preview.1` it crashed while creating its window, before the tray icon appeared, with no message: loading the metric sources had put the main thread in COM's multithreaded mode, and the window library needs the single-threaded one (`OleInitialize failed: RPC_E_CHANGED_MODE`). The UI thread now claims its mode first. CI had only tested the data sources and the command line; it now launches the app and fails on a crash.
+- **Starting in the tray no longer leaves an invisible window** on top of other apps.
+- **Startup problems are visible:** `blip.log` in the data folder records each startup step, the graphics driver, tray icon errors, tray clicks and crashes, and a fatal error shows a message box.
+
 ### Added — Windows installer
 - **`Blip.exe` installs itself, per user, without admin,** the same way Glint does. Opened from a download, it offers to copy itself and `blip-cli.exe` to `%LOCALAPPDATA%\Programs\Blip`, add a Start menu shortcut and a Settings › Apps entry with an uninstaller, start at login, and put `blip-cli` on your user PATH. Running a newer download offers to update the installed copy; running the same or an older one opens it. Choosing No keeps Blip portable, and Settings › General offers *Install Blip…* later. `--install` and `--uninstall --quiet` do it without questions. Updates and uninstalls ask the running Blip to quit first, so Keep Awake's lid change is undone. CI checks the full install → verify → uninstall round trip as a standard user on x64 and ARM64.
 

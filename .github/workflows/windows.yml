@@ -81,8 +81,9 @@ jobs:
           $exe disktest --size 128
           ls -l target/${{ matrix.target }}/release/*.exe
 
-      # Evidence, not a gate: hosted runners have no GPU, so the window may legitimately fail
-      # there. The log says how far startup got and why it stopped.
+      # The app must start: unit and live tests can't catch a startup crash (preview.1 shipped
+      # one). A runner without OpenGL 2 may fail to create the renderer, which is printed but
+      # tolerated; any panic fails the build.
       - name: Launch the tray app and print its log
         shell: pwsh
         env:
@@ -94,6 +95,7 @@ jobs:
           if ($p.HasExited) { "Blip EXITED with code $($p.ExitCode)" } else { "Blip is still running after 15 s"; Stop-Process -Id $p.Id -Force }
           "--- blip.log"; Get-Content "$env:BLIP_DATA_DIR\blip.log" -ErrorAction SilentlyContinue
           "--- stderr"; Get-Content "$env:RUNNER_TEMP\blip-stderr.txt" -ErrorAction SilentlyContinue
+          if (Select-String -Path "$env:BLIP_DATA_DIR\blip.log" -Pattern 'crash:' -Quiet) { throw "Blip panicked at startup" }
 
       - name: Install / uninstall round trip (standard user)
         shell: pwsh

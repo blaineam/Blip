@@ -25,6 +25,18 @@ mod imp {
 
     use super::WorkArea;
 
+    /// Puts the UI thread in a single-threaded COM apartment. Must run before anything else on
+    /// it: winit's window needs `OleInitialize` (as do WebView2 and the file dialogs) and panics
+    /// with RPC_E_CHANGED_MODE if a metric source has already joined this thread to the
+    /// multithreaded apartment for WinRT. Going first makes that later call a harmless no-op.
+    pub fn init_ui_thread() {
+        // SAFETY: the first COM call on the main thread; never uninitialised (it lives as long
+        // as the process).
+        if let Err(e) = unsafe { windows::Win32::System::Ole::OleInitialize(None) } {
+            blip_core::log(&format!("OleInitialize failed: {e}"));
+        }
+    }
+
     /// Returns false when another Blip is already running (after asking it to show itself).
     pub fn claim_single_instance(
         on_show: impl Fn() + Send + 'static,
@@ -167,6 +179,8 @@ mod imp {
         SocketAddr::from_abstract_name(format!("com.blainemiller.Blip.{uid}").as_bytes()).ok()
     }
 
+    pub fn init_ui_thread() {}
+
     /// Returns false when another Blip is already running (after asking it to show itself).
     pub fn claim_single_instance(
         on_show: impl Fn() + Send + 'static,
@@ -222,6 +236,8 @@ mod imp {
 #[cfg(not(any(windows, target_os = "linux")))]
 mod imp {
     use super::WorkArea;
+    pub fn init_ui_thread() {}
+
     pub fn claim_single_instance(
         _on_show: impl Fn() + Send + 'static,
         _on_quit: impl Fn() + Send + 'static,

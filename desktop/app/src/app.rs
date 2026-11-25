@@ -678,6 +678,7 @@ fn gl_description(cc: &eframe::CreationContext) -> String {
 }
 
 pub fn run(start_visible: bool) -> eframe::Result<()> {
+    winsys::init_ui_thread();
     blip_core::log("loading settings and metric sources");
     let app = Shared::new();
     blip_core::log("sources ready");
