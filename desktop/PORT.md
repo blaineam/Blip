@@ -46,13 +46,15 @@ tray icon, no admin/root anywhere.
 ## Status
 - [x] Core, platform, Windows layer, app shell, panels, Settings, CLI, CI.
 - [x] Offscreen render check of popover + all 9 panels, light and dark.
-- [ ] First run on a real Windows desktop by the owner (tray click → popover placement, focus /
+- [x] First run on a real Windows desktop by the owner (previews 1–4 on an x64 gaming PC; ARM64 untested on hardware) (tray click → popover placement, focus /
       click-away, WebView2 public test, lid override on a laptop, NVMe health on real drives).
 - [x] Prerelease wiring: a `windows-v*` tag makes windows.yml publish
       `Blip-<ver>-windows-{x64,arm64}.zip` + SHA256SUMS as a GitHub prerelease (notes from
       RELEASE_NOTES.md). If the tagged commit has `[ci skip]`, dispatch:
       `gh workflow run windows.yml --ref windows-v<ver>`.
-- [ ] Final release: code signing, winget/Scoop manifests, landing-page mention.
+- [x] `windows-v2.1.0` full release (2026-11-26), unsigned by the owner's choice; never GitHub
+      "Latest" (Mac downloads use releases/latest). Landing page links the release tag.
+- [ ] winget/Scoop manifests, if wanted.
 - [x] No GTK/glib anywhere in Cargo.lock: tray-icon uses `ksni` (D-Bus SNI), wry has no
       `os-webview`. Keep it that way on Linux: SNI tray (KDE/SteamOS native; GNOME needs the
       AppIndicator extension), and the public speed test either skips WebKitGTK or uses webkit6.

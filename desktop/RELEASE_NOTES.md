@@ -1,28 +1,18 @@
-> **Fixed since preview.3:**
-> - Blip no longer uses a full CPU core while a detail panel is open.
-> - The speed test's grade badges wrap onto new lines instead of squeezing into a one-letter column.
-> - Self-built PCs show the motherboard's name instead of "System Product Name".
->
-> Use this one: preview.1 crashed at startup and preview.2 on any https request.
->
-> **If anything goes wrong,** send `%APPDATA%\Blip\blip.log`. Blip needs OpenGL 2.0 or newer.
+**Blip for Windows 10 and 11**, x64 and ARM64. A featherlight system monitor in the notification area, with the same popover and live detail panels as Blip on the Mac. No administrator rights, no drivers, no background service. Free and open source.
 
-**Preview build of Blip for Windows 10 and 11.** No administrator rights, ever. Unzip and run `Blip.exe`. It offers to **install itself for your user**: it's copied to `%LOCALAPPDATA%\Programs\Blip`, added to the Start menu and to Settings › Apps (uninstall it there like any app), started at login, and `blip-cli` is put on your PATH. Choose **No** to keep running it portably from wherever you unzipped it; Settings › General offers *Install Blip…* later. Running a newer download offers to update the installed copy. It sits in the notification area (drag it out of the ^ overflow to keep it visible).
+### Download
+| Your PC | File |
+|---|---|
+| Intel or AMD | `Blip-…-windows-x64.zip` |
+| Snapdragon and other Windows on Arm | `Blip-…-windows-arm64.zip` |
 
-For scripted installs: `Blip.exe --install` (silent), and `Blip.exe --uninstall --quiet`.
+Unzip and run `Blip.exe`. It offers to **install itself for your user**: Start menu, Settings › Apps (uninstall it there like any app), launch at login, and `blip-cli` on your PATH. Choose **No** to keep running it portably; Settings can install it later. Running a newer download updates the installed copy. For scripts: `Blip.exe --install` and `Blip.exe --uninstall --quiet`. Drag the tray icon out of the **^** overflow to keep it visible.
 
-Pick the zip for your PC: **x64** for Intel/AMD, **arm64** for Snapdragon and other Windows on Arm machines. The exes aren't code-signed yet, so SmartScreen may say "Windows protected your PC": choose **More info › Run anyway**.
+**SmartScreen:** Blip for Windows isn't code-signed, so Windows may say "Windows protected your PC". Choose **More info › Run anyway**. You can check your download against `SHA256SUMS.txt`.
 
-`blip-cli.exe` is the command-line counterpart of the Mac's Shortcuts actions (`blip-cli --help`).
+### What's in it
+CPU, memory, disk (including NVMe drive health without admin), network, GPU, thermals, battery, Keep Awake, speed tests, live traceroute with an offline map, Blip Bench, and `blip-cli` for scripts. In the same nine languages as the Mac.
 
-### Worth checking on real hardware
-These can't be covered by CI runners:
-- Left-click the tray icon: the popover should open right above it and close when you click elsewhere. Right-click for the menu.
-- Hover rows for the detail panels; open Settings and change the tray style.
-- Network › public speed test (uses the built-in WebView2).
-- Disk › drive health on an NVMe drive (life remaining, temperature).
-- Keep Awake, including lid-closed mode on a laptop: closing the lid should keep it running, and normal lid behaviour should return when Keep Awake ends or Blip quits.
-- Install from the download, then find Blip in the Start menu and in Settings › Apps; uninstall from there.
-- Launch at login, then sign out and back in.
+Windows keeps CPU die temperature and fan speeds behind kernel drivers, so Blip shows what it can read without admin rights. It needs OpenGL 2.0 or newer, which some virtual machines and Remote Desktop sessions don't provide.
 
-Data lives in `%APPDATA%\Blip`. See the CHANGELOG for everything in this build.
+Problems? [Open an issue](https://github.com/blaineam/blip/issues) and attach `%APPDATA%\Blip\blip.log`.

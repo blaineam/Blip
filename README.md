@@ -59,7 +59,7 @@ Blip 2.0 brings a native companion app (`BlipMobile/`) to iPhone and iPad — th
 
 Same repo, same `xcodegen` project: build the `BlipMobile` scheme. Ships on the App Store as **Blip Stats** for iOS.
 
-## 🪟 Blip for Windows (preview)
+## 🪟 Blip for Windows
 
 Blip runs on **Windows 10 and 11 (x64 and ARM64) without administrator rights**: no installer, no driver, no background service. It lives in the notification area and opens the same popover and live detail panels as the Mac. The source is in `desktop/`, a Rust workspace that a Linux build will share.
 
@@ -78,7 +78,7 @@ Blip runs on **Windows 10 and 11 (x64 and ARM64) without administrator rights**:
 
 **What Windows keeps behind admin rights or drivers:** fan RPM and CPU die temperature need a kernel driver, so Blip shows ACPI thermal zones, GPU and drive temperatures, and clock throttling instead. SATA drives report temperature and the SMART pass/fail prediction; their full attribute tables need admin. Windows has no OS-shipped ML model, so the benchmark's Neural leg drops out.
 
-**Try it:** preview builds are on [Releases](../../releases) as `windows-v*` prereleases. Unzip and run `Blip.exe`. It offers to install itself for your user (no admin): Start menu, Settings › Apps with an uninstaller, launch at login, `blip-cli` on your PATH, and in-place updates from newer downloads. You can also choose No and run it portably. The builds aren't code-signed yet, so SmartScreen asks once (More info › Run anyway).
+**[Download Blip for Windows 2.1.0](https://github.com/blaineam/blip/releases/tag/windows-v2.1.0)** (x64 and ARM64). Unzip and run `Blip.exe`. It offers to install itself for your user (no admin): Start menu, Settings › Apps with an uninstaller, launch at login, `blip-cli` on your PATH, and updates from newer downloads. You can also choose No and run it portably. It isn't code-signed, so SmartScreen may ask: **More info › Run anyway**.
 
 ```powershell
 # Build from source (Rust stable)
@@ -99,7 +99,7 @@ The same Rust app runs on **Linux without root**: x64, arm64 and armv7, one buil
 
 **Limits:** Wayland doesn't let apps place their own windows, so Blip prefers XWayland where a display exists. The public OpenSpeedTest test opens in your browser; self-hosted servers are measured and graphed in Blip.
 
-**Try it:** preview builds are on [Releases](../../releases) as `linux-v*` prereleases.
+**Status:** no Linux download is published yet; build it from source as below.
 
 ```bash
 # Build from source on Linux (Rust stable)

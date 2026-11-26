@@ -17,7 +17,9 @@
 - **Linux TLS no longer depends on the distro's OpenSSL.** Windows still uses the OS's TLS (SChannel); Linux builds bundle rustls, so one binary works on Rocky 8 (OpenSSL 1.1) and Ubuntu 24.04 (OpenSSL 3) alike.
 - **Thirteen duplicate source files** (`win/* 2.rs`, iCloud conflict copies) had been committed alongside the real ones. They're removed, and the desktop `.gitignore` now refuses such copies.
 
-## Blip for Windows (preview)
+## Blip for Windows 2.1.0 — 2026-11-26
+
+The first full release, for x64 and ARM64: GitHub release `windows-v2.1.0`. It is not code-signed. The entries below cover everything in it, including fixes made during its previews.
 
 ### Fixed — Windows
 - **Blip no longer pegs a CPU core while a detail panel is open.** The fly-out re-sent its window position on every frame, and each command forces another frame, so it redrew without pause (Blip's own suggestion reported 100% CPU). Position and size now change only when they actually differ.
@@ -31,8 +33,6 @@
 
 ### Added — Windows installer
 - **`Blip.exe` installs itself, per user, without admin,** the same way Glint does. Opened from a download, it offers to copy itself and `blip-cli.exe` to `%LOCALAPPDATA%\Programs\Blip`, add a Start menu shortcut and a Settings › Apps entry with an uninstaller, start at login, and put `blip-cli` on your user PATH. Running a newer download offers to update the installed copy; running the same or an older one opens it. Choosing No keeps Blip portable, and Settings › General offers *Install Blip…* later. `--install` and `--uninstall --quiet` do it without questions. Updates and uninstalls ask the running Blip to quit first, so Keep Awake's lid change is undone. CI checks the full install → verify → uninstall round trip as a standard user on x64 and ARM64.
-
-Previews are GitHub prereleases with x64 and ARM64 zips: `windows-v2.1.0-preview.4` (current). `preview.2` crashes on any https request and `preview.1` at startup.
 
 ### Added — Windows
 - **Blip for Windows 10 and 11, x64 and ARM64, no administrator rights.** It lives in the notification area with the Mac's popover and live detail panels: CPU, Memory, Disk, Network, GPU, Thermal, Bench, Battery and Keep Awake. Everything comes from APIs open to standard users: performance counters, IP Helper ICMP, storage and battery IOCTLs, DXGI, NVML and Direct3D 11.

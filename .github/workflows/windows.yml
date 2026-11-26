@@ -1,6 +1,6 @@
 # Blip for Windows: format, lint, test (including live checks of every Windows-native source,
 # as the runner's standard user) and build on x64 and ARM64 for every change to desktop/.
-# Pushing (or dispatching at) a `windows-v*` tag also publishes both builds as a GitHub prerelease;
+# Pushing (or dispatching at) a `windows-v*` tag also publishes both builds as a GitHub release;
 # the Mac release.yml only listens for `v*` tags, so the two never collide.
 name: Windows
 
@@ -135,7 +135,7 @@ jobs:
             desktop/target/${{ matrix.target }}/release/blip-cli.exe
           retention-days: 14
 
-  prerelease:
+  release:
     if: startsWith(github.ref, 'refs/tags/windows-v')
     needs: build
     runs-on: ubuntu-latest
@@ -158,15 +158,20 @@ jobs:
           sha256sum *.zip > SHA256SUMS.txt
           cat SHA256SUMS.txt
 
-      - name: Publish prerelease
+      # A tag with a suffix (windows-v2.2.0-preview.1) is a prerelease; a plain windows-v2.1.0 is
+      # a full release. Neither may become GitHub's "Latest": the Mac app, README and website
+      # download Blip.dmg and BlipHelper.dmg through releases/latest.
+      - name: Publish release
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
           notes=desktop/RELEASE_NOTES.md
+          ver=${GITHUB_REF_NAME#windows-v}
           if gh release view "$GITHUB_REF_NAME" >/dev/null 2>&1; then
             gh release upload "$GITHUB_REF_NAME" dist/*.zip dist/SHA256SUMS.txt --clobber
           else
+            kind=(); title="Blip for Windows $ver"
+            case "$ver" in *-*) kind=(--prerelease); title="$title (preview)";; esac
             gh release create "$GITHUB_REF_NAME" dist/*.zip dist/SHA256SUMS.txt \
-              --prerelease --latest=false --verify-tag \
-              --title "Blip for Windows ${GITHUB_REF_NAME#windows-v} (preview)" --notes-file "$notes"
+              "${kind[@]}" --latest=false --verify-tag --title "$title" --notes-file "$notes"
           fi
