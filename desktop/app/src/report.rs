@@ -75,7 +75,9 @@ mod tests {
         ));
         let template = include_str!("../../../.github/ISSUE_TEMPLATE/linux-beta.yml");
         for id in ["version", "system"] {
-            assert!(template.contains(&format!("id: {id}\n")), "no field `{id}`");
+            // By line: a Windows checkout ends them with CRLF.
+            let field = format!("id: {id}");
+            assert!(template.lines().any(|l| l.trim() == field), "no field `{id}`");
         }
     }
 }
