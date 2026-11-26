@@ -1,5 +1,7 @@
 **Blip for Windows 10 and 11**, x64 and ARM64. A featherlight system monitor in the notification area, with the same popover and live detail panels as Blip on the Mac. No administrator rights, no drivers, no background service. Free and open source.
 
+**On Linux?** [Blip for Linux is now in beta](https://github.com/blaineam/blip/releases/tag/linux-v2.1.0-beta.2) (x64, arm64 and armv7). Please [open an issue](https://github.com/blaineam/blip/issues/new?template=linux-beta.yml) for anything you run into.
+
 ### Download
 | Your PC | File |
 |---|---|
