@@ -99,13 +99,13 @@ The same Rust app runs on **Linux without root**: x64, arm64 and armv7, one buil
 
 **Limits:** Wayland doesn't let apps place their own windows, so Blip prefers XWayland where a display exists. The public OpenSpeedTest test opens in your browser; self-hosted servers are measured and graphed in Blip.
 
-**[Download Blip for Linux 2.1.0 beta](https://github.com/blaineam/blip/releases/tag/linux-v2.1.0-beta.1)** (x64, arm64 and armv7). Extract it and run `./install.sh`, or run `./Blip` in place.
+**[Download Blip for Linux 2.1.0 beta](https://github.com/blaineam/blip/releases/tag/linux-v2.1.0-beta.2)** (x64, arm64 and armv7). Extract it and run `./install.sh`, or run `./Blip` in place.
 
 > **It's a beta, so please [open an issue](https://github.com/blaineam/blip/issues/new?template=linux-beta.yml) for anything you run into.** It passes CI on x64 and arm64 Linux but hasn't been tried on real Linux desktops or devices yet, and the 32-bit ARM build is compiled only. Reports that it works on your distribution help too.
 
 ```bash
-tar -xzf Blip-2.1.0-beta.1-linux-x64.tar.gz
-cd Blip-2.1.0-beta.1-linux-x64 && ./install.sh
+tar -xzf Blip-2.1.0-beta.2-linux-x64.tar.gz
+cd Blip-2.1.0-beta.2-linux-x64 && ./install.sh
 ```
 
 ```bash

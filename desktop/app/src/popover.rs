@@ -226,7 +226,7 @@ pub fn show(
             }
             ui.horizontal(|ui| {
                 let mb = format!("{:.1}", snap.system.blip_memory as f64 / 1_048_576.0);
-                let version = tf("Blip v%@ · %@ MB", &[&env!("CARGO_PKG_VERSION"), &mb]);
+                let version = tf("Blip v%@ · %@ MB", &[&crate::VERSION, &mb]);
                 let r = ui.add(
                     egui::Label::new(RichText::new(version).size(9.0).color(tertiary(ui)))
                         .sense(Sense::drag()),

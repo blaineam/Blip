@@ -1,6 +1,6 @@
 # Changelog
 
-## Blip for Linux 2.1.0-beta.1 — 2026-11-26
+## Blip for Linux 2.1.0-beta.2 — 2026-11-26
 
 The first Linux download, released as a **beta**: it passes CI on x64 and arm64 Linux but hasn't been tried on real Linux desktops or devices yet (32-bit ARM is compiled only). Please [open an issue](https://github.com/blaineam/blip/issues/new?template=linux-beta.yml) for anything that doesn't work.
 
@@ -17,6 +17,7 @@ The first Linux download, released as a **beta**: it passes CI on x64 and arm64 
 - **CI on real Linux:** `linux.yml` builds and tests on x64 and arm64 runners, with live checks of every Linux source and a GUI launch under Xvfb. It runs each glibc-2.28 build inside Rocky Linux 8, Ubuntu, Debian, Fedora and Arch containers, and a `linux-v*` tag publishes tarballs as a beta (a GitHub prerelease).
 
 ### Fixed — Windows/Linux builds
+- **The popover footer and `blip-cli --version` name the full release version** (such as 2.1.0-beta.2), not just 2.1.0. This replaces 2.1.0-beta.1, which was out only briefly.
 - **Linux TLS no longer depends on the distro's OpenSSL.** Windows still uses the OS's TLS (SChannel); Linux builds bundle rustls, so one binary works on Rocky 8 (OpenSSL 1.1) and Ubuntu 24.04 (OpenSSL 3) alike.
 - **Thirteen duplicate source files** (`win/* 2.rs`, iCloud conflict copies) had been committed alongside the real ones. They're removed, and the desktop `.gitignore` now refuses such copies.
 

@@ -72,7 +72,7 @@ pub fn run(args: Vec<String>) -> i32 {
     };
     match cmd {
         "" if flag(&args, "--version") => {
-            println!("Blip {}", env!("CARGO_PKG_VERSION"));
+            println!("Blip {}", crate::VERSION);
             0
         }
         "" | "help" => {
