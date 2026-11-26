@@ -1,5 +1,12 @@
 # Changelog
 
+## Unreleased — Blip for Android
+
+### Added — Android
+- **Blip for Android** (Android 10 or newer; arm64, armv7 and x86_64), modelled on the iPhone app and needing no runtime permissions: overview and detail screens for CPU, memory, storage, network, battery, thermals and device; Blip Bench; public and self-hosted speed tests; disk speed test; ping and traceroute with offline hop locations; home-screen widgets; launcher shortcuts; shareable Markdown snapshot; nine languages. Benchmarks and network tools use the same Rust code as Windows and Linux. No download is published yet.
+- **Disk test:** results are measured with the page cache bypassed on Android too, and name the storage you picked. (Windows and Linux results now show the picked drive instead of the scratch folder.)
+- **CI:** `android.yml` runs the unit tests and Android lint (warnings are errors), builds the shrunk release APK for all three ABIs, and runs a smoke test of it on Android 10 and 15 emulators.
+
 ## Blip for Linux 2.1.0-beta.2 — 2026-11-26
 
 The first Linux download, released as a **beta**: it passes CI on x64 and arm64 Linux but hasn't been tried on real Linux desktops or devices yet (32-bit ARM is compiled only). Please [open an issue](https://github.com/blaineam/blip/issues/new?template=linux-beta.yml) for anything that doesn't work.

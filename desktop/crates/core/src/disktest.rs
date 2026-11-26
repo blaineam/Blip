@@ -1,7 +1,9 @@
 //! Uncached sequential write/read + 4 KB random-read IOPS, ported from the Mac `DiskBenchmark`.
 //! Windows opens the scratch file with FILE_FLAG_NO_BUFFERING | FILE_FLAG_WRITE_THROUGH (the
 //! F_NOCACHE equivalent — needs sector-aligned buffers, which is why every size here is a
-//! multiple of 4096); Linux uses O_DIRECT. Works on any drive the user can write to: no admin.
+//! multiple of 4096); Linux and Android use O_DIRECT (to Rust they are different targets, so
+//! both are named) and also drop the file from the page cache before reading it, because some
+//! filesystems accept O_DIRECT and buffer anyway. Works on any drive the user can write to.
 
 use std::io::{Read, Seek, SeekFrom, Write};
 use std::path::{Path, PathBuf};
@@ -85,17 +87,40 @@ fn open_uncached(path: &Path, write: bool) -> std::io::Result<std::fs::File> {
         const FILE_FLAG_WRITE_THROUGH: u32 = 0x8000_0000;
         o.custom_flags(FILE_FLAG_NO_BUFFERING | if write { FILE_FLAG_WRITE_THROUGH } else { 0 });
     }
-    #[cfg(target_os = "linux")]
+    #[cfg(any(target_os = "linux", target_os = "android"))]
     {
         use std::os::unix::fs::OpenOptionsExt;
-        // O_DIRECT differs per architecture.
-        #[cfg(any(target_arch = "aarch64", target_arch = "arm"))]
-        const O_DIRECT: i32 = 0o200000;
-        #[cfg(not(any(target_arch = "aarch64", target_arch = "arm")))]
-        const O_DIRECT: i32 = 0o40000;
-        o.custom_flags(O_DIRECT);
+        o.custom_flags(libc::O_DIRECT);
     }
-    o.open(path)
+    let opened = o.open(path);
+    // Some Android storage refuses O_DIRECT outright. Reads then go through the cache, which
+    // `drop_cached` has emptied of this file.
+    #[cfg(target_os = "android")]
+    if matches!(&opened, Err(e) if e.raw_os_error() == Some(libc::EINVAL)) {
+        use std::os::unix::fs::OpenOptionsExt;
+        o.custom_flags(0);
+        return o.open(path);
+    }
+    opened
+}
+
+/// Evicts the (already synced) file from the page cache, so the reads that follow come from the
+/// drive. `random` also turns readahead off for the 4 KB reads.
+fn drop_cached(file: &std::fs::File, random: bool) {
+    #[cfg(any(target_os = "linux", target_os = "android"))]
+    {
+        use std::os::fd::AsRawFd;
+        // SAFETY: advice about a descriptor we own; length 0 means the whole file. It can't
+        // fail in a way that matters here.
+        unsafe {
+            libc::posix_fadvise(file.as_raw_fd(), 0, 0, libc::POSIX_FADV_DONTNEED);
+            if random {
+                libc::posix_fadvise(file.as_raw_fd(), 0, 0, libc::POSIX_FADV_RANDOM);
+            }
+        }
+    }
+    #[cfg(not(any(target_os = "linux", target_os = "android")))]
+    let _ = (file, random);
 }
 
 /// Runs the benchmark synchronously in `dir`. `progress(phase, 0…1)`; polls `cancelled`.
@@ -143,6 +168,7 @@ pub fn run(
 
     // Read.
     let mut f = open_uncached(&path, false).map_err(|e| e.to_string())?;
+    drop_cached(&f, false);
     let mut read = 0usize;
     let t0 = Instant::now();
     while read < total {
@@ -163,6 +189,8 @@ pub fn run(
     let mut iops = None;
     if !cancelled() && total > RANDOM_BLOCK {
         progress(DiskPhase::RandomRead, 0.0);
+        // The sequential pass may have left the file cached.
+        drop_cached(&f, true);
         let mut small = AlignedBuf::new(RANDOM_BLOCK);
         let slots = (total / RANDOM_BLOCK - 1) as u64;
         let mut seed: u64 = 0x9E37_79B9_7F4A_7C15;
@@ -310,7 +338,10 @@ impl DiskTester {
         s.phase = DiskPhase::Idle;
         s.progress = 0.0;
         match r {
-            Ok(Some(res)) => {
+            Ok(Some(mut res)) => {
+                if !s.target_label.is_empty() {
+                    res.target = s.target_label.clone();
+                }
                 s.last_result = Some(res.clone());
                 s.history.push(res);
                 let excess = s.history.len().saturating_sub(MAX_HISTORY);
@@ -337,6 +368,22 @@ mod tests {
         let r = run(8, &dir, &|_, _| {}, &|| false).expect("run").expect("result");
         assert!(r.write_mbps > 0.0 && r.read_mbps > 0.0);
         assert!(r.random_read_iops.unwrap_or(0.0) > 0.0);
+    }
+
+    #[test]
+    fn results_carry_the_label_picked() {
+        // Its own folder: scratch names are per process and second, shared by parallel tests.
+        let dir = std::env::temp_dir().join(format!("blip-label-{}", std::process::id()));
+        std::fs::create_dir_all(&dir).unwrap();
+        let tester = DiskTester::new(None);
+        tester.start(8, dir.clone(), "Internal storage".into());
+        while tester.state().running {
+            std::thread::sleep(std::time::Duration::from_millis(20));
+        }
+        let state = tester.state();
+        assert_eq!(state.last_error, None);
+        assert_eq!(state.last_result.expect("result").target, "Internal storage");
+        let _ = std::fs::remove_dir_all(dir);
     }
 
     #[test]

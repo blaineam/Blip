@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name" translatable="false">Blip</string>
+    <string name="shortcut_bench">Run Benchmark</string>
+    <string name="shortcut_speed">Run Speed Test</string>
+    <string name="shortcut_snapshot">Share Snapshot</string>
+    <string name="widget_bench">Your latest Blip Bench score</string>
+    <string name="widget_storage">How full your storage is</string>
+    <string name="widget_speed">Your last speed test</string>
+</resources>

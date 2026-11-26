@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="shortcut_bench">ベンチマークを実行</string>
+    <string name="shortcut_speed">スピードテストを実行</string>
+    <string name="shortcut_snapshot">スナップショットを共有</string>
+    <string name="widget_bench">最新の Blip Bench スコア</string>
+    <string name="widget_storage">ストレージの使用状況</string>
+    <string name="widget_speed">最新のスピードテスト</string>
+</resources>

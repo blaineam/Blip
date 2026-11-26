@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Long-press the launcher icon: the Android counterpart of Blip's iOS Shortcuts actions. -->
+<shortcuts xmlns:android="http://schemas.android.com/apk/res/android">
+    <shortcut android:shortcutId="bench" android:enabled="true" android:icon="@mipmap/ic_launcher"
+        android:shortcutShortLabel="@string/shortcut_bench">
+        <intent android:action="com.blainemiller.blip.RUN_BENCHMARK"
+            android:targetPackage="com.blainemiller.blip" android:targetClass="com.blainemiller.blip.MainActivity" />
+    </shortcut>
+    <shortcut android:shortcutId="speed" android:enabled="true" android:icon="@mipmap/ic_launcher"
+        android:shortcutShortLabel="@string/shortcut_speed">
+        <intent android:action="com.blainemiller.blip.RUN_SPEED_TEST"
+            android:targetPackage="com.blainemiller.blip" android:targetClass="com.blainemiller.blip.MainActivity" />
+    </shortcut>
+    <shortcut android:shortcutId="snapshot" android:enabled="true" android:icon="@mipmap/ic_launcher"
+        android:shortcutShortLabel="@string/shortcut_snapshot">
+        <intent android:action="com.blainemiller.blip.SHARE_SNAPSHOT"
+            android:targetPackage="com.blainemiller.blip" android:targetClass="com.blainemiller.blip.MainActivity" />
+    </shortcut>
+</shortcuts>

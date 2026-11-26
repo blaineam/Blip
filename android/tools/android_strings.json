@@ -1,0 +1,952 @@
+{
+  "%@ · %@ passes": {
+    "de": "%@ · %@ Durchläufe",
+    "es": "%@ · %@ pasadas",
+    "fr": "%@ · %@ passes",
+    "it": "%@ · %@ passaggi",
+    "ja": "%@ · %@ 回",
+    "ko": "%@ · %@회",
+    "pt-BR": "%@ · %@ passagens",
+    "zh-Hans": "%@ · %@ 轮"
+  },
+  "%@ × up to %@": {
+    "de": "%@ × bis %@",
+    "es": "%@ × hasta %@",
+    "fr": "%@ × jusqu’à %@",
+    "it": "%@ × fino a %@",
+    "ja": "%@ × 最大 %@",
+    "ko": "%@ × 최대 %@",
+    "pt-BR": "%@ × até %@",
+    "zh-Hans": "%@ × 最高 %@"
+  },
+  "%@% slower under load": {
+    "de": "unter Last %@ % langsamer",
+    "es": "%@ % más lento bajo carga",
+    "fr": "%@ % plus lent sous charge",
+    "it": "%@% più lento sotto carico",
+    "ja": "負荷時に %@% 低下",
+    "ko": "부하 시 %@% 느림",
+    "pt-BR": "%@% mais lento sob carga",
+    "zh-Hans": "负载下慢 %@%"
+  },
+  "AC": {
+    "de": "AC",
+    "es": "AC",
+    "fr": "AC",
+    "it": "AC",
+    "ja": "AC",
+    "ko": "AC",
+    "pt-BR": "AC",
+    "zh-Hans": "AC"
+  },
+  "About": {
+    "de": "Über",
+    "es": "Acerca de",
+    "fr": "À propos",
+    "it": "Info",
+    "ja": "情報",
+    "ko": "정보",
+    "pt-BR": "Sobre",
+    "zh-Hans": "关于"
+  },
+  "Addresses": {
+    "de": "Adressen",
+    "es": "Direcciones",
+    "fr": "Adresses",
+    "it": "Indirizzi",
+    "ja": "アドレス",
+    "ko": "주소",
+    "pt-BR": "Endereços",
+    "zh-Hans": "地址"
+  },
+  "An OpenSpeedTest server on your network or VPS, e.g. the openspeedtest Docker image.": {
+    "de": "Ein OpenSpeedTest-Server in deinem Netzwerk oder auf einem VPS, z. B. das Docker-Image openspeedtest.",
+    "es": "Un servidor OpenSpeedTest en tu red o en un VPS, p. ej. la imagen de Docker openspeedtest.",
+    "fr": "Un serveur OpenSpeedTest sur votre réseau ou un VPS, par ex. l’image Docker openspeedtest.",
+    "it": "Un server OpenSpeedTest nella tua rete o su un VPS, ad es. l’immagine Docker openspeedtest.",
+    "ja": "ネットワーク内または VPS 上の OpenSpeedTest サーバ（例：Docker イメージ openspeedtest）。",
+    "ko": "네트워크나 VPS에 있는 OpenSpeedTest 서버(예: openspeedtest Docker 이미지).",
+    "pt-BR": "Um servidor OpenSpeedTest na sua rede ou VPS, por ex. a imagem Docker openspeedtest.",
+    "zh-Hans": "你的网络或 VPS 上的 OpenSpeedTest 服务器，例如 openspeedtest Docker 镜像。"
+  },
+  "Android": {
+    "de": "Android",
+    "es": "Android",
+    "fr": "Android",
+    "it": "Android",
+    "ja": "Android",
+    "ko": "Android",
+    "pt-BR": "Android",
+    "zh-Hans": "Android"
+  },
+  "Android hides other apps' CPU time, so Blip shows how hard the cores are being clocked against their maximum — what the system is actually asking of the chip.": {
+    "de": "Android verbirgt die CPU-Zeit anderer Apps. Blip zeigt deshalb, wie hoch die Kerne im Verhältnis zu ihrem Maximum takten – also was das System dem Chip tatsächlich abverlangt.",
+    "es": "Android oculta el tiempo de CPU de otras apps, así que Blip muestra a qué frecuencia funcionan los núcleos respecto a su máximo: lo que el sistema le está pidiendo realmente al chip.",
+    "fr": "Android masque le temps processeur des autres apps : Blip montre donc la fréquence des cœurs par rapport à leur maximum, c’est-à-dire ce que le système demande réellement à la puce.",
+    "it": "Android nasconde il tempo CPU delle altre app, quindi Blip mostra a che frequenza lavorano i core rispetto al massimo: ciò che il sistema chiede davvero al chip.",
+    "ja": "Android は他のアプリの CPU 時間を公開しないため、Blip は各コアが最大クロックに対してどれだけ動いているか（システムが実際にチップへ求めている負荷）を表示します。",
+    "ko": "Android는 다른 앱의 CPU 시간을 숨기므로, Blip은 코어가 최대 클럭 대비 얼마나 높게 동작하는지, 즉 시스템이 실제로 칩에 요구하는 정도를 보여 줍니다.",
+    "pt-BR": "O Android oculta o tempo de CPU de outros apps, então o Blip mostra a frequência dos núcleos em relação ao máximo: o que o sistema está realmente pedindo ao chip.",
+    "zh-Hans": "Android 不公开其他应用的 CPU 时间，因此 Blip 显示各核心频率相对最高频率的比例——也就是系统实际对芯片的要求。"
+  },
+  "Average": {
+    "de": "Durchschnitt",
+    "es": "Media",
+    "fr": "Moyenne",
+    "it": "Media",
+    "ja": "平均",
+    "ko": "평균",
+    "pt-BR": "Média",
+    "zh-Hans": "平均"
+  },
+  "Back": {
+    "de": "Zurück",
+    "es": "Atrás",
+    "fr": "Retour",
+    "it": "Indietro",
+    "ja": "戻る",
+    "ko": "뒤로",
+    "pt-BR": "Voltar",
+    "zh-Hans": "返回"
+  },
+  "Band": {
+    "de": "Band",
+    "es": "Banda",
+    "fr": "Bande",
+    "it": "Banda",
+    "ja": "帯域",
+    "ko": "대역",
+    "pt-BR": "Banda",
+    "zh-Hans": "频段"
+  },
+  "Battery Saver": {
+    "de": "Energiesparmodus",
+    "es": "Ahorro de batería",
+    "fr": "Économiseur de batterie",
+    "it": "Risparmio energetico",
+    "ja": "バッテリー セーバー",
+    "ko": "절전 모드",
+    "pt-BR": "Economia de bateria",
+    "zh-Hans": "省电模式"
+  },
+  "Battery Saver is still on while charging above 80% — background work and performance stay reduced until you switch it off.": {
+    "de": "Der Energiesparmodus ist beim Laden über 80 % noch an – Hintergrundaktivität und Leistung bleiben eingeschränkt, bis du ihn ausschaltest.",
+    "es": "El ahorro de batería sigue activo mientras cargas por encima del 80 %: la actividad en segundo plano y el rendimiento seguirán reducidos hasta que lo desactives.",
+    "fr": "L’économiseur de batterie est toujours actif pendant la charge au-delà de 80 % : l’activité en arrière-plan et les performances restent réduites jusqu’à ce que vous le désactiviez.",
+    "it": "Il risparmio energetico è ancora attivo mentre la carica supera l’80%: attività in background e prestazioni restano ridotte finché non lo disattivi.",
+    "ja": "80% を超えて充電中もバッテリー セーバーがオンのままです。オフにするまでバックグラウンド処理とパフォーマンスは制限されます。",
+    "ko": "80% 이상 충전 중인데도 절전 모드가 켜져 있습니다. 끌 때까지 백그라운드 작업과 성능이 제한됩니다.",
+    "pt-BR": "A economia de bateria continua ativa carregando acima de 80% — atividade em segundo plano e desempenho ficam reduzidos até você desativá-la.",
+    "zh-Hans": "充电至 80% 以上时省电模式仍开启——在你关闭之前，后台活动和性能会一直受限。"
+  },
+  "Battery temperature": {
+    "de": "Akkutemperatur",
+    "es": "Temperatura de la batería",
+    "fr": "Température de la batterie",
+    "it": "Temperatura della batteria",
+    "ja": "バッテリー温度",
+    "ko": "배터리 온도",
+    "pt-BR": "Temperatura da bateria",
+    "zh-Hans": "电池温度"
+  },
+  "Blip Bench: %@ on %@": {
+    "de": "Blip Bench: %@ auf %@",
+    "es": "Blip Bench: %@ en %@",
+    "fr": "Blip Bench : %@ sur %@",
+    "it": "Blip Bench: %@ su %@",
+    "ja": "Blip Bench：%@（%@）",
+    "ko": "Blip Bench: %@ (%@)",
+    "pt-BR": "Blip Bench: %@ no %@",
+    "zh-Hans": "Blip Bench：%@（%@）"
+  },
+  "Blip runs as you — no special permissions, no tracking, nothing leaves the device unless you run a network test.": {
+    "de": "Blip läuft als du – keine besonderen Berechtigungen, kein Tracking, nichts verlässt das Gerät, außer du startest einen Netzwerktest.",
+    "es": "Blip se ejecuta como tú: sin permisos especiales, sin rastreo; nada sale del dispositivo salvo que hagas una prueba de red.",
+    "fr": "Blip s’exécute en votre nom : aucune autorisation spéciale, aucun pistage, rien ne quitte l’appareil sauf si vous lancez un test réseau.",
+    "it": "Blip funziona con il tuo account: nessun permesso speciale, nessun tracciamento, nulla lascia il dispositivo a meno che tu non esegua un test di rete.",
+    "ja": "Blip は特別な権限なしで動作し、トラッキングもしません。ネットワークテストを実行しない限り、データはデバイスの外に出ません。",
+    "ko": "Blip은 특별한 권한 없이 실행되며 추적하지 않습니다. 네트워크 테스트를 실행하지 않는 한 아무것도 기기를 떠나지 않습니다.",
+    "pt-BR": "O Blip roda como você — sem permissões especiais, sem rastreamento, nada sai do dispositivo a menos que você faça um teste de rede.",
+    "zh-Hans": "Blip 以你的身份运行——无需特殊权限，不做跟踪；除非你运行网络测试，否则不会有任何数据离开设备。"
+  },
+  "Capacity": {
+    "de": "Kapazität",
+    "es": "Capacidad",
+    "fr": "Capacité",
+    "it": "Capacità",
+    "ja": "容量",
+    "ko": "용량",
+    "pt-BR": "Capacidade",
+    "zh-Hans": "容量"
+  },
+  "Charge": {
+    "de": "Ladung",
+    "es": "Carga",
+    "fr": "Charge",
+    "it": "Carica",
+    "ja": "充電量",
+    "ko": "충전량",
+    "pt-BR": "Carga",
+    "zh-Hans": "电量"
+  },
+  "Chip": {
+    "de": "Chip",
+    "es": "Chip",
+    "fr": "Puce",
+    "it": "Chip",
+    "ja": "チップ",
+    "ko": "칩",
+    "pt-BR": "Chip",
+    "zh-Hans": "芯片"
+  },
+  "Clock vs max": {
+    "de": "Takt vs. Maximum",
+    "es": "Frecuencia vs. máx.",
+    "fr": "Fréquence vs max",
+    "it": "Clock vs max",
+    "ja": "最大比クロック",
+    "ko": "최대 대비 클럭",
+    "pt-BR": "Clock vs. máx.",
+    "zh-Hans": "频率/最高"
+  },
+  "Cold": {
+    "de": "Zu kalt",
+    "es": "Fría",
+    "fr": "Trop froide",
+    "it": "Fredda",
+    "ja": "低温",
+    "ko": "저온",
+    "pt-BR": "Fria",
+    "zh-Hans": "过冷"
+  },
+  "Connection": {
+    "de": "Verbindung",
+    "es": "Conexión",
+    "fr": "Connexion",
+    "it": "Connessione",
+    "ja": "接続",
+    "ko": "연결",
+    "pt-BR": "Conexão",
+    "zh-Hans": "连接"
+  },
+  "Data Saver": {
+    "de": "Datensparmodus",
+    "es": "Ahorro de datos",
+    "fr": "Économiseur de données",
+    "it": "Risparmio dati",
+    "ja": "データセーバー",
+    "ko": "데이터 절약 모드",
+    "pt-BR": "Economia de dados",
+    "zh-Hans": "流量节省程序"
+  },
+  "Data Saver is on — background data, quality and sync are being limited. Intentional? It's in Settings › Network & internet.": {
+    "de": "Der Datensparmodus ist an – Hintergrunddaten, Qualität und Synchronisierung werden begrenzt. Absicht? Er ist unter Einstellungen › Netzwerk & Internet.",
+    "es": "El ahorro de datos está activo: se limitan los datos en segundo plano, la calidad y la sincronización. ¿Es intencionado? Está en Ajustes › Redes e Internet.",
+    "fr": "L’économiseur de données est activé : données en arrière-plan, qualité et synchronisation sont limitées. Volontaire ? C’est dans Paramètres › Réseau et Internet.",
+    "it": "Il risparmio dati è attivo: dati in background, qualità e sincronizzazione sono limitati. Voluto? Si trova in Impostazioni › Rete e Internet.",
+    "ja": "データセーバーがオンです。バックグラウンド通信、画質、同期が制限されています。意図的でなければ、設定 › ネットワークとインターネット で変更できます。",
+    "ko": "데이터 절약 모드가 켜져 있어 백그라운드 데이터, 품질, 동기화가 제한됩니다. 의도한 것인가요? 설정 › 네트워크 및 인터넷에 있습니다.",
+    "pt-BR": "A economia de dados está ativa — dados em segundo plano, qualidade e sincronização estão limitados. Foi intencional? Fica em Configurações › Rede e Internet.",
+    "zh-Hans": "流量节省程序已开启——后台数据、画质和同步受到限制。是有意的吗？可在“设置 › 网络和互联网”中更改。"
+  },
+  "Dead": {
+    "de": "Defekt",
+    "es": "Agotada",
+    "fr": "Morte",
+    "it": "Esaurita",
+    "ja": "故障",
+    "ko": "수명 다함",
+    "pt-BR": "Esgotada",
+    "zh-Hans": "已损坏"
+  },
+  "Default ping host": {
+    "de": "Standard-Ping-Ziel",
+    "es": "Host de ping predeterminado",
+    "fr": "Hôte de ping par défaut",
+    "it": "Host di ping predefinito",
+    "ja": "既定の ping ホスト",
+    "ko": "기본 ping 호스트",
+    "pt-BR": "Host padrão de ping",
+    "zh-Hans": "默认 Ping 主机"
+  },
+  "Disk speed test": {
+    "de": "Speichertest",
+    "es": "Prueba de velocidad de disco",
+    "fr": "Test de vitesse du stockage",
+    "it": "Test velocità archiviazione",
+    "ja": "ストレージ速度テスト",
+    "ko": "저장 공간 속도 테스트",
+    "pt-BR": "Teste de velocidade do armazenamento",
+    "zh-Hans": "存储速度测试"
+  },
+  "Dock": {
+    "de": "Dock",
+    "es": "Base",
+    "fr": "Station d’accueil",
+    "it": "Dock",
+    "ja": "ドック",
+    "ko": "독",
+    "pt-BR": "Base",
+    "zh-Hans": "底座"
+  },
+  "Emergency": {
+    "de": "Notfall",
+    "es": "Emergencia",
+    "fr": "Urgence",
+    "it": "Emergenza",
+    "ja": "緊急",
+    "ko": "긴급",
+    "pt-BR": "Emergência",
+    "zh-Hans": "紧急"
+  },
+  "Estimated bandwidth": {
+    "de": "Geschätzte Bandbreite",
+    "es": "Ancho de banda estimado",
+    "fr": "Bande passante estimée",
+    "it": "Banda stimata",
+    "ja": "推定帯域幅",
+    "ko": "예상 대역폭",
+    "pt-BR": "Largura de banda estimada",
+    "zh-Hans": "估计带宽"
+  },
+  "External": {
+    "de": "Extern",
+    "es": "Externo",
+    "fr": "Externe",
+    "it": "Esterno",
+    "ja": "外部",
+    "ko": "외부",
+    "pt-BR": "Externo",
+    "zh-Hans": "外部"
+  },
+  "Failure": {
+    "de": "Fehler",
+    "es": "Fallo",
+    "fr": "Défaillance",
+    "it": "Guasto",
+    "ja": "異常",
+    "ko": "오류",
+    "pt-BR": "Falha",
+    "zh-Hans": "故障"
+  },
+  "Good": {
+    "de": "Gut",
+    "es": "Buena",
+    "fr": "Bon",
+    "it": "Buono",
+    "ja": "良好",
+    "ko": "양호",
+    "pt-BR": "Boa",
+    "zh-Hans": "良好"
+  },
+  "Headroom": {
+    "de": "Spielraum",
+    "es": "Margen",
+    "fr": "Marge",
+    "it": "Margine",
+    "ja": "余裕",
+    "ko": "여유",
+    "pt-BR": "Margem",
+    "zh-Hans": "余量"
+  },
+  "Hop locations": {
+    "de": "Hop-Standorte",
+    "es": "Ubicación de los saltos",
+    "fr": "Emplacement des sauts",
+    "it": "Posizione degli hop",
+    "ja": "ホップの位置",
+    "ko": "홉 위치",
+    "pt-BR": "Localização dos saltos",
+    "zh-Hans": "跃点位置"
+  },
+  "Hop locations: installed": {
+    "de": "Hop-Standorte: installiert",
+    "es": "Ubicación de los saltos: instalada",
+    "fr": "Emplacement des sauts : installé",
+    "it": "Posizione degli hop: installata",
+    "ja": "ホップの位置：インストール済み",
+    "ko": "홉 위치: 설치됨",
+    "pt-BR": "Localização dos saltos: instalada",
+    "zh-Hans": "跃点位置：已安装"
+  },
+  "Hop locations: not installed": {
+    "de": "Hop-Standorte: nicht installiert",
+    "es": "Ubicación de los saltos: no instalada",
+    "fr": "Emplacement des sauts : non installé",
+    "it": "Posizione degli hop: non installata",
+    "ja": "ホップの位置：未インストール",
+    "ko": "홉 위치: 설치 안 됨",
+    "pt-BR": "Localização dos saltos: não instalada",
+    "zh-Hans": "跃点位置：未安装"
+  },
+  "Host or IP address": {
+    "de": "Host oder IP-Adresse",
+    "es": "Host o dirección IP",
+    "fr": "Hôte ou adresse IP",
+    "it": "Host o indirizzo IP",
+    "ja": "ホストまたは IP アドレス",
+    "ko": "호스트 또는 IP 주소",
+    "pt-BR": "Host ou endereço IP",
+    "zh-Hans": "主机或 IP 地址"
+  },
+  "How far the device is from thermal throttling over the next 10 seconds, as Android forecasts it.": {
+    "de": "Wie weit das Gerät laut Android-Prognose in den nächsten 10 Sekunden von thermischer Drosselung entfernt ist.",
+    "es": "Cuánto le falta al dispositivo para limitar su rendimiento por calor en los próximos 10 segundos, según la previsión de Android.",
+    "fr": "L’écart entre l’appareil et la limitation thermique au cours des 10 prochaines secondes, selon la prévision d’Android.",
+    "it": "Quanto manca al throttling termico nei prossimi 10 secondi, secondo la previsione di Android.",
+    "ja": "Android の予測による、今後 10 秒間でサーマルスロットリングまでの余裕。",
+    "ko": "Android 예측에 따른, 향후 10초 동안 발열로 인한 성능 제한까지의 여유.",
+    "pt-BR": "Quanto falta para o limite térmico nos próximos 10 segundos, segundo a previsão do Android.",
+    "zh-Hans": "按 Android 预测，未来 10 秒内距离触发温控降频的余量。"
+  },
+  "Identifier": {
+    "de": "Kennung",
+    "es": "Identificador",
+    "fr": "Identifiant",
+    "it": "Identificatore",
+    "ja": "識別子",
+    "ko": "식별자",
+    "pt-BR": "Identificador",
+    "zh-Hans": "标识符"
+  },
+  "In use": {
+    "de": "Belegt",
+    "es": "En uso",
+    "fr": "Utilisée",
+    "it": "In uso",
+    "ja": "使用中",
+    "ko": "사용 중",
+    "pt-BR": "Em uso",
+    "zh-Hans": "已用"
+  },
+  "Internal storage": {
+    "de": "Interner Speicher",
+    "es": "Almacenamiento interno",
+    "fr": "Stockage interne",
+    "it": "Memoria interna",
+    "ja": "内部ストレージ",
+    "ko": "내부 저장 공간",
+    "pt-BR": "Armazenamento interno",
+    "zh-Hans": "内部存储"
+  },
+  "Last result": {
+    "de": "Letztes Ergebnis",
+    "es": "Último resultado",
+    "fr": "Dernier résultat",
+    "it": "Ultimo risultato",
+    "ja": "前回の結果",
+    "ko": "최근 결과",
+    "pt-BR": "Último resultado",
+    "zh-Hans": "上次结果"
+  },
+  "Latency": {
+    "de": "Latenz",
+    "es": "Latencia",
+    "fr": "Latence",
+    "it": "Latenza",
+    "ja": "レイテンシ",
+    "ko": "지연 시간",
+    "pt-BR": "Latência",
+    "zh-Hans": "延迟"
+  },
+  "Latency under load": {
+    "de": "Latenz unter Last",
+    "es": "Latencia bajo carga",
+    "fr": "Latence sous charge",
+    "it": "Latenza sotto carico",
+    "ja": "負荷時のレイテンシ",
+    "ko": "부하 시 지연 시간",
+    "pt-BR": "Latência sob carga",
+    "zh-Hans": "负载下延迟"
+  },
+  "Load 1/5/15": {
+    "de": "Last 1/5/15",
+    "es": "Carga 1/5/15",
+    "fr": "Charge 1/5/15",
+    "it": "Carico 1/5/15",
+    "ja": "負荷 1/5/15",
+    "ko": "부하 1/5/15",
+    "pt-BR": "Carga 1/5/15",
+    "zh-Hans": "负载 1/5/15"
+  },
+  "Local": {
+    "de": "Lokal",
+    "es": "Local",
+    "fr": "Locale",
+    "it": "Locale",
+    "ja": "ローカル",
+    "ko": "로컬",
+    "pt-BR": "Local",
+    "zh-Hans": "本地"
+  },
+  "Looking up…": {
+    "de": "Wird ermittelt …",
+    "es": "Consultando…",
+    "fr": "Recherche…",
+    "it": "Ricerca…",
+    "ja": "取得中…",
+    "ko": "조회 중…",
+    "pt-BR": "Consultando…",
+    "zh-Hans": "正在查询…"
+  },
+  "Low-memory threshold": {
+    "de": "Schwelle für wenig Speicher",
+    "es": "Umbral de memoria baja",
+    "fr": "Seuil de mémoire faible",
+    "it": "Soglia di memoria bassa",
+    "ja": "メモリ不足のしきい値",
+    "ko": "메모리 부족 임계값",
+    "pt-BR": "Limite de pouca memória",
+    "zh-Hans": "低内存阈值"
+  },
+  "Measure what this device can actually do — CPU, memory and GPU throughput scored in Blip's fixed reference units, comparable with every other device running Blip.": {
+    "de": "Miss, was dieses Gerät wirklich kann – CPU-, Speicher- und GPU-Durchsatz in Blips festen Referenzeinheiten, vergleichbar mit jedem anderen Gerät mit Blip.",
+    "es": "Mide lo que este dispositivo puede hacer de verdad: rendimiento de CPU, memoria y GPU en las unidades de referencia fijas de Blip, comparable con cualquier otro dispositivo con Blip.",
+    "fr": "Mesurez ce que cet appareil sait vraiment faire : débit processeur, mémoire et GPU dans les unités de référence fixes de Blip, comparable à tout autre appareil équipé de Blip.",
+    "it": "Misura cosa sa fare davvero questo dispositivo: throughput di CPU, memoria e GPU nelle unità di riferimento fisse di Blip, confrontabile con ogni altro dispositivo con Blip.",
+    "ja": "このデバイスの実力を測定します。CPU・メモリ・GPU の処理量を Blip 固定の基準単位でスコア化し、Blip を使うすべてのデバイスと比較できます。",
+    "ko": "이 기기의 실제 성능을 측정합니다. CPU·메모리·GPU 처리량을 Blip의 고정 기준 단위로 점수화해 Blip을 쓰는 모든 기기와 비교할 수 있습니다.",
+    "pt-BR": "Meça o que este dispositivo realmente consegue — vazão de CPU, memória e GPU nas unidades de referência fixas do Blip, comparável com qualquer outro dispositivo com Blip.",
+    "zh-Hans": "测量这台设备的真实能力——以 Blip 固定基准单位为 CPU、内存和 GPU 吞吐量评分，可与所有运行 Blip 的设备比较。"
+  },
+  "Model": {
+    "de": "Modell",
+    "es": "Modelo",
+    "fr": "Modèle",
+    "it": "Modello",
+    "ja": "モデル",
+    "ko": "모델",
+    "pt-BR": "Modelo",
+    "zh-Hans": "型号"
+  },
+  "Moderate": {
+    "de": "Mäßig",
+    "es": "Moderado",
+    "fr": "Modéré",
+    "it": "Moderato",
+    "ja": "中程度",
+    "ko": "보통",
+    "pt-BR": "Moderado",
+    "zh-Hans": "中等"
+  },
+  "Network tools": {
+    "de": "Netzwerk-Tools",
+    "es": "Herramientas de red",
+    "fr": "Outils réseau",
+    "it": "Strumenti di rete",
+    "ja": "ネットワークツール",
+    "ko": "네트워크 도구",
+    "pt-BR": "Ferramentas de rede",
+    "zh-Hans": "网络工具"
+  },
+  "No throttling": {
+    "de": "Keine Drosselung",
+    "es": "Sin limitación",
+    "fr": "Aucune limitation",
+    "it": "Nessun throttling",
+    "ja": "スロットリングなし",
+    "ko": "성능 제한 없음",
+    "pt-BR": "Sem limitação",
+    "zh-Hans": "无降频"
+  },
+  "Not charging": {
+    "de": "Lädt nicht",
+    "es": "No se está cargando",
+    "fr": "Pas en charge",
+    "it": "Non in carica",
+    "ja": "充電していません",
+    "ko": "충전 안 함",
+    "pt-BR": "Não está carregando",
+    "zh-Hans": "未在充电"
+  },
+  "Offline map data is installed (DB-IP Lite).": {
+    "de": "Offline-Standortdaten sind installiert (DB-IP Lite).",
+    "es": "Los datos de ubicación sin conexión están instalados (DB-IP Lite).",
+    "fr": "Les données de localisation hors ligne sont installées (DB-IP Lite).",
+    "it": "I dati di posizione offline sono installati (DB-IP Lite).",
+    "ja": "オフラインの位置データがインストール済みです（DB-IP Lite）。",
+    "ko": "오프라인 위치 데이터가 설치되어 있습니다(DB-IP Lite).",
+    "pt-BR": "Os dados de localização off-line estão instalados (DB-IP Lite).",
+    "zh-Hans": "已安装离线位置数据（DB-IP Lite）。"
+  },
+  "Open Blip once to measure": {
+    "de": "Öffne Blip einmal zum Messen",
+    "es": "Abre Blip una vez para medir",
+    "fr": "Ouvrez Blip une fois pour mesurer",
+    "it": "Apri Blip una volta per misurare",
+    "ja": "計測するには Blip を一度開いてください",
+    "ko": "측정하려면 Blip을 한 번 여세요",
+    "pt-BR": "Abra o Blip uma vez para medir",
+    "zh-Hans": "打开一次 Blip 以开始测量"
+  },
+  "Other": {
+    "de": "Andere",
+    "es": "Otra",
+    "fr": "Autre",
+    "it": "Altro",
+    "ja": "その他",
+    "ko": "기타",
+    "pt-BR": "Outra",
+    "zh-Hans": "其他"
+  },
+  "Over voltage": {
+    "de": "Überspannung",
+    "es": "Sobretensión",
+    "fr": "Surtension",
+    "it": "Sovratensione",
+    "ja": "過電圧",
+    "ko": "과전압",
+    "pt-BR": "Sobretensão",
+    "zh-Hans": "过压"
+  },
+  "Overheating": {
+    "de": "Überhitzt",
+    "es": "Sobrecalentada",
+    "fr": "Surchauffe",
+    "it": "Surriscaldata",
+    "ja": "過熱",
+    "ko": "과열",
+    "pt-BR": "Superaquecida",
+    "zh-Hans": "过热"
+  },
+  "Path": {
+    "de": "Pfad",
+    "es": "Ruta",
+    "fr": "Chemin",
+    "it": "Percorso",
+    "ja": "経路",
+    "ko": "경로",
+    "pt-BR": "Caminho",
+    "zh-Hans": "路径"
+  },
+  "Physical": {
+    "de": "Physisch",
+    "es": "Física",
+    "fr": "Physique",
+    "it": "Fisica",
+    "ja": "物理メモリ",
+    "ko": "물리적",
+    "pt-BR": "Física",
+    "zh-Hans": "物理内存"
+  },
+  "Power source": {
+    "de": "Stromquelle",
+    "es": "Fuente de alimentación",
+    "fr": "Source d’alimentation",
+    "it": "Alimentazione",
+    "ja": "電源",
+    "ko": "전원",
+    "pt-BR": "Fonte de energia",
+    "zh-Hans": "电源"
+  },
+  "Preparing…": {
+    "de": "Wird vorbereitet …",
+    "es": "Preparando…",
+    "fr": "Préparation…",
+    "it": "Preparazione…",
+    "ja": "準備中…",
+    "ko": "준비 중…",
+    "pt-BR": "Preparando…",
+    "zh-Hans": "正在准备…"
+  },
+  "Private DNS": {
+    "de": "Privates DNS",
+    "es": "DNS privado",
+    "fr": "DNS privé",
+    "it": "DNS privato",
+    "ja": "プライベート DNS",
+    "ko": "비공개 DNS",
+    "pt-BR": "DNS particular",
+    "zh-Hans": "私人 DNS"
+  },
+  "Public IP": {
+    "de": "Öffentliche IP",
+    "es": "IP pública",
+    "fr": "IP publique",
+    "it": "IP pubblico",
+    "ja": "パブリック IP",
+    "ko": "공인 IP",
+    "pt-BR": "IP público",
+    "zh-Hans": "公网 IP"
+  },
+  "Quick": {
+    "de": "Schnell",
+    "es": "Rápido",
+    "fr": "Rapide",
+    "it": "Rapido",
+    "ja": "クイック",
+    "ko": "빠르게",
+    "pt-BR": "Rápido",
+    "zh-Hans": "快速"
+  },
+  "Run a benchmark in Blip": {
+    "de": "Starte einen Benchmark in Blip",
+    "es": "Ejecuta un benchmark en Blip",
+    "fr": "Lancez un benchmark dans Blip",
+    "it": "Esegui un benchmark in Blip",
+    "ja": "Blip でベンチマークを実行",
+    "ko": "Blip에서 벤치마크를 실행하세요",
+    "pt-BR": "Execute um benchmark no Blip",
+    "zh-Hans": "在 Blip 中运行基准测试"
+  },
+  "SD card": {
+    "de": "SD-Karte",
+    "es": "Tarjeta SD",
+    "fr": "Carte SD",
+    "it": "Scheda SD",
+    "ja": "SD カード",
+    "ko": "SD 카드",
+    "pt-BR": "Cartão SD",
+    "zh-Hans": "SD 卡"
+  },
+  "Security patch": {
+    "de": "Sicherheitspatch",
+    "es": "Parche de seguridad",
+    "fr": "Correctif de sécurité",
+    "it": "Patch di sicurezza",
+    "ja": "セキュリティパッチ",
+    "ko": "보안 패치",
+    "pt-BR": "Patch de segurança",
+    "zh-Hans": "安全补丁"
+  },
+  "Sent": {
+    "de": "Gesendet",
+    "es": "Enviados",
+    "fr": "Envoyés",
+    "it": "Inviati",
+    "ja": "送信",
+    "ko": "보냄",
+    "pt-BR": "Enviados",
+    "zh-Hans": "已发送"
+  },
+  "Server address": {
+    "de": "Serveradresse",
+    "es": "Dirección del servidor",
+    "fr": "Adresse du serveur",
+    "it": "Indirizzo del server",
+    "ja": "サーバのアドレス",
+    "ko": "서버 주소",
+    "pt-BR": "Endereço do servidor",
+    "zh-Hans": "服务器地址"
+  },
+  "Severe": {
+    "de": "Schwer",
+    "es": "Grave",
+    "fr": "Sévère",
+    "it": "Grave",
+    "ja": "重度",
+    "ko": "심각",
+    "pt-BR": "Grave",
+    "zh-Hans": "严重"
+  },
+  "Share snapshot": {
+    "de": "Snapshot teilen",
+    "es": "Compartir instantánea",
+    "fr": "Partager un instantané",
+    "it": "Condividi istantanea",
+    "ja": "スナップショットを共有",
+    "ko": "스냅샷 공유",
+    "pt-BR": "Compartilhar instantâneo",
+    "zh-Hans": "共享快照"
+  },
+  "Show public IP": {
+    "de": "Öffentliche IP zeigen",
+    "es": "Mostrar IP pública",
+    "fr": "Afficher l’IP publique",
+    "it": "Mostra IP pubblico",
+    "ja": "パブリック IP を表示",
+    "ko": "공인 IP 보기",
+    "pt-BR": "Mostrar IP público",
+    "zh-Hans": "显示公网 IP"
+  },
+  "Shutdown": {
+    "de": "Abschaltung",
+    "es": "Apagado",
+    "fr": "Arrêt",
+    "it": "Spegnimento",
+    "ja": "シャットダウン",
+    "ko": "종료",
+    "pt-BR": "Desligamento",
+    "zh-Hans": "关机"
+  },
+  "Signal": {
+    "de": "Signal",
+    "es": "Señal",
+    "fr": "Signal",
+    "it": "Segnale",
+    "ja": "信号",
+    "ko": "신호",
+    "pt-BR": "Sinal",
+    "zh-Hans": "信号"
+  },
+  "Since boot": {
+    "de": "Seit dem Start",
+    "es": "Desde el arranque",
+    "fr": "Depuis le démarrage",
+    "it": "Dall’avvio",
+    "ja": "起動から",
+    "ko": "부팅 후",
+    "pt-BR": "Desde a inicialização",
+    "zh-Hans": "自启动以来"
+  },
+  "Speed test server": {
+    "de": "Speedtest-Server",
+    "es": "Servidor de test de velocidad",
+    "fr": "Serveur du test de vitesse",
+    "it": "Server del test di velocità",
+    "ja": "スピードテストのサーバ",
+    "ko": "속도 테스트 서버",
+    "pt-BR": "Servidor do teste de velocidade",
+    "zh-Hans": "速度测试服务器"
+  },
+  "Storage is nearly full (%@ left). Android slows down and updates fail when space runs out — clear app caches or move photos and videos off in Settings › Storage.": {
+    "de": "Der Speicher ist fast voll (noch %@). Android wird langsamer und Updates schlagen fehl, wenn der Platz ausgeht – leere App-Caches oder verschiebe Fotos und Videos unter Einstellungen › Speicher.",
+    "es": "El almacenamiento está casi lleno (quedan %@). Android se ralentiza y las actualizaciones fallan cuando se agota el espacio: borra cachés de apps o mueve fotos y vídeos en Ajustes › Almacenamiento.",
+    "fr": "Le stockage est presque plein (%@ restants). Android ralentit et les mises à jour échouent quand l’espace manque : videz le cache des apps ou déplacez photos et vidéos dans Paramètres › Stockage.",
+    "it": "Lo spazio è quasi esaurito (restano %@). Android rallenta e gli aggiornamenti falliscono quando lo spazio finisce: svuota la cache delle app o sposta foto e video in Impostazioni › Spazio di archiviazione.",
+    "ja": "ストレージがほぼいっぱいです（残り %@）。空き容量がなくなると Android の動作が遅くなり、アップデートも失敗します。設定 › ストレージ でアプリのキャッシュを消去するか、写真や動画を移動してください。",
+    "ko": "저장 공간이 거의 가득 찼습니다(%@ 남음). 공간이 부족하면 Android가 느려지고 업데이트가 실패합니다. 설정 › 저장용량에서 앱 캐시를 지우거나 사진과 동영상을 옮기세요.",
+    "pt-BR": "O armazenamento está quase cheio (restam %@). O Android fica lento e as atualizações falham sem espaço — limpe o cache dos apps ou mova fotos e vídeos em Configurações › Armazenamento.",
+    "zh-Hans": "存储空间即将用尽（剩余 %@）。空间不足时 Android 会变慢且更新会失败——请在“设置 › 存储”中清除应用缓存或移走照片和视频。"
+  },
+  "Swap (zram)": {
+    "de": "Swap (zram)",
+    "es": "Swap (zram)",
+    "fr": "Swap (zram)",
+    "it": "Swap (zram)",
+    "ja": "Swap (zram)",
+    "ko": "Swap (zram)",
+    "pt-BR": "Swap (zram)",
+    "zh-Hans": "Swap (zram)"
+  },
+  "The full run takes about 90 seconds, including 45 seconds of sustained load to measure throttling. Keep Blip open.": {
+    "de": "Der volle Durchlauf dauert etwa 90 Sekunden, davon 45 Sekunden Dauerlast zur Messung der Drosselung. Lass Blip geöffnet.",
+    "es": "La prueba completa dura unos 90 segundos, incluidos 45 de carga sostenida para medir la limitación. Mantén Blip abierto.",
+    "fr": "Le test complet dure environ 90 secondes, dont 45 secondes de charge soutenue pour mesurer la limitation. Gardez Blip ouvert.",
+    "it": "Il test completo dura circa 90 secondi, di cui 45 di carico prolungato per misurare il throttling. Tieni Blip aperto.",
+    "ja": "フルテストは約 90 秒で、うち 45 秒はスロットリングを測る連続負荷です。Blip を開いたままにしてください。",
+    "ko": "전체 테스트는 약 90초가 걸리며, 그중 45초는 성능 제한을 측정하는 지속 부하입니다. Blip을 열어 두세요.",
+    "pt-BR": "O teste completo leva cerca de 90 segundos, incluindo 45 de carga contínua para medir a limitação. Mantenha o Blip aberto.",
+    "zh-Hans": "完整测试约需 90 秒，其中 45 秒为持续负载，用于测量降频。请保持 Blip 打开。"
+  },
+  "The public test didn't finish. Try again, or use a self-hosted server.": {
+    "de": "Der öffentliche Test wurde nicht beendet. Versuche es erneut oder nutze einen eigenen Server.",
+    "es": "La prueba pública no terminó. Vuelve a intentarlo o usa un servidor propio.",
+    "fr": "Le test public n’a pas abouti. Réessayez ou utilisez un serveur auto-hébergé.",
+    "it": "Il test pubblico non è terminato. Riprova o usa un server self-hosted.",
+    "ja": "公開テストが完了しませんでした。もう一度試すか、セルフホストのサーバを使ってください。",
+    "ko": "공개 테스트가 끝나지 않았습니다. 다시 시도하거나 자체 호스팅 서버를 사용하세요.",
+    "pt-BR": "O teste público não terminou. Tente de novo ou use um servidor próprio.",
+    "zh-Hans": "公共测试未完成。请重试，或使用自托管服务器。"
+  },
+  "The system reports low memory: apps in the background are being closed.": {
+    "de": "Das System meldet wenig Speicher: Apps im Hintergrund werden geschlossen.",
+    "es": "El sistema indica poca memoria: se están cerrando apps en segundo plano.",
+    "fr": "Le système signale une mémoire faible : des apps en arrière-plan sont fermées.",
+    "it": "Il sistema segnala poca memoria: le app in background vengono chiuse.",
+    "ja": "システムがメモリ不足を報告しています。バックグラウンドのアプリが終了されています。",
+    "ko": "시스템이 메모리 부족을 알리고 있습니다. 백그라운드 앱이 종료되고 있습니다.",
+    "pt-BR": "O sistema informa pouca memória: apps em segundo plano estão sendo fechados.",
+    "zh-Hans": "系统报告内存不足：正在关闭后台应用。"
+  },
+  "Thermal status": {
+    "de": "Thermischer Status",
+    "es": "Estado térmico",
+    "fr": "État thermique",
+    "it": "Stato termico",
+    "ja": "温度ステータス",
+    "ko": "발열 상태",
+    "pt-BR": "Estado térmico",
+    "zh-Hans": "温度状态"
+  },
+  "This device blocks unprivileged ICMP, so ping and traceroute can't run here.": {
+    "de": "Dieses Gerät blockiert ICMP ohne Sonderrechte, daher sind Ping und Traceroute hier nicht möglich.",
+    "es": "Este dispositivo bloquea ICMP sin privilegios, así que ping y traceroute no pueden funcionar aquí.",
+    "fr": "Cet appareil bloque l’ICMP non privilégié : ping et traceroute ne peuvent pas fonctionner ici.",
+    "it": "Questo dispositivo blocca l’ICMP non privilegiato, quindi ping e traceroute non possono funzionare qui.",
+    "ja": "このデバイスは非特権 ICMP をブロックしているため、ping とトレースルートは使えません。",
+    "ko": "이 기기는 권한 없는 ICMP를 차단하므로 ping과 트레이스라우트를 실행할 수 없습니다.",
+    "pt-BR": "Este dispositivo bloqueia ICMP sem privilégios, então ping e traceroute não funcionam aqui.",
+    "zh-Hans": "此设备阻止非特权 ICMP，因此无法在此运行 Ping 和路由跟踪。"
+  },
+  "Timeout": {
+    "de": "Zeitüberschreitung",
+    "es": "Sin respuesta",
+    "fr": "Délai dépassé",
+    "it": "Timeout",
+    "ja": "タイムアウト",
+    "ko": "시간 초과",
+    "pt-BR": "Tempo esgotado",
+    "zh-Hans": "超时"
+  },
+  "Trace": {
+    "de": "Verfolgen",
+    "es": "Trazar",
+    "fr": "Tracer",
+    "it": "Traccia",
+    "ja": "トレース",
+    "ko": "추적",
+    "pt-BR": "Rastrear",
+    "zh-Hans": "跟踪"
+  },
+  "USB": {
+    "de": "USB",
+    "es": "USB",
+    "fr": "USB",
+    "it": "USB",
+    "ja": "USB",
+    "ko": "USB",
+    "pt-BR": "USB",
+    "zh-Hans": "USB"
+  },
+  "Unplugged": {
+    "de": "Nicht angeschlossen",
+    "es": "Desconectado",
+    "fr": "Débranché",
+    "it": "Scollegato",
+    "ja": "電源未接続",
+    "ko": "전원 연결 안 됨",
+    "pt-BR": "Desconectado",
+    "zh-Hans": "未接通电源"
+  },
+  "Voltage": {
+    "de": "Spannung",
+    "es": "Voltaje",
+    "fr": "Tension",
+    "it": "Tensione",
+    "ja": "電圧",
+    "ko": "전압",
+    "pt-BR": "Tensão",
+    "zh-Hans": "电压"
+  },
+  "Wireless": {
+    "de": "Kabellos",
+    "es": "Inalámbrica",
+    "fr": "Sans fil",
+    "it": "Wireless",
+    "ja": "ワイヤレス",
+    "ko": "무선",
+    "pt-BR": "Sem fio",
+    "zh-Hans": "无线"
+  },
+  "Writes and reads a test file with the cache bypassed, then deletes it.": {
+    "de": "Schreibt und liest eine Testdatei am Cache vorbei und löscht sie danach.",
+    "es": "Escribe y lee un archivo de prueba sin pasar por la caché y luego lo elimina.",
+    "fr": "Écrit puis lit un fichier de test sans passer par le cache, puis le supprime.",
+    "it": "Scrive e legge un file di prova aggirando la cache, poi lo elimina.",
+    "ja": "キャッシュを経由せずにテストファイルを書き込み・読み込みし、その後削除します。",
+    "ko": "캐시를 거치지 않고 테스트 파일을 쓰고 읽은 뒤 삭제합니다.",
+    "pt-BR": "Grava e lê um arquivo de teste sem passar pelo cache e depois o apaga.",
+    "zh-Hans": "绕过缓存写入并读取测试文件，然后将其删除。"
+  },
+  "best %@": {
+    "de": "Bestwert %@",
+    "es": "mejor %@",
+    "fr": "record %@",
+    "it": "migliore %@",
+    "ja": "最高 %@",
+    "ko": "최고 %@",
+    "pt-BR": "melhor %@",
+    "zh-Hans": "最佳 %@"
+  }
+}

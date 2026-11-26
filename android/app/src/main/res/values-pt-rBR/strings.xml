@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="shortcut_bench">Executar benchmark</string>
+    <string name="shortcut_speed">Executar teste de velocidade</string>
+    <string name="shortcut_snapshot">Compartilhar instantâneo</string>
+    <string name="widget_bench">Sua pontuação mais recente no Blip Bench</string>
+    <string name="widget_storage">Quanto do armazenamento está ocupado</string>
+    <string name="widget_speed">Seu último teste de velocidade</string>
+</resources>

@@ -56,9 +56,13 @@ pub fn init(data_dir: &str, language: &str, device_model: &str, os_version: &str
     let os = os_version.to_string();
     CORE.get_or_init(|| {
         let geo = GeoDb::new();
-        geo.load_if_present();
-        // Monthly DB-IP refresh while it stays installed (a no-op when absent or current).
-        geo.auto_update_check(None);
+        // Off the caller's thread: the app calls this from the UI thread at launch, and the
+        // database is large. Then the monthly DB-IP refresh (a no-op when absent or current).
+        let loading = geo.clone();
+        std::thread::spawn(move || {
+            loading.load_if_present();
+            loading.auto_update_check(None);
+        });
         Core {
             bench: BenchEngine::new(
                 Arc::new(AppThermal),

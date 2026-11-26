@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="shortcut_bench">벤치마크 실행</string>
+    <string name="shortcut_speed">속도 테스트 실행</string>
+    <string name="shortcut_snapshot">스냅샷 공유</string>
+    <string name="widget_bench">최근 Blip Bench 점수</string>
+    <string name="widget_storage">저장 공간 사용량</string>
+    <string name="widget_speed">최근 속도 테스트</string>
+</resources>

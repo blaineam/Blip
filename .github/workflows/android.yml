@@ -1,0 +1,117 @@
+# Blip for Android: strings, native-core lint and tests, Kotlin unit tests, Android lint, then the
+# shrunk release build installed and launched on emulators (code shrinking is what breaks JNI, so a
+# debug-only check would prove little). The APK artifact is signed with a throwaway debug key: it is
+# for testing, not for distribution. Dispatch it by hand when a push carries [ci skip].
+name: Android
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'android/**'
+      - 'desktop/crates/**'
+      - 'desktop/Cargo.lock'
+      - '.github/workflows/android.yml'
+  pull_request:
+    paths:
+      - 'android/**'
+      - 'desktop/crates/**'
+      - 'desktop/Cargo.lock'
+      - '.github/workflows/android.yml'
+  workflow_dispatch: {}
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: ubuntu-24.04
+    env:
+      RUSTFLAGS: -D warnings
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      # Also validates the checked-in Gradle wrapper jar.
+      - uses: gradle/actions/setup-gradle@v4
+
+      - name: Rust toolchain, NDK and cargo-ndk
+        run: |
+          rustup update stable --no-self-update
+          rustup default stable
+          rustup target add aarch64-linux-android armv7-linux-androideabi x86_64-linux-android
+          rustup component add clippy rustfmt
+          "$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" "ndk;27.1.12297006" >/dev/null
+          echo "ANDROID_NDK_HOME=$ANDROID_HOME/ndk/27.1.12297006" >> "$GITHUB_ENV"
+          cargo install cargo-ndk --locked
+
+      - name: Strings are current
+        working-directory: android
+        run: python3 tools/gen_strings.py && git diff --exit-code -- app/src/main/assets/strings.json
+
+      - name: Native core (format, clippy for Android, tests)
+        working-directory: desktop
+        run: |
+          cargo fmt --all --check
+          cargo ndk -t arm64-v8a -P 29 clippy --locked -p blip-android -- -D warnings
+          cargo test --locked -p blip-android
+
+      - name: Unit tests, lint, release APK
+        working-directory: android
+        run: ./gradlew --no-daemon -PdebugSignedRelease :app:testDebugUnitTest :app:lintDebug :app:assembleRelease
+
+      - name: Every ABI is in the APK
+        working-directory: android
+        run: |
+          apk=app/build/outputs/apk/release/app-release.apk
+          for abi in arm64-v8a armeabi-v7a x86_64; do
+            unzip -l "$apk" | grep -q "lib/$abi/libblip_android.so" || { echo "::error::no $abi library"; exit 1; }
+          done
+          ls -l "$apk"
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: Blip-android-test-apk
+          path: android/app/build/outputs/apk/release/app-release.apk
+          retention-days: 14
+
+  smoke:
+    needs: build
+    runs-on: ubuntu-24.04
+    strategy:
+      fail-fast: false
+      matrix:
+        api: [29, 35]
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: actions/download-artifact@v4
+        with:
+          name: Blip-android-test-apk
+          path: apk
+
+      - name: Let the emulator use KVM
+        run: |
+          echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm4all.rules
+          sudo udevadm control --reload-rules
+          sudo udevadm trigger --name-match=kvm
+
+      - name: Install, launch and visit every screen (API ${{ matrix.api }})
+        uses: reactivecircus/android-emulator-runner@v2
+        with:
+          api-level: ${{ matrix.api }}
+          arch: x86_64
+          target: google_apis
+          script: android/tools/smoke.sh apk/app-release.apk shots
+
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: Blip-android-smoke-api${{ matrix.api }}
+          path: shots/
+          if-no-files-found: ignore
+          retention-days: 7

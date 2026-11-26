@@ -70,6 +70,14 @@ tray icon, no admin/root anywhere.
 - [ ] First run on real Linux desktops by the owner (SNI click position and popover
       placement per DE, click-away, UDisks SMART, Pi V3D, Keep Awake lid lock, jiggle on X11).
 
+## Android (`../android`, bridge in `crates/android`)
+- [x] App built and unit-tested; the shrunk release APK passes `android/tools/smoke.sh` on an
+      emulator (`android.yml` repeats it on API 29 and 35). Local builds: queue with `buildq`,
+      set `BLIP_ANDROID_BUILD_DIR` to keep output out of iCloud.
+- [ ] A physical device: GPU bench leg (Vulkan/GLES; emulators have only software GPUs),
+      cpufreq clusters, battery fields, thermal headroom, widgets on a real launcher.
+- [ ] Distribution (the owner's call): release signing key, Play Store or APK on GitHub.
+
 ## Linux parity limits (no root)
 - Tray needs a StatusNotifierItem host: stock GNOME (Fedora, Rocky) needs the AppIndicator
   extension; otherwise Blip runs as a window. SteamOS Game Mode has no tray.

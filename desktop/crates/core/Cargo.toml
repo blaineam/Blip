@@ -21,4 +21,8 @@ ureq = { workspace = true, features = ["native-tls"] }
 [target.'cfg(not(windows))'.dependencies]
 ureq = { workspace = true, features = ["rustls"] }
 
+# O_DIRECT and posix_fadvise for the disk speed test.
+[target.'cfg(any(target_os = "linux", target_os = "android"))'.dependencies]
+libc = "0.2"
+
 [dev-dependencies]

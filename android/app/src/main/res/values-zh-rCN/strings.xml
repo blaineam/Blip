@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="shortcut_bench">运行基准测试</string>
+    <string name="shortcut_speed">运行速度测试</string>
+    <string name="shortcut_snapshot">共享快照</string>
+    <string name="widget_bench">最近一次 Blip Bench 得分</string>
+    <string name="widget_storage">存储空间使用情况</string>
+    <string name="widget_speed">最近一次速度测试</string>
+</resources>

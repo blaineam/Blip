@@ -115,6 +115,27 @@ cargo build --release -p blip-desktop      # target/release/Blip + blip-cli
 cargo test --workspace
 ```
 
+## 🤖 Blip for Android
+
+A native Android app (Android 10 or newer; arm64, 32-bit ARM and x86_64) modelled on Blip for iPhone. It needs no runtime permissions, and shares its benchmark, network tests and offline map data code with the Windows and Linux apps. The source is in `android/` (Kotlin and Jetpack Compose) and `desktop/crates/android` (the Rust core).
+
+- **Overview and detail screens:** CPU clock against maximum per core cluster, memory and zram, storage, network and Wi-Fi signal, battery health and current, thermal status and headroom, and device details. Suggestions appear only when Android reports a real signal.
+- **Tools:** Blip Bench, speed tests (OpenSpeedTest public or self-hosted), a disk speed test, ping, and traceroute with offline hop locations.
+- **Android extras:** home-screen widgets for the bench score, storage and last speed test, launcher shortcuts, and a Markdown snapshot you can share.
+- **Localized** in the same nine languages as the Mac.
+
+**What Android keeps from apps:** other apps' CPU time, so Blip shows how hard the cores are clocked instead of a usage figure, and the Wi-Fi network name, which needs location access that Blip doesn't ask for.
+
+**Status:** there's no download yet. Build it from source; it has been tested on an emulator, not yet on a physical device.
+
+```bash
+# Needs JDK 17, the Android SDK with NDK 27.1, Rust with the Android targets, and cargo-ndk
+cd android
+./gradlew :app:assembleDebug                 # every ABI; add -PblipAbis=arm64-v8a for one
+./gradlew :app:testDebugUnitTest :app:lintDebug
+tools/smoke.sh path/to/app.apk shots         # on a running emulator or device
+```
+
 ## 📦 Install
 
 ### Mac App Store

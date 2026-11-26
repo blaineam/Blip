@@ -350,6 +350,7 @@ name = "blip-core"
 version = "2.1.0"
 dependencies = [
  "flate2",
+ "libc",
  "lzfse_rust",
  "maxminddb",
  "rustfft",

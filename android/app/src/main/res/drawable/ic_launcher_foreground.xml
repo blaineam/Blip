@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- The pulse dot and three meters, drawn inside the adaptive-icon safe zone (21–87). -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp" android:height="108dp" android:viewportWidth="108" android:viewportHeight="108">
+    <path android:fillColor="#1F4DD8FF" android:pathData="M54,34m-17,0a17,17 0,1 1,34 0a17,17 0,1 1,-34 0" />
+    <path android:strokeColor="#334DD8FF" android:strokeWidth="0.8" android:fillColor="#00000000"
+        android:pathData="M54,34m-12,0a12,12 0,1 1,24 0a12,12 0,1 1,-24 0" />
+    <path android:strokeColor="#554DD8FF" android:strokeWidth="0.8" android:fillColor="#00000000"
+        android:pathData="M54,34m-8,0a8,8 0,1 1,16 0a8,8 0,1 1,-16 0" />
+    <path android:fillColor="#FF4DD8FF" android:pathData="M54,34m-5,0a5,5 0,1 1,10 0a5,5 0,1 1,-10 0" />
+    <!-- tracks -->
+    <path android:fillColor="#33405A8A" android:pathData="M30,53.5h48a2.5,2.5 0 0,1 0,5h-48a2.5,2.5 0 0,1 0,-5z" />
+    <path android:fillColor="#33405A8A" android:pathData="M30,63.5h48a2.5,2.5 0 0,1 0,5h-48a2.5,2.5 0 0,1 0,-5z" />
+    <path android:fillColor="#33405A8A" android:pathData="M30,73.5h48a2.5,2.5 0 0,1 0,5h-48a2.5,2.5 0 0,1 0,-5z" />
+    <!-- meters -->
+    <path android:fillColor="#FF0A84FF" android:pathData="M30,53.5h26a2.5,2.5 0 0,1 0,5h-26a2.5,2.5 0 0,1 0,-5z" />
+    <path android:fillColor="#FF30D158" android:pathData="M30,63.5h18a2.5,2.5 0 0,1 0,5h-18a2.5,2.5 0 0,1 0,-5z" />
+    <path android:fillColor="#FFFF9F0A" android:pathData="M30,73.5h11a2.5,2.5 0 0,1 0,5h-11a2.5,2.5 0 0,1 0,-5z" />
+</vector>
