@@ -1,5 +1,10 @@
-Blip for Linux (preview)
-========================
+Blip for Linux (beta)
+=====================
+
+This is a beta. If you run into a problem, please open an issue; reports that it works on
+your system help too:
+
+    https://github.com/blaineam/blip/issues/new?template=linux-beta.yml
 
 A featherlight system monitor in the system tray. It needs no root, no package manager and no
 background service: everything it reads is open to your own account.

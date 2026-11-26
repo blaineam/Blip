@@ -1,0 +1,36 @@
+name: Blip for Linux (beta) report
+description: Something broken, wrong or missing in the Linux beta
+title: "[Linux beta] "
+labels: ["linux"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for trying the Linux beta. Reports from real desktops and devices are what will get it out of beta, so please send anything that looks off, however small. Reports that something works well on your distribution help too.
+  - type: input
+    id: version
+    attributes:
+      label: Blip version
+      description: "`blip-cli --version`"
+    validations:
+      required: true
+  - type: input
+    id: system
+    attributes:
+      label: System
+      description: Distribution, architecture, desktop and X11 or Wayland. For a Raspberry Pi or a handheld, name the model too.
+    validations:
+      required: true
+  - type: textarea
+    id: happened
+    attributes:
+      label: What happened
+      description: What you did, what you expected and what you saw. Screenshots help.
+    validations:
+      required: true
+  - type: textarea
+    id: log
+    attributes:
+      label: Log
+      description: "Paste `~/.config/blip/blip.log` if it exists. Look it over first and remove anything you'd rather not post: issues are public."
+      render: text

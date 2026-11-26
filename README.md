@@ -61,7 +61,7 @@ Same repo, same `xcodegen` project: build the `BlipMobile` scheme. Ships on the 
 
 ## 🪟 Blip for Windows
 
-Blip runs on **Windows 10 and 11 (x64 and ARM64) without administrator rights**: no installer, no driver, no background service. It lives in the notification area and opens the same popover and live detail panels as the Mac. The source is in `desktop/`, a Rust workspace that a Linux build will share.
+Blip runs on **Windows 10 and 11 (x64 and ARM64) without administrator rights**: no installer, no driver, no background service. It lives in the notification area and opens the same popover and live detail panels as the Mac. The source is in `desktop/`, a Rust workspace shared with the Linux build.
 
 - **Notification area:** mini bars (CPU / memory / disk / GPU, plus a connectivity dot), one icon per metric showing its number, or the logo alone. The tooltip carries the numbers.
 - **Popover + panels:** hover a row for its live panel, or switch to inline. You can pin the popover open, drag it off, or pin any panel into its own window.
@@ -87,7 +87,7 @@ cargo build --release -p blip-desktop      # target\release\Blip.exe + blip-cli.
 cargo test --workspace
 ```
 
-## 🐧 Blip for Linux (preview)
+## 🐧 Blip for Linux (beta)
 
 The same Rust app runs on **Linux without root**: x64, arm64 and armv7, one build per architecture for every distribution with glibc 2.28 or newer. That covers Ubuntu, Debian and Raspberry Pi OS (64- and 32-bit), Fedora, Rocky/Alma/RHEL 8+, Arch and SteamOS desktop mode. It sits in the system tray (StatusNotifierItem) and opens the same popover and panels. On a desktop without a tray, such as stock GNOME without the AppIndicator extension, it opens as a window.
 
@@ -99,7 +99,14 @@ The same Rust app runs on **Linux without root**: x64, arm64 and armv7, one buil
 
 **Limits:** Wayland doesn't let apps place their own windows, so Blip prefers XWayland where a display exists. The public OpenSpeedTest test opens in your browser; self-hosted servers are measured and graphed in Blip.
 
-**Status:** no Linux download is published yet; build it from source as below.
+**[Download Blip for Linux 2.1.0 beta](https://github.com/blaineam/blip/releases/tag/linux-v2.1.0-beta.1)** (x64, arm64 and armv7). Extract it and run `./install.sh`, or run `./Blip` in place.
+
+> **It's a beta, so please [open an issue](https://github.com/blaineam/blip/issues/new?template=linux-beta.yml) for anything you run into.** It passes CI on x64 and arm64 Linux but hasn't been tried on real Linux desktops or devices yet, and the 32-bit ARM build is compiled only. Reports that it works on your distribution help too.
+
+```bash
+tar -xzf Blip-2.1.0-beta.1-linux-x64.tar.gz
+cd Blip-2.1.0-beta.1-linux-x64 && ./install.sh
+```
 
 ```bash
 # Build from source on Linux (Rust stable)

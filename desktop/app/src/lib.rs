@@ -20,6 +20,7 @@ pub mod install;
 mod panels;
 mod popover;
 mod publictest;
+mod report;
 #[cfg(test)]
 mod screens;
 mod sections;

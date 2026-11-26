@@ -64,6 +64,9 @@ tray icon, no admin/root anywhere.
       Fedora / Arch containers, and on a `linux-v*` tag publishes tarballs as a prerelease.
       Packaging: tarball + per-user `install.sh` — not Flatpak (its sandbox hides the host's
       process list) and not AppImage (FUSE 2 is missing on new distros).
+- [x] `linux-v2.1.0-beta.1` published as a beta (2026-11-26). Releases and docs ask users to
+      open issues (`.github/ISSUE_TEMPLATE/linux-beta.yml`; `app/src/report.rs` prefills it).
+      Keep the beta label until real desktops and devices have been confirmed.
 - [ ] First run on real Linux desktops by the owner (SNI click position and popover
       placement per DE, click-away, UDisks SMART, Pi V3D, Keep Awake lid lock, jiggle on X11).
 

@@ -2,7 +2,7 @@
 # user), offscreen renders, a GUI launch under Xvfb, and portable builds against glibc 2.28 for
 # x64, arm64 and armv7 — then each build is run inside Rocky Linux 8, Ubuntu, Debian and Arch
 # containers to prove one binary covers them. Pushing (or dispatching at) a `linux-v*` tag also
-# publishes the tarballs as a GitHub prerelease; the Mac release.yml only listens for `v*` tags.
+# publishes the tarballs as a beta (a GitHub prerelease); the Mac release.yml only listens for `v*` tags.
 name: Linux
 
 on:
@@ -43,6 +43,12 @@ jobs:
       RUSTFLAGS: -D warnings
     steps:
       - uses: actions/checkout@v5
+
+      - name: Version from tag
+        run: |
+          case "$GITHUB_REF" in
+            refs/tags/linux-v*) echo "BLIP_VERSION=${GITHUB_REF_NAME#linux-v}" >> "$GITHUB_ENV" ;;
+          esac
 
       - name: Rust toolchain
         run: |
@@ -172,7 +178,8 @@ jobs:
           sha256sum *.tar.gz > SHA256SUMS.txt
           cat SHA256SUMS.txt
 
-      - name: Publish prerelease
+      # Linux is in beta: always a GitHub prerelease, and never "Latest" (that is the Mac app).
+      - name: Publish beta
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
@@ -181,6 +188,6 @@ jobs:
           else
             gh release create "$GITHUB_REF_NAME" dist/*.tar.gz dist/SHA256SUMS.txt \
               --prerelease --latest=false --verify-tag \
-              --title "Blip for Linux ${GITHUB_REF_NAME#linux-v} (preview)" \
+              --title "Blip for Linux ${GITHUB_REF_NAME#linux-v} (beta)" \
               --notes-file desktop/linux/RELEASE_NOTES.md
           fi

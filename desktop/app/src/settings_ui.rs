@@ -53,6 +53,15 @@ pub fn show(ui: &mut egui::Ui, app: &App, drafts: &mut Drafts) {
             });
         });
 
+        if cfg!(target_os = "linux") {
+            group(ui, &t("Blip for Linux is in beta"), |ui| {
+                note(ui, &t("If something doesn't work, please open an issue. Your Blip version and system details are filled in for you to check."));
+                if ui.link(t("Report an issue")).clicked() {
+                    blip_platform::open(&crate::report::issue_url());
+                }
+            });
+        }
+
         group(ui, &t("General"), |ui| {
             let mut login = blip_platform::launch_at_login();
             if ui.checkbox(&mut login, t("Launch at login")).changed() {
@@ -308,7 +317,7 @@ pub fn show(ui: &mut egui::Ui, app: &App, drafts: &mut Drafts) {
             ui.separator();
             ui.horizontal_wrapped(|ui| {
                 if ui.link(t("Report an issue")).clicked() {
-                    blip_platform::open("https://github.com/blaineam/blip/issues");
+                    blip_platform::open(&crate::report::issue_url());
                 }
                 if ui.link(t("Source code")).clicked() {
                     blip_platform::open("https://github.com/blaineam/blip");

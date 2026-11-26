@@ -49,6 +49,8 @@ fi
 refresh
 
 echo "Blip is installed. Open it from your app menu, or run: Blip"
+echo "Blip for Linux is in beta. If something doesn't work, please open an issue:"
+echo "  https://github.com/blaineam/blip/issues/new?template=linux-beta.yml"
 case ":$PATH:" in
     *":$bin:"*) ;;
     *) echo "Note: $bin isn't on your PATH yet; the app menu entry works regardless." ;;

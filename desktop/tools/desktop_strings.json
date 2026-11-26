@@ -1638,5 +1638,25 @@
     "ko": "방금",
     "pt-BR": "agora mesmo",
     "zh-Hans": "刚刚"
+  },
+  "Blip for Linux is in beta": {
+    "de": "Blip für Linux ist in der Beta",
+    "es": "Blip para Linux está en beta",
+    "fr": "Blip pour Linux est en bêta",
+    "it": "Blip per Linux è in beta",
+    "ja": "Linux版Blipはベータ版です",
+    "ko": "Linux용 Blip은 베타 버전입니다",
+    "pt-BR": "O Blip para Linux está em beta",
+    "zh-Hans": "Blip Linux 版目前为测试版"
+  },
+  "If something doesn't work, please open an issue. Your Blip version and system details are filled in for you to check.": {
+    "de": "Wenn etwas nicht funktioniert, melde es bitte als Issue. Blip-Version und Systemdaten sind schon ausgefüllt und du kannst sie prüfen.",
+    "es": "Si algo no funciona, abre una incidencia, por favor. La versión de Blip y los datos del sistema ya vienen rellenados para que los revises.",
+    "fr": "Si quelque chose ne fonctionne pas, merci d’ouvrir un ticket. La version de Blip et les informations système sont préremplies pour que vous les vérifiiez.",
+    "it": "Se qualcosa non funziona, apri una segnalazione. La versione di Blip e i dati di sistema sono già compilati, così puoi controllarli.",
+    "ja": "うまく動かないところがあれば、Issueを作成してお知らせください。Blipのバージョンとシステム情報は入力済みなので、確認してから送信できます。",
+    "ko": "작동하지 않는 부분이 있으면 이슈를 등록해 주세요. Blip 버전과 시스템 정보는 미리 입력되어 있어 확인할 수 있습니다.",
+    "pt-BR": "Se algo não funcionar, abra uma issue. A versão do Blip e os dados do sistema já vêm preenchidos para você conferir.",
+    "zh-Hans": "如果有功能无法正常使用，请提交 issue。Blip 版本和系统信息已为您填好，请核对。"
   }
 }

@@ -1,4 +1,10 @@
-**Preview build of Blip for Linux.** No root and no package manager: download the tarball for your machine, extract it, and run `./install.sh` (installs into `~/.local` for your user only), or just run `./Blip` in place.
+## Beta: please tell us what breaks
+
+**Blip for Linux is a beta.** It builds and passes its tests on x64 and arm64 Linux in CI, but it hasn't yet been tried on real Linux desktops and devices, and the 32-bit ARM build has only been compiled, never run. **If you run into a problem, please [open an issue](https://github.com/blaineam/blip/issues/new?template=linux-beta.yml).** Anything that looks off is worth reporting, however small, and so is hearing that it works on your distribution. In the app, **Settings › Report an issue** fills in your version and system details for you.
+
+## Download
+
+**Blip for Linux.** No root and no package manager: download the tarball for your machine, extract it, and run `./install.sh` (installs into `~/.local` for your user only), or just run `./Blip` in place.
 
 | Your machine | Tarball |
 |---|---|
