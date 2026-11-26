@@ -34,11 +34,23 @@ dump() {
     "$adb" shell cat /sdcard/ui.xml 2>/dev/null || true
 }
 
+# Looks further along the page on a small screen: attempt 1 stays put (the screen may still be
+# loading), 2-5 scroll down, 6-9 scroll back up, and so on.
+scroll() {
+    local w h from to
+    read -r w h <<<"$("$adb" shell wm size | tail -1 | grep -oE '[0-9]+x[0-9]+' | tr x ' ')"
+    case $((($1 - 1) % 8)) in
+        0 | 1 | 2 | 3) from=$((h * 65 / 100)) to=$((h * 35 / 100)) ;;
+        *) from=$((h * 35 / 100)) to=$((h * 65 / 100)) ;;
+    esac
+    "$adb" shell input swipe $((w / 2)) "$from" $((w / 2)) "$to" 400
+}
+
 # Taps the centre of the element whose text or description is exactly $1: the first one, or the
 # last with `tap <label> last` (a bottom-bar tab sits after a card of the same name).
 tap() {
-    local xml bounds
-    for _ in 1 2 3 4 5; do
+    local xml bounds i
+    for i in 1 2 3 4 5 6 7 8 9; do
         xml=$(dump)
         bounds=$(printf '%s' "$xml" | tr '>' '\n' |
             grep -E "(text|content-desc)=\"$1\"" | { if [ "${2:-}" = last ]; then tail -1; else head -1; fi; } |
@@ -49,6 +61,7 @@ tap() {
             sleep 2
             return 0
         fi
+        scroll "$i"
         sleep 2
     done
     printf '%s' "$xml" >"$out/ui-at-failure.xml"
@@ -57,8 +70,10 @@ tap() {
 }
 
 expect() {
-    for _ in $(seq 1 "${2:-10}"); do
+    local i
+    for i in $(seq 1 "${2:-10}"); do
         dump | grep -E "(text|content-desc)=\"[^\"]*$1" >/dev/null && return 0
+        scroll "$i"
         sleep 2
     done
     shot failure
