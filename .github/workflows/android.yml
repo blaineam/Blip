@@ -1,12 +1,21 @@
 # Blip for Android: strings, native-core lint and tests, Kotlin unit tests, Android lint, then the
 # shrunk release build installed and launched on emulators (code shrinking is what breaks JNI, so a
-# debug-only check would prove little). The APK artifact is signed with a throwaway debug key: it is
-# for testing, not for distribution. Dispatch it by hand when a push carries [ci skip].
+# debug-only check would prove little). The `build` job's APK is signed with a throwaway debug key:
+# it is for testing, not for distribution.
+#
+# The `release` job builds the APK to give out, signed with Blip's release key, once both emulator
+# runs pass. It runs when the workflow is dispatched by hand, and for `android-v*` tags, which also
+# get a DRAFT GitHub prerelease (nothing is public until someone publishes the draft). It never
+# runs for pull requests, so their code can't reach the key. Set the key up once with
+# android/tools/setup-signing.sh, which stores these secrets:
+#   ANDROID_KEYSTORE_BASE64 / ANDROID_KEYSTORE_PASSWORD / ANDROID_KEY_ALIAS / ANDROID_KEY_PASSWORD
+# Dispatch it by hand when a push carries [ci skip] (at the tag's ref for a tagged build).
 name: Android
 
 on:
   push:
     branches: [main]
+    tags: ['android-v*']   # path filters are not evaluated for tag pushes
     paths:
       - 'android/**'
       - 'desktop/crates/**'
@@ -48,6 +57,9 @@ jobs:
           "$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" "ndk;27.1.12297006" >/dev/null
           echo "ANDROID_NDK_HOME=$ANDROID_HOME/ndk/27.1.12297006" >> "$GITHUB_ENV"
           cargo install cargo-ndk --locked
+
+      - name: Release version numbers
+        run: sh android/tools/test-version.sh
 
       - name: Strings are current
         working-directory: android
@@ -115,3 +127,143 @@ jobs:
           path: shots/
           if-no-files-found: ignore
           retention-days: 7
+
+  release:
+    needs: [build, smoke]
+    if: github.event_name == 'workflow_dispatch' || startsWith(github.ref, 'refs/tags/android-v')
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v5
+
+      # Without the secrets a manual run just notes it; a tag asked for a release, so it fails.
+      - name: Is the signing key set up?
+        id: key
+        env:
+          KEYSTORE: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
+          STORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+          KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
+          KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
+        run: |
+          if [ -n "$KEYSTORE" ] && [ -n "$STORE_PASSWORD" ] && [ -n "$KEY_ALIAS" ] && [ -n "$KEY_PASSWORD" ] &&
+              [ -s android/signing-cert.sha256 ]; then
+            echo "ready=true" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+          why="the four ANDROID_ signing secrets and android/signing-cert.sha256 are needed; run android/tools/setup-signing.sh and commit the fingerprint"
+          case "$GITHUB_REF" in
+            refs/tags/android-v*) echo "::error title=No signed APK::$why"; exit 1 ;;
+            *) echo "::notice title=No signed APK::$why" ;;
+          esac
+
+      - name: Version
+        if: steps.key.outputs.ready == 'true'
+        run: |
+          case "$GITHUB_REF" in
+            refs/tags/android-v*)
+              version=$(sh android/tools/version.sh "$GITHUB_REF_NAME")
+              echo "VERSION_NAME=${version% *}" >> "$GITHUB_ENV"
+              echo "VERSION_FLAGS=-PblipVersionName=${version% *} -PblipVersionCode=${version#* }" >> "$GITHUB_ENV" ;;
+            *)
+              # A manual build keeps the default versionCode (1): any tagged release installs over it.
+              echo "VERSION_NAME=2.1.0-dev.${GITHUB_SHA::7}" >> "$GITHUB_ENV"
+              echo "VERSION_FLAGS=-PblipVersionName=2.1.0-dev.${GITHUB_SHA::7}" >> "$GITHUB_ENV" ;;
+          esac
+
+      - uses: actions/setup-java@v4
+        if: steps.key.outputs.ready == 'true'
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - uses: gradle/actions/setup-gradle@v4
+        if: steps.key.outputs.ready == 'true'
+        with:
+          cache-read-only: true
+
+      - name: Rust toolchain, NDK and cargo-ndk
+        if: steps.key.outputs.ready == 'true'
+        run: |
+          rustup update stable --no-self-update
+          rustup default stable
+          rustup target add aarch64-linux-android armv7-linux-androideabi x86_64-linux-android
+          "$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" "ndk;27.1.12297006" >/dev/null
+          echo "ANDROID_NDK_HOME=$ANDROID_HOME/ndk/27.1.12297006" >> "$GITHUB_ENV"
+          cargo install cargo-ndk --locked
+
+      # The key exists on disk only for this step and is removed however it ends.
+      - name: Build the signed APK
+        if: steps.key.outputs.ready == 'true'
+        working-directory: android
+        env:
+          KEYSTORE_BASE64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
+          BLIP_ANDROID_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+          BLIP_ANDROID_KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
+          BLIP_ANDROID_KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
+        run: |
+          export BLIP_ANDROID_KEYSTORE="$RUNNER_TEMP/blip-release.jks"
+          trap 'rm -f "$BLIP_ANDROID_KEYSTORE"' EXIT
+          (umask 077; printf '%s' "$KEYSTORE_BASE64" | base64 -d > "$BLIP_ANDROID_KEYSTORE")
+          unset KEYSTORE_BASE64
+          ./gradlew --no-daemon $VERSION_FLAGS :app:assembleRelease
+
+      - name: Check the signature and package it
+        if: steps.key.outputs.ready == 'true'
+        run: |
+          apk=android/app/build/outputs/apk/release/app-release.apk
+          apksigner=$(ls -d "$ANDROID_HOME"/build-tools/*/ | sort -V | tail -1)apksigner
+          certs=$("$apksigner" verify --print-certs "$apk")
+          echo "$certs"
+          got=$(echo "$certs" | grep -m1 'certificate SHA-256 digest' | awk '{print $NF}')
+          want=$(tr -d '[:space:]' < android/signing-cert.sha256)
+          if [ "$got" != "$want" ]; then
+            echo "::error::signed with $got, but Blip's key is $want"
+            exit 1
+          fi
+          for abi in arm64-v8a armeabi-v7a x86_64; do
+            unzip -l "$apk" | grep -q "lib/$abi/libblip_android.so" || { echo "::error::no $abi library"; exit 1; }
+          done
+          mkdir -p dist
+          cp "$apk" "dist/Blip-$VERSION_NAME-android.apk"
+          (cd dist && sha256sum ./*.apk | sed 's#\./##' > SHA256SUMS.txt && cat SHA256SUMS.txt)
+
+      - uses: actions/upload-artifact@v4
+        if: steps.key.outputs.ready == 'true'
+        with:
+          name: Blip-android-signed-apk
+          path: dist/
+          retention-days: 30
+
+      - uses: actions/upload-artifact@v4
+        if: startsWith(github.ref, 'refs/tags/android-v') && steps.key.outputs.ready == 'true'
+        with:
+          name: android-release-files
+          path: dist/
+          retention-days: 5
+
+  draft:
+    needs: release
+    if: startsWith(github.ref, 'refs/tags/android-v')
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: actions/download-artifact@v4
+        with:
+          name: android-release-files
+          path: dist
+
+      # A draft, and never "Latest" (that is the Mac app): publishing is a person's decision.
+      - name: Draft the GitHub prerelease
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          if gh release view "$GITHUB_REF_NAME" >/dev/null 2>&1; then
+            gh release upload "$GITHUB_REF_NAME" dist/* --clobber
+          else
+            gh release create "$GITHUB_REF_NAME" dist/* \
+              --draft --prerelease --latest=false --verify-tag \
+              --title "Blip for Android ${GITHUB_REF_NAME#android-v}" \
+              --notes-file android/RELEASE_NOTES.md
+          fi

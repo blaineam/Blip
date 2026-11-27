@@ -126,7 +126,13 @@ A native Android app (Android 10 or newer; arm64, 32-bit ARM and x86_64) modelle
 
 **What Android keeps from apps:** other apps' CPU time, so Blip shows how hard the cores are clocked instead of a usage figure, and the Wi-Fi network name, which needs location access that Blip doesn't ask for.
 
-**Status:** there's no download yet. Build it from source; it has been tested on an emulator, not yet on a physical device.
+**Status:** there's no download yet. Build it from source; it has been tested on emulators, not yet on a physical device.
+
+### Signed builds (maintainer)
+
+1. Once, on your own Mac: `android/tools/setup-signing.sh`. It creates the release key in `~/.android-keys/blip` with a random password it never shows, stores the four `ANDROID_*` secrets on GitHub, and records the certificate's fingerprint in `android/signing-cert.sha256`. Commit that file, and back up the key folder: updates must be signed with the same key.
+2. A signed APK: `gh workflow run android.yml`, then take `Blip-android-signed-apk` from the run. It's built only after the emulator tests pass, and CI refuses an APK signed with any other key.
+3. A release: push a tag such as `android-v2.1.0-beta.1` (dispatch the workflow at that tag if the commit has `[ci skip]`). CI drafts a GitHub prerelease with the APK and checksums; nothing is public until you publish the draft. `android/tools/version.sh` turns the tag into the version name and an ever-rising version code.
 
 ```bash
 # Needs JDK 17, the Android SDK with NDK 27.1, Rust with the Android targets, and cargo-ndk

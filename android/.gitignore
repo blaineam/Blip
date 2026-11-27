@@ -9,3 +9,9 @@ captures/
 # iCloud conflict copies.
 * 2.*
 * 2
+# Signing keys never belong in the repository (see tools/setup-signing.sh).
+*.jks
+*.keystore
+*.p12
+password.txt
+keystore.properties

@@ -76,7 +76,11 @@ tray icon, no admin/root anywhere.
       set `BLIP_ANDROID_BUILD_DIR` to keep output out of iCloud.
 - [ ] A physical device: GPU bench leg (Vulkan/GLES; emulators have only software GPUs),
       cpufreq clusters, battery fields, thermal headroom, widgets on a real launcher.
-- [ ] Distribution (the owner's call): release signing key, Play Store or APK on GitHub.
+- [x] Signed APKs in CI (`release` job; `android-v*` tags make a DRAFT prerelease). Key in
+      `~/.android-keys/blip`, set up by the owner with `android/tools/setup-signing.sh`; the
+      certificate fingerprint is pinned in `android/signing-cert.sha256`.
+- [ ] Publishing (the owner's call): APK on GitHub and/or Play Store (an AAB and Play setup
+      would be needed).
 
 ## Linux parity limits (no root)
 - Tray needs a StatusNotifierItem host: stock GNOME (Fedora, Rocky) needs the AppIndicator
