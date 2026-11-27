@@ -118,6 +118,10 @@ jobs:
           api-level: ${{ matrix.api }}
           arch: x86_64
           target: google_apis
+          # The runner has 4 CPUs; the action's defaults (2 cores, ~2.5 GB) are tight for a
+          # current system image, and its adb connection dropped mid-test on API 35.
+          cores: 4
+          ram-size: 4096M
           script: android/tools/smoke.sh apk/app-release.apk shots
 
       - uses: actions/upload-artifact@v4
